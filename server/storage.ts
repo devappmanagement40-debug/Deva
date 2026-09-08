@@ -215,6 +215,12 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private settingsCache: {
+    value: Record<string, string>;
+    expiresAt: number;
+  } | null = null;
+  private settingsLoad: Promise<Record<string, string>> | null = null;
+
   // Users
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
@@ -1643,12 +1649,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSettings(): Promise<Record<string, string>> {
-    const allSettings = await db.select().from(platformSettings);
-    const result: Record<string, string> = {};
-    for (const s of allSettings) {
-      result[s.key] = s.value;
+    const now = Date.now();
+    if (this.settingsCache && this.settingsCache.expiresAt > now) {
+      return { ...this.settingsCache.value };
     }
-    return result;
+
+    // Coalesce concurrent public-page requests during a cold cache.
+    if (!this.settingsLoad) {
+      this.settingsLoad = (async () => {
+        const allSettings = await db.select().from(platformSettings);
+        const result: Record<string, string> = {};
+        for (const s of allSettings) {
+          result[s.key] = s.value;
+        }
+        this.settingsCache = {
+          value: result,
+          expiresAt: Date.now() + 5_000,
+        };
+        return result;
+      })().finally(() => {
+        this.settingsLoad = null;
+      });
+    }
+
+    return { ...(await this.settingsLoad) };
   }
 
   async setSetting(key: string, value: string, modifiedBy?: number): Promise<void> {
@@ -1658,6 +1682,7 @@ export class DatabaseStorage implements IStorage {
     } else {
       await db.insert(platformSettings).values({ key, value, modifiedBy, modifiedAt: new Date() });
     }
+    this.settingsCache = null;
   }
 
   // Admin

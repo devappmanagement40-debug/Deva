@@ -7,6 +7,7 @@ import { registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
+import { getDatabaseConfig } from "./database-config";
 import QRCode from "qrcode";
 import multer from "multer";
 import path from "path";
@@ -244,14 +245,22 @@ export async function registerRoutes(
     }
   });
 
-  const sessionDbUrl = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
-  app.use(
-    session({
+  const sessionDbConfig = {
+    ...getDatabaseConfig(),
+    // The session store has its own pool. Apply the same bounds as the main
+    // Drizzle pool so a stalled Supabase connection cannot block every API
+    // request waiting for a session.
+    max: 10,
+    connectionTimeoutMillis: 5_000,
+    idleTimeoutMillis: 30_000,
+    query_timeout: 10_000,
+    statement_timeout: 10_000,
+    keepAlive: true,
+  };
+  const sessionMiddleware = session({
       store: new PgSession({
-        conString: sessionDbUrl,
-        conObject: process.env.SUPABASE_DATABASE_URL
-          ? { connectionString: sessionDbUrl, ssl: { rejectUnauthorized: false } }
-          : undefined,
+        conString: sessionDbConfig.connectionString,
+        conObject: sessionDbConfig,
         tableName: "session",
         createTableIfMissing: true,
         pruneSessionInterval: 60 * 60,
@@ -269,8 +278,21 @@ export async function registerRoutes(
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       },
-    })
-  );
+    });
+
+  // Public bootstrap endpoints do not need a session lookup. Keeping them
+  // outside connect-pg-simple removes a database round-trip from the first
+  // render and leaves session loading for authenticated routes only.
+  const publicApiPathsWithoutSession = new Set([
+    "/countries",
+    "/settings",
+    "/settings/links",
+    "/nowpayments/ipn",
+  ]);
+  app.use("/api", (req, res, next) => {
+    if (publicApiPathsWithoutSession.has(req.path)) return next();
+    return sessionMiddleware(req, res, next);
+  });
 
   // ── Mode Maintenance ─────────────────────────────────────────────────────
   // Logique :
