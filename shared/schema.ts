@@ -458,6 +458,7 @@ export const registerSchema = z.object({
   invitationCode: z.string().optional(),
   transactionPassword: z.string().optional(),
   telegram: z.string().optional(),
+  captchaCode: z.string().trim().min(1, "Le code de vérification est requis"),
 });
 
 export const loginSchema = z.object({

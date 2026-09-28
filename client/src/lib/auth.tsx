@@ -6,7 +6,15 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (phone: string, country: string, password: string) => Promise<void>;
-  register: (data: { fullName: string; phone: string; country: string; password: string; invitationCode?: string }) => Promise<void>;
+  register: (data: {
+    fullName: string;
+    phone: string;
+    country: string;
+    password: string;
+    transactionPassword: string;
+    invitationCode?: string;
+    captchaCode: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -58,7 +66,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(data.user);
   };
 
-  const register = async (data: { fullName: string; phone: string; country: string; password: string; invitationCode?: string }) => {
+  const register = async (data: {
+    fullName: string;
+    phone: string;
+    country: string;
+    password: string;
+    transactionPassword: string;
+    invitationCode?: string;
+    captchaCode: string;
+  }) => {
     const response = await apiRequest("POST", "/api/auth/register", data);
     const result = await response.json();
     if (!response.ok) {

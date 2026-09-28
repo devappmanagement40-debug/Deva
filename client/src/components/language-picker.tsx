@@ -4,9 +4,10 @@ import { LANGUAGES, useI18n, type Lang } from "@/lib/i18n";
 
 interface LanguagePickerProps {
   global?: boolean;
+  variant?: "default" | "auth";
 }
 
-export function LanguagePicker({ global = false }: LanguagePickerProps) {
+export function LanguagePicker({ global = false, variant = "default" }: LanguagePickerProps) {
   const { lang, setLang, t } = useI18n();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -45,8 +46,23 @@ export function LanguagePicker({ global = false }: LanguagePickerProps) {
         aria-label={t.languageLabel}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center justify-center gap-0.5 ${global ? "fixed z-[60]" : ""}`}
-        style={global
+        className={`flex items-center justify-center ${variant === "auth" ? "gap-2" : "gap-0.5"} ${global ? "fixed z-[60]" : ""}`}
+        style={variant === "auth"
+          ? {
+              position: "absolute",
+              zIndex: 60,
+              top: 5,
+              right: 14,
+              minWidth: 110,
+              height: 37,
+              padding: "0 10px",
+              borderRadius: 999,
+              color: "#fff",
+              background: "rgba(4, 10, 30, .62)",
+              border: "1px solid rgba(255,255,255,.12)",
+              boxShadow: "none",
+            }
+          : global
           ? {
               top: 12,
               right: "max(12px, calc((100vw - 480px) / 2 + 16px))",
@@ -66,8 +82,17 @@ export function LanguagePicker({ global = false }: LanguagePickerProps) {
               border: "1px solid rgba(0,0,0,.09)",
             }}
       >
-        <span aria-hidden="true" className="text-[19px] leading-none">{selectedLanguage.flag}</span>
-        <ChevronDown size={14} color="#087a38" strokeWidth={2.4} />
+        {variant === "auth" ? (
+          <>
+            <Globe2 size={19} color="white" strokeWidth={2.1} aria-hidden="true" />
+            <span className="text-[16px] font-normal text-white">{selectedLanguage.nativeName}</span>
+          </>
+        ) : (
+          <>
+            <span aria-hidden="true" className="text-[19px] leading-none">{selectedLanguage.flag}</span>
+            <ChevronDown size={14} color="#087a38" strokeWidth={2.4} />
+          </>
+        )}
       </button>
 
       {open && (

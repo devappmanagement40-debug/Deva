@@ -354,8 +354,34 @@ export async function registerRoutes(
   });
 
   // Auth routes
+  app.get("/api/auth/captcha", (req, res) => {
+    const alphabet = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
+    const code = Array.from({ length: 4 }, () => alphabet[crypto.randomInt(0, alphabet.length)]).join("");
+    (req.session as any).registrationCaptcha = {
+      code: code.toLowerCase(),
+      expiresAt: Date.now() + 10 * 60 * 1000,
+    };
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="90" height="49" viewBox="0 0 90 49"><rect width="90" height="49" rx="4" fill="#fff"/><path d="M5 12L81 37M8 40L72 7M18 47L87 15" stroke="#a682c5" stroke-width="2.1" opacity=".55"/><path d="M2 24L88 31" stroke="#5c82b6" stroke-width="1" opacity=".4"/><text x="45" y="33" text-anchor="middle" font-family="Georgia,serif" font-size="27" font-weight="700" letter-spacing="-2" fill="#19131d" transform="rotate(-5 45 25)">${code}</text></svg>`;
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.json({ image: `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}` });
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
+      const captcha = (req.session as any).registrationCaptcha as { code: string; expiresAt: number } | undefined;
+      delete (req.session as any).registrationCaptcha;
+      const submittedCaptcha = typeof req.body?.captchaCode === "string"
+        ? req.body.captchaCode.trim().toLowerCase()
+        : "";
+      if (!captcha || captcha.expiresAt < Date.now() || !submittedCaptcha || submittedCaptcha !== captcha.code) {
+        return res.status(400).json({
+          message: captcha && captcha.expiresAt >= Date.now()
+            ? "Code de vérification incorrect"
+            : "Code de vérification expiré, actualisez l’image",
+        });
+      }
+
       const data = registerSchema.parse(req.body);
       const existing = await storage.getUserByPhone(data.phone, data.country);
       if (existing) {

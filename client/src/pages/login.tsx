@@ -1,38 +1,31 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { FALLBACK_COUNTRIES, fetchPublicCountries, type ApiCountry } from "@/lib/countries";
 import { CountrySelector } from "@/components/country-selector";
 import { DEFAULT_COUNTRY_CODE, WORLD_COUNTRIES } from "@/lib/world-countries";
 import { useI18n } from "@/lib/i18n";
-import { LockBoldIcon, PhoneBoldIcon } from "@/components/auth-icons";
 import { setAppLoading } from "@/components/navigation-loader";
-import tgoodChargingStation from "@assets/generated_images/tgood-charging-station-hero.jpg";
-import tgoodChargingPile from "@assets/image_search/tgood-real-charging-pile-transparent.png";
+import { AuthScene } from "@/components/auth-scene";
 
-const TGOOD_GREEN = "#00c853";
+const REMEMBERED_PHONE_KEY = "ielp-auth-phone";
+const REMEMBERED_COUNTRY_KEY = "ielp-auth-country";
 
-function TgoodHero() {
-  return (
-    <div className="relative h-[40vh] min-h-[270px] max-h-[395px] overflow-hidden">
-      <img src={tgoodChargingStation} alt="Conducteur rechargeant une voiture électrique dans une station TGOOD" className="absolute inset-0 h-full w-full object-cover object-center" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#003a1e]/12 via-[#003a1e]/8 to-[#001f10]/42" />
-      <span className="absolute left-1/2 top-1 -translate-x-1/2 font-black tracking-[-3px] text-white drop-shadow-md" style={{ fontSize: "clamp(48px, 15vw, 70px)" }}>
-        TGOOD
-      </span>
-      <img
-        src={tgoodChargingPile}
-        alt="Borne de recharge TGOOD"
-        className="absolute bottom-[-7%] right-[8%] h-[83%] w-[45%] object-contain drop-shadow-[0_12px_12px_rgba(0,0,0,.28)]"
-      />
-    </div>
-  );
+function readRememberedLogin() {
+  try {
+    return {
+      phone: window.localStorage.getItem(REMEMBERED_PHONE_KEY) || "",
+      country: window.localStorage.getItem(REMEMBERED_COUNTRY_KEY) || DEFAULT_COUNTRY_CODE,
+    };
+  } catch {
+    return { phone: "", country: DEFAULT_COUNTRY_CODE };
+  }
 }
 
 export default function LoginPage() {
@@ -43,7 +36,10 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [countryModalOpen, setCountryModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [savedLogin] = useState(readRememberedLogin);
+  const [rememberMe, setRememberMe] = useState(Boolean(savedLogin.phone));
   const countryTriggerRef = useRef<HTMLButtonElement>(null);
+
   const loginSchema = z.object({
     phone: z.string().min(8, t.errInvalidPhone),
     country: z.string().min(2, t.selectCountry),
@@ -52,7 +48,7 @@ export default function LoginPage() {
   type LoginForm = z.infer<typeof loginSchema>;
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { phone: "", country: DEFAULT_COUNTRY_CODE, password: "" },
+    defaultValues: { phone: savedLogin.phone, country: savedLogin.country, password: "" },
   });
   const { data: apiCountries = [] } = useQuery<ApiCountry[]>({
     queryKey: ["/api/countries"],
@@ -60,12 +56,7 @@ export default function LoginPage() {
     retry: false,
   });
   const selectedCountry = form.watch("country");
-
-  useEffect(() => {
-    if (!apiCountries?.length) return;
-  }, [apiCountries]);
-
-  const countryData = apiCountries?.find(country => country.code === selectedCountry && country.isActive)
+  const countryData = apiCountries.find(country => country.code === selectedCountry && country.isActive)
     ?? WORLD_COUNTRIES.find(country => country.code === selectedCountry)
     ?? FALLBACK_COUNTRIES.find(country => country.code === selectedCountry);
   const countryLocale = lang === "zh" ? "zh-CN" : lang === "ar" ? "ar" : lang === "en" ? "en-US" : "fr-FR";
@@ -78,6 +69,17 @@ export default function LoginPage() {
     setAppLoading(true);
     try {
       await login(data.phone, data.country, data.password);
+      try {
+        if (rememberMe) {
+          window.localStorage.setItem(REMEMBERED_PHONE_KEY, data.phone);
+          window.localStorage.setItem(REMEMBERED_COUNTRY_KEY, data.country);
+        } else {
+          window.localStorage.removeItem(REMEMBERED_PHONE_KEY);
+          window.localStorage.removeItem(REMEMBERED_COUNTRY_KEY);
+        }
+      } catch {
+        // Continue the successful sign-in if browser storage is unavailable.
+      }
       navigate("/");
     } catch (error: any) {
       toast({ title: error.message || t.errLoginFailed, variant: "destructive" });
@@ -88,38 +90,89 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#00c853]">
-      <TgoodHero />
-      <section className="relative -mt-2 min-h-[55vh] rounded-t-[28px] bg-[#00c853] px-[30px] pb-12 pt-[70px]">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto flex w-full max-w-[430px] flex-col gap-[20px]">
-          <input type="hidden" {...form.register("country")} />
-          <div className="auth-reference-field">
-            <PhoneBoldIcon size={34} color={TGOOD_GREEN} badge={false} />
-            <button ref={countryTriggerRef} type="button" onClick={() => setCountryModalOpen(true)} className="flex shrink-0 items-center gap-1 pr-3 text-[25px] font-normal text-[#5b5b5b]" aria-label={`${t.selectCountry}: ${countryName || countryData?.name || "DR Congo"}, +${countryData?.phonePrefix || "243"}`} aria-haspopup="dialog" aria-expanded={countryModalOpen} data-testid="button-select-country">
-              +{countryData?.phonePrefix || "243"} <ChevronDown size={18} className="text-[#9c9c9c]" />
-            </button>
-            <input {...form.register("phone")} type="tel" aria-label={t.yourNumber} placeholder={t.phonePlaceholder} className="min-w-0 flex-1 bg-transparent text-[16px] text-[#00ad49] outline-none placeholder:text-[#00ad49]" data-testid="input-phone" />
-          </div>
-          {form.formState.errors.phone && <p className="-mt-3 text-xs text-red-100">{form.formState.errors.phone.message}</p>}
-
-          <div className="auth-reference-field">
-            <LockBoldIcon size={34} color={TGOOD_GREEN} badge={false} />
-            <input {...form.register("password")} type={showPassword ? "text" : "password"} aria-label={t.yourPassword} placeholder={t.passwordPlaceholder} className="min-w-0 flex-1 bg-transparent text-[16px] text-[#00ad49] outline-none placeholder:text-[#00ad49]" data-testid="input-password" />
-            <button type="button" onClick={() => setShowPassword(value => !value)} className="p-1 text-[#00c853]" aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"} aria-pressed={showPassword}>
-              {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-            </button>
-          </div>
-          {form.formState.errors.password && <p className="-mt-3 text-xs text-red-100">{form.formState.errors.password.message}</p>}
-
-          <button type="button" onClick={() => navigate("/register")} className="self-end pt-1 text-[18px] text-white underline underline-offset-2" data-testid="link-register">
-            {t.noAccountRegister} &gt;
+    <AuthScene showChatButton>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form auth-login-form" noValidate>
+        <input type="hidden" {...form.register("country")} />
+        <div className="auth-input">
+          <button
+            ref={countryTriggerRef}
+            type="button"
+            onClick={() => setCountryModalOpen(true)}
+            className="auth-country-trigger"
+            aria-label={`${t.selectCountry}: ${countryName || countryData?.name || "United States"}, +${countryData?.phonePrefix || "1"}`}
+            aria-haspopup="dialog"
+            aria-expanded={countryModalOpen}
+            data-testid="button-select-country"
+          >
+            +{countryData?.phonePrefix || "1"}
           </button>
-          <button type="submit" disabled={isLoading} className="mt-1 h-[62px] w-full rounded-[10px] bg-white text-[27px] font-bold text-[#00c853] shadow-[0_3px_8px_rgba(0,0,0,.08)] transition active:scale-[.98] disabled:opacity-60" data-testid="button-login">
-            {isLoading ? t.loginLoading : t.loginBtn}
+          <input
+            {...form.register("phone")}
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            aria-label={t.authPhoneLabel}
+            placeholder={t.authPhoneLabel}
+            data-testid="input-phone"
+          />
+        </div>
+        {form.formState.errors.phone && <p className="auth-form-error" role="alert">{form.formState.errors.phone.message}</p>}
+
+        <div className="auth-input">
+          <input
+            {...form.register("password")}
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            aria-label={t.authPasswordLabel}
+            placeholder={t.authPasswordLabel}
+            data-testid="input-password"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(value => !value)}
+            className="auth-reveal-button"
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            aria-pressed={showPassword}
+          >
+            {showPassword ? <EyeOff size={21} /> : <Eye size={21} />}
           </button>
-        </form>
-      </section>
-      <CountrySelector open={countryModalOpen} onClose={() => setCountryModalOpen(false)} onSelect={(code) => form.setValue("country", code, { shouldValidate: true })} selectedCode={selectedCountry} apiCountries={apiCountries} triggerRef={countryTriggerRef} />
-    </main>
+        </div>
+        {form.formState.errors.password && <p className="auth-form-error" role="alert">{form.formState.errors.password.message}</p>}
+
+        <label className="auth-remember">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={event => setRememberMe(event.target.checked)}
+            data-testid="checkbox-remember-me"
+          />
+          <span className="auth-remember__check" aria-hidden="true" />
+          <span>{t.authRememberMe}</span>
+        </label>
+
+        <button type="submit" disabled={isLoading} className="auth-submit" data-testid="button-login">
+          {isLoading ? t.loginLoading : t.loginBtn}
+        </button>
+      </form>
+
+      <div className="auth-account-switch">
+        <span>{t.authNoAccountPrompt}</span>
+        <button type="button" onClick={() => navigate("/register")} data-testid="link-register">
+          {t.registerBtn}
+        </button>
+      </div>
+      <button type="button" className="auth-home-link" onClick={() => navigate("/")}>
+        {t.authHome}
+      </button>
+
+      <CountrySelector
+        open={countryModalOpen}
+        onClose={() => setCountryModalOpen(false)}
+        onSelect={code => form.setValue("country", code, { shouldValidate: true })}
+        selectedCode={selectedCountry}
+        apiCountries={apiCountries}
+        triggerRef={countryTriggerRef}
+      />
+    </AuthScene>
   );
 }

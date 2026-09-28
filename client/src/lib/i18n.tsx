@@ -44,6 +44,15 @@ export type Translations = {
   welcomeMsg: string;
   languageLabel: string;
   selectCountry: string;
+  authPhoneLabel: string;
+  authPasswordLabel: string;
+  authPinLabel: string;
+  authCaptchaLabel: string;
+  authCaptchaRequired: string;
+  authNoAccountPrompt: string;
+  authHasAccountPrompt: string;
+  authHome: string;
+  authRememberMe: string;
   phonePlaceholder: string;
   passwordPlaceholder: string;
   confirmPasswordPlaceholder: string;
@@ -681,6 +690,15 @@ const fr: Translations = {
     welcomeMsg:         "Bienvenue sur TGOOD !",
     languageLabel:      "Langue",
     selectCountry:      "Sélectionnez un pays",
+    authPhoneLabel:     "Téléphone",
+    authPasswordLabel:  "Mot de passe",
+    authPinLabel:       "Code PIN de sécurité",
+    authCaptchaLabel:   "Code",
+    authCaptchaRequired:"Saisissez le code affiché",
+    authNoAccountPrompt:"Pas de compte ?",
+    authHasAccountPrompt:"Vous avez un compte ?",
+    authHome:           "Maison",
+    authRememberMe:     "Souviens-toi de moi",
     phonePlaceholder:   "Veuillez saisir votre numéro de téléphone",
     passwordPlaceholder:"Veuillez saisir votre mot de passe",
     confirmPasswordPlaceholder: "Veuillez confirmer votre mot de passe",

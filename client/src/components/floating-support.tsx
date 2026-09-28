@@ -15,9 +15,10 @@ interface SettingsLinks {
 
 interface FloatingSupportProps {
   bottomOffset?: number;
+  placement?: "bottom" | "auth";
 }
 
-export function FloatingSupport({ bottomOffset = 24 }: FloatingSupportProps) {
+export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: FloatingSupportProps) {
   const { t } = useI18n();
   const { data } = useQuery<SettingsLinks>({
     queryKey: ["/api/settings/links"],
@@ -39,9 +40,16 @@ export function FloatingSupport({ bottomOffset = 24 }: FloatingSupportProps) {
 
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
 
+  const buttonSize = placement === "auth" ? 56 : 64;
+
   useEffect(() => {
-    setPos({ right: 18, bottom: bottomOffset + 40 });
-  }, [bottomOffset]);
+    setPos({
+      right: placement === "auth" ? 10 : 18,
+      bottom: placement === "auth"
+        ? Math.max(0, window.innerHeight / 2 - buttonSize)
+        : bottomOffset + 40,
+    });
+  }, [bottomOffset, buttonSize, placement]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!btnRef.current || pos === null) return;
@@ -62,13 +70,12 @@ export function FloatingSupport({ bottomOffset = 24 }: FloatingSupportProps) {
 
     const newLeft = startOffset.current.x + dx;
     const newTop = startOffset.current.y + dy;
-    const btnSize = 64;
-    const clampedLeft = Math.max(0, Math.min(window.innerWidth - btnSize, newLeft));
-    const clampedTop = Math.max(0, Math.min(window.innerHeight - btnSize, newTop));
+    const clampedLeft = Math.max(0, Math.min(window.innerWidth - buttonSize, newLeft));
+    const clampedTop = Math.max(0, Math.min(window.innerHeight - buttonSize, newTop));
 
     setPos({
-      right: window.innerWidth - clampedLeft - btnSize,
-      bottom: window.innerHeight - clampedTop - btnSize,
+      right: window.innerWidth - clampedLeft - buttonSize,
+      bottom: window.innerHeight - clampedTop - buttonSize,
     });
   };
 
@@ -94,13 +101,13 @@ export function FloatingSupport({ bottomOffset = 24 }: FloatingSupportProps) {
         right: pos.right,
         bottom: pos.bottom,
         zIndex: 200,
-        width: 64,
-        height: 64,
+      width: buttonSize,
+      height: buttonSize,
         borderRadius: "50%",
-        border: "none",
-        padding: 0,
+      border: placement === "auth" ? "2px solid rgba(255,255,255,.95)" : "none",
+      padding: 0,
         cursor: "grab",
-        background: "#fff",
+      background: "#fff",
         boxShadow: "0 4px 16px rgba(0,0,0,0.25), 0 0 10px rgba(0,0,0,0.25)",
         overflow: "hidden",
         touchAction: "none",
@@ -108,7 +115,7 @@ export function FloatingSupport({ bottomOffset = 24 }: FloatingSupportProps) {
       }}
     >
       <img
-        src={supportAvatar}
+        src={placement === "auth" ? "/support-avatar.png" : supportAvatar}
         alt={t.customerService}
         draggable={false}
         style={{
