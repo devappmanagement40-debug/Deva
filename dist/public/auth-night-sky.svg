@@ -16,11 +16,21 @@
       <stop offset=".16" stop-color="#d9e8ff" stop-opacity=".76"/>
       <stop offset="1" stop-color="#a9caff" stop-opacity="0"/>
     </radialGradient>
+    <pattern id="star-dust" width="83" height="113" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="17" r=".8" fill="#c8dcff" opacity=".46"/>
+      <circle cx="29" cy="37" r=".65" fill="#d9e7ff" opacity=".38"/>
+      <circle cx="69" cy="8" r=".7" fill="#c8dcff" opacity=".35"/>
+      <circle cx="54" cy="55" r=".9" fill="#bcd4ff" opacity=".37"/>
+      <circle cx="16" cy="77" r=".7" fill="#e7f0ff" opacity=".32"/>
+      <circle cx="75" cy="91" r=".8" fill="#cadcff" opacity=".39"/>
+      <circle cx="38" cy="101" r=".65" fill="#dce9ff" opacity=".35"/>
+    </pattern>
     <filter id="blur-glow" x="-200%" y="-200%" width="500%" height="500%">
       <feGaussianBlur stdDeviation="5"/>
     </filter>
   </defs>
   <rect width="461" height="900" fill="url(#sky)"/>
+  <rect width="461" height="900" fill="url(#star-dust)" opacity=".8"/>
   <ellipse cx="225" cy="450" rx="330" ry="340" fill="url(#blue-haze)"/>
   <ellipse cx="95" cy="676" rx="310" ry="260" fill="url(#blue-haze)" opacity=".64"/>
   <g fill="#c7dcff">

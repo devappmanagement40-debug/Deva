@@ -15,7 +15,7 @@ interface SettingsLinks {
 
 interface FloatingSupportProps {
   bottomOffset?: number;
-  placement?: "bottom" | "auth";
+  placement?: "bottom" | "auth" | "home";
 }
 
 export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: FloatingSupportProps) {
@@ -40,15 +40,27 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
 
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
 
-  const buttonSize = placement === "auth" ? 56 : 64;
+  const buttonSize = placement === "auth" ? 56 : placement === "home" ? 52 : 64;
 
   useEffect(() => {
-    setPos({
-      right: placement === "auth" ? 10 : 18,
-      bottom: placement === "auth"
-        ? Math.max(0, window.innerHeight / 2 - buttonSize)
-        : bottomOffset + 40,
-    });
+    if (placement !== "home") {
+      setPos({
+        right: placement === "auth" ? 10 : 18,
+        bottom: placement === "auth"
+          ? Math.max(0, window.innerHeight / 2 - buttonSize)
+          : bottomOffset + 40,
+      });
+      return;
+    }
+    const resetPosition = () => {
+      setPos({
+        right: Math.max(10, (window.innerWidth - 480) / 2 + 10),
+        bottom: Math.max(0, window.innerHeight / 2 - buttonSize),
+      });
+    };
+    resetPosition();
+    window.addEventListener("resize", resetPosition);
+    return () => window.removeEventListener("resize", resetPosition);
   }, [bottomOffset, buttonSize, placement]);
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -104,7 +116,7 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
       width: buttonSize,
       height: buttonSize,
         borderRadius: "50%",
-      border: placement === "auth" ? "2px solid rgba(255,255,255,.95)" : "none",
+      border: placement === "auth" || placement === "home" ? "2px solid rgba(255,255,255,.95)" : "none",
       padding: 0,
         cursor: "grab",
       background: "#fff",
@@ -115,7 +127,7 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
       }}
     >
       <img
-        src={placement === "auth" ? "/support-avatar.png" : supportAvatar}
+        src={placement === "auth" || placement === "home" ? "/support-avatar.png" : supportAvatar}
         alt={t.customerService}
         draggable={false}
         style={{

@@ -1947,6 +1947,29 @@ export async function registerRoutes(
     }
   });
 
+  let publicHomeStatsCache: {
+    expiresAt: number;
+    value: { totalUsers: number; totalProduction: number };
+  } | undefined;
+  app.get("/api/home/stats", requireAuth, async (_req, res) => {
+    const now = Date.now();
+    if (publicHomeStatsCache && publicHomeStatsCache.expiresAt > now) {
+      return res.json(publicHomeStatsCache.value);
+    }
+    try {
+      const stats = await storage.getStats();
+      const value = {
+        totalUsers: Number(stats.totalUsers) || 0,
+        totalProduction: Number(stats.totalEarnings) || 0,
+      };
+      publicHomeStatsCache = { expiresAt: now + 60_000, value };
+      res.json(value);
+    } catch (error: any) {
+      console.error("Home stats error:", error);
+      res.status(500).json({ message: "Statistiques temporairement indisponibles" });
+    }
+  });
+
   app.get("/api/settings/links", async (req, res) => {
     try {
       const settings = await storage.getSettings();

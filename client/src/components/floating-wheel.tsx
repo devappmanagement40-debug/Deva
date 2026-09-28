@@ -12,30 +12,25 @@ function MiniWheel({ size = 64, segments }: { size?: number; segments: SpinWheel
   const cx = size / 2;
   const cy = size / 2;
   const outer = size / 2 - 1;
-  const inner = outer - 9;
-  const hub = size / 8;
+  const inner = outer - 2;
+  const hub = size / 7;
   const n = segments.length;
   const arc = (2 * Math.PI) / n;
-  const fills = ["#E8192C", "#111111", "#f7f7f7", "#8f101d"];
+  const fills = ["#f7c5df", "#ffffff", "#efa2cb", "#ffd9eb"];
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: "block" }}>
       <defs>
-        <radialGradient id="miniWheelHub" cx="32%" cy="28%">
-          <stop offset="0%" stopColor="#fff4d1" />
-          <stop offset="45%" stopColor="#d9a83e" />
-          <stop offset="100%" stopColor="#7a4b10" />
-        </radialGradient>
         <linearGradient id="miniWheelRim" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#555" />
-          <stop offset="35%" stopColor="#111" />
-          <stop offset="70%" stopColor="#2d2d2d" />
-          <stop offset="100%" stopColor="#050505" />
+          <stop offset="0%" stopColor="#fff0f8" />
+          <stop offset="35%" stopColor="#f4b4d3" />
+          <stop offset="70%" stopColor="#e987bb" />
+          <stop offset="100%" stopColor="#fff2f9" />
         </linearGradient>
       </defs>
 
-      <circle cx={cx} cy={cy} r={outer} fill="url(#miniWheelRim)" stroke="#000" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={outer - 3} fill="none" stroke="#777" strokeWidth="0.8" opacity="0.8" />
+      <circle cx={cx} cy={cy} r={outer} fill="url(#miniWheelRim)" stroke="#fff" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={outer - 1.5} fill="none" stroke="#e98abd" strokeWidth="0.8" opacity="0.8" />
 
       {segments.map((segment, i) => {
         const start = i * arc - Math.PI / 2;
@@ -44,43 +39,22 @@ function MiniWheel({ size = 64, segments }: { size?: number; segments: SpinWheel
         const y1 = cy + Math.sin(start) * inner;
         const x2 = cx + Math.cos(end) * inner;
         const y2 = cy + Math.sin(end) * inner;
-        const mid = start + arc / 2;
-        const labelRadius = inner * 0.69;
-        const label = segment.canWin
-          ? segment.amount >= 1000
-            ? `${segment.amount / 1000}k`
-            : `${segment.amount}`
-          : "•";
         return (
           <g key={segment.id}>
             <path
               d={`M ${cx} ${cy} L ${x1} ${y1} A ${inner} ${inner} 0 0 1 ${x2} ${y2} Z`}
               fill={fills[i % fills.length]}
-              stroke="#292929"
-              strokeWidth="0.8"
+              stroke="#fff7fb"
+              strokeWidth="1.3"
             />
-            <text
-              x={cx + Math.cos(mid) * labelRadius}
-              y={cy + Math.sin(mid) * labelRadius}
-              fill={fills[i % fills.length] === "#f7f7f7" ? "#222" : "#fff"}
-              fontSize={size / 13}
-              fontWeight="800"
-              textAnchor="middle"
-              dominantBaseline="central"
-              transform={`rotate(${(mid * 180) / Math.PI + 90} ${cx + Math.cos(mid) * labelRadius} ${cy + Math.sin(mid) * labelRadius})`}
-            >
-              {label}
-            </text>
           </g>
         );
       })}
 
-      <circle cx={cx} cy={cy} r={hub + 2} fill="#3a3a3a" stroke="#d9a83e" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={hub} fill="url(#miniWheelHub)" stroke="#fff0c2" strokeWidth="0.7" />
-      <text x={cx} y={cy} fill="#fff" fontSize={size / 16} fontWeight="900" textAnchor="middle" dominantBaseline="central">
-        GO
-      </text>
-      <path d={`M ${cx} 1 L ${cx - 3} 8 L ${cx + 3} 8 Z`} fill="#E8192C" stroke="#fff" strokeWidth="0.6" />
+      <circle cx={cx} cy={cy} r={hub + 2} fill="#fff" stroke="#ec8fbd" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={hub} fill="#ffe9f4" stroke="#fff" strokeWidth="0.7" />
+      <circle cx={cx} cy={cy} r={hub / 2} fill="#ed8abb" />
+      <path d={`M ${cx} 1 L ${cx - 3} 7 L ${cx + 3} 7 Z`} fill="#fff" stroke="#ed8abb" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -95,6 +69,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
   const startOffset  = useRef({ x: 0, y: 0 });
 
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
+  const buttonSize = 44;
 
   const { data: configuredSegments } = useQuery<SpinWheelSegment[]>({
     queryKey: ["/api/spin-wheel/config"],
@@ -102,7 +77,13 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
   const segments = configuredSegments?.length ? configuredSegments : DEFAULT_SPIN_WHEEL_SEGMENTS;
 
   useEffect(() => {
-    setPos({ right: 18, bottom: bottomOffset + 120 });
+    const resetPosition = () => setPos({
+      right: Math.max(2, (window.innerWidth - 480) / 2 + 2),
+      bottom: bottomOffset + 120,
+    });
+    resetPosition();
+    window.addEventListener("resize", resetPosition);
+    return () => window.removeEventListener("resize", resetPosition);
   }, [bottomOffset]);
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -123,7 +104,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag.current = true;
     const newLeft = startOffset.current.x + dx;
     const newTop  = startOffset.current.y + dy;
-    const btnSize = 64;
+    const btnSize = buttonSize;
     const clampedLeft = Math.max(0, Math.min(window.innerWidth  - btnSize, newLeft));
     const clampedTop  = Math.max(0, Math.min(window.innerHeight - btnSize, newTop));
     setPos({
@@ -153,8 +134,8 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
           right:       pos.right,
           bottom:      pos.bottom,
           zIndex:      200,
-          width:       64,
-          height:      64,
+          width:       buttonSize,
+          height:      buttonSize,
           borderRadius:"50%",
           border:      "none",
           padding:     0,
@@ -176,7 +157,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
           width:           "100%",
           height:          "100%",
         }}>
-          <MiniWheel size={64} segments={segments} />
+          <MiniWheel size={buttonSize} segments={segments} />
         </div>
       </button>
     </>

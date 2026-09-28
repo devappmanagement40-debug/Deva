@@ -4,7 +4,7 @@ import { LANGUAGES, useI18n, type Lang } from "@/lib/i18n";
 
 interface LanguagePickerProps {
   global?: boolean;
-  variant?: "default" | "auth";
+  variant?: "default" | "auth" | "home";
 }
 
 export function LanguagePicker({ global = false, variant = "default" }: LanguagePickerProps) {
@@ -46,7 +46,7 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
         aria-label={t.languageLabel}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex items-center justify-center ${variant === "auth" ? "gap-2" : "gap-0.5"} ${global ? "fixed z-[60]" : ""}`}
+        className={`flex items-center justify-center ${variant !== "default" ? "gap-2" : "gap-0.5"} ${global ? "fixed z-[60]" : ""}`}
         style={variant === "auth"
           ? {
               position: "absolute",
@@ -59,6 +59,18 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
               borderRadius: 999,
               color: "#fff",
               background: "rgba(4, 10, 30, .62)",
+              border: "1px solid rgba(255,255,255,.12)",
+              boxShadow: "none",
+            }
+          : variant === "home"
+          ? {
+              position: "relative",
+              minWidth: 106,
+              height: 37,
+              padding: "0 10px",
+              borderRadius: 999,
+              color: "#fff",
+              background: "rgba(2, 10, 39, .42)",
               border: "1px solid rgba(255,255,255,.12)",
               boxShadow: "none",
             }
@@ -82,7 +94,7 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
               border: "1px solid rgba(0,0,0,.09)",
             }}
       >
-        {variant === "auth" ? (
+        {variant !== "default" ? (
           <>
             <Globe2 size={19} color="white" strokeWidth={2.1} aria-hidden="true" />
             <span className="text-[16px] font-normal text-white">{selectedLanguage.nativeName}</span>
@@ -121,7 +133,7 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
             }}
             className="absolute w-[min(250px,calc(100vw-24px))] overflow-hidden border border-[#dfe8e2] bg-white shadow-[0_12px_30px_rgba(0,0,0,.18)] outline-none"
             style={{
-              top: 62,
+              top: variant === "home" ? 56 : 62,
               right: "max(12px, calc((100vw - 480px) / 2 + 16px))",
               borderRadius: 14,
               maxHeight: "calc(100vh - 76px)",

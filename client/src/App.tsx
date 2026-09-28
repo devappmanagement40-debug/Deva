@@ -48,7 +48,7 @@ import { I18nProvider } from "@/lib/i18n";
 import BottomNav from "@/components/bottom-nav";
 import LoginPage from "@/pages/login";
 import RegisterPage from "@/pages/register";
-import HomePage from "@/pages/home";
+import HomePage from "@/pages/ielp-home";
 import TasksPage from "@/pages/tasks";
 import InvestPage from "@/pages/invest";
 import ProductsPage from "@/pages/products";
@@ -86,7 +86,6 @@ import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import NavigationLoader from "@/components/navigation-loader";
-import { LanguagePicker } from "@/components/language-picker";
 
 function BannedMessage() {
   const { t } = useI18n();
@@ -185,18 +184,16 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AppLayout({ children }: { children: React.ReactNode }) {
+function AppLayout({ children, home = false }: { children: React.ReactNode; home?: boolean }) {
   return (
-    <div className="app-shell min-h-screen bg-background pb-2">
+    <div className={`app-shell min-h-screen ${home ? "ielp-home-app-shell" : "bg-background pb-2"}`}>
       {children}
-      <BottomNav />
+      <BottomNav home={home} />
     </div>
   );
 }
 
 function RouterComponent() {
-  const [location] = useLocation();
-
   return (
     <>
       <Switch>
@@ -222,7 +219,7 @@ function RouterComponent() {
         </Route>
         <Route path="/">
           <ProtectedRoute>
-            <AppLayout>
+            <AppLayout home>
               <HomePage />
             </AppLayout>
           </ProtectedRoute>
@@ -407,7 +404,6 @@ function RouterComponent() {
       </Route>
         <Route component={NotFound} />
       </Switch>
-      {location === "/" && <LanguagePicker global />}
     </>
   );
 }
