@@ -5,13 +5,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { AlertTriangle, ChevronDown, Loader2, MessageCircleMore, MessageSquare } from "lucide-react";
+import { useI18n, type Lang } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/countries";
+import { LanguagePicker } from "@/components/language-picker";
+import { FloatingSupport } from "@/components/floating-support";
 import type { Product } from "@shared/schema";
-
 import { getProductVisual } from "@/lib/product-visuals";
 import { getContent } from "@/lib/content";
+import "./products.css";
 
 const TGOOD_GREEN = "#00ef24";
 const CURRENCY = "USDT";
@@ -20,18 +22,121 @@ interface ProductWithOwnership extends Product {
   ownedCount?: number;
 }
 
-/* ── Info row inside card ── */
-function InfoRow({ label, value }: { label: string; value: string }) {
+const INVEST_COPY: Record<Lang, {
+  introTitle: string;
+  growthLine: string;
+  marketLine: string;
+  moreLine: string;
+  more: string;
+  less: string;
+  myInvestments: string;
+  days: string;
+  daily: string;
+  term: string;
+  minimum: string;
+  total: string;
+  fixedDuration: string;
+  investNow: string;
+  chat: string;
+}> = {
+  fr: {
+    introTitle: "Introduction aux produits d'investissement et de gestion de patrimoine",
+    growthLine: "Nous vous aidons à réaliser une croissance rapide de votre patrimoine !",
+    marketLine: "Dans ce marché en constante évolution, nous proposons des produits d'investissement et de gestion",
+    moreLine: "de patrimoine conçus pour vos objectifs.",
+    more: "Plus",
+    less: "Moins",
+    myInvestments: "Investir des données",
+    days: "jours",
+    daily: "Tous les jours",
+    term: "Terme",
+    minimum: "Investissement minimum",
+    total: "Investissement total",
+    fixedDuration: "Durée déterminée",
+    investNow: "INVESTISSEZ MAINTENANT",
+    chat: "Assistance",
+  },
+  en: {
+    introTitle: "Introduction to investment products and wealth management",
+    growthLine: "We help you achieve rapid growth in your wealth!",
+    marketLine: "In a constantly evolving market, we offer investment and wealth management products",
+    moreLine: "designed to support your goals.",
+    more: "More",
+    less: "Less",
+    myInvestments: "My investments",
+    days: "days",
+    daily: "Every day",
+    term: "Term",
+    minimum: "Minimum investment",
+    total: "Total investment",
+    fixedDuration: "Fixed duration",
+    investNow: "INVEST NOW",
+    chat: "Support",
+  },
+  ar: {
+    introTitle: "مقدمة عن منتجات الاستثمار وإدارة الثروات",
+    growthLine: "نساعدك على تحقيق نمو سريع لثروتك!",
+    marketLine: "في هذا السوق المتطور باستمرار، نقدم منتجات استثمارية ومنتجات لإدارة الثروات",
+    moreLine: "مصممة لدعم أهدافك.",
+    more: "المزيد",
+    less: "أقل",
+    myInvestments: "استثماراتي",
+    days: "أيام",
+    daily: "يوميًا",
+    term: "المدة",
+    minimum: "الحد الأدنى للاستثمار",
+    total: "إجمالي الاستثمار",
+    fixedDuration: "العائد المحدد",
+    investNow: "استثمر الآن",
+    chat: "الدعم",
+  },
+  zh: {
+    introTitle: "投资产品与财富管理简介",
+    growthLine: "助您实现财富快速增长！",
+    marketLine: "在不断变化的市场中，我们提供投资和财富管理产品",
+    moreLine: "以支持您的财务目标。",
+    more: "更多",
+    less: "收起",
+    myInvestments: "我的投资",
+    days: "天",
+    daily: "每日",
+    term: "期限",
+    minimum: "最低投资",
+    total: "投资总数",
+    fixedDuration: "固定期限",
+    investNow: "立即投资",
+    chat: "客服",
+  },
+};
+
+function IelpSeal() {
   return (
-    <div className="flex items-baseline justify-between gap-2" style={{ marginBottom: 7 }}>
-      <span style={{ color: "#fff", fontSize: "clamp(12px, 3.7vw, 16px)", fontWeight: 400 }}>
-        {label}
-      </span>
-      <span className="text-right" style={{ color: "#fff", fontSize: "clamp(12px, 3.7vw, 16px)", fontWeight: 400, whiteSpace: "nowrap" }}>
-        {value}
-      </span>
-    </div>
+    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+      <circle cx="45" cy="45" r="45" fill="#3775a8" />
+      <text x="57" y="36" textAnchor="middle">ICAHN</text>
+      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
+      <text x="60" y="62" textAnchor="middle">L.P.</text>
+    </svg>
   );
+}
+
+function IelpProductMark({ label }: { label: string }) {
+  return (
+    <svg className="ielp-invest-product-mark" viewBox="0 0 112 112" role="img" aria-label={label}>
+      <rect width="112" height="112" rx="7" fill="#346b96" />
+      <g fill="#f4f7fa" fontFamily="Georgia, serif" textAnchor="middle">
+        <text x="76" y="47" fontSize="12">ICAHN</text>
+        <text x="76" y="62" fontSize="12">ENTERPRISES</text>
+        <text x="76" y="77" fontSize="12">L.P.</text>
+      </g>
+    </svg>
+  );
+}
+
+function formatUsdt(value: number) {
+  return Number.isFinite(value)
+    ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "0.00";
 }
 
 export default function ProductsPage() {
@@ -39,6 +144,8 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [confirmProduct, setConfirmProduct] = useState<ProductWithOwnership | null>(null);
+  const [introExpanded, setIntroExpanded] = useState(false);
+  const copy = INVEST_COPY[lang];
   const { data: settings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
@@ -83,8 +190,6 @@ export default function ProductsPage() {
 
   const paidProducts = (products || []).filter(p => !p.isFree);
   const filtered = paidProducts;
-  const ownedProductCount = paidProducts.filter(p => p.isOwned).length;
-  const totalRevenue = Number.isFinite(Number(user.totalEarnings)) ? Number(user.totalEarnings) : 0;
   const pageTitle = getContent(settings, "content_products_headerTitle", "Nos produits TGOOD");
   const getDisplayName = (product: ProductWithOwnership) => product.name;
   const getProductImage = (product: ProductWithOwnership, index: number) => {
@@ -100,86 +205,132 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-black">
-      <header className="h-[138px] shrink-0 bg-black px-5 pt-7 text-white">
-        <div className="grid grid-cols-2 text-center">
-          <Link href="/my-products" className="active:opacity-70">
-            <p className="font-semibold" style={{ fontSize: "clamp(32px, 9vw, 43px)", lineHeight: 1 }}>{ownedProductCount}</p>
-            <p className="mt-4" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{getContent(settings, "content_orders_headerTitle", lang === "en" ? "My products" : "Mes produits")} &gt;</p>
+    <main className="ielp-home-page ielp-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="ielp-home-shell ielp-invest-shell">
+        <header className="ielp-home-header">
+          <Link className="ielp-home-brand" href="/" aria-label="IELP accueil">
+            <IelpSeal />
+            <span>IELP</span>
           </Link>
-          <Link href="/earnings" className="active:opacity-70">
-            <p className="truncate font-semibold" style={{ fontSize: "clamp(28px, 8vw, 43px)", lineHeight: 1 }}>{CURRENCY} {totalRevenue.toLocaleString(locale)}</p>
-            <p className="mt-4" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{getContent(settings, "content_orders_infoLine2", lang === "en" ? "My earnings" : "Mes revenus")} &gt;</p>
+          <div className="ielp-home-header__actions">
+            <LanguagePicker variant="home" />
+            <Link
+              className="ielp-home-chat-top"
+              href="/service"
+              aria-label={copy.chat}
+              data-testid="button-home-chat"
+            >
+              <MessageSquare size={21} fill="white" strokeWidth={1.8} aria-hidden="true" />
+            </Link>
+          </div>
+        </header>
+
+        <div className="ielp-home-content ielp-invest-content">
+          <h1 className="sr-only">{pageTitle}</h1>
+          <section className="ielp-invest-intro" aria-label={copy.introTitle}>
+            <p className="ielp-invest-intro__title">{copy.introTitle}</p>
+            <p>{copy.growthLine}</p>
+            <p>
+              {copy.marketLine}
+              {introExpanded && <> {copy.moreLine}</>}
+            </p>
+            <button
+              className="ielp-invest-more"
+              type="button"
+              aria-expanded={introExpanded}
+              onClick={() => setIntroExpanded((expanded) => !expanded)}
+            >
+              <span>{introExpanded ? copy.less : copy.more}</span>
+              <ChevronDown size={16} strokeWidth={2.2} className={introExpanded ? "is-open" : ""} aria-hidden="true" />
+            </button>
+          </section>
+
+          <Link className="ielp-invest-owned-link" href="/my-products">
+            {copy.myInvestments}
           </Link>
-        </div>
-      </header>
 
-      <div className="flex-1 overflow-y-auto pb-24">
-        <h1 className="sr-only">{pageTitle}</h1>
-        {productsLoading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-white" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <p style={{ color: "#fff", fontSize: 14 }}>{t.noProducts}</p>
-          </div>
-        ) : (
-          filtered.map((product, index) => {
-            const img = getProductImage(product, index);
-            const isPending = purchaseMutation.isPending && purchaseMutation.variables === product.id;
-            const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
-            const isSoldOut = stock >= 100;
-            const isUnavailable = !!product.isUnavailable;
-            const isBlocked = isSoldOut || isUnavailable;
-             const displayName = getDisplayName(product);
-
-            return (
-              <div
-                key={product.id}
-                className="relative"
-                style={{
-                  height: 292,
-                  background: "#202020",
-                  borderBottom: "6px solid #000",
-                  overflow: "hidden",
-                }}
-                data-testid={`product-card-${product.id}`}
-              >
-                <img
-                  src={img}
-                  alt={`Produit ${displayName}`}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  style={{ objectPosition: "center 54%" }}
-                />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(0,0,0,.62) 0%, rgba(0,0,0,.46) 53%, rgba(0,0,0,.08) 100%)" }} />
-                <div className="relative z-10 h-full px-5 pt-6 text-white">
-                  <p className="font-semibold" style={{ fontSize: 27, lineHeight: 1.15 }}>{displayName}</p>
-                  <div className="mt-4 w-[76%] max-w-[340px] bg-black/45 px-2.5 py-2.5">
-                    <InfoRow label={`${t.price}:`} value={`${currency} ${Number(product.price).toLocaleString(locale)}`} />
-                    <InfoRow label={`${t.duration}:`} value={`${product.cycleDays} ${t.ordersDaysLbl}`} />
-                    <InfoRow label={`${t.dailyRevenue}:`} value={`${currency} ${Number(product.dailyEarnings).toLocaleString(locale)}`} />
-                    <InfoRow label={`${t.totalRevenue}:`} value={`${currency} ${Number(product.totalReturn).toLocaleString(locale)}`} />
-                  </div>
-                  <button
-                    onClick={() => !isBlocked && handleBuy(product)}
-                    disabled={purchaseMutation.isPending || isBlocked}
-                    className="mt-3 flex h-10 w-[76%] max-w-[340px] items-center justify-center font-bold text-black active:scale-[.98] disabled:opacity-100"
-                    style={{
-                      background: isBlocked ? "#aeb6c0" : TGOOD_GREEN,
-                      fontSize: 18,
-                      transition: "transform 120ms ease",
-                    }}
-                    data-testid={`button-purchase-${product.id}`}
-                  >
-                    {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : isBlocked ? (lang === "en" ? "Sold out" : "Épuisé") : t.buy.toUpperCase()}
-                  </button>
-                </div>
+          <section className="ielp-invest-list" aria-label={pageTitle}>
+            {productsLoading ? (
+              <div className="ielp-invest-loading" aria-label={t.loading}>
+                <Loader2 size={32} className="animate-spin" />
               </div>
-            );
-          })
-        )}
-      </div>
+            ) : filtered.length === 0 ? (
+              <div className="ielp-invest-empty">
+                <p>{t.noProducts}</p>
+              </div>
+            ) : (
+              filtered.map((product, index) => {
+                const price = Number(product.price) || 0;
+                const dailyEarnings = Number(product.dailyEarnings) || 0;
+                const totalReturn = Number(product.totalReturn) || 0;
+                const dailyPercent = price > 0 ? (dailyEarnings / price) * 100 : 0;
+                const fixedDurationPercent = price > 0 ? ((price + totalReturn) / price) * 100 : 100;
+                const isPending = purchaseMutation.isPending && purchaseMutation.variables === product.id;
+                const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
+                const isSoldOut = stock >= 100;
+                const isUnavailable = !!product.isUnavailable;
+                const isBlocked = isSoldOut || isUnavailable;
+                const displayName = `IELP Investment Products ${index + 1}`;
+
+                return (
+                  <article
+                    key={product.id}
+                    className="ielp-invest-product-card"
+                    data-testid={`product-card-${product.id}`}
+                  >
+                    <h2 className="ielp-invest-product-title" dir="ltr">{displayName}</h2>
+                    <div className="ielp-invest-product-details">
+                      <IelpProductMark label={displayName} />
+                      <dl className="ielp-invest-product-info">
+                        <div className="ielp-invest-info-row">
+                          <dt>{copy.daily}:</dt>
+                          <dd className="ielp-invest-daily-rate">{dailyPercent.toFixed(2)}%</dd>
+                        </div>
+                        <div className="ielp-invest-info-row">
+                          <dt>{copy.term}:</dt>
+                          <dd>{product.cycleDays} {copy.days}</dd>
+                        </div>
+                        <div className="ielp-invest-info-row ielp-invest-info-row--minimum">
+                          <dt>{copy.minimum}:</dt>
+                          <dd>{formatUsdt(price)} USDT</dd>
+                        </div>
+                        <div className="ielp-invest-info-row">
+                          <dt>{copy.total}:</dt>
+                          <dd>{Number(product.ownedCount || 0).toLocaleString(locale)}</dd>
+                        </div>
+                        <div className="ielp-invest-info-row">
+                          <dt>{copy.fixedDuration}:</dt>
+                          <dd>{Math.round(fixedDurationPercent)}%</dd>
+                        </div>
+                      </dl>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => !isBlocked && handleBuy(product)}
+                      disabled={purchaseMutation.isPending || isBlocked}
+                      className={`ielp-invest-buy${isBlocked ? " is-disabled" : ""}`}
+                      aria-label={`${copy.investNow}: ${displayName}`}
+                      data-testid={`button-purchase-${product.id}`}
+                    >
+                      {isPending ? (
+                        <Loader2 size={22} className="animate-spin" />
+                      ) : isBlocked ? (
+                        lang === "en" ? "SOLD OUT" : "ÉPUISÉ"
+                      ) : (
+                        copy.investNow
+                      )}
+                    </button>
+                  </article>
+                );
+              })
+            )}
+          </section>
+        </div>
+
+        <FloatingSupport placement="home" />
+        <Link className="ielp-home-chat-float" href="/service" aria-label={copy.chat} data-testid="button-home-chat-floating">
+          <MessageCircleMore size={32} strokeWidth={2.6} aria-hidden="true" />
+        </Link>
 
       {/* ══ POPUP CONFIRMATION ACHAT ══ */}
       <Dialog open={!!confirmProduct} onOpenChange={(open) => !open && setConfirmProduct(null)}>
@@ -297,6 +448,7 @@ export default function ProductsPage() {
           </DialogContent>
         )}
       </Dialog>
-    </div>
+      </div>
+    </main>
   );
 }

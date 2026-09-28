@@ -238,7 +238,7 @@ function RouterComponent() {
       </Route>
       <Route path="/invest">
         <ProtectedRoute>
-          <AppLayout>
+          <AppLayout home>
             <ProductsPage />
           </AppLayout>
         </ProtectedRoute>

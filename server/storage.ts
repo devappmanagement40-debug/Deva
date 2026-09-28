@@ -8,7 +8,7 @@ import {
   type GiftCode, type GiftCodeClaim, type Country
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, asc, desc, sql, gte, lte, or, inArray, isNotNull } from "drizzle-orm";
+import { eq, and, asc, desc, sql, gte, gt, lt, lte, or, inArray, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 
@@ -126,7 +126,7 @@ export interface IStorage {
   getReferrals(userId: number, level: number): Promise<User[]>;
   createReferralCommission(data: Partial<ReferralCommission>): Promise<ReferralCommission>;
   getUserCommissions(userId: number): Promise<number>;
-  getTeamStats(userId: number): Promise<{ level1Count: number; level2Count: number; level3Count: number; totalCommission: number; level1Commission: number; level2Commission: number; level3Commission: number; level1Invested: number; level2Invested: number; level3Invested: number; level1Recharged: number; teamTotalDeposits: number; teamTotalWithdrawals: number }>;
+  getTeamStats(userId: number, date?: string): Promise<{ level1Count: number; level2Count: number; level3Count: number; level1ValidCount: number; level2ValidCount: number; level3ValidCount: number; totalCommission: number; level1Commission: number; level2Commission: number; level3Commission: number; level1Invested: number; level2Invested: number; level3Invested: number; level1Recharged: number; teamTotalDeposits: number; teamTotalWithdrawals: number }>;
   getTeamStatsSimple(userId: number): Promise<{ level1Count: number; level2Count: number; level3Count: number; totalCommission: number }>;
   
   // Tasks
@@ -1386,62 +1386,107 @@ export class DatabaseStorage implements IStorage {
     return { level1Count, level2Count, level3Count, totalCommission };
   }
 
-  async getTeamStats(userId: number): Promise<{ level1Count: number; level2Count: number; level3Count: number; totalCommission: number; level1Commission: number; level2Commission: number; level3Commission: number; level1Invested: number; level2Invested: number; level3Invested: number; level1Recharged: number; teamTotalDeposits: number; teamTotalWithdrawals: number }> {
-    const level1 = await this.getReferrals(userId, 1);
-    const level2 = await this.getReferrals(userId, 2);
-    const level3 = await this.getReferrals(userId, 3);
-    const totalCommission = await this.getUserCommissions(userId);
+  async getTeamStats(userId: number, date?: string): Promise<{ level1Count: number; level2Count: number; level3Count: number; level1ValidCount: number; level2ValidCount: number; level3ValidCount: number; totalCommission: number; level1Commission: number; level2Commission: number; level3Commission: number; level1Invested: number; level2Invested: number; level3Invested: number; level1Recharged: number; teamTotalDeposits: number; teamTotalWithdrawals: number }> {
+    const dateStart = date ? new Date(`${date}T00:00:00.000Z`) : null;
+    if (dateStart && Number.isNaN(dateStart.getTime())) {
+      throw new Error("Invalid team statistics date");
+    }
+    const dateEnd = dateStart ? new Date(dateStart.getTime() + 24 * 60 * 60 * 1000) : null;
+    const includesDate = (member: User) => !dateStart || (
+      member.createdAt >= dateStart && member.createdAt < dateEnd!
+    );
+
+    const allLevel1 = await this.getReferrals(userId, 1);
+    const allLevel2 = await this.getReferrals(userId, 2);
+    const allLevel3 = await this.getReferrals(userId, 3);
+    const level1 = allLevel1.filter(includesDate);
+    const level2 = allLevel2.filter(includesDate);
+    const level3 = allLevel3.filter(includesDate);
+
+    const totalCommissionQuery = dateStart && dateEnd
+      ? db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
+        .from(referralCommissions)
+        .where(and(
+          eq(referralCommissions.userId, userId),
+          gte(referralCommissions.createdAt, dateStart),
+          lt(referralCommissions.createdAt, dateEnd),
+        ))
+      : null;
+    const totalCommission = totalCommissionQuery
+      ? parseFloat((await totalCommissionQuery)[0]?.total || "0")
+      : await this.getUserCommissions(userId);
 
     const getCommissionByLevel = async (level: number) => {
+      const filters = [
+        eq(referralCommissions.userId, userId),
+        eq(referralCommissions.level, level),
+        ...(dateStart && dateEnd
+          ? [gte(referralCommissions.createdAt, dateStart), lt(referralCommissions.createdAt, dateEnd)]
+          : []),
+      ];
       const result = await db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
         .from(referralCommissions)
-        .where(and(eq(referralCommissions.userId, userId), eq(referralCommissions.level, level)));
+        .where(and(...filters));
       return parseFloat(result[0]?.total || "0");
     };
 
-    const countInvested = async (userList: User[]) => {
-      let count = 0;
-      for (const u of userList) {
-        if (u.hasActiveProduct) count++;
-      }
-      return count;
-    };
+    const countInvested = async (userList: User[]) => userList.filter((member) => member.hasActiveProduct).length;
 
     const countRecharged = async (userList: User[]) => {
       let count = 0;
-      for (const u of userList) {
-        const userDeposits = await db.select().from(deposits)
-          .where(and(eq(deposits.userId, u.id), eq(deposits.status, "approved")));
+      for (const member of userList) {
+        const filters = [
+          eq(deposits.userId, member.id),
+          eq(deposits.status, "approved"),
+          ...(dateStart && dateEnd
+            ? [gte(deposits.createdAt, dateStart), lt(deposits.createdAt, dateEnd)]
+            : []),
+        ];
+        const userDeposits = await db.select({ id: deposits.id }).from(deposits)
+          .where(and(...filters))
+          .limit(1);
         if (userDeposits.length > 0) count++;
       }
       return count;
     };
 
-    // Total deposits and withdrawals by all filleuls (levels 1+2+3)
     const allMembers = [...level1, ...level2, ...level3];
-    const allMemberIds = allMembers.map(u => u.id);
-
     let teamTotalDeposits = 0;
     let teamTotalWithdrawals = 0;
 
-    if (allMemberIds.length > 0) {
-      for (const memberId of allMemberIds) {
-        const [dep] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
-          .from(deposits)
-          .where(and(eq(deposits.userId, memberId), eq(deposits.status, "approved")));
-        teamTotalDeposits += parseFloat(dep?.total || "0");
+    for (const member of allMembers) {
+      const depositFilters = [
+        eq(deposits.userId, member.id),
+        eq(deposits.status, "approved"),
+        ...(dateStart && dateEnd
+          ? [gte(deposits.createdAt, dateStart), lt(deposits.createdAt, dateEnd)]
+          : []),
+      ];
+      const [depositTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
+        .from(deposits)
+        .where(and(...depositFilters));
+      teamTotalDeposits += parseFloat(depositTotal?.total || "0");
 
-        const [wd] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
-          .from(withdrawals)
-          .where(and(eq(withdrawals.userId, memberId), eq(withdrawals.status, "approved")));
-        teamTotalWithdrawals += parseFloat(wd?.total || "0");
-      }
+      const withdrawalFilters = [
+        eq(withdrawals.userId, member.id),
+        eq(withdrawals.status, "approved"),
+        ...(dateStart && dateEnd
+          ? [gte(withdrawals.createdAt, dateStart), lt(withdrawals.createdAt, dateEnd)]
+          : []),
+      ];
+      const [withdrawalTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
+        .from(withdrawals)
+        .where(and(...withdrawalFilters));
+      teamTotalWithdrawals += parseFloat(withdrawalTotal?.total || "0");
     }
 
     return {
       level1Count: level1.length,
       level2Count: level2.length,
       level3Count: level3.length,
+      level1ValidCount: level1.filter((member) => member.hasDeposited).length,
+      level2ValidCount: level2.filter((member) => member.hasDeposited).length,
+      level3ValidCount: level3.filter((member) => member.hasDeposited).length,
       totalCommission,
       level1Commission: await getCommissionByLevel(1),
       level2Commission: await getCommissionByLevel(2),

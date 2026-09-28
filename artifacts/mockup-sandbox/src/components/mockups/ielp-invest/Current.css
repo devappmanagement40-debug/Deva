@@ -1,0 +1,128 @@
+.current-invest-root {
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: 76px;
+  overflow-x: hidden;
+  background: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.current-invest-header {
+  display: grid;
+  height: 138px;
+  grid-template-columns: 1fr 1fr;
+  padding: 27px 20px 0;
+  background: #000;
+  text-align: center;
+}
+
+.current-invest-header-value {
+  margin: 0;
+  font-size: clamp(32px, 9vw, 43px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.current-invest-header-value--balance {
+  font-size: clamp(28px, 8vw, 43px);
+}
+
+.current-invest-header a {
+  display: block;
+  margin-top: 16px;
+  color: #00ef24;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.current-invest-product {
+  position: relative;
+  height: 292px;
+  overflow: hidden;
+  border-bottom: 6px solid #000;
+  background-position: center 54%;
+  background-size: cover;
+}
+
+.current-invest-product-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.62), rgba(0, 0, 0, 0.46) 53%, rgba(0, 0, 0, 0.08));
+}
+
+.current-invest-product-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  padding: 24px 20px;
+}
+
+.current-invest-product h2 {
+  margin: 0;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.current-invest-info {
+  width: 76%;
+  max-width: 340px;
+  margin-top: 16px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.current-invest-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: clamp(12px, 3.7vw, 16px);
+}
+
+.current-invest-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.current-invest-product button {
+  display: flex;
+  width: 76%;
+  max-width: 340px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
+  border: 0;
+  background: #00ef24;
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.current-invest-nav {
+  position: fixed;
+  z-index: 50;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  height: 76px;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #eee;
+  background: #fff;
+  color: #bdbdbd;
+}
+
+.current-invest-nav > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.current-invest-nav > div.is-active {
+  color: #08b83a;
+}
