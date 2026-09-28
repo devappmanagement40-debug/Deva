@@ -1,0 +1,300 @@
+.ielp-account-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: clip;
+  color: #f7f8ff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.ielp-account-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 112px;
+}
+
+.ielp-account-content {
+  padding: 0 20px;
+}
+
+.ielp-account-profile {
+  display: flex;
+  height: 98px;
+  align-items: center;
+  gap: 13px;
+  margin-top: 7px;
+  padding: 0 23px;
+  border: 1px solid rgba(175, 195, 255, .045);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(31, 36, 64, .98), rgba(31, 36, 64, .96));
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .08);
+}
+
+.ielp-account-avatar-button {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.ielp-account-avatar {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, .86);
+  border-radius: 50%;
+  color: #087dd0;
+  background: linear-gradient(180deg, #e9f6ff, #c5e7ff);
+}
+
+.ielp-account-profile-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.ielp-account-phone {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .05px;
+  white-space: nowrap;
+}
+
+.ielp-account-phone-menu {
+  overflow: hidden;
+  padding: 0;
+  color: #f5f7ff;
+  background: transparent;
+  font: inherit;
+  text-overflow: ellipsis;
+}
+
+.ielp-account-phone-toggle {
+  display: flex;
+  width: 23px;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #e5ecfa;
+}
+
+.ielp-account-level {
+  display: inline-flex;
+  min-height: 27px;
+  align-items: center;
+  padding: 1px 11px 2px;
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(100deg, #0b9cf1, #0874d5);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ielp-account-shortcuts {
+  display: grid;
+  height: 182px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: 82px 1fr;
+  margin-top: 19px;
+  padding: 14px 10px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(180, 200, 255, .045);
+  border-radius: 13px;
+  background: rgba(31, 39, 78, .96);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, .08);
+}
+
+.ielp-account-shortcut {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  padding: 0 2px;
+  color: #f8f9ff;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1.12;
+  text-align: center;
+}
+
+.ielp-account-shortcut-icon {
+  display: flex;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(75, 153, 241, .19);
+  border-radius: 11px;
+  color: #1188e7;
+  background: rgba(10, 34, 84, .12);
+}
+
+.ielp-account-shortcut--4 {
+  grid-column: 1;
+}
+
+.ielp-account-shortcut--5 {
+  grid-column: 2;
+}
+
+.ielp-account-links {
+  margin-top: 20px;
+  padding: 0 14px;
+  overflow: hidden;
+  border: 1px solid rgba(190, 210, 255, .055);
+  border-radius: 17px;
+  background: linear-gradient(160deg, rgba(32, 47, 99, .96), rgba(31, 60, 113, .92));
+  box-shadow: 0 7px 20px rgba(0, 0, 0, .10);
+}
+
+.ielp-account-link {
+  display: flex;
+  width: 100%;
+  min-height: 63.5px;
+  align-items: center;
+  gap: 13px;
+  padding: 0 1px;
+  border-bottom: 1px solid rgba(226, 235, 255, .12);
+  color: #f5f7ff;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 400;
+  text-align: left;
+}
+
+.ielp-account-link:last-child {
+  border-bottom: 0;
+}
+
+.ielp-account-link > svg:first-child {
+  flex: 0 0 auto;
+  color: #f3f6ff;
+}
+
+.ielp-account-password-icon {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  color: #f3f6ff;
+}
+
+.ielp-account-password-icon span {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  line-height: 11px;
+}
+
+.ielp-account-password-icon i {
+  display: block;
+  width: 23px;
+  height: 2px;
+  background: currentColor;
+}
+
+.ielp-account-link > span {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ielp-account-link > svg:last-child {
+  flex: 0 0 auto;
+  color: rgba(230, 237, 255, .72);
+}
+
+.ielp-account-logout {
+  display: flex;
+  width: 100%;
+  height: 60px;
+  align-items: center;
+  justify-content: center;
+  margin: 24px 0 12px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(105deg, #4859ef 0%, #6945f1 55%, #8438ef 100%);
+  box-shadow: 0 5px 13px rgba(132, 39, 255, .42), 0 0 13px rgba(137, 62, 255, .40);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ielp-account-profile button:focus-visible,
+.ielp-account-shortcut:focus-visible,
+.ielp-account-link:focus-visible,
+.ielp-account-logout:focus-visible {
+  outline: 2px solid #7dc6ff;
+  outline-offset: 3px;
+}
+
+.ielp-account-shortcut,
+.ielp-account-link,
+.ielp-account-logout {
+  transition: filter 140ms ease, opacity 120ms ease, transform 100ms ease;
+}
+
+.ielp-account-shortcut:hover,
+.ielp-account-link:hover {
+  filter: brightness(1.12);
+}
+
+.ielp-account-shortcut:active,
+.ielp-account-link:active {
+  opacity: .82;
+}
+
+.ielp-account-logout:hover {
+  filter: brightness(1.06);
+}
+
+.ielp-account-logout:active {
+  transform: scale(.995);
+}
+
+@media (max-width: 380px) {
+  .ielp-account-content {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .ielp-account-profile {
+    gap: 10px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .ielp-account-phone {
+    gap: 4px;
+    font-size: 14px;
+  }
+
+  .ielp-account-link {
+    gap: 10px;
+    font-size: 14px;
+  }
+}

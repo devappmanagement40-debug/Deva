@@ -278,7 +278,7 @@ function RouterComponent() {
       </Route>
       <Route path="/account">
         <ProtectedRoute>
-          <AppLayout>
+          <AppLayout home>
             <AccountPage />
           </AppLayout>
         </ProtectedRoute>

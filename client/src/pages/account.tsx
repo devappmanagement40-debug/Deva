@@ -1,74 +1,244 @@
-import { useAuth } from "@/lib/auth";
-import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { getCountryByCode } from "@/lib/countries";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { localeForLang, useI18n } from "@/lib/i18n";
+import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import {
-  CreditCard,
+  ArrowLeftRight,
+  Bookmark,
+  Bot,
+  BookOpen,
   CalendarDays,
+  ChartNoAxesCombined,
+  ChevronRight,
   CircleDollarSign,
+  CircleHelp,
+  CreditCard,
   Download,
+  Eye,
+  EyeOff,
   FileText,
   Gift,
   HandCoins,
   Headphones,
   Info,
   KeyRound,
+  LockKeyhole,
   LogOut,
-  MoreVertical,
-  Bookmark,
+  MessageCircleMore,
+  MessageSquare,
+  PanelsTopLeft,
   ReceiptText,
   Shield,
+  UsersRound,
+  UserRound,
+  WalletCards,
   type LucideIcon,
 } from "lucide-react";
-import profileBike from "@assets/generated_images/tgood-profile-bike.png";
-import missionBanner from "@assets/generated_images/tgood-tasks-bike-banner.jpg";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { FloatingSupport } from "@/components/floating-support";
+import { LanguagePicker } from "@/components/language-picker";
+import { getCountryByCode } from "@/lib/countries";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useI18n, type Lang } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
+import "./account.css";
 
-const TGOOD_GREEN = "#08b83a";
+type AccountCopy = {
+  deposit: string;
+  withdraw: string;
+  statements: string;
+  transfer: string;
+  team: string;
+  faq: string;
+  password: string;
+  securityPin: string;
+  support: string;
+  companyDetails: string;
+  about: string;
+  logout: string;
+  accountMenu: string;
+  member: string;
+  install: string;
+  installing: string;
+  installHint: string;
+  installSuccess: string;
+  pinUnavailable: string;
+  pinUnavailableHint: string;
+  chat: string;
+};
 
-const PROFILE_ACTIONS: {
-  labelKey: "deposit" | "withdraw" | "history" | "checkinBtn";
+const COPY: Record<Lang, AccountCopy> = {
+  fr: {
+    deposit: "Dépôt",
+    withdraw: "Retirer",
+    statements: "Déclarations",
+    transfer: "Transfert",
+    team: "Équipe",
+    faq: "FAQ",
+    password: "Mot de passe",
+    securityPin: "Code PIN de sécurité",
+    support: "Soutien",
+    companyDetails: "Détails de l'entreprise IELP",
+    about: "À propos",
+    logout: "DÉCONNEXION",
+    accountMenu: "Mon compte",
+    member: "Membre IELP",
+    install: "Installer l'application",
+    installing: "Installation…",
+    installHint: "Utilisez le menu de votre navigateur pour installer l’application.",
+    installSuccess: "Application installée.",
+    pinUnavailable: "Code PIN non disponible",
+    pinUnavailableHint: "Contactez le soutien pour toute question concernant votre code PIN.",
+    chat: "Service client",
+  },
+  en: {
+    deposit: "Deposit",
+    withdraw: "Withdraw",
+    statements: "Statements",
+    transfer: "Transfer",
+    team: "Team",
+    faq: "FAQ",
+    password: "Password",
+    securityPin: "Security PIN",
+    support: "Support",
+    companyDetails: "IELP company details",
+    about: "About",
+    logout: "LOG OUT",
+    accountMenu: "My account",
+    member: "IELP member",
+    install: "Install app",
+    installing: "Installing…",
+    installHint: "Use your browser menu to install the app.",
+    installSuccess: "App installed.",
+    pinUnavailable: "Security PIN unavailable",
+    pinUnavailableHint: "Contact support for help with your security PIN.",
+    chat: "Customer service",
+  },
+  ar: {
+    deposit: "إيداع",
+    withdraw: "سحب",
+    statements: "السجل",
+    transfer: "تحويل",
+    team: "الفريق",
+    faq: "الأسئلة الشائعة",
+    password: "كلمة المرور",
+    securityPin: "رمز PIN للأمان",
+    support: "الدعم",
+    companyDetails: "تفاصيل شركة IELP",
+    about: "حول",
+    logout: "تسجيل الخروج",
+    accountMenu: "حسابي",
+    member: "عضو IELP",
+    install: "تثبيت التطبيق",
+    installing: "جارٍ التثبيت…",
+    installHint: "استخدم قائمة المتصفح لتثبيت التطبيق.",
+    installSuccess: "تم تثبيت التطبيق.",
+    pinUnavailable: "رمز PIN غير متاح",
+    pinUnavailableHint: "تواصل مع الدعم للمساعدة بشأن رمز PIN.",
+    chat: "خدمة العملاء",
+  },
+  zh: {
+    deposit: "存款",
+    withdraw: "提现",
+    statements: "记录",
+    transfer: "转账",
+    team: "团队",
+    faq: "常见问题",
+    password: "密码",
+    securityPin: "安全 PIN 码",
+    support: "支持",
+    companyDetails: "IELP 公司详情",
+    about: "关于",
+    logout: "退出登录",
+    accountMenu: "我的账户",
+    member: "IELP 会员",
+    install: "安装应用",
+    installing: "正在安装…",
+    installHint: "使用浏览器菜单安装应用。",
+    installSuccess: "应用已安装。",
+    pinUnavailable: "安全 PIN 不可用",
+    pinUnavailableHint: "如需 PIN 帮助，请联系支持。",
+    chat: "客户服务",
+  },
+};
+
+const QUICK_ACTIONS: {
+  copyKey: "deposit" | "withdraw" | "statements" | "transfer" | "team";
   href: string;
   Icon: LucideIcon;
-  color: string;
 }[] = [
-  { labelKey: "deposit", href: "/deposit", Icon: CircleDollarSign, color: "#050505" },
-  { labelKey: "withdraw", href: "/withdrawal", Icon: HandCoins, color: "#050505" },
-  { labelKey: "history", href: "/history", Icon: ReceiptText, color: "#050505" },
-  { labelKey: "checkinBtn", href: "/checkin", Icon: CalendarDays, color: "#050505" },
+  { copyKey: "deposit", href: "/deposit", Icon: WalletCards },
+  { copyKey: "withdraw", href: "/withdrawal", Icon: Bot },
+  { copyKey: "statements", href: "/history", Icon: ChartNoAxesCombined },
+  { copyKey: "transfer", href: "/wallet", Icon: ArrowLeftRight },
+  { copyKey: "team", href: "/team", Icon: UsersRound },
 ];
 
-const MORE_ACTIONS: {
-  labelKey: "about" | "security" | "history" | "customerService" | "shareInformation" | "wallet" | "changePassword" | "redeem";
+const ACCOUNT_LINKS: {
+  copyKey: "faq" | "password" | "securityPin" | "support" | "companyDetails" | "about";
+  href?: string;
+  Icon: LucideIcon;
+}[] = [
+  { copyKey: "faq", href: "/rules", Icon: CircleHelp },
+  { copyKey: "password", href: "/change-password", Icon: KeyRound },
+  { copyKey: "securityPin", Icon: LockKeyhole },
+  { copyKey: "support", href: "/service", Icon: Headphones },
+  { copyKey: "companyDetails", href: "/about", Icon: BookOpen },
+  { copyKey: "about", href: "/about", Icon: PanelsTopLeft },
+];
+
+const ACCOUNT_MENU_ACTIONS: {
+  labelKey: "changePassword" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "about" | "revenue" | "taskCenterTitle";
   href: string;
   Icon: LucideIcon;
 }[] = [
-  { labelKey: "about", href: "/about", Icon: Info },
-  { labelKey: "security", href: "/rules", Icon: Bookmark },
-  { labelKey: "history", href: "/history", Icon: FileText },
-  { labelKey: "customerService", href: "/service", Icon: Headphones },
-  { labelKey: "shareInformation", href: "/share-information", Icon: Download },
-  { labelKey: "wallet", href: "/wallet", Icon: CreditCard },
   { labelKey: "changePassword", href: "/change-password", Icon: KeyRound },
+  { labelKey: "wallet", href: "/wallet", Icon: CreditCard },
   { labelKey: "redeem", href: "/gift-code", Icon: Gift },
+  { labelKey: "checkinBtn", href: "/checkin", Icon: CalendarDays },
+  { labelKey: "shareInformation", href: "/share-information", Icon: Download },
+  { labelKey: "history", href: "/history", Icon: ReceiptText },
+  { labelKey: "revenue", href: "/earnings", Icon: CircleDollarSign },
+  { labelKey: "taskCenterTitle", href: "/tasks", Icon: FileText },
+  { labelKey: "security", href: "/rules", Icon: Bookmark },
+  { labelKey: "customerService", href: "/service", Icon: Headphones },
+  { labelKey: "about", href: "/about", Icon: Info },
 ];
+
+function IelpSeal() {
+  return (
+    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+      <circle cx="45" cy="45" r="45" fill="#3775a8" />
+      <text x="57" y="36" textAnchor="middle">ICAHN</text>
+      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
+      <text x="60" y="62" textAnchor="middle">L.P.</text>
+    </svg>
+  );
+}
+
+function PasswordGlyph() {
+  return (
+    <span className="ielp-account-password-icon" aria-hidden="true">
+      <span>***</span>
+      <i />
+    </span>
+  );
+}
 
 export default function AccountPage() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { t, lang } = useI18n();
+  const copy = COPY[lang];
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [adminPin, setAdminPin] = useState("");
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installing, setInstalling] = useState(false);
+  const [phoneVisible, setPhoneVisible] = useState(false);
 
   useEffect(() => {
     if ((window as any)._installPrompt) setInstallPrompt((window as any)._installPrompt);
@@ -79,8 +249,6 @@ export default function AccountPage() {
     window.addEventListener("beforeinstallprompt", onPrompt);
     return () => window.removeEventListener("beforeinstallprompt", onPrompt);
   }, []);
-
-  if (!user) return null;
 
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
@@ -100,6 +268,14 @@ export default function AccountPage() {
     onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
   });
 
+  if (!user) return null;
+
+  const country = getCountryByCode(user.country);
+  const phonePrefix = country?.phonePrefix ? `+${country.phonePrefix}` : "";
+  const phoneDigits = String(user.phone || "").replace(/\D/g, "");
+  const visiblePhone = `${phonePrefix}${phoneDigits ? ` ${phoneDigits}` : ""}`.trim();
+  const maskedPhone = `${phonePrefix}*****${phoneDigits.slice(-8)}`.trim();
+
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -107,7 +283,7 @@ export default function AccountPage() {
 
   const handleInstall = async () => {
     if (!installPrompt) {
-        toast({ title: "Use your browser menu to install the app." });
+      toast({ title: copy.installHint });
       return;
     }
     setInstalling(true);
@@ -115,7 +291,7 @@ export default function AccountPage() {
       await installPrompt.prompt();
       const result = await installPrompt.userChoice;
       if (result.outcome === "accepted") {
-        toast({ title: "App installed successfully!" });
+        toast({ title: copy.installSuccess });
         setInstallPrompt(null);
       }
     } finally {
@@ -132,166 +308,148 @@ export default function AccountPage() {
     setShowPinModal(true);
   };
 
-  const rawBalance = parseFloat(user.balance || "0");
-  const rawEarnings = parseFloat(user.totalEarnings || "0");
-  const balance = Number.isFinite(rawBalance) ? rawBalance : 0;
-  const earnings = Number.isFinite(rawEarnings) ? rawEarnings : 0;
-  const country = getCountryByCode(user.country);
-  const phonePrefix = country?.phonePrefix ? `+${country.phonePrefix} ` : "";
-  const formatAmount = (value: number) => value.toLocaleString(localeForLang(lang), {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const handleSecurityPin = () => {
+    if (user.isAdmin) {
+      openAdmin();
+      return;
+    }
+    navigate("/service");
+  };
 
   return (
-    <main className="account-page pb-20" style={{ minHeight: "100vh", background: "#f8fafb" }}>
-      <section className="mx-auto w-full max-w-[480px] overflow-hidden bg-[#f8fafb]">
-        <section className="mx-3 mt-3 overflow-hidden bg-white" style={{ borderRadius: 13, boxShadow: "0 1px 5px rgba(0,0,0,.04)" }}>
-          <div className="flex h-[112px] items-center px-4">
-            <img
-              src={profileBike}
-              alt="TGOOD electric bike"
-              className="h-[78px] w-[94px] object-contain"
-            />
-            <div className="min-w-0 flex-1 pl-2">
-              <p className="truncate font-normal" style={{ color: "#151515", fontSize: 22 }}>
-                {phonePrefix}{user.phone}
-              </p>
-              <span
-                className="mt-2 inline-flex min-w-[89px] items-center justify-center rounded-full py-1 text-white"
-                style={{ background: "#20c95f", fontSize: 16 }}
-              >
-                Lv1
-              </span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <button
-                onClick={handleLogout}
-                className="flex flex-col items-center active:opacity-60"
-                style={{ color: "#111" }}
-                data-testid="button-logout"
-              >
-                <LogOut size={26} strokeWidth={2.2} />
-                <span style={{ fontSize: 13 }}>{t.logout}</span>
-              </button>
-              <button
-                onClick={() => setShowAccountMenu(true)}
-                className="h-5 w-6 text-[#777] active:opacity-60"
-                aria-label="Open account settings"
-                data-testid="button-account-menu"
-              >
-                <MoreVertical size={17} className="mx-auto" />
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 border-t border-[#eeeeee]">
+    <main className="ielp-home-page ielp-account-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="ielp-home-shell ielp-account-shell">
+        <header className="ielp-home-header">
+          <a className="ielp-home-brand" href="#/" aria-label="IELP accueil" onClick={(event) => { event.preventDefault(); navigate("/"); }}>
+            <IelpSeal />
+            <span>IELP</span>
+          </a>
+          <div className="ielp-home-header__actions">
+            <LanguagePicker variant="home" />
             <button
-              onClick={() => navigate("/wallet")}
-              className="border-r border-[#eeeeee] py-4 text-center active:bg-slate-50"
-              data-testid="button-profile-balance"
+              className="ielp-home-chat-top"
+              type="button"
+              onClick={() => navigate("/service")}
+              aria-label={copy.chat}
+              data-testid="button-account-chat"
             >
-              <p className="font-normal" style={{ color: TGOOD_GREEN, fontSize: 26 }}>USDT {formatAmount(balance)}</p>
-              <p className="mt-1" style={{ color: "#222", fontSize: 14 }}>{t.accountBalance}</p>
-            </button>
-            <button
-              onClick={() => navigate("/earnings")}
-              className="py-4 text-center active:bg-slate-50"
-              data-testid="button-profile-earnings"
-            >
-              <p className="font-normal" style={{ color: TGOOD_GREEN, fontSize: 26 }}>USDT {formatAmount(earnings)}</p>
-              <p className="mt-1" style={{ color: "#222", fontSize: 14 }}>{t.revenue}</p>
+              <MessageSquare size={21} fill="white" strokeWidth={1.8} aria-hidden="true" />
             </button>
           </div>
-        </section>
+        </header>
 
-        <section
-          className="mx-3 mt-3 grid grid-cols-4 bg-white px-2 py-3"
-          style={{ borderRadius: 11, boxShadow: "0 2px 8px rgba(0,0,0,.045)" }}
-        >
-          {PROFILE_ACTIONS.map(({ labelKey, href, Icon, color }) => (
+        <div className="ielp-account-content">
+          <section className="ielp-account-profile" aria-label={copy.accountMenu}>
             <button
-              key={labelKey}
-              onClick={() => navigate(href)}
-              className="flex min-w-0 flex-col items-center justify-start gap-2 py-2 active:scale-95"
-              style={{ color: "#252525", transition: "transform 120ms ease" }}
-              data-testid={`profile-action-${href.slice(1)}`}
+              type="button"
+              className="ielp-account-avatar-button"
+              onClick={() => setShowAccountMenu(true)}
+              aria-label={copy.accountMenu}
+              data-testid="button-account-menu"
             >
-              <Icon size={42} strokeWidth={2.35} color={color} aria-hidden="true" />
-              <span className="px-0.5 text-center leading-tight" style={{ fontSize: 15 }}>
-                {t[labelKey]}
+              <span className="ielp-account-avatar" aria-hidden="true">
+                <UserRound size={36} strokeWidth={2.8} />
               </span>
             </button>
-          ))}
-        </section>
+            <div className="ielp-account-profile-copy">
+              <div className="ielp-account-phone">
+                <button
+                  type="button"
+                  className="ielp-account-phone-menu"
+                  onClick={() => setShowAccountMenu(true)}
+                  aria-label={copy.accountMenu}
+                  data-testid="button-account-menu-phone"
+                >
+                  {phoneVisible ? visiblePhone : maskedPhone}
+                </button>
+                <button
+                  type="button"
+                  className="ielp-account-phone-toggle"
+                  aria-label={phoneVisible ? "Masquer le numéro" : "Afficher le numéro"}
+                  onClick={() => setPhoneVisible((visible) => !visible)}
+                  data-testid="button-toggle-phone"
+                >
+                  {phoneVisible ? <Eye size={17} /> : <EyeOff size={17} />}
+                </button>
+              </div>
+              <span className="ielp-account-level">Launchpool</span>
+            </div>
+          </section>
 
-        <section className="relative mx-3 mt-3 h-[272px] overflow-hidden" style={{ borderRadius: 12 }}>
-          <img
-            src={missionBanner}
-            alt="Sustainable mobility with TGOOD electric bikes"
-            className="h-full w-full object-cover"
-            style={{ objectPosition: "center" }}
-          />
-          <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(8,18,10,.05) 0%, rgba(8,18,10,.18) 42%, rgba(8,18,10,.64) 100%)" }} />
-          <div className="absolute right-5 top-[46px] w-[53%] text-white">
-            <h1 className="font-semibold whitespace-nowrap" style={{ fontSize: 29, lineHeight: 1.1 }}>{t.taskCenterTitle}</h1>
-            <p className="mt-3" style={{ fontSize: 19, lineHeight: 1.42 }}>
-              Complete tasks and earn generous bonuses
-            </p>
-            <button
-              onClick={() => navigate("/tasks")}
-              className="mt-3 w-full py-2 font-medium text-white active:scale-[.98]"
-              style={{ background: "#20c95f", borderRadius: 24, fontSize: 17, transition: "transform 120ms ease" }}
-              data-testid="button-mission-center"
-            >
-              Go
-            </button>
-          </div>
-        </section>
-
-        <section className="mx-3 mt-3 bg-white px-3 pt-5 pb-3" style={{ borderRadius: 11, boxShadow: "0 1px 5px rgba(0,0,0,.035)" }}>
-           <h2 className="ml-3 font-normal" style={{ color: "#1e1e1e", fontSize: 22 }}>More</h2>
-          <div className="mt-5 grid grid-cols-4">
-          {MORE_ACTIONS.map(({ labelKey, href, Icon }) => (
+          <section className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
+            {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
               <button
-              key={href}
+                key={copyKey}
+                type="button"
+                className={`ielp-account-shortcut ielp-account-shortcut--${index + 1}`}
                 onClick={() => navigate(href)}
-                className="flex min-w-0 flex-col items-center gap-2 px-0.5 py-3 active:scale-95"
-                style={{ color: "#111", transition: "transform 120ms ease" }}
-                data-testid={`more-action-${href.slice(1)}`}
+                data-testid={`account-shortcut-${href.slice(1)}`}
               >
-                <Icon size={43} strokeWidth={2.5} />
-                <span className="min-h-[36px] text-center leading-snug" style={{ fontSize: 15 }}>
-                {t[labelKey]}
+                <span className="ielp-account-shortcut-icon">
+                  <Icon size={25} strokeWidth={2.4} aria-hidden="true" />
                 </span>
+                <span>{copy[copyKey]}</span>
               </button>
             ))}
-          </div>
-        </section>
-      </section>
+          </section>
+
+          <section className="ielp-account-links" aria-label={copy.accountMenu}>
+            {ACCOUNT_LINKS.map(({ copyKey, href, Icon }, index) => (
+              <button
+                key={copyKey}
+                type="button"
+                className="ielp-account-link"
+                onClick={() => href ? navigate(href) : handleSecurityPin()}
+                data-testid={`account-link-${copyKey}`}
+              >
+                {copyKey === "password" ? <PasswordGlyph /> : <Icon size={24} strokeWidth={2.1} aria-hidden="true" />}
+                <span>{copy[copyKey]}</span>
+                {index !== 1 && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
+              </button>
+            ))}
+          </section>
+
+          <button
+            type="button"
+            className="ielp-account-logout"
+            onClick={handleLogout}
+            data-testid="button-account-logout"
+          >
+            {copy.logout}
+          </button>
+        </div>
+
+        <button
+          className="ielp-home-chat-float"
+          type="button"
+          aria-label={copy.chat}
+          onClick={() => navigate("/service")}
+          data-testid="button-account-chat-floating"
+        >
+          <MessageCircleMore size={32} strokeWidth={2.6} aria-hidden="true" />
+        </button>
+      </div>
+
+      <FloatingSupport placement="home" />
 
       <Dialog open={showAccountMenu} onOpenChange={setShowAccountMenu}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>My account</DialogTitle>
+            <DialogTitle>{copy.accountMenu}</DialogTitle>
           </DialogHeader>
           <div className="space-y-1">
             <div className="mb-3 rounded-xl bg-[#f3faf5] px-4 py-3">
-              <p className="font-medium text-[#1f2933]">{phonePrefix}{user.phone}</p>
-              <p className="mt-1 text-xs text-[#65736e]">TGOOD member</p>
+              <p className="font-medium text-[#1f2933]">{visiblePhone}</p>
+              <p className="mt-1 text-xs text-[#65736e]">{copy.member}</p>
             </div>
-            {[
-              { label: t.changePassword, href: "/change-password", Icon: KeyRound },
-              { label: t.wallet, href: "/wallet", Icon: CreditCard },
-              { label: t.redeem, href: "/gift-code", Icon: Gift },
-            ].map(({ label, href, Icon }) => (
+            {ACCOUNT_MENU_ACTIONS.map(({ labelKey, href, Icon }) => (
               <button
                 key={href}
                 onClick={() => { setShowAccountMenu(false); navigate(href); }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
-                <Icon size={19} color={TGOOD_GREEN} />
-                <span className="text-sm text-[#30363a]">{label}</span>
+                <Icon size={19} color="#0789e9" />
+                <span className="text-sm text-[#30363a]">{t[labelKey]}</span>
               </button>
             ))}
             <button
@@ -299,15 +457,15 @@ export default function AccountPage() {
               disabled={installing}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50 disabled:opacity-60"
             >
-              <Download size={19} color={TGOOD_GREEN} />
-              <span className="text-sm text-[#30363a]">{installing ? "Installing…" : "Install app"}</span>
+              <Download size={19} color="#0789e9" />
+              <span className="text-sm text-[#30363a]">{installing ? copy.installing : copy.install}</span>
             </button>
             {user.isAdmin && (
               <button
                 onClick={openAdmin}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
-                <Shield size={19} color={TGOOD_GREEN} />
+                <Shield size={19} color="#0789e9" />
                 <span className="text-sm text-[#30363a]">{t.adminPanel}</span>
               </button>
             )}
@@ -347,8 +505,8 @@ export default function AccountPage() {
               }}
               disabled={verifyPinMutation.isPending || adminPin.length < 4}
               className="w-full"
-              style={{ backgroundColor: TGOOD_GREEN }}
               data-testid="button-verify-pin"
+              style={{ backgroundColor: "#0789e9" }}
             >
               {verifyPinMutation.isPending ? "Verifying…" : t.confirm}
             </Button>

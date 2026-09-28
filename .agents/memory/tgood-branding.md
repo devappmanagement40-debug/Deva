@@ -9,6 +9,6 @@ Use TGOOD’s green wordmark and a deep green primary palette for platform brand
 
 **How to apply:** use the existing TGOOD logo asset for brand surfaces and the semantic primary color tokens for UI controls. Preserve semantic red, amber, and green status colors where they represent errors, warnings, and success rather than brand identity.
 
-**Why:** the user explicitly requested a distinct IELP reference on authentication and the homepage while keeping unrelated parts of the platform TGOOD.
+**Why:** the user explicitly requested a distinct IELP reference on authentication, the homepage, and `/account` while keeping unrelated parts of the platform TGOOD.
 
-**How to apply:** keep IELP marks, colors, and layout scoped to authentication and the homepage only; retain TGOOD branding and existing functions on other routes.
+**How to apply:** keep IELP marks, colors, and layout scoped to authentication, the homepage, and `/account`; retain TGOOD branding and existing functions on other routes.

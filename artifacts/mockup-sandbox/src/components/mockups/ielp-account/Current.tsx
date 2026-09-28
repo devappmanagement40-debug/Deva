@@ -1,14 +1,7 @@
-import { useAuth } from "@/lib/auth";
-import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { getCountryByCode } from "@/lib/countries";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { localeForLang, useI18n } from "@/lib/i18n";
-import { useMutation } from "@tanstack/react-query";
 import {
   CreditCard,
   CalendarDays,
@@ -25,12 +18,75 @@ import {
   Bookmark,
   ReceiptText,
   Shield,
+  House,
+  Bike,
+  UsersRound,
+  UserRound,
   type LucideIcon,
 } from "lucide-react";
-import profileBike from "@assets/generated_images/tgood-profile-bike.png";
-import missionBanner from "@assets/generated_images/tgood-tasks-bike-banner.jpg";
+import "./_group.css";
+
+const profileBike = "/__mockup/images/tgood-profile-bike.png";
+const missionBanner = "/__mockup/images/tgood-tasks-bike-banner.jpg";
 
 const TGOOD_GREEN = "#08b83a";
+const t = {
+  logout: "Log out",
+  incorrectPin: "Incorrect PIN",
+  deposit: "Deposit",
+  withdraw: "Withdraw",
+  history: "History",
+  checkinBtn: "Check-in",
+  about: "About",
+  security: "Security",
+  customerService: "Customer service",
+  shareInformation: "Share information",
+  wallet: "Wallet",
+  changePassword: "Change password",
+  redeem: "Redeem code",
+  accountBalance: "Account balance",
+  revenue: "Revenue",
+  taskCenterTitle: "Task Center",
+  adminPanel: "Admin panel",
+  adminAccessCode: "Admin access code",
+  pinPlaceholder: "Enter PIN",
+  pinMinLength: "PIN must be at least 4 characters",
+  confirm: "Confirm",
+};
+
+function useAuth() {
+  return {
+    user: {
+      phone: "5551234567",
+      country: "US",
+      balance: "72.50",
+      totalEarnings: "16.20",
+      isAdmin: false,
+      isAdminPasswordRequired: true,
+    },
+    logout: async () => undefined,
+  };
+}
+
+function useLocation(): [string, (path: string) => void] {
+  return ["/account", () => undefined];
+}
+
+function useToast() {
+  return { toast: (_message: unknown) => undefined };
+}
+
+function getCountryByCode(_code: string) {
+  return { phonePrefix: "1" };
+}
+
+function localeForLang(_lang: string) {
+  return "en-US";
+}
+
+function useI18n() {
+  return { t, lang: "en" };
+}
 
 const PROFILE_ACTIONS: {
   labelKey: "deposit" | "withdraw" | "history" | "checkinBtn";
@@ -59,7 +115,29 @@ const MORE_ACTIONS: {
   { labelKey: "redeem", href: "/gift-code", Icon: Gift },
 ];
 
-export default function AccountPage() {
+function CurrentBottomNav() {
+  const items = [
+    { label: "Home", Icon: House },
+    { label: "Invest", Icon: Bike },
+    { label: "Team", Icon: UsersRound },
+    { label: "Me", Icon: UserRound },
+  ];
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 flex h-[76px] items-center justify-around border-t border-[#eeeeee] bg-white"
+      aria-label="Primary navigation"
+    >
+      {items.map(({ label, Icon }, index) => (
+        <button key={label} className="flex flex-col items-center gap-1 text-[14px]" style={{ color: index === 3 ? TGOOD_GREEN : "#bdbdbd" }}>
+          <Icon size={24} />
+          <span>{label}</span>
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+export default function Current() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
   const { toast } = useToast();
@@ -82,23 +160,15 @@ export default function AccountPage() {
 
   if (!user) return null;
 
-  const verifyPinMutation = useMutation({
-    mutationFn: async (pin: string) => {
-      const res = await apiRequest("POST", "/api/admin/verify-pin", { pin });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t.incorrectPin);
-      }
-      return res.json();
-    },
-    onSuccess: () => {
+  const verifyPinMutation = {
+    isPending: false,
+    mutate: (_pin: string) => {
       setShowPinModal(false);
       setShowAccountMenu(false);
       setAdminPin("");
       navigate("/admin");
     },
-    onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
-  });
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -144,6 +214,7 @@ export default function AccountPage() {
   });
 
   return (
+    <>
     <main className="account-page pb-20" style={{ minHeight: "100vh", background: "#f8fafb" }}>
       <section className="mx-auto w-full max-w-[480px] overflow-hidden bg-[#f8fafb]">
         <section className="mx-3 mt-3 overflow-hidden bg-white" style={{ borderRadius: 13, boxShadow: "0 1px 5px rgba(0,0,0,.04)" }}>
@@ -356,5 +427,7 @@ export default function AccountPage() {
         </DialogContent>
       </Dialog>
     </main>
+    <CurrentBottomNav />
+    </>
   );
 }

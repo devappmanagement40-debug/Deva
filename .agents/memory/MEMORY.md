@@ -1,4 +1,4 @@
-- [TGOOD brand identity](tgood-branding.md) — use TGOOD by default; keep requested IELP styling limited to authentication and the homepage.
+- [TGOOD brand identity](tgood-branding.md) — use TGOOD by default; scope requested IELP styling to authentication, homepage, and `/account`.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
 - [Global country selection](rdc-only-market.md) — use worldwide country codes in auth; default new forms to US/+1 and keep all monetary labels in USDT.
