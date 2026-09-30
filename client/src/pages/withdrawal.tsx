@@ -175,7 +175,7 @@ export default function WithdrawalPage() {
 
   return (
     <main
-      className="min-h-screen w-full overflow-hidden"
+      className="ielp-withdrawal-page min-h-screen w-full overflow-hidden"
       style={{ maxWidth: 480, margin: "0 auto", background: "#f5f5f5", color: "#202124" }}
     >
       <section className="relative w-full" style={{ aspectRatio: "720 / 404" }}>
@@ -238,7 +238,7 @@ export default function WithdrawalPage() {
             <button
               type="button"
               onClick={() => navigate("/wallet?from=withdrawal")}
-              className="relative mt-[16px] block w-full overflow-hidden text-left transition-transform active:scale-[.98]"
+              className="ielp-withdrawal-card relative mt-[16px] block w-full overflow-hidden text-left transition-transform active:scale-[.98]"
               style={{
                 aspectRatio: "1.586 / 1",
                 minHeight: 196,
@@ -307,7 +307,7 @@ export default function WithdrawalPage() {
               data-testid="button-select-wallet"
             >
               <CreditCard size={29} strokeWidth={2.6} color="#5f5f5f" className="shrink-0" />
-              <span className="ml-[11px] flex-1 truncate font-normal" style={{ color: "#343434", fontSize: 18, letterSpacing: 1.2 }}>
+              <span className="ielp-withdrawal-muted ml-[11px] flex-1 truncate font-normal" style={{ color: "#343434", fontSize: 18, letterSpacing: 1.2 }}>
                 ------- ---------------
               </span>
               <ChevronRight size={28} strokeWidth={1.5} color="#969696" className="shrink-0" />
@@ -323,7 +323,7 @@ export default function WithdrawalPage() {
             className="mt-[16px] flex w-full items-center bg-[#f9f9f9]"
             style={{ height: 51, border: "1px solid #dddddd" }}
           >
-            <span className="pl-0 pr-3 font-normal" style={{ color: "#686e79", fontSize: 20 }}>
+            <span className="ielp-withdrawal-muted pl-0 pr-3 font-normal" style={{ color: "#686e79", fontSize: 20 }}>
               {currency}
             </span>
             <input
@@ -338,7 +338,7 @@ export default function WithdrawalPage() {
           </div>
 
           <div className="mt-[12px] flex items-center justify-between px-[10px]">
-            <p className="font-normal" style={{ color: "#626262", fontSize: 15 }}>
+            <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 15 }}>
               Amount received: {currency} {amount ? Number(amount).toLocaleString() : "0"}
             </p>
           </div>
@@ -383,7 +383,7 @@ export default function WithdrawalPage() {
 
         <div className="mt-[14px] space-y-0 pb-2">
           {instructions.map((line, i) => (
-            <p key={i} className="font-normal" style={{ color: "#545960", fontSize: 15, lineHeight: 1.52 }}>
+            <p key={i} className="ielp-withdrawal-muted font-normal" style={{ color: "#545960", fontSize: 15, lineHeight: 1.52 }}>
               {line}
             </p>
           ))}

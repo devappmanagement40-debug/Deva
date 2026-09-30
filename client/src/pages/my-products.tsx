@@ -60,7 +60,7 @@ function PageHeader() {
         <div className="flex flex-1 items-center justify-center">
           <img src="/tgood-logo.gif" alt="TGOOD" className="h-8 w-auto" />
         </div>
-        <Link href="/earnings" className="w-[142px] text-center font-medium active:opacity-60" style={{ color: TGOOD_GREEN, fontSize: 19 }}>
+        <Link href="/earnings" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: TGOOD_GREEN, fontSize: 19 }}>
           {t.earnings}
         </Link>
       </header>
@@ -107,7 +107,7 @@ export default function MyProductsPage() {
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
           <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarned.toLocaleString(localeForLang(lang))}</p>
-          <p className="mt-3" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{t.totalRevenue}</p>
+          <p className="ielp-products-accent mt-3" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{t.totalRevenue}</p>
         </div>
 
         {isLoading ? (
@@ -155,7 +155,7 @@ export default function MyProductsPage() {
                       <InfoRow label={`${t.myProductsRevenueReceived}:`} value={`USDT ${earned.toLocaleString(localeForLang(lang))}`} />
                     </div>
                     <div className="mt-3 h-1.5 w-[82%] max-w-[350px] overflow-hidden rounded-full bg-white/25">
-                      <div className="h-full rounded-full" style={{ width: `${progress}%`, background: TGOOD_GREEN }} />
+                      <div className="ielp-member-products-progress h-full rounded-full" style={{ width: `${progress}%`, background: TGOOD_GREEN }} />
                     </div>
                     <p className="mt-1 text-xs text-white/75">{completedDays}/{cycleDays} {t.myProductsProgress}</p>
                     {canCollect ? (
@@ -164,6 +164,7 @@ export default function MyProductsPage() {
                         disabled={collectFinalMutation.isPending}
                         className="mt-3 flex h-10 w-[82%] max-w-[350px] items-center justify-center gap-2 font-bold text-black disabled:opacity-60"
                         style={{ background: TGOOD_GREEN }}
+                        data-testid="button-collect-final"
                       >
                         {collectFinalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
                         {t.rewardsClaim} USDT {earned.toLocaleString(localeForLang(lang))}

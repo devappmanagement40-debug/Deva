@@ -92,7 +92,7 @@ export default function GiftCodePage() {
              TGOOD
           </span>
           <h1
-            className="absolute right-[10%] top-[80px] whitespace-nowrap text-[18px] font-normal leading-none max-[380px]:right-5 max-[380px]:text-[16px]"
+            className="ielp-gift-title absolute right-[10%] top-[80px] whitespace-nowrap text-[18px] font-normal leading-none max-[380px]:right-5 max-[380px]:text-[16px]"
             style={{ color: GREEN }}
           >
              {headerTitle}

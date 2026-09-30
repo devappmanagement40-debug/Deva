@@ -65,8 +65,8 @@ const CRYPTO_CURRENCIES: CryptoCurrency[] = [
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-4 flex items-center gap-2" style={{ color: "#151515", fontSize: 14 }}>
-      <span className="h-6 w-[5px] rounded-full" style={{ background: TGOOD_GREEN }} />
+    <div className="ielp-deposit-section-title mb-4 flex items-center gap-2" style={{ color: "#151515", fontSize: 14 }}>
+      <span className="ielp-brand-marker h-6 w-[5px] rounded-full" style={{ background: TGOOD_GREEN }} />
       <span>{children}</span>
     </div>
   );
@@ -87,7 +87,7 @@ function LabelledInput({
 }) {
   return (
     <label className="mb-6 block">
-      <span className="mb-3 block font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
+      <span className="ielp-deposit-form-label mb-3 block font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
         <span style={{ color: "#ea4f55" }}>* </span>{label}
       </span>
       <input
@@ -281,7 +281,7 @@ export default function DepositPage() {
   if (view === "crypto-payment" && cryptoPayment) {
     const selectedCurrencyLabel = selectedCryptoCurrency?.label || cryptoPayment.payCurrency.toUpperCase();
     return (
-      <main className="min-h-screen bg-[#f3f8f4] pb-10" style={{ color: "#173f26" }}>
+      <main className="ielp-deposit-page min-h-screen bg-[#f3f8f4] pb-10" style={{ color: "#173f26" }}>
         <header className="flex h-[78px] items-center gap-3 bg-[#087a38] px-4 text-white shadow-[0_2px_8px_rgba(0,75,35,.2)]">
           <button
             type="button"
@@ -330,7 +330,7 @@ export default function DepositPage() {
                     <WalletCards size={18} />
                   </div>
                 </div>
-                <div className="mx-auto mt-4 flex h-[190px] w-[190px] items-center justify-center rounded-[18px] border border-[#e0ebe2] bg-white p-3 shadow-[0_4px_14px_rgba(0,70,30,.06)]">
+                <div className="ielp-qr-code-surface mx-auto mt-4 flex h-[190px] w-[190px] items-center justify-center rounded-[18px] border border-[#e0ebe2] bg-white p-3 shadow-[0_4px_14px_rgba(0,70,30,.06)]">
                   <img src={cryptoPayment.qrCode} alt={`QR code for ${selectedCurrencyLabel} payment`} className="h-full w-full rounded-[8px]" />
                 </div>
               </div>
@@ -407,7 +407,7 @@ export default function DepositPage() {
 
   if (view === "currency") {
     return (
-      <main className="flex h-[calc(100dvh-0.5rem)] max-h-[calc(100dvh-0.5rem)] flex-col overflow-hidden bg-[#f3f8f4]" style={{ color: "#173f26" }}>
+      <main className="ielp-deposit-page flex h-[calc(100dvh-0.5rem)] max-h-[calc(100dvh-0.5rem)] flex-col overflow-hidden bg-[#f3f8f4]" style={{ color: "#173f26" }}>
         <header className="flex h-[76px] shrink-0 items-center gap-3 bg-[#087a38] px-4 text-white shadow-[0_2px_8px_rgba(0,75,35,.2)]">
           <button
             type="button"
@@ -498,7 +498,7 @@ export default function DepositPage() {
 
   if (view === "issue") {
     return (
-      <main className="min-h-screen bg-[#f5f5f5] pb-10" style={{ color: "#252525" }}>
+      <main className="ielp-deposit-page min-h-screen bg-[#f5f5f5] pb-10" style={{ color: "#252525" }}>
         <header className="flex h-[116px] items-center gap-3 bg-white px-5">
           <button
             onClick={() => setView("main")}
@@ -508,7 +508,7 @@ export default function DepositPage() {
           >
             <ArrowLeft size={31} strokeWidth={1.7} />
           </button>
-          <h1 className="font-normal" style={{ color: "#0bad32", fontSize: 20 }}>Recharge issue</h1>
+          <h1 className="ielp-deposit-issue-title font-normal" style={{ color: "#0bad32", fontSize: 20 }}>Recharge issue</h1>
         </header>
 
         <section className="mx-5 mt-6 rounded-[10px] bg-white px-5 pb-10 pt-6 shadow-[0_1px_4px_rgba(0,0,0,.03)]">
@@ -526,7 +526,7 @@ export default function DepositPage() {
             type="number"
           />
           <div>
-            <p className="mb-4 font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
+            <p className="ielp-deposit-form-label mb-4 font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
               <span style={{ color: "#ea4f55" }}>* </span>Recharge proof
             </p>
             <input ref={proofInput} className="hidden" type="file" accept="image/*" onChange={chooseProof} />
@@ -581,7 +581,7 @@ export default function DepositPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f4f4f4] pb-9" style={{ color: "#171717" }}>
+    <main className="ielp-deposit-page min-h-screen bg-[#f4f4f4] pb-9" style={{ color: "#171717" }}>
       <section className="relative h-[282px] overflow-hidden bg-[#dceef7]">
         <img src={depositHero} alt="TGOOD electric charging station" className="h-full w-full object-cover" />
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/30 to-transparent" />
@@ -629,7 +629,8 @@ export default function DepositPage() {
               <button
                 key={preset}
                 onClick={() => setAmount(String(preset))}
-                className="h-[55px] rounded-[7px] border font-normal transition active:scale-[.97]"
+                className="ielp-deposit-preset h-[55px] rounded-[7px] border font-normal transition active:scale-[.97]"
+                data-selected={selected ? "true" : "false"}
                 style={{
                   borderColor: TGOOD_GREEN,
                   color: selected ? "#fff" : "#656565",

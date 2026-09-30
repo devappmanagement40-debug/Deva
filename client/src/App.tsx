@@ -86,6 +86,7 @@ import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import NavigationLoader from "@/components/navigation-loader";
+import "./ielp-member-theme.css";
 
 function BannedMessage() {
   const { t } = useI18n();
@@ -194,6 +195,35 @@ function AppLayout({ children, home = false }: { children: React.ReactNode; home
 }
 
 function RouterComponent() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    const path = location.split("?")[0] || "/";
+    const outsideScope =
+      path === "/banker" ||
+      path.startsWith("/banker/") ||
+      path === "/admin" ||
+      path.startsWith("/admin/");
+    const fullIelpIdentity = new Set([
+      "/login",
+      "/register",
+      "/invitation",
+      "/rejoindre",
+      "/",
+      "/invest",
+      "/team",
+      "/account",
+    ]).has(path);
+    const enabled = !outsideScope && !fullIelpIdentity;
+
+    document.documentElement.classList.toggle("ielp-route-theme", enabled);
+    document.body.classList.toggle("ielp-route-theme", enabled);
+    return () => {
+      document.documentElement.classList.remove("ielp-route-theme");
+      document.body.classList.remove("ielp-route-theme");
+    };
+  }, [location]);
+
   return (
     <>
       <Switch>

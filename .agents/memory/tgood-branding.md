@@ -7,4 +7,4 @@ Use TGOOD’s wordmark and branding by default. Keep the full IELP identity on t
 
 **Why:** the platform was explicitly rebranded to reflect the Chinese energy company TGOOD and its official green wordmark. The user later expanded the IELP color treatment to public and member pages while explicitly excluding admin and banker screens.
 
-**How to apply:** retain existing TGOOD copy and logos outside the IELP-branded screens; apply IELP navy/blue and violet accents to public/member UI only. Scope theme changes so admin, banker, and semantic red/amber/green status colors remain unaffected.
+**How to apply:** retain existing TGOOD copy and logos outside the IELP-branded screens; apply IELP navy/blue and violet accents to public/member UI only. Scope theme changes so admin, banker, and semantic red/amber/green status colors remain unaffected. For legacy inline brand colors, use stable component classes or test IDs; avoid matching hex values in `[style]` attributes because React/browser serialization may normalize them to RGB.

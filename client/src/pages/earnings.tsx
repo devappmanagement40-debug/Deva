@@ -78,7 +78,7 @@ export default function EarningsPage() {
         <div className="flex flex-1 items-center justify-center">
           <img src="/tgood-logo.gif" alt="TGOOD" className="h-8 w-auto" />
         </div>
-        <Link href="/my-products" className="w-[142px] text-center font-medium active:opacity-60" style={{ color: TGOOD_GREEN, fontSize: 19 }}>
+        <Link href="/my-products" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: TGOOD_GREEN, fontSize: 19 }}>
           {t.myProductsTitle}
         </Link>
       </header>
@@ -92,7 +92,7 @@ export default function EarningsPage() {
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
           <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarnings.toLocaleString(localeForLang(lang))}</p>
-          <p className="mt-3" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{t.totalRevenue}</p>
+          <p className="ielp-products-accent mt-3" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{t.totalRevenue}</p>
           {pendingTotal > 0 && (
             <p className="mt-2 text-sm text-white/70">
               {t.myProductsPending}: USDT {pendingTotal.toLocaleString(localeForLang(lang))}

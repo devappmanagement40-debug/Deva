@@ -34,7 +34,7 @@ export default function RulesPage() {
 
   return (
     <div className="flex min-h-screen flex-col text-[#26352d]" style={{ background: "#f8f9fa", color: "#26352d" }}>
-      <header className="flex items-center border-b border-[#dbe8df] bg-[#087a38] px-4 py-3 text-white">
+      <header className="ielp-rules-header flex items-center border-b border-[#dbe8df] bg-[#087a38] px-4 py-3 text-white">
         <Link href="/account">
           <button className="p-1" data-testid="button-back" aria-label="Retour">
             <ChevronLeft className="w-6 h-6 text-white" />
@@ -45,7 +45,7 @@ export default function RulesPage() {
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6">
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS1Title}</h2>
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS1Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>{rS1b1}</li>
             <li>{rS1b2}</li>
@@ -54,7 +54,7 @@ export default function RulesPage() {
         </section>
 
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS2Title}</h2>
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS2Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} USDT.</li>
             <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} USDT via USDT BEP20, sans frais.</li>
@@ -64,7 +64,7 @@ export default function RulesPage() {
         </section>
 
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS3Title}</h2>
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS3Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>Commission niveau 1 : {lv1}% selon les conditions du programme.</li>
             <li>Commission niveau 2 : {lv2}% selon les conditions du programme.</li>
@@ -74,14 +74,14 @@ export default function RulesPage() {
         </section>
 
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS4Title}</h2>
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS4Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>Chaque nouveau membre reçoit le bonus d'inscription configuré, actuellement de {parseInt(signupBonus).toLocaleString()} USDT.</li>
           </ul>
         </section>
 
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS5Title}</h2>
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS5Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>{rS5b1}</li>
             <li>{rS5b2}</li>

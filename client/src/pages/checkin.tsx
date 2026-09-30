@@ -91,7 +91,7 @@ export default function CheckinPage() {
 
   return (
     <main
-      className="min-h-screen w-full overflow-hidden"
+      className="ielp-checkin-page min-h-screen w-full overflow-hidden"
       style={{ maxWidth: 480, margin: "0 auto", background: "#f2f2f2", color: "#151515" }}
     >
       <header className="relative w-full bg-white" style={{ height: 82 }}>
@@ -112,7 +112,7 @@ export default function CheckinPage() {
           style={{ left: "25.5%", top: 24, width: 62, height: 28 }}
         />
         <h1
-          className="absolute font-normal"
+          className="ielp-checkin-title absolute font-normal"
           style={{ left: "49.5%", top: 32, color: "#00a92d", fontSize: 20, lineHeight: 1 }}
         >
           {headerTitle}
@@ -125,7 +125,7 @@ export default function CheckinPage() {
 
       <section className="px-[11px] pt-[18px]">
         <div
-          className="relative w-full bg-white"
+          className="ielp-checkin-stat relative w-full bg-white"
           style={{ height: 120, border: "1px solid #0cad32", borderRadius: 6 }}
         >
           <img
@@ -136,10 +136,10 @@ export default function CheckinPage() {
             style={{ left: 10, top: 8, width: 84, height: 94 }}
           />
           <div className="absolute text-center" style={{ left: "23%", right: "19%", top: 24 }}>
-            <p className="font-normal whitespace-nowrap" style={{ color: "#00b52a", fontSize: 39, lineHeight: 1 }}>
+            <p className="ielp-checkin-balance font-normal whitespace-nowrap" style={{ color: "#00b52a", fontSize: 39, lineHeight: 1 }}>
               {currency} {totalBonusClaimed.toLocaleString()}
             </p>
-            <p className="mt-3 font-normal" style={{ color: "#151515", fontSize: 16, lineHeight: 1 }}>
+            <p className="ielp-checkin-caption mt-3 font-normal" style={{ color: "#151515", fontSize: 16, lineHeight: 1 }}>
               {totalLabel}
             </p>
           </div>
@@ -154,7 +154,7 @@ export default function CheckinPage() {
       </section>
 
       <section
-        className="relative mt-[10px] w-full overflow-hidden"
+        className="ielp-checkin-reward-surface relative mt-[10px] w-full overflow-hidden"
         style={{ height: 372, background: "#00b90a", color: "#ffffff" }}
       >
         <img
@@ -249,20 +249,20 @@ export default function CheckinPage() {
         )}
 
         <div className="mt-[22px] space-y-0">
-          <p className="font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
+          <p className="ielp-checkin-rule-text font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
             {rule1}
           </p>
-          <p className="font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
+          <p className="ielp-checkin-rule-text font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
             {rule2}
           </p>
           <p
-            className="font-normal"
+            className="ielp-checkin-rule-text font-normal"
             style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}
             data-testid="text-random-reward-description"
           >
             Récompense aléatoire : entre {formatReward(DAILY_REWARD_MIN)} et {formatReward(DAILY_REWARD_MAX)} {currency} par pointage.
           </p>
-          <p className="font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
+          <p className="ielp-checkin-rule-text font-normal" style={{ color: "#5e646b", fontSize: 15, lineHeight: 1.55 }}>
             3. Connectez-vous à nouveau après minuit chaque jour.
           </p>
         </div>

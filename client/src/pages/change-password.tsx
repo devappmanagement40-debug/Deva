@@ -82,7 +82,7 @@ export default function ChangePasswordPage() {
 
       {/* ══ HEADER vert TGOOD ══ */}
       <header
-        className="flex items-center px-4 py-4"
+        className="ielp-change-password-header flex items-center px-4 py-4"
         style={{ background: TGOOD_GREEN }}
       >
         <button

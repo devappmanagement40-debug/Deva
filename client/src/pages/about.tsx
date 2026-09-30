@@ -21,7 +21,7 @@ export default function AboutPage() {
 
   return (
     <div className="flex min-h-screen flex-col text-[#26352d]" style={{ background: "#f8f9fa", color: "#26352d" }}>
-      <header className="flex items-center border-b border-[#dbe8df] bg-[#087a38] px-4 py-3 text-white">
+      <header className="ielp-about-header flex items-center border-b border-[#dbe8df] bg-[#087a38] px-4 py-3 text-white">
         <Link href="/account">
           <button className="p-1" data-testid="button-back">
             <ChevronLeft className="w-6 h-6 text-white" />
@@ -32,20 +32,20 @@ export default function AboutPage() {
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6 pb-20">
         <div className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-[#087a38]">{s1Title}</h2>
+          <h2 className="ielp-about-heading text-xl font-bold text-[#087a38]">{s1Title}</h2>
           <p className="leading-relaxed text-[#3f4d45]">{s1Text1}</p>
           <p className="leading-relaxed text-[#3f4d45]">{s1Text2}</p>
         </div>
         <div className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-[#087a38]">{s2Title}</h2>
+          <h2 className="ielp-about-heading text-xl font-bold text-[#087a38]">{s2Title}</h2>
           <p className="leading-relaxed text-[#3f4d45]">{s2Text}</p>
         </div>
         <div className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-[#087a38]">{s3Title}</h2>
+          <h2 className="ielp-about-heading text-xl font-bold text-[#087a38]">{s3Title}</h2>
           <p className="leading-relaxed text-[#3f4d45]">{s3Text}</p>
         </div>
         <div className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="text-xl font-bold text-[#087a38]">{s4Title}</h2>
+          <h2 className="ielp-about-heading text-xl font-bold text-[#087a38]">{s4Title}</h2>
           <p className="leading-relaxed text-[#3f4d45]">{s4Text}</p>
         </div>
       </div>

@@ -1,0 +1,448 @@
+/*
+ * TGOOD public/member color harmonization.
+ * This class is applied only to routes outside the preserved IELP screens;
+ * keeping the palette on html/body also themes Radix portals without touching
+ * the application-wide tokens or the excluded admin/banker routes.
+ */
+html.ielp-route-theme {
+  --ielp-primary-start: #7041f2;
+  --ielp-primary-end: #8c46df;
+  --ielp-primary: #a994ff;
+  --ielp-surface: #101c49;
+  --ielp-surface-raised: #172b5b;
+  --background: 230 82% 8%;
+  --foreground: 218 40% 95%;
+  --border: 222 39% 28%;
+  --card: 224 54% 15%;
+  --card-foreground: 218 40% 95%;
+  --card-border: 222 39% 27%;
+  --popover: 224 54% 14%;
+  --popover-foreground: 218 40% 95%;
+  --popover-border: 222 39% 29%;
+  --primary: 257 86% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 44% 22%;
+  --secondary-foreground: 218 40% 95%;
+  --muted: 222 39% 20%;
+  --muted-foreground: 216 24% 76%;
+  --accent: 226 46% 24%;
+  --accent-foreground: 218 40% 97%;
+  --input: 222 38% 30%;
+  --ring: 257 86% 64%;
+  --sidebar: 229 78% 9%;
+  --sidebar-foreground: 218 40% 95%;
+  --sidebar-primary: 257 86% 62%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 222 44% 22%;
+  --sidebar-accent-foreground: 218 40% 95%;
+  --sidebar-border: 222 39% 25%;
+  --sidebar-ring: 257 86% 64%;
+}
+
+html.ielp-route-theme,
+body.ielp-route-theme {
+  background-color: #050923;
+  color: #edf3ff;
+  color-scheme: dark;
+}
+
+body.ielp-route-theme {
+  background-image: linear-gradient(180deg, #050923 0%, #07113a 45%, #08285f 100%);
+}
+
+body.ielp-route-theme main {
+  color: #edf3ff;
+  background-color: #07113a !important;
+}
+
+body.ielp-route-theme [class*="min-h-screen"] {
+  color: #edf3ff !important;
+  background-color: #050923 !important;
+}
+
+body.ielp-route-theme .app-shell {
+  color: #edf3ff;
+  background-color: #050923;
+}
+
+/* Neutral white/gray page surfaces become cool blue surfaces, preserving layout. */
+body.ielp-route-theme .bg-white,
+body.ielp-route-theme .bg-black,
+body.ielp-route-theme .bg-gray-50,
+body.ielp-route-theme .bg-gray-100,
+body.ielp-route-theme .bg-slate-50,
+body.ielp-route-theme .bg-slate-100,
+body.ielp-route-theme [class~="bg-white/90"],
+body.ielp-route-theme [class~="bg-white/85"],
+body.ielp-route-theme [class~="bg-[#fbfbfa]"],
+body.ielp-route-theme [class~="bg-[#f5f5f5]"],
+body.ielp-route-theme [class~="bg-[#f4f4f4]"],
+body.ielp-route-theme [class~="bg-[#f3f8f4]"],
+body.ielp-route-theme [class~="bg-[#f5f5f5]"],
+body.ielp-route-theme [class~="bg-[#fafafa]"],
+body.ielp-route-theme [class~="bg-[#f9f9f9]"],
+body.ielp-route-theme [class~="bg-[#f8f8f8]"],
+body.ielp-route-theme [class~="bg-[#f1f2f4]"],
+body.ielp-route-theme [class~="bg-[#f8f9fa]"],
+body.ielp-route-theme [class~="bg-[#f3faf5]"],
+body.ielp-route-theme [class~="bg-[#f8fcf9]"],
+body.ielp-route-theme [class~="bg-[#fbfdfb]"],
+body.ielp-route-theme [class~="bg-[#f0f7f1]"],
+body.ielp-route-theme [class~="bg-[#f1f7f2]"],
+body.ielp-route-theme [class~="bg-[#f7fcf8]"],
+body.ielp-route-theme [class~="bg-[#e4f6e9]"],
+body.ielp-route-theme [class~="bg-[#eaf7ee]"],
+body.ielp-route-theme [class~="bg-[#e2f4e7]"] {
+  background-color: var(--ielp-surface-raised) !important;
+}
+
+body.ielp-route-theme [class~="bg-[#fbfbfa]"],
+body.ielp-route-theme [class~="bg-[#f5f5f5]"],
+body.ielp-route-theme [class~="bg-[#f4f4f4]"],
+body.ielp-route-theme [class~="bg-[#f3f8f4]"],
+body.ielp-route-theme [class~="bg-[#f8fcf9]"],
+body.ielp-route-theme [class~="bg-[#fbfdfb]"],
+body.ielp-route-theme [class~="bg-[#f0f7f1]"],
+body.ielp-route-theme [class~="bg-[#f1f7f2]"],
+body.ielp-route-theme [class~="bg-[#f7fcf8]"],
+body.ielp-route-theme [class~="bg-[#e4f6e9]"],
+body.ielp-route-theme [class~="bg-[#eaf7ee]"],
+body.ielp-route-theme [class~="bg-[#e2f4e7]"] {
+  background-image: linear-gradient(180deg, #07113a, #08285f) !important;
+}
+
+body.ielp-route-theme [class~="bg-[#087a38]"] {
+  background-color: #050923 !important;
+  background-image: none !important;
+}
+
+body.ielp-route-theme [class~="bg-[#171717]"],
+body.ielp-route-theme [class~="bg-[#1a1a1a]"] {
+  background-color: var(--ielp-surface) !important;
+}
+
+body.ielp-route-theme header,
+body.ielp-route-theme [class*="border-b"][class*="bg-white"],
+body.ielp-route-theme [class*="border-t"][class*="bg-white"] {
+  border-color: rgba(178, 202, 255, .16) !important;
+}
+
+/* Common neutral text colors on the legacy screens are lifted for contrast. */
+body.ielp-route-theme [class~="text-[#111]"],
+body.ielp-route-theme [class~="text-[#111f18]"],
+body.ielp-route-theme [class~="text-[#13271e]"],
+body.ielp-route-theme [class~="text-[#15271f]"],
+body.ielp-route-theme [class~="text-[#173f26]"],
+body.ielp-route-theme [class~="text-[#151515]"],
+body.ielp-route-theme [class~="text-[#161616]"],
+body.ielp-route-theme [class~="text-[#171717]"],
+body.ielp-route-theme [class~="text-[#202020]"],
+body.ielp-route-theme [class~="text-[#183c25]"],
+body.ielp-route-theme [class~="text-[#202124]"],
+body.ielp-route-theme [class~="text-[#222]"],
+body.ielp-route-theme [class~="text-[#26352d]"],
+body.ielp-route-theme [class~="text-[#242424]"],
+body.ielp-route-theme [class~="text-[#24372e]"],
+body.ielp-route-theme [class~="text-[#252525]"],
+body.ielp-route-theme [class~="text-[#25322b]"],
+body.ielp-route-theme [class~="text-[#30363a]"],
+body.ielp-route-theme [class~="text-[#343434]"],
+body.ielp-route-theme [class~="text-[#292929]"],
+body.ielp-route-theme [class~="text-[#333]"],
+body.ielp-route-theme [class~="text-[#3a3a3a]"],
+body.ielp-route-theme [class~="text-[#3f4d45]"],
+body.ielp-route-theme [class~="text-[#3f3f3f]"],
+body.ielp-route-theme [class~="text-[#404040]"],
+body.ielp-route-theme [class~="text-[#444]"],
+body.ielp-route-theme [class~="text-[#555]"],
+body.ielp-route-theme [class~="text-[#666]"],
+body.ielp-route-theme [class~="text-[#686868]"],
+body.ielp-route-theme [class~="text-[#5b616a]"],
+body.ielp-route-theme [class~="text-[#626262]"],
+body.ielp-route-theme [class~="text-[#545960]"],
+body.ielp-route-theme [class~="text-[#65736e]"],
+body.ielp-route-theme [class~="text-[#698173]"],
+body.ielp-route-theme [class~="text-[#66746b]"],
+body.ielp-route-theme [class~="text-[#53705d]"],
+body.ielp-route-theme [class~="text-[#789082]"],
+body.ielp-route-theme [class~="text-[#6a8270]"],
+body.ielp-route-theme [class~="text-[#6b7d70]"],
+body.ielp-route-theme [class~="text-[#718177]"],
+body.ielp-route-theme [class~="text-[#789b83]"],
+body.ielp-route-theme [class~="text-[#6b6b6b]"],
+body.ielp-route-theme [class~="text-[#7b8580]"],
+body.ielp-route-theme [class~="text-[#888]"],
+body.ielp-route-theme [class~="text-[#656565]"],
+body.ielp-route-theme [class~="text-[#5e646b]"],
+body.ielp-route-theme [class~="text-[#6d6d6d]"],
+body.ielp-route-theme .text-gray-900,
+body.ielp-route-theme .text-gray-800,
+body.ielp-route-theme .text-gray-700,
+body.ielp-route-theme .text-gray-600,
+body.ielp-route-theme .text-slate-900,
+body.ielp-route-theme .text-slate-800,
+body.ielp-route-theme .text-slate-700,
+body.ielp-route-theme .text-neutral-900,
+body.ielp-route-theme .text-neutral-800,
+body.ielp-route-theme .text-neutral-700 {
+  color: #dce8ff !important;
+}
+
+body.ielp-route-theme [class~="text-[#087a38]"],
+body.ielp-route-theme [class~="text-[#078a42]"],
+body.ielp-route-theme [class~="text-[#0bad32]"] {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme input:not([type="checkbox"]):not([type="radio"]),
+body.ielp-route-theme textarea,
+body.ielp-route-theme select {
+  color: #f4f7ff !important;
+  border-color: rgba(180, 204, 255, .32) !important;
+}
+
+body.ielp-route-theme input::placeholder,
+body.ielp-route-theme textarea::placeholder {
+  color: #aabbe0 !important;
+  opacity: 1;
+}
+
+/* Non-home navigation has inline TGOOD-green state; use route state, not its
+   serialized inline color, to recolor it safely. */
+body.ielp-route-theme .bottom-nav:not(.bottom-nav--ielp) {
+  border-top: 1px solid rgba(178, 202, 255, .18) !important;
+  background: rgba(5, 9, 35, .96) !important;
+  box-shadow: 0 -4px 18px rgba(1, 6, 27, .24) !important;
+}
+
+body.ielp-route-theme .bottom-nav:not(.bottom-nav--ielp) button {
+  color: #c4d5f4 !important;
+}
+
+body.ielp-route-theme .bottom-nav:not(.bottom-nav--ielp) button[aria-current="page"] {
+  color: #a994ff !important;
+}
+
+/* Brand actions are addressed by stable component identifiers. Semantic status
+   colors (ready/complete/error/warning) are intentionally not blanket-mapped. */
+body.ielp-route-theme [data-testid="button-submit-withdrawal"],
+body.ielp-route-theme [data-testid="button-confirm-wallet"],
+body.ielp-route-theme [data-testid="button-add-wallet"],
+body.ielp-route-theme [data-testid="button-confirm-deposit"],
+body.ielp-route-theme [data-testid="button-deposit-method"],
+body.ielp-route-theme [data-testid="button-submit-deposit-issue"],
+body.ielp-route-theme [data-testid="button-copy-crypto-address"],
+body.ielp-route-theme [data-testid="button-change-password-submit"],
+body.ielp-route-theme [data-testid="button-submit-code"],
+body.ielp-route-theme [data-testid="button-submit-share-information"],
+body.ielp-route-theme [data-testid="button-pointer"],
+body.ielp-route-theme [data-testid="button-support-link"],
+body.ielp-route-theme [data-testid="button-support2-link"],
+body.ielp-route-theme [data-testid="button-group-link"],
+body.ielp-route-theme [data-testid="button-channel-link"],
+body.ielp-route-theme [data-testid^="button-claim-"]:not(:disabled),
+body.ielp-route-theme [data-testid^="button-collect-earnings-"]:not(:disabled),
+body.ielp-route-theme [data-testid="button-collect-final"]:not(:disabled) {
+  color: #fff !important;
+  background: linear-gradient(105deg, var(--ielp-primary-start), var(--ielp-primary-end)) !important;
+  border-color: transparent !important;
+}
+
+body.ielp-route-theme [data-testid="button-select-wallet"] {
+  color: #fff !important;
+  background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
+}
+
+body.ielp-route-theme [data-testid^="wallet-card-"] {
+  background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
+}
+
+body.ielp-route-theme [data-testid^="button-set-default-"],
+body.ielp-route-theme [data-testid="button-deposit-issue"] {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme [data-testid="text-balance"] {
+  color: #a994ff !important;
+}
+
+body.ielp-route-theme input[data-testid^="input-"] {
+  caret-color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-service-header,
+body.ielp-route-theme .ielp-change-password-header,
+body.ielp-route-theme .ielp-about-header,
+body.ielp-route-theme .ielp-rules-header {
+  background: #050923 !important;
+  border-color: rgba(178, 202, 255, .16) !important;
+}
+
+body.ielp-route-theme .ielp-service-hero {
+  background: linear-gradient(160deg, #08285f 0%, #07113a 100%) !important;
+}
+
+body.ielp-route-theme .ielp-service-hours {
+  background: linear-gradient(135deg, #172b5b, #08285f) !important;
+}
+
+body.ielp-route-theme .ielp-gift-title,
+body.ielp-route-theme .ielp-products-accent,
+body.ielp-route-theme .ielp-deposit-issue-title {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-brand-marker {
+  background: linear-gradient(180deg, var(--ielp-primary-start), var(--ielp-primary-end)) !important;
+}
+
+body.ielp-route-theme .ielp-task-hero {
+  background: linear-gradient(105deg, #07113a 0%, #08285f 60%, #075486 100%) !important;
+}
+
+body.ielp-route-theme [data-testid^="task-item-"] > div:first-child {
+  background: linear-gradient(135deg, var(--ielp-primary-start), var(--ielp-primary-end)) !important;
+}
+
+body.ielp-route-theme [data-testid^="task-item-"] .h-1 > div {
+  background: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-checkin-reward-surface {
+  background: linear-gradient(135deg, #08285f, #075486) !important;
+}
+
+body.ielp-route-theme .ielp-checkin-title,
+body.ielp-route-theme .ielp-checkin-balance {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-checkin-stat {
+  border-color: rgba(169, 148, 255, .5) !important;
+}
+
+body.ielp-route-theme .ielp-checkin-page,
+body.ielp-route-theme .ielp-deposit-page,
+body.ielp-route-theme .ielp-withdrawal-page {
+  color: #edf3ff !important;
+  background-color: #050923 !important;
+}
+
+body.ielp-route-theme .ielp-checkin-caption,
+body.ielp-route-theme .ielp-checkin-rule-text,
+body.ielp-route-theme .ielp-deposit-form-label,
+body.ielp-route-theme .ielp-withdrawal-muted,
+body.ielp-route-theme .ielp-service-label,
+body.ielp-route-theme .ielp-service-guidance-title,
+body.ielp-route-theme .ielp-service-guidance-copy {
+  color: #dce8ff !important;
+}
+
+body.ielp-route-theme .ielp-deposit-section-title {
+  color: #edf3ff !important;
+}
+
+body.ielp-route-theme .ielp-deposit-section-title .ielp-brand-marker {
+  background: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-deposit-preset {
+  color: #dce8ff !important;
+  background: var(--ielp-surface-raised) !important;
+  border-color: rgba(178, 202, 255, .24) !important;
+  box-shadow: none !important;
+}
+
+body.ielp-route-theme .ielp-deposit-preset[data-selected="true"] {
+  color: #fff !important;
+  background: linear-gradient(105deg, var(--ielp-primary-start), var(--ielp-primary-end)) !important;
+  border-color: transparent !important;
+}
+
+/* Keep a high-contrast paper surface behind payment QR codes for reliable scans. */
+body.ielp-route-theme .ielp-qr-code-surface {
+  background-color: #fff !important;
+}
+
+body.ielp-route-theme .ielp-withdrawal-card {
+  background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
+}
+
+body.ielp-route-theme .ielp-about-heading,
+body.ielp-route-theme .ielp-rules-heading {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-rules-heading {
+  border-color: var(--ielp-primary-end) !important;
+}
+
+body.ielp-route-theme .ielp-member-products-link {
+  color: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme .ielp-member-products-progress {
+  background: var(--ielp-primary) !important;
+}
+
+body.ielp-route-theme [class~="border-[#00a651]"] {
+  border-color: #8c46df !important;
+}
+
+body.ielp-route-theme [class~="border-[#cfe5d5]"],
+body.ielp-route-theme [class~="border-[#dcebe0]"],
+body.ielp-route-theme [class~="border-[#e0ebe2]"],
+body.ielp-route-theme [class~="border-[#e1eee4]"],
+body.ielp-route-theme [class~="border-[#e2ece4]"],
+body.ielp-route-theme [class~="border-[#e5eee7]"],
+body.ielp-route-theme [class~="border-[#e5efe7]"] {
+  border-color: rgba(178, 202, 255, .2) !important;
+}
+
+body.ielp-route-theme [class~="hover:bg-[#f7fcf8]"]:hover,
+body.ielp-route-theme [class~="hover:bg-[#eaf7ee]"]:hover,
+body.ielp-route-theme [class~="active:bg-[#eaf8ee]"]:active {
+  background-color: #172b5b !important;
+}
+
+body.ielp-route-theme [class~="bg-black"] {
+  background-color: #07113a !important;
+}
+
+body.ielp-route-theme main header[class~="bg-[#087a38]"] {
+  background-color: #050923 !important;
+  background-image: none !important;
+}
+
+body.ielp-route-theme [data-radix-dialog-content],
+body.ielp-route-theme [data-radix-alert-dialog-content],
+body.ielp-route-theme [data-radix-popover-content],
+body.ielp-route-theme [data-radix-select-content],
+body.ielp-route-theme [data-radix-dropdown-menu-content] {
+  color: #edf3ff !important;
+  border-color: rgba(180, 202, 255, .2) !important;
+  background-color: #101c49 !important;
+}
+
+body.ielp-route-theme [data-radix-portal] [class~="bg-white"],
+body.ielp-route-theme [data-radix-portal] [class~="bg-[#fafafa]"],
+body.ielp-route-theme [data-radix-portal] [class~="bg-[#f3faf5]"] {
+  color: #edf3ff !important;
+  background-color: #172b5b !important;
+}
+
+/* Toasts are portalled to body; keep the shared toast treatment route-scoped. */
+body.ielp-route-theme ol[data-radix-toast-viewport] li {
+  color: #edf3ff !important;
+  border: 1px solid rgba(178, 202, 255, .2) !important;
+  background: #101c49 !important;
+  box-shadow: 0 8px 28px rgba(1, 5, 25, .38) !important;
+}
+
+body.ielp-route-theme ol[data-radix-toast-viewport] li * {
+  color: #edf3ff !important;
+}
+
+body.ielp-route-theme :focus-visible {
+  outline-color: #a994ff !important;
+}

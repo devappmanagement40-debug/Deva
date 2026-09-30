@@ -71,7 +71,7 @@ export default function TasksPage() {
         </header>
 
         <section
-          className="relative h-[84px] overflow-hidden"
+          className="ielp-task-hero relative h-[84px] overflow-hidden"
           style={{
             background: `linear-gradient(105deg, #075d34 0%, ${TGOOD_GREEN} 53%, ${TGOOD_SKY} 125%)`,
           }}
@@ -85,7 +85,7 @@ export default function TasksPage() {
         <section className="px-5 pt-[46px]">
           <div className="mb-2 flex items-center gap-2">
             <span
-              className="h-[26px] w-[5px] rounded-full"
+              className="ielp-brand-marker h-[26px] w-[5px] rounded-full"
               style={{ background: `linear-gradient(180deg, ${TGOOD_SKY}, ${TGOOD_GREEN})` }}
             />
             <h2 className="text-[18px] font-bold text-[#242424]">{t.taskRewardTitle}</h2>

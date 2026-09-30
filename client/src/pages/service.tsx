@@ -92,11 +92,11 @@ export default function ServicePage() {
   const links = allLinks.filter(l => l.enabled);
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "#f2f2f2" }}>
+    <div className="ielp-service-page flex flex-col min-h-screen" style={{ background: "#f2f2f2" }}>
 
        {/* ══ HEADER TGOOD ══ */}
       <div
-        className="flex items-center px-4 py-3"
+        className="ielp-service-header flex items-center px-4 py-3"
         style={{ background: GREEN }}
       >
         <Link href="/account">
@@ -114,6 +114,7 @@ export default function ServicePage() {
 
       {/* ══ HERO — logo + personnages ══ */}
       <div
+        className="ielp-service-hero"
         style={{
           background: "linear-gradient(160deg, #078438 0%, #034c25 100%)",
           paddingBottom: 30,
@@ -145,7 +146,7 @@ export default function ServicePage() {
       {/* ══ CARTE HORAIRES ══ */}
       <div className="px-3 mt-3">
         <div
-          className="rounded-2xl text-center py-5 px-4"
+          className="ielp-service-hours rounded-2xl text-center py-5 px-4"
           style={{ background: GREEN }}
         >
           <p
@@ -167,6 +168,7 @@ export default function ServicePage() {
       <div className="px-3 mt-4">
         {/* Label "Telegram" */}
         <p
+          className="ielp-service-label"
           style={{
             fontSize: 14,
             fontWeight: 600,
@@ -215,6 +217,7 @@ export default function ServicePage() {
       {/* ══ CONSEILS ══ */}
       <div className="px-4 mt-6 pb-24">
         <p
+          className="ielp-service-guidance-title"
           style={{
             fontSize: 14,
             fontWeight: 800,
@@ -225,7 +228,7 @@ export default function ServicePage() {
         >
           CONSEILS :
         </p>
-        <div style={{ color: "#444", fontSize: 13, lineHeight: 1.8 }}>
+        <div className="ielp-service-guidance-copy" style={{ color: "#444", fontSize: 13, lineHeight: 1.8 }}>
            <p>
              1. Pour toute question concernant la plateforme, utilisez uniquement
              les liens TGOOD publiés dans cette page.
