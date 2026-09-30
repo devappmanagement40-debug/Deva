@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Check, ChevronDown, CircleHelp, Loader2, MessageCircleMore, MessageSquare, RefreshCw } from "lucide-react";
+import { AlertTriangle, Check, CircleHelp, Loader2, MessageCircleMore, MessageSquare, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -13,7 +13,7 @@ import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
-import { getContent, rebrandText } from "@/lib/content";
+import { rebrandText } from "@/lib/content";
 import "./products.css";
 
 interface ProductWithOwnership extends Product {
@@ -22,14 +22,9 @@ interface ProductWithOwnership extends Product {
 }
 
 const INVEST_COPY: Record<Lang, {
-  title: string;
-  subtitle: string;
   tabs: [string, string, string];
   overview: string;
-  more: string;
-  less: string;
   myInvestments: string;
-  available: string;
   days: string;
   daily: string;
   term: string;
@@ -49,14 +44,9 @@ const INVEST_COPY: Record<Lang, {
   retry: string;
 }> = {
   fr: {
-    title: "Investir avec DIAMANT",
-    subtitle: "Des produits sélectionnés pour faire grandir votre portefeuille.",
     tabs: ["Stabiliser", "Bien-être", "Activité"],
     overview: "Découvrez les produits d’investissement DIAMANT",
-    more: "En savoir plus",
-    less: "Réduire",
     myInvestments: "Mes investissements",
-    available: "Solde disponible",
     days: "jours",
     daily: "Revenu quotidien",
     term: "Jours de revenu",
@@ -76,14 +66,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "Réessayer",
   },
   en: {
-    title: "Invest with DIAMANT",
-    subtitle: "Selected products to help your portfolio grow.",
     tabs: ["Stability", "Wellness", "Activity"],
     overview: "Explore DIAMANT investment products",
-    more: "Read more",
-    less: "Show less",
     myInvestments: "My investments",
-    available: "Available balance",
     days: "days",
     daily: "Daily revenue",
     term: "Revenue days",
@@ -103,14 +88,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "Try again",
   },
   ar: {
-    title: "استثمر مع DIAMANT",
-    subtitle: "منتجات مختارة للمساعدة على تنمية محفظتك.",
     tabs: ["الاستقرار", "العافية", "النشاط"],
     overview: "اكتشف منتجات DIAMANT الاستثمارية",
-    more: "اقرأ المزيد",
-    less: "عرض أقل",
     myInvestments: "استثماراتي",
-    available: "الرصيد المتاح",
     days: "أيام",
     daily: "العائد اليومي",
     term: "أيام الربح",
@@ -130,14 +110,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "إعادة المحاولة",
   },
   zh: {
-    title: "与 DIAMANT 一起投资",
-    subtitle: "精选产品，助力您的资产稳步增长。",
     tabs: ["稳健", "健康", "活力"],
     overview: "探索 DIAMANT 投资产品",
-    more: "了解更多",
-    less: "收起",
     myInvestments: "我的投资",
-    available: "可用余额",
     days: "天",
     daily: "每日收益",
     term: "收益天数",
@@ -169,13 +144,8 @@ export default function ProductsPage() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const [confirmProduct, setConfirmProduct] = useState<ProductWithOwnership | null>(null);
-  const [introExpanded, setIntroExpanded] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
   const copy = INVEST_COPY[lang];
-  const { data: settings } = useQuery<Record<string, string>>({
-    queryKey: ["/api/settings"],
-  });
-  const pageTitle = getContent(settings, "content_products_headerTitle", copy.title);
 
   const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<ProductWithOwnership[]>({
     queryKey: ["/api/products"],
@@ -232,40 +202,6 @@ export default function ProductsPage() {
         </header>
 
         <div className="diamant-invest-content">
-          <section className="diamant-invest-hero" aria-labelledby="invest-title">
-            <div className="diamant-invest-hero__eyebrow">
-              <span className="diamant-invest-hero__line" />
-              <span>DIAMANT · USDT</span>
-            </div>
-            <div className="diamant-invest-hero__row">
-              <div>
-                <h1 id="invest-title">{pageTitle}</h1>
-                <p>{copy.subtitle}</p>
-              </div>
-              <Link className="diamant-invest-balance" href="/account">
-                <span>{copy.available}</span>
-                <strong>{formatUsdt(availableBalance)} <small>USDT</small></strong>
-              </Link>
-            </div>
-          </section>
-
-          <section className="diamant-invest-intro" aria-label={copy.overview}>
-            <div className="diamant-invest-intro__copy">
-              <span className="diamant-invest-intro__index">01 / CATALOG</span>
-              <p>{copy.overview}</p>
-              {introExpanded && <p className="diamant-invest-intro__detail">{copy.subtitle}</p>}
-            </div>
-            <button
-              className="diamant-invest-more"
-              type="button"
-              aria-expanded={introExpanded}
-              onClick={() => setIntroExpanded((expanded) => !expanded)}
-            >
-              <span>{introExpanded ? copy.less : copy.more}</span>
-              <ChevronDown size={16} className={introExpanded ? "is-open" : ""} aria-hidden="true" />
-            </button>
-          </section>
-
           <div className="diamant-invest-tabs" role="group" aria-label={copy.overview}>
             {copy.tabs.map((label, index) => (
               <button
@@ -283,14 +219,14 @@ export default function ProductsPage() {
           <div className="diamant-invest-list-heading">
             <div>
               <span>{lang === "en" ? "THE COLLECTION" : lang === "ar" ? "المجموعة" : lang === "zh" ? "精选系列" : "LA COLLECTION"}</span>
-              <h2>{copy.tabs[selectedTab]}</h2>
+              <h1>{copy.tabs[selectedTab]}</h1>
             </div>
             <Link className="diamant-invest-owned-link" href="/my-products">
               {copy.myInvestments}
             </Link>
           </div>
 
-          <section className="diamant-invest-list" aria-label={copy.title}>
+          <section className="diamant-invest-list" aria-label={copy.overview}>
             {productsLoading ? (
               <div className="diamant-invest-skeletons" aria-label={copy.loading} aria-busy="true">
                 {[0, 1, 2].map((item) => (

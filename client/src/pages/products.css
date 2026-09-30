@@ -40,32 +40,6 @@
   padding: 24px 17px 48px;
 }
 
-.diamant-invest-hero {
-  position: relative;
-  padding: 19px 19px 21px;
-  overflow: hidden;
-  border: 1px solid rgba(193, 183, 255, .2);
-  border-radius: 19px;
-  background:
-    linear-gradient(116deg, rgba(24, 34, 86, .84), rgba(23, 42, 102, .56)),
-    radial-gradient(ellipse at 100% 0%, rgba(116, 90, 255, .28), transparent 55%);
-  box-shadow: 0 16px 34px rgba(1, 4, 23, .19), inset 0 1px rgba(255,255,255,.08);
-}
-
-.diamant-invest-hero::after {
-  position: absolute;
-  right: -34px;
-  bottom: -76px;
-  width: 180px;
-  height: 180px;
-  border: 1px solid rgba(159, 167, 255, .12);
-  border-radius: 50%;
-  content: "";
-  box-shadow: 0 0 0 19px rgba(136, 145, 255, .035), 0 0 0 39px rgba(136, 145, 255, .025);
-  pointer-events: none;
-}
-
-.diamant-invest-hero__eyebrow,
 .diamant-invest-list-heading > div > span {
   display: flex;
   align-items: center;
@@ -74,127 +48,6 @@
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .18em;
-}
-
-.diamant-invest-hero__line {
-  width: 24px;
-  height: 1px;
-  background: #9e8bff;
-}
-
-.diamant-invest-hero__row {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 21px;
-}
-
-.diamant-invest-hero h1 {
-  margin: 0;
-  color: #fff;
-  font-family: Georgia, serif;
-  font-size: clamp(24px, 7vw, 33px);
-  font-weight: 500;
-  letter-spacing: -.035em;
-  line-height: 1.08;
-}
-
-.diamant-invest-hero p {
-  max-width: 245px;
-  margin: 8px 0 0;
-  color: rgba(237, 238, 255, .73);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.diamant-invest-balance {
-  display: flex;
-  min-width: 113px;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
-  padding: 9px 11px;
-  border: 1px solid rgba(191, 192, 255, .19);
-  border-radius: 11px;
-  color: #fff;
-  background: rgba(6, 12, 43, .47);
-  text-decoration: none;
-}
-
-.diamant-invest-balance span {
-  color: #b7b9db;
-  font-size: 9px;
-  white-space: nowrap;
-}
-
-.diamant-invest-balance strong {
-  font-family: Georgia, serif;
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.diamant-invest-balance small {
-  color: #b8b4ee;
-  font-family: Arial, Roboto, sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-}
-
-.diamant-invest-intro {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin: 23px 3px 16px;
-}
-
-.diamant-invest-intro__copy {
-  min-width: 0;
-}
-
-.diamant-invest-intro__index {
-  color: #a7a2de;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .19em;
-}
-
-.diamant-invest-intro__copy p {
-  margin: 5px 0 0;
-  color: #f0efff;
-  font-family: Georgia, serif;
-  font-size: 15px;
-  line-height: 1.3;
-}
-
-.diamant-invest-intro__copy .diamant-invest-intro__detail {
-  max-width: 330px;
-  color: rgba(232, 232, 250, .67);
-  font-family: Arial, Roboto, sans-serif;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.diamant-invest-more {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 3px;
-  padding: 7px 0 7px 7px;
-  color: #bab2ff;
-  background: transparent;
-  font-size: 11px;
-}
-
-.diamant-invest-more svg {
-  transition: transform 160ms ease;
-}
-
-.diamant-invest-more svg.is-open {
-  transform: rotate(180deg);
 }
 
 .diamant-invest-tabs {
@@ -241,7 +94,7 @@
   font-size: 9px;
 }
 
-.diamant-invest-list-heading h2 {
+.diamant-invest-list-heading h1 {
   margin: 5px 0 0;
   color: #fff;
   font-family: Georgia, serif;
@@ -497,7 +350,6 @@
 
 .diamant-invest-buy:focus-visible,
 .diamant-invest-tabs button:focus-visible,
-.diamant-invest-more:focus-visible,
 .diamant-invest-owned-link:focus-visible {
   outline: 2px solid #b9a8ff;
   outline-offset: 3px;
@@ -767,11 +619,6 @@
 
 @media (max-width: 380px) {
   .diamant-invest-content { padding-inline: 13px; }
-  .diamant-invest-hero { padding: 16px 14px 18px; }
-  .diamant-invest-hero__row { gap: 7px; }
-  .diamant-invest-hero h1 { font-size: 24px; }
-  .diamant-invest-hero p { max-width: 185px; font-size: 11px; }
-  .diamant-invest-balance { min-width: 101px; padding-inline: 8px; }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 92px; gap: 7px; }
   .diamant-invest-product-visual { height: 96px; }
   .diamant-invest-product-copy h3 { font-size: 17px; }
@@ -783,7 +630,6 @@
 @media (prefers-reduced-motion: reduce) {
   .diamant-invest-product-card,
   .diamant-invest-skeleton > div,
-  .diamant-invest-more svg,
   .diamant-invest-buy,
   .diamant-invest-tabs button {
     animation: none;
