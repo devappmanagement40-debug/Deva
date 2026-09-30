@@ -252,7 +252,7 @@ function RouterComponent() {
       </Route>
       <Route path="/team">
         <ProtectedRoute>
-          <AppLayout>
+          <AppLayout home>
             <TeamPage />
           </AppLayout>
         </ProtectedRoute>

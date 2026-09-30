@@ -8,7 +8,7 @@ import {
   type GiftCode, type GiftCodeClaim, type Country
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, asc, desc, sql, gte, gt, lt, lte, or, inArray, isNotNull } from "drizzle-orm";
+import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 
@@ -1450,7 +1450,7 @@ export class DatabaseStorage implements IStorage {
       return count;
     };
 
-    const allMembers = [...level1, ...level2, ...level3];
+    const allMembers = [...allLevel1, ...allLevel2, ...allLevel3];
     let teamTotalDeposits = 0;
     let teamTotalWithdrawals = 0;
 

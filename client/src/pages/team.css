@@ -1,0 +1,421 @@
+.ielp-team-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse at 80% 44%, rgba(33, 89, 156, .28), transparent 24rem),
+    linear-gradient(180deg, #050923 0%, #07113a 38%, #08285f 70%, #075486 100%);
+}
+
+.ielp-team-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: 115px;
+  background:
+    radial-gradient(ellipse at 80% 44%, rgba(33, 89, 156, .18), transparent 21rem),
+    linear-gradient(180deg, #050923 0%, #07113a 38%, #08285f 70%, #075486 100%);
+}
+
+.ielp-team-content {
+  padding: 30px 26px 28px 20px;
+  color: #f7f8ff;
+}
+
+.ielp-team-commission-link {
+  display: block;
+  width: min(241px, 74%);
+  height: 34px;
+  margin: 0 0 8px auto;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(105deg, #7041f2 0%, #8c46df 100%);
+  box-shadow: 0 3px 12px rgba(36, 23, 111, .24);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 34px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.ielp-team-commission-link:active,
+.ielp-team-copy-button:active,
+.ielp-team-level-card button:active {
+  transform: scale(.97);
+}
+
+.ielp-team-label,
+.ielp-team-link-heading,
+.ielp-team-share h2 {
+  margin: 0;
+  color: #f6f7ff;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.ielp-team-code-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ielp-team-code {
+  display: flex;
+  width: 134px;
+  min-height: 58px;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #f8f9ff;
+  background: rgba(121, 140, 188, .26);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: .4px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ielp-team-copy-button {
+  display: inline-flex;
+  min-width: 67px;
+  height: 29px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  background: #6551e9;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.ielp-team-copy-button:hover {
+  filter: brightness(1.1);
+}
+
+.ielp-team-link-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  margin-top: 11px;
+}
+
+.ielp-team-link-value {
+  display: block;
+  width: 100%;
+  min-height: 61px;
+  margin-top: 7px;
+  padding: 7px 11px;
+  overflow-wrap: anywhere;
+  border: 0;
+  border-radius: 9px;
+  color: #f4f6ff;
+  background: rgba(121, 140, 188, .34);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.ielp-team-share {
+  margin-top: 11px;
+}
+
+.ielp-team-share h2 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.ielp-home-socials.ielp-team-socials {
+  gap: 5px;
+  margin: 0 28px;
+}
+
+.ielp-home-socials.ielp-team-socials button {
+  width: 35px;
+  height: 35px;
+  flex-basis: 35px;
+  border: 1px solid rgba(227, 233, 255, .2);
+  color: #fff;
+  background: rgba(117, 139, 185, .22);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .1);
+}
+
+.ielp-home-socials.ielp-team-socials button:active {
+  background: rgba(143, 164, 211, .38);
+}
+
+.ielp-team-socials .ielp-social-x,
+.ielp-team-socials .ielp-social-facebook,
+.ielp-team-socials .ielp-social-linkedin,
+.ielp-team-socials .ielp-social-whatsapp,
+.ielp-team-socials .ielp-social-instagram,
+.ielp-team-socials .ielp-social-tiktok {
+  color: #fff;
+}
+
+.ielp-team-socials .ielp-social-facebook {
+  color: #344b79;
+}
+
+.ielp-team-socials .ielp-social-whatsapp {
+  color: #344b79;
+}
+
+.ielp-team-date-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.ielp-team-date-selector {
+  position: relative;
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 7px;
+  color: #f7f8ff;
+  font-size: 15px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.ielp-team-date-selector svg {
+  flex: 0 0 auto;
+  color: #f4f5ff;
+}
+
+.ielp-team-date-selector input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.ielp-team-date-selector:focus-within {
+  outline: 2px solid rgba(255, 255, 255, .75);
+  outline-offset: 3px;
+}
+
+.ielp-team-date-clear {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ielp-team-error {
+  margin: 12px 0 -5px;
+  color: #ffd5df;
+  font-size: 13px;
+}
+
+.ielp-team-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 107px 85px;
+  gap: 11px;
+  margin-top: 20px;
+  padding: 15px 15px 13px;
+  border: 1px solid rgba(204, 219, 250, .08);
+  border-radius: 18px;
+  background: rgba(117, 145, 194, .27);
+}
+
+.ielp-team-stat-card {
+  display: flex;
+  min-width: 0;
+  min-height: 107px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 10px;
+  color: #f6f7ff;
+  background: rgba(178, 191, 222, .2);
+  font: inherit;
+  text-align: left;
+}
+
+button.ielp-team-stat-card {
+  cursor: pointer;
+  transition: background-color 140ms ease, transform 120ms ease;
+}
+
+button.ielp-team-stat-card:active {
+  transform: scale(.985);
+  background: rgba(192, 205, 235, .29);
+}
+
+.ielp-team-stat-card > span {
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.ielp-team-stat-card > strong {
+  display: block;
+  max-width: 100%;
+  margin-top: 5px;
+  overflow: hidden;
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ielp-team-stat-card:nth-child(n + 3) {
+  min-height: 85px;
+}
+
+.ielp-team-levels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 20px;
+}
+
+.ielp-team-level-card {
+  display: flex;
+  min-width: 0;
+  min-height: 245px;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 6px 13px;
+  border: 1px solid rgba(194, 216, 255, .06);
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(180deg, rgba(62, 97, 155, .45) 0%, rgba(44, 111, 164, .5) 100%);
+  text-align: center;
+}
+
+.ielp-team-level-card h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ielp-team-level-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.ielp-team-level-metric strong {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ielp-team-level-metric--valid {
+  margin-top: 34px;
+}
+
+.ielp-team-level-card > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding: 5px 3px 0;
+  border: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: transform 120ms ease;
+}
+
+.ielp-team-level-card > button span {
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 12px;
+}
+
+@media (max-width: 380px) {
+  .ielp-team-content {
+    padding-right: 18px;
+    padding-left: 16px;
+  }
+
+  .ielp-home-socials.ielp-team-socials {
+    gap: 3px;
+    margin-right: 7px;
+    margin-left: 7px;
+  }
+
+  .ielp-home-socials.ielp-team-socials button {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .ielp-team-stats-grid {
+    grid-template-rows: 100px 85px;
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .ielp-team-stat-card {
+    min-height: 100px;
+    padding: 9px;
+  }
+
+  .ielp-team-stat-card:nth-child(n + 3) {
+    min-height: 85px;
+  }
+
+  .ielp-team-stat-card > strong {
+    font-size: 25px;
+  }
+
+  .ielp-team-levels {
+    gap: 7px;
+  }
+
+  .ielp-team-level-card {
+    min-height: 235px;
+    padding-right: 4px;
+    padding-left: 4px;
+    border-radius: 17px;
+  }
+
+  .ielp-team-level-card h2 {
+    font-size: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ielp-team-page *,
+  .ielp-team-page *::before,
+  .ielp-team-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

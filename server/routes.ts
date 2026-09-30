@@ -1803,7 +1803,19 @@ export async function registerRoutes(
   // Team
   app.get("/api/team/stats", requireAuth, async (req, res) => {
     try {
-      const stats = await storage.getTeamStats(req.session.userId!);
+      const rawDate = req.query.date;
+      let date: string | undefined;
+      if (rawDate !== undefined) {
+        if (typeof rawDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+          return res.status(400).json({ message: "Date invalide" });
+        }
+        const parsedDate = new Date(`${rawDate}T00:00:00.000Z`);
+        if (Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== rawDate) {
+          return res.status(400).json({ message: "Date invalide" });
+        }
+        date = rawDate;
+      }
+      const stats = await storage.getTeamStats(req.session.userId!, date);
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

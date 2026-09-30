@@ -1,185 +1,429 @@
-import { useAuth } from "@/lib/auth";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { getCountryByCode } from "@/lib/countries";
 import { useLocation } from "wouter";
-import { getContent } from "@/lib/content";
-import teamHero from "@assets/generated_images/tgood-team-hero.jpg";
-import teamInvite from "@assets/generated_images/tgood-team-invite.jpg";
-
-const TGOOD_GREEN = "#078438";
-const TGOOD_LIGHT_GREEN = "#0aa548";
+import { CalendarDays, MessageCircleMore, MessageSquare, Send, UsersRound } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { useI18n, type Lang } from "@/lib/i18n";
+import { useToast } from "@/hooks/use-toast";
+import { LanguagePicker } from "@/components/language-picker";
+import { FloatingSupport } from "@/components/floating-support";
+import "./team.css";
 
 interface TeamStats {
   level1Count: number;
   level2Count: number;
   level3Count: number;
+  level1ValidCount: number;
+  level2ValidCount: number;
+  level3ValidCount: number;
   totalCommission: number;
-  level1Commission: number;
-  level2Commission: number;
-  level3Commission: number;
+  teamTotalDeposits: number;
+  teamTotalWithdrawals: number;
+}
+
+const COPY: Record<Lang, {
+  commissionDetails: string;
+  invitationCode: string;
+  sharePrompt: string;
+  copy: string;
+  copiedCode: string;
+  copiedLink: string;
+  copyFailed: string;
+  share: string;
+  chooseDate: string;
+  clearDate: string;
+  teamSize: string;
+  commissions: string;
+  deposits: string;
+  withdrawals: string;
+  count: string;
+  valid: string;
+  details: string;
+  statsUnavailable: string;
+}> = {
+  fr: {
+    commissionDetails: "Détails de la commission »»»",
+    invitationCode: "Code d'invitation :",
+    sharePrompt: "Partagez votre lien et gagnez",
+    copy: "Copie",
+    copiedCode: "Code copié",
+    copiedLink: "Lien copié",
+    copyFailed: "La copie a échoué.",
+    share: "Partager",
+    chooseDate: "Choisissez une date",
+    clearDate: "Effacer la date",
+    teamSize: "Taille de l'équipe",
+    commissions: "Commissions de référence",
+    deposits: "Dépôts d'équipe",
+    withdrawals: "Retraits d'équipes",
+    count: "Compter",
+    valid: "Valide",
+    details: "Détails",
+    statsUnavailable: "Impossible de charger les statistiques de l'équipe.",
+  },
+  en: {
+    commissionDetails: "Commission details »»»",
+    invitationCode: "Invitation code:",
+    sharePrompt: "Share your link and earn",
+    copy: "Copy",
+    copiedCode: "Code copied",
+    copiedLink: "Link copied",
+    copyFailed: "Copy failed.",
+    share: "Share",
+    chooseDate: "Choose a date",
+    clearDate: "Clear date",
+    teamSize: "Team size",
+    commissions: "Referral commissions",
+    deposits: "Team deposits",
+    withdrawals: "Team withdrawals",
+    count: "Count",
+    valid: "Valid",
+    details: "Details",
+    statsUnavailable: "Could not load team statistics.",
+  },
+  ar: {
+    commissionDetails: "تفاصيل العمولة »»»",
+    invitationCode: "رمز الدعوة:",
+    sharePrompt: "شارك رابطك واكسب",
+    copy: "نسخ",
+    copiedCode: "تم نسخ الرمز",
+    copiedLink: "تم نسخ الرابط",
+    copyFailed: "تعذر النسخ.",
+    share: "مشاركة",
+    chooseDate: "اختر تاريخًا",
+    clearDate: "مسح التاريخ",
+    teamSize: "حجم الفريق",
+    commissions: "عمولات الإحالة",
+    deposits: "إيداعات الفريق",
+    withdrawals: "سحوبات الفريق",
+    count: "العدد",
+    valid: "صالح",
+    details: "التفاصيل",
+    statsUnavailable: "تعذر تحميل إحصاءات الفريق.",
+  },
+  zh: {
+    commissionDetails: "佣金详情 »»»",
+    invitationCode: "邀请码：",
+    sharePrompt: "分享链接并赚取奖励",
+    copy: "复制",
+    copiedCode: "代码已复制",
+    copiedLink: "链接已复制",
+    copyFailed: "复制失败。",
+    share: "分享",
+    chooseDate: "选择日期",
+    clearDate: "清除日期",
+    teamSize: "团队规模",
+    commissions: "推荐佣金",
+    deposits: "团队充值",
+    withdrawals: "团队提现",
+    count: "人数",
+    valid: "有效",
+    details: "详情",
+    statsUnavailable: "无法加载团队统计。",
+  },
+};
+
+const numberFormat = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 2,
+});
+
+const SOCIALS = [
+  { id: "x", label: "X", mark: "𝕏" },
+  { id: "facebook", label: "Facebook", mark: "f" },
+  { id: "telegram", label: "Telegram", mark: "" },
+  { id: "linkedin", label: "LinkedIn", mark: "in" },
+  { id: "whatsapp", label: "WhatsApp", mark: "☎" },
+  { id: "instagram", label: "Instagram", mark: "◎" },
+  { id: "tiktok", label: "TikTok", mark: "♪" },
+  { id: "native", label: "Share", mark: "" },
+] as const;
+
+function IelpSeal() {
+  return (
+    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+      <circle cx="45" cy="45" r="45" fill="#3775a8" />
+      <text x="57" y="36" textAnchor="middle">ICAHN</text>
+      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
+      <text x="60" y="62" textAnchor="middle">L.P.</text>
+    </svg>
+  );
+}
+
+function TeamChatIcon() {
+  return (
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+      <path d="M8 8.5h18a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-9l-5.4 4v-4H8a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3Z" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" />
+      <circle cx="12.2" cy="16.5" r="1.5" fill="currentColor" />
+      <circle cx="17" cy="16.5" r="1.5" fill="currentColor" />
+      <circle cx="21.8" cy="16.5" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function formatMoney(value: unknown) {
+  const amount = Number(value);
+  return `USDT ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
 }
 
 export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { lang, t } = useI18n();
   const [, navigate] = useLocation();
-
-  const { data: stats } = useQuery<TeamStats>({ queryKey: ["/api/team/stats"] });
-  const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
+  const copy = COPY[lang];
+  const [selectedDate, setSelectedDate] = useState("");
+  const statsUrl = selectedDate
+    ? `/api/team/stats?date=${encodeURIComponent(selectedDate)}`
+    : "/api/team/stats";
+  const { data: stats, isError } = useQuery<TeamStats>({
+    queryKey: [statsUrl],
+    staleTime: 60_000,
+  });
 
   if (!user) return null;
 
-  const country = getCountryByCode(user.country);
-  const currency = "USDT";
-  const referralCode = (user.referralCode || "").toUpperCase();
-  const referralLink = `${window.location.origin}/register?ref=${encodeURIComponent(referralCode)}`;
-  const levelRates = [
-    settings?.level1Commission || "10",
-    settings?.level2Commission || "2",
-    settings?.level3Commission || "1",
-  ];
+  const referralCode = user.referralCode || "";
+  const referralLink = `${window.location.origin}/#/register?invite_code=${encodeURIComponent(referralCode)}`;
   const levelCounts = [stats?.level1Count || 0, stats?.level2Count || 0, stats?.level3Count || 0];
-  const levelRewards = [
-    stats?.level1Commission || 0,
-    stats?.level2Commission || 0,
-    stats?.level3Commission || 0,
+  const levelValidCounts = [
+    stats?.level1ValidCount || 0,
+    stats?.level2ValidCount || 0,
+    stats?.level3ValidCount || 0,
   ];
+  const levelCards = levelCounts.map((count, index) => ({
+    level: index + 1,
+    count,
+    valid: levelValidCounts[index],
+  }));
   const totalUsers = levelCounts.reduce((total, count) => total + count, 0);
-  const totalCommission = stats?.totalCommission || 0;
+  const displayedDate = selectedDate
+    ? new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric" })
+      .format(new Date(`${selectedDate}T12:00:00`))
+    : copy.chooseDate;
 
-  const copy = async (value: string, message: string) => {
-    await navigator.clipboard.writeText(value);
-    toast({ title: message });
-  };
+  async function copyValue(value: string, message: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast({ title: message });
+    } catch {
+      toast({ title: copy.copyFailed, variant: "destructive" });
+    }
+  }
+
+  async function shareTo(target: string) {
+    const encodedUrl = encodeURIComponent(referralLink);
+    const encodedMessage = encodeURIComponent(copy.sharePrompt);
+    const destinations: Record<string, string> = {
+      x: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedMessage}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedMessage}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      whatsapp: `https://wa.me/?text=${encodedMessage}%20${encodedUrl}`,
+    };
+    const destination = destinations[target];
+    if (destination) {
+      window.open(destination, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "IELP", text: copy.sharePrompt, url: referralLink });
+      } catch {
+        // The user can dismiss the native share sheet without an error.
+      }
+      return;
+    }
+    await copyValue(referralLink, copy.copiedLink);
+  }
 
   return (
-    <main className="team-page pb-16" style={{ background: "#fff", minHeight: "100vh" }}>
-      <section className="mx-auto w-full max-w-[480px] bg-white">
-        <header className="flex items-center justify-between px-5 pt-6 pb-5">
-          <h1 className="font-black tracking-tight" style={{ color: "#111", fontSize: 34, lineHeight: 1 }}>
-            {getContent(settings, "content_team_headerTitle", "Mon équipe")}
-          </h1>
-          <button
-            onClick={() => navigate("/members")}
-            className="font-normal active:opacity-60"
-            style={{ color: "#53565a", fontSize: 19 }}
-            data-testid="button-my-team"
+    <main className="ielp-home-page ielp-team-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="ielp-home-shell ielp-team-shell">
+        <header className="ielp-home-header">
+          <a
+            className="ielp-home-brand"
+            href="#/"
+            aria-label="IELP accueil"
+            onClick={(event) => {
+              event.preventDefault();
+              navigate("/");
+            }}
           >
-            {getContent(settings, "content_team_myTeamButton", "Membres >")}
-          </button>
+            <IelpSeal />
+            <span>IELP</span>
+          </a>
+          <div className="ielp-home-header__actions">
+            <LanguagePicker variant="home" />
+            <button
+              className="ielp-home-chat-top"
+              type="button"
+              onClick={() => navigate("/service")}
+              aria-label={t.customerService}
+              data-testid="button-team-chat"
+            >
+              <MessageSquare size={21} fill="white" strokeWidth={1.8} aria-hidden="true" />
+            </button>
+          </div>
         </header>
 
-        <div className="px-5">
-          <img
-            src={teamHero}
-              alt="TGOOD electric charging station"
-            className="w-full object-cover"
-            style={{ height: 226, borderRadius: 12, objectPosition: "center" }}
-          />
-        </div>
+        <div className="ielp-team-content">
+          <button
+            className="ielp-team-commission-link"
+            type="button"
+            onClick={() => navigate("/team-details")}
+            data-testid="button-team-commission-details"
+          >
+            {copy.commissionDetails}
+          </button>
 
-        <section className="grid grid-cols-[44%_56%] gap-2 px-5 pt-5 pb-2">
-          <img
-            src={teamInvite}
-            alt="Borne de recharge verte"
-            className="h-[180px] w-full object-cover"
-            style={{ borderRadius: 12, objectPosition: "center" }}
-          />
-          <div className="min-w-0 pl-0.5">
-            <h2 className="mb-1 font-normal" style={{ color: "#151515", fontSize: 18, lineHeight: 1.38 }}>
-              {getContent(settings, "content_team_inviteTitle", "Inviter des amis")}
-            </h2>
-            <p className="mb-2" style={{ color: "#353535", fontSize: 12, lineHeight: 1.25 }}>
-              Partagez le code ou le lien d&apos;invitation
-            </p>
+          <section className="ielp-team-invitation" aria-label={copy.invitationCode}>
+            <p className="ielp-team-label">{copy.invitationCode}</p>
+            <div className="ielp-team-code-row">
+              <div className="ielp-team-code" data-testid="text-referral-code">{referralCode}</div>
+              <button
+                type="button"
+                className="ielp-team-copy-button"
+                onClick={() => void copyValue(referralCode, copy.copiedCode)}
+                data-testid="button-copy-code"
+              >
+                {copy.copy}
+              </button>
+            </div>
 
-            <div
-              className="mb-1 flex h-6 items-center justify-center truncate px-2"
-              style={{ border: `1.5px solid ${TGOOD_LIGHT_GREEN}`, borderRadius: 20, color: TGOOD_GREEN, fontSize: 14 }}
-              data-testid="text-referral-code"
-            >
-              {referralCode}
+            <div className="ielp-team-link-heading">
+              <span>{copy.sharePrompt}</span>
+              <button
+                type="button"
+                className="ielp-team-copy-button"
+                onClick={() => void copyValue(referralLink, copy.copiedLink)}
+                data-testid="button-copy-link"
+              >
+                {copy.copy}
+              </button>
             </div>
             <button
-              onClick={() => copy(referralCode, "Code copied!")}
-              className="mb-1 h-8 w-full font-medium text-white active:scale-[0.98]"
-              style={{ background: TGOOD_GREEN, borderRadius: 18, fontSize: 14, transition: "transform 120ms ease" }}
-              data-testid="button-copy-code"
-            >
-              Copier
-            </button>
-            <div
-              className="mb-1 flex h-6 items-center truncate px-2"
-              style={{ border: `1.5px solid ${TGOOD_LIGHT_GREEN}`, borderRadius: 20, color: TGOOD_GREEN, fontSize: 12 }}
+              type="button"
+              className="ielp-team-link-value"
+              onClick={() => void copyValue(referralLink, copy.copiedLink)}
+              aria-label={`${copy.copy}: ${referralLink}`}
               data-testid="text-referral-link"
             >
               {referralLink}
-            </div>
-            <button
-              onClick={() => copy(referralLink, "Link copied!")}
-              className="h-8 w-full font-medium text-white active:scale-[0.98]"
-              style={{ background: TGOOD_GREEN, borderRadius: 18, fontSize: 14, transition: "transform 120ms ease" }}
-              data-testid="button-copy-link"
-            >
-              Copier
             </button>
-          </div>
-        </section>
+          </section>
 
-        <section
-          className="mt-2 grid grid-cols-2 py-5 text-center text-black"
-          style={{ background: "linear-gradient(100deg, #06a746 0%, #078438 100%)" }}
-        >
-          <button onClick={() => navigate("/members")} className="flex flex-col items-center active:opacity-70" data-testid="button-total-users">
-            <strong className="font-normal" style={{ fontSize: 28, lineHeight: 1.15 }}>{totalUsers}</strong>
-            <span className="mt-2" style={{ fontSize: 16 }}>Utilisateurs totaux &gt;</span>
-          </button>
-          <button onClick={() => navigate("/team-details")} className="flex flex-col items-center active:opacity-70" data-testid="button-total-rewards">
-            <strong className="font-normal" style={{ fontSize: 28, lineHeight: 1.15 }}>{currency} {totalCommission.toLocaleString()}</strong>
-            <span className="mt-2" style={{ fontSize: 16 }}>Récompenses totales &gt;</span>
-          </button>
-        </section>
-
-        <h2
-          className="px-5 py-4 text-center font-normal uppercase"
-          style={{ color: TGOOD_LIGHT_GREEN, fontSize: 23, lineHeight: 1.55 }}
-        >
-          {getContent(settings, "content_team_howItWorksTitle", "Inviter vos amis à rejoindre l'équipe")}
-        </h2>
-
-        <section className="pb-1">
-          {[0, 1, 2].map((level) => (
-            <div
-              key={level}
-              className="grid min-h-[87px] grid-cols-[85px_repeat(3,minmax(0,1fr))] items-center border-b border-[#eeeeee]"
-            >
-              <div
-                className="flex min-h-[68px] items-center justify-center font-normal text-white"
-                style={{ background: "#09bb42", fontSize: 25 }}
-              >
-                LV{level + 1}
-              </div>
-              <div className="text-center">
-                <p className="font-normal" style={{ color: "#111", fontSize: 25, lineHeight: 1.1 }}>{levelRates[level]}%</p>
-                <p className="mt-1" style={{ color: "#222", fontSize: 16 }}>Commission</p>
-              </div>
-              <div className="text-center">
-                <p className="font-normal" style={{ color: "#111", fontSize: 25, lineHeight: 1.1 }}>{levelCounts[level]}</p>
-                <p className="mt-1" style={{ color: "#222", fontSize: 16 }}>Utilisateurs</p>
-              </div>
-              <div className="min-w-0 text-center">
-                <p className="font-normal" style={{ color: "#111", fontSize: 25, lineHeight: 1.1 }}>{levelRewards[level].toLocaleString()}</p>
-                <p className="mt-1 truncate" style={{ color: "#222", fontSize: 16 }}>Récompenses</p>
-              </div>
+          <section className="ielp-team-share" aria-label={copy.share}>
+            <h2>{copy.share}</h2>
+            <div className="ielp-home-socials ielp-team-socials">
+              {SOCIALS.map((social) => (
+                <button
+                  type="button"
+                  key={social.id}
+                  aria-label={social.label}
+                  onClick={() => void shareTo(social.id)}
+                >
+                  {social.id === "telegram" ? (
+                    <Send size={18} strokeWidth={2.3} aria-hidden="true" />
+                  ) : social.id === "native" ? (
+                    <UsersRound size={19} strokeWidth={1.8} aria-hidden="true" />
+                  ) : (
+                    <span className={`ielp-social-${social.id}`}>{social.mark}</span>
+                  )}
+                </button>
+              ))}
             </div>
-          ))}
-        </section>
+          </section>
 
-        <section className="px-[10px] pt-5 pb-10" style={{ color: "#5b6068", fontSize: 15, lineHeight: 1.55 }}>
-          <p>{getContent(settings, "content_team_tip", `Les trois niveaux de votre équipe déterminent les commissions prévues par le programme de parrainage.`)}</p>
-        </section>
-      </section>
+          <div className="ielp-team-date-row">
+            <label className="ielp-team-date-selector">
+              <CalendarDays size={21} strokeWidth={2.2} aria-hidden="true" />
+              <span>{displayedDate}</span>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(event) => setSelectedDate(event.target.value)}
+                aria-label={copy.chooseDate}
+                data-testid="input-team-date"
+              />
+            </label>
+            {selectedDate && (
+              <button
+                type="button"
+                className="ielp-team-date-clear"
+                aria-label={copy.clearDate}
+                onClick={() => setSelectedDate("")}
+              >
+                ×
+              </button>
+            )}
+          </div>
+
+          {isError && <p className="ielp-team-error" role="alert">{copy.statsUnavailable}</p>}
+
+          <section className="ielp-team-stats-grid" aria-label={copy.teamSize}>
+            <button
+              type="button"
+              className="ielp-team-stat-card"
+              onClick={() => navigate("/members")}
+              data-testid="button-total-users"
+            >
+              <span>{copy.teamSize}</span>
+              <strong>{totalUsers.toLocaleString(lang)}</strong>
+            </button>
+            <button
+              type="button"
+              className="ielp-team-stat-card"
+              onClick={() => navigate("/team-details")}
+              data-testid="button-total-rewards"
+            >
+              <span>{copy.commissions}</span>
+              <strong>{formatMoney(stats?.totalCommission)}</strong>
+            </button>
+            <article className="ielp-team-stat-card">
+              <span>{copy.deposits}</span>
+              <strong>{formatMoney(stats?.teamTotalDeposits)}</strong>
+            </article>
+            <article className="ielp-team-stat-card">
+              <span>{copy.withdrawals}</span>
+              <strong>{formatMoney(stats?.teamTotalWithdrawals)}</strong>
+            </article>
+          </section>
+
+          <section className="ielp-team-levels" aria-label={copy.teamSize}>
+            {levelCards.map(({ level, count, valid }) => (
+              <article className="ielp-team-level-card" key={level}>
+                <h2>LEV {level}</h2>
+                <div className="ielp-team-level-metric">
+                  <span>{copy.count}</span>
+                  <strong>{count.toLocaleString(lang)}</strong>
+                </div>
+                <div className="ielp-team-level-metric ielp-team-level-metric--valid">
+                  <span>{copy.valid}</span>
+                  <strong>{valid.toLocaleString(lang)}</strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/team-details")}
+                  data-testid={`button-team-level-${level}`}
+                >
+                  {copy.details} <span aria-hidden="true">›</span>
+                </button>
+              </article>
+            ))}
+          </section>
+        </div>
+      </div>
+
+      <button
+        className="ielp-home-chat-float"
+        type="button"
+        aria-label={t.customerService}
+        onClick={() => navigate("/service")}
+        data-testid="button-team-chat-floating"
+      >
+        <TeamChatIcon />
+      </button>
+      <FloatingSupport placement="home" />
     </main>
   );
 }

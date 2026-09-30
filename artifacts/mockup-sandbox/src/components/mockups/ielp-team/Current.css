@@ -1,0 +1,222 @@
+.team-current {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding-bottom: 95px;
+  overflow: hidden;
+  color: #151515;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.team-current-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 20px 18px;
+}
+
+.team-current-header h1 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -.8px;
+}
+
+.team-current-header button {
+  color: #53565a;
+  font-size: 18px;
+}
+
+.team-current-body {
+  padding: 0 20px 28px;
+}
+
+.team-current-hero {
+  display: block;
+  width: 100%;
+  height: 226px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.team-current-invite {
+  display: grid;
+  grid-template-columns: 44% 56%;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.team-current-invite > img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.team-current-invite h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.team-current-invite p {
+  margin: 0 0 8px;
+  color: #353535;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.team-current-value {
+  display: block;
+  width: 100%;
+  margin: 0 0 5px;
+  padding: 4px 8px;
+  overflow: hidden;
+  border: 1px solid #0aa548;
+  border-radius: 18px;
+  color: #078438;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-current-link {
+  font-size: 11px;
+}
+
+.team-current-invite button {
+  width: 100%;
+  height: 29px;
+  margin-bottom: 5px;
+  border-radius: 18px;
+  color: #fff;
+  background: #078438;
+  font-size: 13px;
+}
+
+.team-current-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 13px -20px 0;
+  padding: 18px 4px;
+  color: #080808;
+  background: linear-gradient(100deg, #06a746 0%, #078438 100%);
+}
+
+.team-current-totals button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-current-totals strong {
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.team-current-heading {
+  margin: 14px 0;
+  color: #0aa548;
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.team-current-level {
+  display: grid;
+  min-height: 87px;
+  grid-template-columns: 85px repeat(3, minmax(0, 1fr));
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.team-current-level > strong {
+  display: grid;
+  min-height: 68px;
+  place-items: center;
+  color: #fff;
+  background: #09bb42;
+  font-size: 25px;
+  font-weight: 400;
+}
+
+.team-current-level > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 16px;
+}
+
+.team-current-level b {
+  font-size: 25px;
+  font-weight: 400;
+}
+
+.team-current-tip {
+  margin: 17px -10px;
+  color: #5b6068;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.team-current-nav {
+  position: fixed;
+  z-index: 100;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  height: 68px;
+  justify-content: space-around;
+  border-top: 1px solid #eee;
+  background: white;
+}
+
+.team-current-nav button {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: #bdbdbd;
+  font-size: 12px;
+}
+
+.team-current-nav button.is-active {
+  color: #078438;
+}
+
+.team-current-notice {
+  position: fixed;
+  z-index: 150;
+  bottom: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 18px;
+  color: white;
+  background: #242424;
+  font-size: 14px;
+}
+
+@media (max-width: 380px) {
+  .team-current-header h1 {
+    font-size: 30px;
+  }
+
+  .team-current-level > div {
+    font-size: 13px;
+  }
+
+  .team-current-level b {
+    font-size: 21px;
+  }
+}

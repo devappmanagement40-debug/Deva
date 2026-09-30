@@ -5,5 +5,6 @@ export const modules: ModuleMap = {
   "./components/mockups/ielp-account/Reference.tsx": () => import("../components/mockups/ielp-account/Reference.tsx"),
   "./components/mockups/ielp-invest/Current.tsx": () => import("../components/mockups/ielp-invest/Current.tsx"),
   "./components/mockups/ielp-invest/Reference.tsx": () => import("../components/mockups/ielp-invest/Reference.tsx"),
+  "./components/mockups/ielp-team/Current.tsx": () => import("../components/mockups/ielp-team/Current.tsx"),
   "./components/mockups/ielp-team/Reference.tsx": () => import("../components/mockups/ielp-team/Reference.tsx")
 };
