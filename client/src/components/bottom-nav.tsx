@@ -1,59 +1,46 @@
 import { useLocation } from "wouter";
-import { House, Bike, Hash, UserRound, Cpu, CircleDollarSign, UsersRound, WalletCards, type LucideIcon } from "lucide-react";
+import { House, WalletCards, UsersRound, UserRound, type LucideIcon } from "lucide-react";
 import { useI18n, type Lang } from "@/lib/i18n";
 
-const MEMBER_NAV_ACTIVE = "#08b83a";
-const INACTIVE = "#bdbdbd";
+const MEMBER_NAV_ACTIVE = "#b7a8ff";
+const INACTIVE = "rgba(243, 243, 255, .78)";
 
 const NAV_ITEMS: {
   path: string;
-  labelKey: "home" | "products" | "team" | "me";
+  labelKey: "home" | "team" | "me";
   testId: string;
   Icon: LucideIcon;
 }[] = [
   { path: "/", labelKey: "home", testId: "home", Icon: House },
-  { path: "/invest", labelKey: "products", testId: "products", Icon: Bike },
-  { path: "/team", labelKey: "team", testId: "team", Icon: Hash },
+  { path: "/invest", labelKey: "home", testId: "invest", Icon: WalletCards },
+  { path: "/team", labelKey: "team", testId: "team", Icon: UsersRound },
   { path: "/account", labelKey: "me", testId: "me", Icon: UserRound },
 ];
 
-const IELP_NAV_ITEMS: { path: string; Icon: LucideIcon }[] = [
-  { path: "/", Icon: House },
-  { path: "/my-products", Icon: Cpu },
-  { path: "/invest", Icon: CircleDollarSign },
-  { path: "/team", Icon: UsersRound },
-  { path: "/account", Icon: WalletCards },
-];
-
-const IELP_NAV_LABELS: Record<Lang, string[]> = {
-  fr: ["Maison", "Exploitation minière", "Investir+", "Équipe", "Moi"],
-  en: ["Home", "Mining", "Invest+", "Team", "Me"],
-  ar: ["الرئيسية", "التعدين", "استثمار+", "الفريق", "حسابي"],
-  zh: ["首页", "矿业", "投资+", "团队", "我的"],
+const INVEST_LABELS: Record<Lang, string> = {
+  fr: "Investir",
+  en: "Invest",
+  ar: "استثمر",
+  zh: "投资",
 };
 
 export default function BottomNav({ home = false }: { home?: boolean }) {
   const [location, navigate] = useLocation();
   const { t, lang } = useI18n();
-  const items = home
-    ? IELP_NAV_ITEMS.map((item, index) => ({ ...item, label: IELP_NAV_LABELS[lang][index], testId: `ielp-${index}` }))
-    : NAV_ITEMS.map((item) => ({ ...item, label: t[item.labelKey] }));
+  const items = NAV_ITEMS.map((item) => ({
+    ...item,
+    label: item.path === "/invest" ? INVEST_LABELS[lang] : t[item.labelKey],
+  }));
 
   return (
     <nav
       className={`bottom-nav fixed z-50 ${home ? "bottom-nav--ielp" : "bottom-0 left-0 right-0 bg-white"}`}
-      style={home ? undefined : {
-        borderTop: "1px solid #eeeeee",
-        boxShadow: "0 -2px 8px rgba(0, 0, 0, 0.04)",
-      }}
-      aria-label="Navigation principale"
+      aria-label={lang === "en" ? "Main navigation" : lang === "ar" ? "التنقل الرئيسي" : lang === "zh" ? "主导航" : "Navigation principale"}
     >
       <div className={`bottom-nav__inner mx-auto flex h-full w-full items-stretch justify-around ${home ? "" : "max-w-[480px]"}`}>
         {items.map(({ path, label, testId, Icon }) => {
-          const isActive = home
-            ? path === "/" ? location === "/" : location === path || location.startsWith(`${path}/`)
-            : location === path;
-          const color = home ? (isActive ? "#f26bc4" : "#f8f9fc") : (isActive ? MEMBER_NAV_ACTIVE : INACTIVE);
+          const isActive = path === "/" ? location === "/" : location === path || location.startsWith(`${path}/`);
+          const color = isActive ? MEMBER_NAV_ACTIVE : INACTIVE;
 
           return (
             <button
@@ -68,11 +55,11 @@ export default function BottomNav({ home = false }: { home?: boolean }) {
               aria-current={isActive ? "page" : undefined}
             >
               <Icon
-                size={28}
-                strokeWidth={isActive ? 2.8 : 2.4}
+                size={25}
+                strokeWidth={isActive ? 2.4 : 1.9}
                 aria-hidden="true"
               />
-              <span className={home ? "bottom-nav__label--ielp" : ""} style={{ fontSize: home ? 12 : 14, lineHeight: home ? 1.04 : 1.1, fontWeight: isActive ? 600 : 400 }}>
+              <span className={home ? "bottom-nav__label--ielp" : ""} style={{ fontSize: home ? 12 : 14, lineHeight: home ? 1.04 : 1.1, fontWeight: isActive ? 650 : 450 }}>
                 {label}
               </span>
             </button>

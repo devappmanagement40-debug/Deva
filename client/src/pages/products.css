@@ -1,323 +1,792 @@
-.ielp-invest-page {
-  min-height: 100vh;
+.ielp-home-page.diamant-invest-page {
+  min-height: 100dvh;
   overflow-x: clip;
-  color: #f7f8ff;
-  background:
-    linear-gradient(
-      180deg,
-      #00051a 0%,
-      #000623 12%,
-      #010d48 45%,
-      #002461 68%,
-      #004a89 100%
-    ) fixed;
-  font-family: Arial, Helvetica, sans-serif;
+  color: #f7f5ff;
+  background: #050a24 url("/auth-night-sky.svg") center top / 100% 100% fixed no-repeat;
+  font-family: Arial, Roboto, sans-serif;
 }
 
-.ielp-invest-shell {
-  min-height: 100vh;
-  padding-bottom: 142px;
+.ielp-home-page .diamant-invest-shell {
+  position: relative;
+  min-height: 100dvh;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
   background: transparent;
 }
 
-.ielp-invest-content {
-  padding: 0 26px 150px 20px;
+.diamant-invest-header {
+  border-bottom: 1px solid rgba(197, 195, 255, .13);
+  background: rgba(5, 9, 32, .72);
 }
 
-.ielp-invest-intro {
-  margin-top: 32px;
-  color: #f7f8ff;
-  text-align: start;
-}
-
-.ielp-invest-intro p {
-  max-width: 400px;
-  margin: 0;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 24px;
-}
-
-.ielp-invest-intro p + p {
-  margin-top: 2px;
-}
-
-.ielp-invest-intro__title {
-  font-weight: 400;
-}
-
-.ielp-invest-intro p.ielp-invest-intro__title {
-  max-width: 385px;
-}
-
-.ielp-invest-more {
-  display: flex;
-  min-height: 22px;
+.diamant-invest-brand {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin: 11px auto 0;
-  padding: 0 4px;
-  border: 0;
-  background: transparent;
-  color: #f7f8ff;
+  text-decoration: none;
+}
+
+.diamant-invest-brand [role="img"] {
+  gap: 9px;
+}
+
+.diamant-invest-brand [role="img"] span {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  letter-spacing: .18em;
+}
+
+.diamant-invest-content {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 24px 17px 48px;
+}
+
+.diamant-invest-hero {
+  position: relative;
+  padding: 19px 19px 21px;
+  overflow: hidden;
+  border: 1px solid rgba(193, 183, 255, .2);
+  border-radius: 19px;
+  background:
+    linear-gradient(116deg, rgba(24, 34, 86, .84), rgba(23, 42, 102, .56)),
+    radial-gradient(ellipse at 100% 0%, rgba(116, 90, 255, .28), transparent 55%);
+  box-shadow: 0 16px 34px rgba(1, 4, 23, .19), inset 0 1px rgba(255,255,255,.08);
+}
+
+.diamant-invest-hero::after {
+  position: absolute;
+  right: -34px;
+  bottom: -76px;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(159, 167, 255, .12);
+  border-radius: 50%;
+  content: "";
+  box-shadow: 0 0 0 19px rgba(136, 145, 255, .035), 0 0 0 39px rgba(136, 145, 255, .025);
+  pointer-events: none;
+}
+
+.diamant-invest-hero__eyebrow,
+.diamant-invest-list-heading > div > span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #b6b8e2;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+
+.diamant-invest-hero__line {
+  width: 24px;
+  height: 1px;
+  background: #9e8bff;
+}
+
+.diamant-invest-hero__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 21px;
+}
+
+.diamant-invest-hero h1 {
+  margin: 0;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: clamp(24px, 7vw, 33px);
+  font-weight: 500;
+  letter-spacing: -.035em;
+  line-height: 1.08;
+}
+
+.diamant-invest-hero p {
+  max-width: 245px;
+  margin: 8px 0 0;
+  color: rgba(237, 238, 255, .73);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.diamant-invest-balance {
+  display: flex;
+  min-width: 113px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 9px 11px;
+  border: 1px solid rgba(191, 192, 255, .19);
+  border-radius: 11px;
+  color: #fff;
+  background: rgba(6, 12, 43, .47);
+  text-decoration: none;
+}
+
+.diamant-invest-balance span {
+  color: #b7b9db;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.diamant-invest-balance strong {
+  font-family: Georgia, serif;
   font-size: 14px;
-  line-height: 22px;
-  cursor: pointer;
+  white-space: nowrap;
 }
 
-.ielp-invest-more svg {
-  transition: transform 150ms ease;
+.diamant-invest-balance small {
+  color: #b8b4ee;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
 }
 
-.ielp-invest-more svg.is-open {
+.diamant-invest-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 23px 3px 16px;
+}
+
+.diamant-invest-intro__copy {
+  min-width: 0;
+}
+
+.diamant-invest-intro__index {
+  color: #a7a2de;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .19em;
+}
+
+.diamant-invest-intro__copy p {
+  margin: 5px 0 0;
+  color: #f0efff;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+.diamant-invest-intro__copy .diamant-invest-intro__detail {
+  max-width: 330px;
+  color: rgba(232, 232, 250, .67);
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.diamant-invest-more {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 0 7px 7px;
+  color: #bab2ff;
+  background: transparent;
+  font-size: 11px;
+}
+
+.diamant-invest-more svg {
+  transition: transform 160ms ease;
+}
+
+.diamant-invest-more svg.is-open {
   transform: rotate(180deg);
 }
 
-.ielp-invest-owned-link {
+.diamant-invest-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  padding: 5px;
+  border: 1px solid rgba(192, 192, 233, .14);
+  border-radius: 15px;
+  background: rgba(15, 22, 61, .73);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.diamant-invest-tabs button {
+  min-width: 0;
+  min-height: 39px;
+  padding: 8px 5px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: rgba(239, 238, 255, .7);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+.diamant-invest-tabs button.is-selected {
+  border-color: #a693ff;
+  color: #fff;
+  background: #653de9;
+  box-shadow: inset 0 1px rgba(255,255,255,.16), 0 4px 12px rgba(6, 8, 32, .22);
+}
+
+.diamant-invest-list-heading {
   display: flex;
-  width: 194px;
-  height: 34px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 26px 2px 13px;
+}
+
+.diamant-invest-list-heading > div > span {
+  font-size: 9px;
+}
+
+.diamant-invest-list-heading h2 {
+  margin: 5px 0 0;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.diamant-invest-owned-link {
+  display: inline-flex;
+  min-height: 34px;
   align-items: center;
   justify-content: center;
-  margin: 20px 0 10px;
-  margin-inline-start: auto;
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 7px;
-  background: #644cf0;
-  box-shadow: 0 3px 10px rgba(35, 42, 190, 0.28);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 500;
-  line-height: 1;
+  flex: none;
+  padding: 0 11px;
+  border: 1px solid rgba(199, 191, 255, .29);
+  border-radius: 10px;
+  color: #e3ddff;
+  background: rgba(48, 46, 112, .48);
+  font-size: 10px;
+  font-weight: 600;
   text-decoration: none;
-  transition: filter 130ms ease, transform 130ms ease;
+  transition: background-color 150ms ease, transform 150ms ease;
 }
 
-.ielp-invest-owned-link:hover {
-  filter: brightness(1.08);
+.diamant-invest-owned-link:hover {
+  background: rgba(81, 67, 166, .65);
 }
 
-.ielp-invest-owned-link:active {
-  transform: scale(0.98);
+.diamant-invest-list {
+  display: grid;
+  gap: 12px;
 }
 
-.ielp-invest-list {
+.diamant-invest-product-card {
+  position: relative;
+  padding: 14px 14px 13px;
   overflow: hidden;
-  border-radius: 18px;
-  background: #202a5c;
+  border: 1px solid rgba(208, 212, 255, .18);
+  border-radius: 17px;
+  background:
+    linear-gradient(145deg, rgba(247, 248, 255, .97), rgba(231, 235, 250, .97));
+  box-shadow: 0 9px 24px rgba(1, 5, 28, .18), inset 0 1px 0 rgba(255,255,255,.9);
+  color: #17254d;
+  animation: diamant-card-enter 440ms both;
 }
 
-.ielp-invest-product-card {
-  min-height: 325px;
-  padding: 23px 20px 16px;
-  border: 1px solid rgba(184, 207, 255, 0.08);
-  border-radius: 18px;
-  background: linear-gradient(180deg, #202a5c 0%, #20366b 48%, #174d7a 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+.diamant-invest-product-card:nth-child(2) { animation-delay: 55ms; }
+.diamant-invest-product-card:nth-child(3) { animation-delay: 110ms; }
+.diamant-invest-product-card:nth-child(4) { animation-delay: 165ms; }
+
+@keyframes diamant-card-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.ielp-invest-product-card + .ielp-invest-product-card {
-  border-top-color: rgba(230, 237, 255, 0.2);
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+.diamant-invest-card-topline {
+  display: flex;
+  min-height: 17px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.ielp-invest-product-title {
-  margin: 0;
-  color: #fff;
+.diamant-invest-card-kicker {
+  color: #777e9e;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .17em;
+}
+
+.diamant-invest-owned-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #4c498d;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.diamant-invest-product-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 108px;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.diamant-invest-product-copy {
+  min-width: 0;
+}
+
+.diamant-invest-product-copy h3 {
+  margin: 0 0 10px;
+  color: #18254a;
+  font-family: Georgia, serif;
   font-size: 19px;
   font-weight: 700;
-  line-height: 24px;
-  text-align: right;
+  line-height: 1.16;
+  overflow-wrap: anywhere;
 }
 
-.ielp-invest-product-details {
+.diamant-invest-product-copy dl {
   display: grid;
-  min-height: 166px;
-  grid-template-columns: clamp(84px, 24.3vw, 112px) minmax(0, 1fr);
-  align-items: start;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 7px;
+  margin: 0;
 }
 
-.ielp-invest-product-mark {
+.diamant-invest-product-copy dl > div {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.diamant-invest-product-copy dt {
+  min-width: 0;
+  color: #69718f;
+  font-weight: 500;
+}
+
+.diamant-invest-product-copy dd {
+  flex: none;
+  margin: 0;
+  color: #26365e;
+  font-weight: 700;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.diamant-invest-product-copy dd small {
+  color: #777f9b;
+  font-size: 8px;
+}
+
+.diamant-invest-product-visual {
+  position: relative;
+  height: 108px;
+  overflow: hidden;
+  border: 1px solid rgba(104, 103, 159, .19);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(147, 149, 219, .2), transparent 60%),
+    #dce0f0;
+}
+
+.diamant-invest-product-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.diamant-invest-product-visual > span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 5px 4px 4px;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(11, 18, 55, .78));
+  font-family: Georgia, serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-align: center;
+}
+
+.diamant-invest-product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 13px;
+  padding: 7px 7px 7px 10px;
+  border: 2px solid #20243b;
+  border-radius: 11px;
+  background: #fff;
+}
+
+.diamant-invest-price {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.diamant-invest-price span {
+  color: #79809d;
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.diamant-invest-price strong {
+  margin-top: 3px;
+  color: #31456f;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+
+.diamant-invest-price strong small {
+  color: #63739a;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 9px;
+  letter-spacing: 0;
+}
+
+.diamant-invest-buy {
+  display: inline-flex;
+  min-width: 112px;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 1px solid #a693ff;
+  border-bottom: 4px solid #3e22b4;
+  border-radius: 11px;
+  color: #fff;
+  background: #653de9;
+  box-shadow: 0 4px 0 #351c9b, 0 6px 11px rgba(63, 52, 125, .23);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.diamant-invest-buy:hover:not(:disabled) {
+  background: #704cff;
+  box-shadow: 0 4px 0 #3b20ad, 0 7px 14px rgba(63, 52, 125, .3);
+}
+
+.diamant-invest-buy:active:not(:disabled) {
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+  background: #5632d3;
+  box-shadow: 0 2px 0 #351c9b, 0 3px 7px rgba(63, 52, 125, .23);
+}
+
+.diamant-invest-buy.is-disabled,
+.diamant-invest-buy:disabled {
+  border-color: rgba(109, 117, 149, .25);
+  color: #7f8495;
+  background: #d6d9e4;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.diamant-invest-buy:focus-visible,
+.diamant-invest-tabs button:focus-visible,
+.diamant-invest-more:focus-visible,
+.diamant-invest-owned-link:focus-visible {
+  outline: 2px solid #b9a8ff;
+  outline-offset: 3px;
+}
+
+.diamant-invest-skeletons {
+  display: grid;
+  gap: 12px;
+}
+
+.diamant-invest-skeleton {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  gap: 12px;
+  min-height: 184px;
+  padding: 18px;
+  border: 1px solid rgba(195, 192, 255, .15);
+  border-radius: 17px;
+  background: rgba(37, 43, 91, .65);
+}
+
+.diamant-invest-skeleton > div {
+  border-radius: 8px;
+  background: linear-gradient(105deg, rgba(180,186,233,.08) 25%, rgba(211,213,255,.17) 42%, rgba(180,186,233,.08) 60%);
+  background-size: 220% 100%;
+  animation: diamant-skeleton 1.4s ease-in-out infinite;
+}
+
+.diamant-invest-skeleton__title { width: 75%; height: 17px; }
+.diamant-invest-skeleton__image { grid-column: 2; grid-row: 1 / span 2; height: 100px; }
+.diamant-invest-skeleton__copy { display: grid; gap: 9px; align-content: center; }
+.diamant-invest-skeleton__copy i { height: 9px; border-radius: 5px; background: rgba(215,219,255,.14); }
+.diamant-invest-skeleton__copy i:nth-child(2) { width: 82%; }
+.diamant-invest-skeleton__copy i:nth-child(3) { width: 67%; }
+.diamant-invest-skeleton__action { height: 32px; grid-column: 1 / -1; }
+
+@keyframes diamant-skeleton {
+  to { background-position: -220% 0; }
+}
+
+.diamant-invest-state {
+  display: flex;
+  min-height: 170px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid rgba(199, 194, 255, .16);
+  border-radius: 17px;
+  color: rgba(241, 240, 255, .84);
+  background: rgba(28, 37, 83, .72);
+  text-align: center;
+}
+
+.diamant-invest-state > svg { color: #aaa4ff; }
+.diamant-invest-state p { margin: 0; font-size: 13px; }
+.diamant-invest-state__mark { margin-bottom: 2px; }
+.diamant-invest-state button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 1px solid rgba(193, 185, 255, .3);
+  border-radius: 9px;
+  color: #f2efff;
+  background: rgba(100, 82, 195, .35);
+  font-size: 12px;
+}
+
+.diamant-invest-chat-float {
+  color: #fff;
+  background: linear-gradient(140deg, #6256ce, #304e9b);
+}
+
+.diamant-purchase-dialog {
+  width: min(calc(100% - 30px), 420px) !important;
+  max-width: 420px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(190, 183, 255, .35) !important;
+  border-radius: 21px !important;
+  color: #f5f4ff !important;
+  background: #11183c !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .42) !important;
+}
+
+.diamant-purchase-dialog__visual {
+  height: 166px;
+  padding: 12px;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(113, 103, 215, .3), transparent 70%),
+    linear-gradient(135deg, #252e64, #1b244f);
+}
+
+.diamant-purchase-dialog__visual img {
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 7px;
+  height: 100%;
+  object-fit: contain;
 }
 
-.ielp-invest-product-info {
-  display: flex;
-  min-width: 0;
-  min-height: 166px;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 3px;
-  margin: 0;
-  padding: 11px 12px;
-  border-radius: 8px;
-  background: #3b4c79;
-  color: #f7f8ff;
-}
+.diamant-purchase-dialog__body { padding: 17px 18px 16px; }
 
-.ielp-invest-info-row {
+.diamant-purchase-dialog__heading {
   display: flex;
-  min-width: 0;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
-  font-size: 14px;
-  line-height: 18px;
+  gap: 12px;
 }
 
-.ielp-invest-info-row dt {
-  min-width: 0;
-  max-width: 68%;
-  color: #e1e4f0;
-  font-weight: 400;
+.diamant-purchase-dialog__heading > div > span {
+  color: #aaa5e4;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .16em;
 }
 
-.ielp-invest-info-row dd {
-  flex: 0 0 auto;
-  margin: 0;
+.diamant-purchase-dialog__heading h2 {
+  margin: 5px 0 0;
   color: #fff;
-  font-weight: 500;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.diamant-purchase-dialog__heading > strong {
+  flex: none;
+  color: #d4c9ff;
+  font-family: Georgia, serif;
+  font-size: 16px;
   text-align: right;
   white-space: nowrap;
 }
 
-.ielp-invest-info-row--minimum dt {
-  max-width: 62%;
+.diamant-purchase-dialog__heading small {
+  color: #aaa5d7;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 9px;
 }
 
-.ielp-invest-info-row .ielp-invest-daily-rate {
-  color: #52e5a3;
+.diamant-purchase-dialog__hint {
+  margin: 14px 0 0;
+  color: rgba(234, 234, 255, .86);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.diamant-purchase-dialog__hint--subtle {
+  margin-top: 4px;
+  color: rgba(204, 204, 235, .62);
+  font-size: 10px;
+}
+
+.diamant-purchase-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 13px;
+  padding: 10px 11px;
+  border: 1px solid rgba(235, 148, 170, .35);
+  border-radius: 10px;
+  color: #ffd9e0;
+  background: rgba(126, 45, 84, .23);
+}
+
+.diamant-purchase-alert svg { flex: none; margin-top: 1px; color: #ffc0cf; }
+.diamant-purchase-alert p { margin: 0; font-size: 10px; line-height: 1.45; }
+
+.diamant-payment-breakdown {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(192, 191, 242, .15);
+  border-radius: 11px;
+  background: rgba(4, 8, 29, .3);
+}
+
+.diamant-payment-breakdown > p {
+  margin: 0 0 1px;
+  color: #d7d2ff;
+  font-size: 10px;
   font-weight: 700;
 }
 
-.ielp-invest-buy {
+.diamant-payment-breakdown > div {
   display: flex;
-  width: 100%;
-  min-height: 66px;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-top: 18px;
-  padding: 10px 14px;
-  border: 0;
-  border-radius: 15px;
-  background: linear-gradient(90deg, #614ef2 0%, #435dee 51%, #684cf2 100%);
-  box-shadow:
-    0 0 15px rgba(91, 72, 247, 0.55),
-    0 0 26px rgba(69, 87, 238, 0.25);
+  color: rgba(225, 226, 247, .68);
+  font-size: 10px;
+}
+
+.diamant-payment-breakdown strong {
   color: #fff;
-  font-size: clamp(15px, 4.8vw, 22px);
-  font-weight: 800;
-  line-height: 1.2;
-  text-align: center;
-  text-shadow: 0 1px 2px rgba(26, 27, 96, 0.3);
-  cursor: pointer;
-  transition: filter 140ms ease, transform 120ms ease, box-shadow 140ms ease;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.ielp-invest-buy:hover:not(:disabled) {
-  filter: brightness(1.1);
-  box-shadow:
-    0 0 19px rgba(91, 72, 247, 0.67),
-    0 0 30px rgba(69, 87, 238, 0.31);
+.diamant-purchase-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 13px;
+  overflow: hidden;
+  border: 1px solid rgba(194, 190, 244, .19);
+  border-radius: 10px;
 }
 
-.ielp-invest-buy:active:not(:disabled) {
-  transform: scale(0.985);
-}
-
-.ielp-invest-buy:focus-visible,
-.ielp-invest-owned-link:focus-visible,
-.ielp-invest-more:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 3px;
-}
-
-.ielp-invest-buy.is-disabled,
-.ielp-invest-buy:disabled {
-  background: #a6b0bf;
-  box-shadow: none;
-  color: #fff;
-  cursor: not-allowed;
-  text-shadow: none;
-}
-
-.ielp-invest-loading,
-.ielp-invest-empty {
+.diamant-purchase-stats > div {
   display: flex;
-  min-height: 170px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px;
+  text-align: center;
+}
+
+.diamant-purchase-stats > div + div { border-inline-start: 1px solid rgba(194, 190, 244, .16); }
+.diamant-purchase-stats strong { color: #c6bcff; font-size: 10px; line-height: 1.25; overflow-wrap: anywhere; }
+.diamant-purchase-stats span { color: rgba(226, 225, 246, .62); font-size: 9px; line-height: 1.2; }
+
+.diamant-purchase-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid rgba(190, 183, 255, .15);
+}
+
+.diamant-purchase-actions button {
+  display: flex;
+  min-height: 54px;
   align-items: center;
   justify-content: center;
+  gap: 7px;
+  color: rgba(242, 240, 255, .8);
+  background: rgba(255,255,255,.035);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diamant-purchase-actions button + button {
   color: #fff;
-  text-align: center;
+  border-bottom: 4px solid #3e22b4;
+  background: #653de9;
+  box-shadow: 0 3px 0 #351c9b;
 }
 
-.ielp-invest-loading {
-  color: #cbd6ff;
+.diamant-purchase-actions button + button:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  background: #5632d3;
+  box-shadow: 0 1px 0 #351c9b;
 }
 
-.ielp-invest-empty {
-  padding: 22px;
-  font-size: 14px;
+.diamant-purchase-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.diamant-purchase-actions button:focus-visible { outline: 2px solid #c9bdff; outline-offset: -4px; }
+
+@media (min-width: 600px) {
+  .diamant-invest-content { padding: 32px 22px 56px; }
+  .diamant-invest-product-card { padding: 17px 18px 15px; }
+  .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 122px; }
+  .diamant-invest-product-visual { height: 118px; }
+  .diamant-invest-product-copy h3 { font-size: 21px; }
+  .diamant-invest-product-copy dl > div { font-size: 11px; }
 }
 
-@media (max-width: 430px) {
-  .ielp-invest-product-details {
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 9px;
-  }
-
-  .ielp-invest-product-info {
-    padding: 9px;
-  }
-
-  .ielp-invest-info-row {
-    gap: 4px;
-    font-size: 12px;
-    line-height: 16px;
-  }
-}
-
-@media (max-width: 360px) {
-  .ielp-invest-content {
-    padding-right: 16px;
-    padding-left: 16px;
-  }
-
-  .ielp-invest-product-card {
-    padding-right: 14px;
-    padding-left: 14px;
-  }
-
-  .ielp-invest-product-details {
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 9px;
-  }
-
-  .ielp-invest-product-info {
-    padding-right: 9px;
-    padding-left: 9px;
-  }
-
-  .ielp-invest-info-row {
-    font-size: 12px;
-    line-height: 16px;
-  }
-
+@media (max-width: 380px) {
+  .diamant-invest-content { padding-inline: 13px; }
+  .diamant-invest-hero { padding: 16px 14px 18px; }
+  .diamant-invest-hero__row { gap: 7px; }
+  .diamant-invest-hero h1 { font-size: 24px; }
+  .diamant-invest-hero p { max-width: 185px; font-size: 11px; }
+  .diamant-invest-balance { min-width: 101px; padding-inline: 8px; }
+  .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 92px; gap: 7px; }
+  .diamant-invest-product-visual { height: 96px; }
+  .diamant-invest-product-copy h3 { font-size: 17px; }
+  .diamant-invest-product-copy dl > div { font-size: 9px; }
+  .diamant-invest-buy { min-width: 103px; padding-inline: 8px; font-size: 11px; }
+  .diamant-invest-price strong { font-size: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ielp-invest-more svg,
-  .ielp-invest-owned-link,
-  .ielp-invest-buy {
+  .diamant-invest-product-card,
+  .diamant-invest-skeleton > div,
+  .diamant-invest-more svg,
+  .diamant-invest-buy,
+  .diamant-invest-tabs button {
+    animation: none;
     transition: none;
   }
 }

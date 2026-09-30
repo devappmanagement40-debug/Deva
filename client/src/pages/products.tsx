@@ -1,137 +1,162 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AlertTriangle, Check, ChevronDown, CircleHelp, Loader2, MessageCircleMore, MessageSquare, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { AlertTriangle, ChevronDown, Loader2, MessageCircleMore, MessageSquare } from "lucide-react";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/countries";
 import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
+import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
 import { getContent, rebrandText } from "@/lib/content";
 import "./products.css";
 
-const PRODUCT_ACCENT = "#00ef24";
-const CURRENCY = "USDT";
 interface ProductWithOwnership extends Product {
   isOwned: boolean;
   ownedCount?: number;
 }
 
 const INVEST_COPY: Record<Lang, {
-  introTitle: string;
-  growthLine: string;
-  marketLine: string;
-  moreLine: string;
+  title: string;
+  subtitle: string;
+  tabs: [string, string, string];
+  overview: string;
   more: string;
   less: string;
   myInvestments: string;
+  available: string;
   days: string;
   daily: string;
   term: string;
-  minimum: string;
+  priceLabel: string;
   total: string;
-  fixedDuration: string;
+  owned: string;
   investNow: string;
-  chat: string;
+  soldOut: string;
+  unavailable: string;
+  support: string;
+  purchaseHint: string;
+  multipleHint: string;
+  paymentBreakdown: string;
+  depositBalance: string;
+  earningsBalance: string;
+  loading: string;
+  retry: string;
 }> = {
   fr: {
-    introTitle: "Introduction aux produits d'investissement et de gestion de patrimoine",
-    growthLine: "Nous vous aidons à réaliser une croissance rapide de votre patrimoine !",
-    marketLine: "Dans ce marché en constante évolution, nous proposons des produits d'investissement et de gestion",
-    moreLine: "de patrimoine conçus pour vos objectifs.",
-    more: "Plus",
-    less: "Moins",
-    myInvestments: "Investir des données",
+    title: "Investir avec DIAMANT",
+    subtitle: "Des produits sélectionnés pour faire grandir votre portefeuille.",
+    tabs: ["Stabiliser", "Bien-être", "Activité"],
+    overview: "Découvrez les produits d’investissement DIAMANT",
+    more: "En savoir plus",
+    less: "Réduire",
+    myInvestments: "Mes investissements",
+    available: "Solde disponible",
     days: "jours",
-    daily: "Tous les jours",
-    term: "Terme",
-    minimum: "Investissement minimum",
-    total: "Investissement total",
-    fixedDuration: "Durée déterminée",
-    investNow: "INVESTISSEZ MAINTENANT",
-    chat: "Assistance",
+    daily: "Revenu quotidien",
+    term: "Jours de revenu",
+    priceLabel: "Prix",
+    total: "Revenu total",
+    owned: "Possédés",
+    investNow: "Acheter",
+    soldOut: "Épuisé",
+    unavailable: "Bientôt disponible",
+    support: "Assistance",
+    purchaseHint: "Le premier revenu est disponible après l’achat. Les revenus suivants se collectent toutes les 24 heures.",
+    multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
+    paymentBreakdown: "Répartition du paiement",
+    depositBalance: "Solde des dépôts",
+    earningsBalance: "Solde des gains",
+    loading: "Chargement des produits",
+    retry: "Réessayer",
   },
   en: {
-    introTitle: "Introduction to investment products and wealth management",
-    growthLine: "We help you achieve rapid growth in your wealth!",
-    marketLine: "In a constantly evolving market, we offer investment and wealth management products",
-    moreLine: "designed to support your goals.",
-    more: "More",
-    less: "Less",
+    title: "Invest with DIAMANT",
+    subtitle: "Selected products to help your portfolio grow.",
+    tabs: ["Stability", "Wellness", "Activity"],
+    overview: "Explore DIAMANT investment products",
+    more: "Read more",
+    less: "Show less",
     myInvestments: "My investments",
+    available: "Available balance",
     days: "days",
-    daily: "Every day",
-    term: "Term",
-    minimum: "Minimum investment",
-    total: "Total investment",
-    fixedDuration: "Fixed duration",
-    investNow: "INVEST NOW",
-    chat: "Support",
+    daily: "Daily revenue",
+    term: "Revenue days",
+    priceLabel: "Price",
+    total: "Total revenue",
+    owned: "Owned",
+    investNow: "Buy",
+    soldOut: "Sold out",
+    unavailable: "Unavailable",
+    support: "Support",
+    purchaseHint: "Your first earnings are available after purchase. Collect subsequent earnings every 24 hours.",
+    multipleHint: "You can purchase multiple products to increase your earnings.",
+    paymentBreakdown: "Payment breakdown",
+    depositBalance: "Deposit balance",
+    earningsBalance: "Earnings balance",
+    loading: "Loading products",
+    retry: "Try again",
   },
   ar: {
-    introTitle: "مقدمة عن منتجات الاستثمار وإدارة الثروات",
-    growthLine: "نساعدك على تحقيق نمو سريع لثروتك!",
-    marketLine: "في هذا السوق المتطور باستمرار، نقدم منتجات استثمارية ومنتجات لإدارة الثروات",
-    moreLine: "مصممة لدعم أهدافك.",
-    more: "المزيد",
-    less: "أقل",
+    title: "استثمر مع DIAMANT",
+    subtitle: "منتجات مختارة للمساعدة على تنمية محفظتك.",
+    tabs: ["الاستقرار", "العافية", "النشاط"],
+    overview: "اكتشف منتجات DIAMANT الاستثمارية",
+    more: "اقرأ المزيد",
+    less: "عرض أقل",
     myInvestments: "استثماراتي",
+    available: "الرصيد المتاح",
     days: "أيام",
-    daily: "يوميًا",
-    term: "المدة",
-    minimum: "الحد الأدنى للاستثمار",
-    total: "إجمالي الاستثمار",
-    fixedDuration: "العائد المحدد",
-    investNow: "استثمر الآن",
-    chat: "الدعم",
+    daily: "العائد اليومي",
+    term: "أيام الربح",
+    priceLabel: "السعر",
+    total: "إجمالي العائد",
+    owned: "مملوك",
+    investNow: "شراء",
+    soldOut: "نفد المخزون",
+    unavailable: "غير متاح",
+    support: "الدعم",
+    purchaseHint: "تتوفر أرباحك الأولى بعد الشراء. اجمع الأرباح التالية كل 24 ساعة.",
+    multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
+    paymentBreakdown: "تفاصيل الدفع",
+    depositBalance: "رصيد الإيداعات",
+    earningsBalance: "رصيد الأرباح",
+    loading: "جارٍ تحميل المنتجات",
+    retry: "إعادة المحاولة",
   },
   zh: {
-    introTitle: "投资产品与财富管理简介",
-    growthLine: "助您实现财富快速增长！",
-    marketLine: "在不断变化的市场中，我们提供投资和财富管理产品",
-    moreLine: "以支持您的财务目标。",
-    more: "更多",
+    title: "与 DIAMANT 一起投资",
+    subtitle: "精选产品，助力您的资产稳步增长。",
+    tabs: ["稳健", "健康", "活力"],
+    overview: "探索 DIAMANT 投资产品",
+    more: "了解更多",
     less: "收起",
     myInvestments: "我的投资",
+    available: "可用余额",
     days: "天",
-    daily: "每日",
-    term: "期限",
-    minimum: "最低投资",
-    total: "投资总数",
-    fixedDuration: "固定期限",
-    investNow: "立即投资",
-    chat: "客服",
+    daily: "每日收益",
+    term: "收益天数",
+    priceLabel: "价格",
+    total: "总收益",
+    owned: "已拥有",
+    investNow: "购买",
+    soldOut: "已售罄",
+    unavailable: "暂不可用",
+    support: "客服",
+    purchaseHint: "购买后即可获得首笔收益，之后每 24 小时可领取一次。",
+    multipleHint: "您可以购买多个产品以增加收益。",
+    paymentBreakdown: "支付明细",
+    depositBalance: "存款余额",
+    earningsBalance: "收益余额",
+    loading: "正在加载产品",
+    retry: "重试",
   },
 };
-
-function IelpSeal() {
-  return (
-    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
-      <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
-    </svg>
-  );
-}
-
-function IelpProductMark({ label }: { label: string }) {
-  return (
-    <svg className="ielp-invest-product-mark" viewBox="0 0 112 112" role="img" aria-label={label}>
-      <rect width="112" height="112" rx="7" fill="#346b96" />
-      <g fill="#f4f7fa" fontFamily="Georgia, serif" textAnchor="middle">
-        <text x="76" y="47" fontSize="12">ICAHN</text>
-        <text x="76" y="62" fontSize="12">ENTERPRISES</text>
-        <text x="76" y="77" fontSize="12">L.P.</text>
-      </g>
-    </svg>
-  );
-}
 
 function formatUsdt(value: number) {
   return Number.isFinite(value)
@@ -145,12 +170,14 @@ export default function ProductsPage() {
   const { t, lang } = useI18n();
   const [confirmProduct, setConfirmProduct] = useState<ProductWithOwnership | null>(null);
   const [introExpanded, setIntroExpanded] = useState(false);
+  const [selectedTab, setSelectedTab] = useState(0);
   const copy = INVEST_COPY[lang];
   const { data: settings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
+  const pageTitle = getContent(settings, "content_products_headerTitle", copy.title);
 
-  const { data: products, isLoading: productsLoading } = useQuery<ProductWithOwnership[]>({
+  const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<ProductWithOwnership[]>({
     queryKey: ["/api/products"],
   });
 
@@ -170,7 +197,7 @@ export default function ProductsPage() {
       setConfirmProduct(null);
       toast({ title: t.purchaseSuccess, description: t.purchaseSuccessDescription });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setConfirmProduct(null);
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
     },
@@ -178,148 +205,162 @@ export default function ProductsPage() {
 
   if (!user) return null;
 
-  const depositBalance = Number.isFinite(parseFloat(user.balance || "0"))
-    ? parseFloat(user.balance || "0")
-    : 0;
-  const earningsBalance = Number.isFinite(parseFloat(user.totalEarnings || "0"))
-    ? parseFloat(user.totalEarnings || "0")
-    : 0;
+  const depositBalance = Number.isFinite(parseFloat(user.balance || "0")) ? parseFloat(user.balance || "0") : 0;
+  const earningsBalance = Number.isFinite(parseFloat(user.totalEarnings || "0")) ? parseFloat(user.totalEarnings || "0") : 0;
   const availableBalance = depositBalance + earningsBalance;
-  const currency = CURRENCY;
-  const locale = lang === "en" ? "en-US" : lang === "ar" ? "ar" : lang === "zh" ? "zh-CN" : "fr-FR";
-
-  const paidProducts = (products || []).filter(p => !p.isFree);
-  const filtered = paidProducts;
-  const pageTitle = getContent(settings, "content_products_headerTitle", "Nos produits DIAMANT");
+  const paidProducts = (products || []).filter((product) => !product.isFree);
   const getDisplayName = (product: ProductWithOwnership) => rebrandText(product.name);
-  const getProductImage = (product: ProductWithOwnership, index: number) => {
-    return getProductVisual(product.imageUrl, index);
-  };
+  const getProductImage = (product: ProductWithOwnership, index: number) => getProductVisual(product.imageUrl, index);
   const confirmProductIndex = confirmProduct
-    ? Math.max(0, filtered.findIndex((product) => product.id === confirmProduct.id))
+    ? Math.max(0, paidProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
-
-  /* ─── Ouvre toujours le popup — la vérification du solde se fait dedans ─── */
-  const handleBuy = (product: ProductWithOwnership) => {
-    setConfirmProduct(product);
-  };
+  const handleBuy = (product: ProductWithOwnership) => setConfirmProduct(product);
 
   return (
-    <main className="ielp-home-page ielp-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
-      <div className="ielp-home-shell ielp-invest-shell">
-        <header className="ielp-home-header">
-          <Link className="ielp-home-brand" href="/" aria-label="IELP accueil">
-            <IelpSeal />
-            <span>IELP</span>
+    <main className="ielp-home-page diamant-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
+      <div className="ielp-home-shell diamant-invest-shell">
+        <header className="ielp-home-header diamant-invest-header">
+          <Link className="diamant-invest-brand" href="/" aria-label="DIAMANT">
+            <DiamantBrand variant="on-dark" markSize={33} />
           </Link>
           <div className="ielp-home-header__actions">
             <LanguagePicker variant="home" />
-            <Link
-              className="ielp-home-chat-top"
-              href="/service"
-              aria-label={copy.chat}
-              data-testid="button-home-chat"
-            >
-              <MessageSquare size={21} fill="white" strokeWidth={1.8} aria-hidden="true" />
+            <Link className="ielp-home-chat-top" href="/service" aria-label={copy.support} data-testid="button-invest-support">
+              <MessageSquare size={20} aria-hidden="true" />
             </Link>
           </div>
         </header>
 
-        <div className="ielp-home-content ielp-invest-content">
-          <h1 className="sr-only">{pageTitle}</h1>
-          <section className="ielp-invest-intro" aria-label={copy.introTitle}>
-            <p className="ielp-invest-intro__title">{copy.introTitle}</p>
-            <p>{copy.growthLine}</p>
-            <p>
-              {copy.marketLine}
-              {introExpanded && <> {copy.moreLine}</>}
-            </p>
+        <div className="diamant-invest-content">
+          <section className="diamant-invest-hero" aria-labelledby="invest-title">
+            <div className="diamant-invest-hero__eyebrow">
+              <span className="diamant-invest-hero__line" />
+              <span>DIAMANT · USDT</span>
+            </div>
+            <div className="diamant-invest-hero__row">
+              <div>
+                <h1 id="invest-title">{pageTitle}</h1>
+                <p>{copy.subtitle}</p>
+              </div>
+              <Link className="diamant-invest-balance" href="/account">
+                <span>{copy.available}</span>
+                <strong>{formatUsdt(availableBalance)} <small>USDT</small></strong>
+              </Link>
+            </div>
+          </section>
+
+          <section className="diamant-invest-intro" aria-label={copy.overview}>
+            <div className="diamant-invest-intro__copy">
+              <span className="diamant-invest-intro__index">01 / CATALOG</span>
+              <p>{copy.overview}</p>
+              {introExpanded && <p className="diamant-invest-intro__detail">{copy.subtitle}</p>}
+            </div>
             <button
-              className="ielp-invest-more"
+              className="diamant-invest-more"
               type="button"
               aria-expanded={introExpanded}
               onClick={() => setIntroExpanded((expanded) => !expanded)}
             >
               <span>{introExpanded ? copy.less : copy.more}</span>
-              <ChevronDown size={16} strokeWidth={2.2} className={introExpanded ? "is-open" : ""} aria-hidden="true" />
+              <ChevronDown size={16} className={introExpanded ? "is-open" : ""} aria-hidden="true" />
             </button>
           </section>
 
-          <Link className="ielp-invest-owned-link" href="/my-products">
-            {copy.myInvestments}
-          </Link>
+          <div className="diamant-invest-tabs" role="group" aria-label={copy.overview}>
+            {copy.tabs.map((label, index) => (
+              <button
+                key={label}
+                type="button"
+                aria-pressed={selectedTab === index}
+                className={selectedTab === index ? "is-selected" : ""}
+                onClick={() => setSelectedTab(index)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-          <section className="ielp-invest-list" aria-label={pageTitle}>
+          <div className="diamant-invest-list-heading">
+            <div>
+              <span>{lang === "en" ? "THE COLLECTION" : lang === "ar" ? "المجموعة" : lang === "zh" ? "精选系列" : "LA COLLECTION"}</span>
+              <h2>{copy.tabs[selectedTab]}</h2>
+            </div>
+            <Link className="diamant-invest-owned-link" href="/my-products">
+              {copy.myInvestments}
+            </Link>
+          </div>
+
+          <section className="diamant-invest-list" aria-label={copy.title}>
             {productsLoading ? (
-              <div className="ielp-invest-loading" aria-label={t.loading}>
-                <Loader2 size={32} className="animate-spin" />
+              <div className="diamant-invest-skeletons" aria-label={copy.loading} aria-busy="true">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="diamant-invest-skeleton">
+                    <div className="diamant-invest-skeleton__title" />
+                    <div className="diamant-invest-skeleton__image" />
+                    <div className="diamant-invest-skeleton__copy"><i /><i /><i /></div>
+                    <div className="diamant-invest-skeleton__action" />
+                  </div>
+                ))}
               </div>
-            ) : filtered.length === 0 ? (
-              <div className="ielp-invest-empty">
+            ) : isError ? (
+              <div className="diamant-invest-state">
+                <CircleHelp size={29} aria-hidden="true" />
+                <p>{t.errorOccurred}</p>
+                <button type="button" onClick={() => void refetch()}><RefreshCw size={15} />{copy.retry}</button>
+              </div>
+            ) : paidProducts.length === 0 ? (
+              <div className="diamant-invest-state">
+                <span className="diamant-invest-state__mark"><DiamantBrand markSize={34} showWordmark={false} /></span>
                 <p>{t.noProducts}</p>
               </div>
             ) : (
-              filtered.map((product, index) => {
+              paidProducts.map((product, index) => {
                 const price = Number(product.price) || 0;
                 const dailyEarnings = Number(product.dailyEarnings) || 0;
                 const totalReturn = Number(product.totalReturn) || 0;
-                const dailyPercent = price > 0 ? (dailyEarnings / price) * 100 : 0;
-                const fixedDurationPercent = price > 0 ? ((price + totalReturn) / price) * 100 : 100;
                 const isPending = purchaseMutation.isPending && purchaseMutation.variables === product.id;
                 const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
                 const isSoldOut = stock >= 100;
                 const isUnavailable = !!product.isUnavailable;
                 const isBlocked = isSoldOut || isUnavailable;
-                const displayName = `IELP Investment Products ${index + 1}`;
+                const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
 
                 return (
-                  <article
-                    key={product.id}
-                    className="ielp-invest-product-card"
-                    data-testid={`product-card-${product.id}`}
-                  >
-                    <h2 className="ielp-invest-product-title" dir="ltr">{displayName}</h2>
-                    <div className="ielp-invest-product-details">
-                      <IelpProductMark label={displayName} />
-                      <dl className="ielp-invest-product-info">
-                        <div className="ielp-invest-info-row">
-                          <dt>{copy.daily}:</dt>
-                          <dd className="ielp-invest-daily-rate">{dailyPercent.toFixed(2)}%</dd>
-                        </div>
-                        <div className="ielp-invest-info-row">
-                          <dt>{copy.term}:</dt>
-                          <dd>{product.cycleDays} {copy.days}</dd>
-                        </div>
-                        <div className="ielp-invest-info-row ielp-invest-info-row--minimum">
-                          <dt>{copy.minimum}:</dt>
-                          <dd>{formatUsdt(price)} USDT</dd>
-                        </div>
-                        <div className="ielp-invest-info-row">
-                          <dt>{copy.total}:</dt>
-                          <dd>{Number(product.ownedCount || 0).toLocaleString(locale)}</dd>
-                        </div>
-                        <div className="ielp-invest-info-row">
-                          <dt>{copy.fixedDuration}:</dt>
-                          <dd>{Math.round(fixedDurationPercent)}%</dd>
-                        </div>
-                      </dl>
+                  <article key={product.id} className="diamant-invest-product-card" data-testid={`product-card-${product.id}`}>
+                    <div className="diamant-invest-card-topline">
+                      <span className="diamant-invest-card-kicker">DIAMANT / {String(index + 1).padStart(2, "0")}</span>
+                      {product.isOwned && <span className="diamant-invest-owned-badge"><Check size={12} />{copy.owned} · {product.ownedCount || 1}</span>}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => !isBlocked && handleBuy(product)}
-                      disabled={purchaseMutation.isPending || isBlocked}
-                      className={`ielp-invest-buy${isBlocked ? " is-disabled" : ""}`}
-                      aria-label={`${copy.investNow}: ${displayName}`}
-                      data-testid={`button-purchase-${product.id}`}
-                    >
-                      {isPending ? (
-                        <Loader2 size={22} className="animate-spin" />
-                      ) : isBlocked ? (
-                        lang === "en" ? "SOLD OUT" : "ÉPUISÉ"
-                      ) : (
-                        copy.investNow
-                      )}
-                    </button>
+                    <div className="diamant-invest-product-main">
+                      <div className="diamant-invest-product-copy">
+                        <h3>{displayName}</h3>
+                        <dl>
+                          <div><dt>{copy.daily}</dt><dd>{formatUsdt(dailyEarnings)} <small>USDT</small></dd></div>
+                          <div><dt>{copy.term}</dt><dd>{product.cycleDays} {copy.days}</dd></div>
+                          <div><dt>{copy.total}</dt><dd>{formatUsdt(totalReturn)} <small>USDT</small></dd></div>
+                        </dl>
+                      </div>
+                      <div className="diamant-invest-product-visual">
+                        <img src={getProductImage(product, index)} alt={displayName} loading="lazy" />
+                        <span>DIAMANT</span>
+                      </div>
+                    </div>
+                    <div className="diamant-invest-product-footer">
+                      <div className="diamant-invest-price">
+                        <span>{copy.priceLabel}</span>
+                        <strong>{formatUsdt(price)} <small>USDT</small></strong>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => !isBlocked && handleBuy(product)}
+                        disabled={purchaseMutation.isPending || isBlocked}
+                        className={`diamant-invest-buy${isBlocked ? " is-disabled" : ""}`}
+                        aria-label={`${copy.investNow}: ${displayName}`}
+                        data-testid={`button-purchase-${product.id}`}
+                      >
+                        {isPending ? <Loader2 size={19} className="animate-spin" /> : isUnavailable ? copy.unavailable : isSoldOut ? copy.soldOut : copy.investNow}
+                      </button>
+                    </div>
                   </article>
                 );
               })
@@ -328,126 +369,64 @@ export default function ProductsPage() {
         </div>
 
         <FloatingSupport placement="home" />
-        <Link className="ielp-home-chat-float" href="/service" aria-label={copy.chat} data-testid="button-home-chat-floating">
-          <MessageCircleMore size={32} strokeWidth={2.6} aria-hidden="true" />
+        <Link className="ielp-home-chat-float diamant-invest-chat-float" href="/service" aria-label={copy.support} data-testid="button-invest-chat-floating">
+          <MessageCircleMore size={30} strokeWidth={2.4} aria-hidden="true" />
         </Link>
 
-      {/* ══ POPUP CONFIRMATION ACHAT ══ */}
-      <Dialog open={!!confirmProduct} onOpenChange={(open) => !open && setConfirmProduct(null)}>
-        {confirmProduct && (
-          <DialogContent className="w-[calc(100%-2rem)] max-w-[420px] overflow-hidden rounded-3xl border-0 bg-white p-0 shadow-2xl">
-            <DialogTitle className="sr-only">Confirmer l'achat de {getDisplayName(confirmProduct)}</DialogTitle>
-            {/* Image produit */}
-            <div className="flex items-center justify-center" style={{ background: "#f8f8f8", height: 200 }}>
-              <img
-                src={getProductImage(confirmProduct, confirmProductIndex)}
-                alt={getDisplayName(confirmProduct)}
-                style={{ height: 180, maxWidth: "90%", objectFit: "contain" }}
-              />
-            </div>
-
-            {/* Prix + nom */}
-            <div className="px-5 pt-4 pb-2">
-              <p className="font-black" style={{ fontSize: 24, color: PRODUCT_ACCENT, lineHeight: 1.2 }}>
-                {currency} {Number(confirmProduct.price).toLocaleString(locale)}
-              </p>
-              <p style={{ fontSize: 14, color: "#555", marginTop: 2 }}>{getDisplayName(confirmProduct)}</p>
-            </div>
-
-            {/* Séparateur */}
-            <div style={{ height: 1, background: "#f0f0f0", margin: "0 20px" }} />
-
-            {/* Description */}
-            <div className="px-5 py-3 text-center">
-              <p style={{ fontSize: 13, color: "#333", fontWeight: 600 }}>
-                {t.investConfirmDesc}
-              </p>
-              <p style={{ fontSize: 12, color: "#888", marginTop: 3, lineHeight: 1.5 }}>
-                {lang === "en" ? "You can buy multiple devices to increase your earnings" : "Vous pouvez acheter plusieurs appareils pour augmenter vos revenus"}
-              </p>
-            </div>
-
-            {/* Alerte solde insuffisant */}
-            {availableBalance < parseFloat(String(confirmProduct.price)) && (
-              <div className="mx-5 mb-2 flex items-center gap-2 p-2.5 rounded-xl"
-                style={{ background: "#fff2f2", border: "1px solid #fca5a5" }}>
-                <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: PRODUCT_ACCENT }} />
-                <p className="text-xs" style={{ color: "#149a39" }}>
-                  {t.investInsufficient.replace("{0}", formatCurrency(
-                    parseFloat(String(confirmProduct.price)) - availableBalance, user.country
-                  ))}
-                </p>
+        <Dialog open={!!confirmProduct} onOpenChange={(open) => !open && setConfirmProduct(null)}>
+          {confirmProduct && (
+            <DialogContent className="diamant-purchase-dialog">
+              <DialogTitle className="sr-only">{t.investConfirmDesc} — {getDisplayName(confirmProduct)}</DialogTitle>
+              <div className="diamant-purchase-dialog__visual">
+                <img src={getProductImage(confirmProduct, confirmProductIndex)} alt={getDisplayName(confirmProduct)} />
               </div>
-            )}
-
-            {/* Le solde des dépôts est débité en priorité, puis le solde des gains. */}
-            {(() => {
-              const price = parseFloat(String(confirmProduct.price));
-              const depositDebit = Math.min(Math.max(0, depositBalance), price);
-              const earningsDebit = Math.max(0, price - depositDebit);
-              const labels = lang === "en"
-                ? { title: "Payment breakdown", deposit: "Deposit balance", earnings: "Earnings balance" }
-                : lang === "ar"
-                  ? { title: "تفاصيل الدفع", deposit: "رصيد الإيداعات", earnings: "رصيد الأرباح" }
-                  : lang === "zh"
-                    ? { title: "支付明细", deposit: "存款余额", earnings: "收益余额" }
-                    : { title: "Répartition du paiement", deposit: "Solde des dépôts", earnings: "Solde des gains" };
-              return (
-                <div className="mx-5 mb-4 rounded-xl border border-[#e8e8e8] bg-[#fafafa] px-4 py-3">
-                  <p className="mb-2 text-xs font-bold text-[#444]">{labels.title}</p>
-                  <div className="flex justify-between text-xs text-[#666]">
-                    <span>{labels.deposit}</span>
-                    <span className="font-semibold text-[#222]">-{currency} {depositDebit.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
+              <div className="diamant-purchase-dialog__body">
+                <div className="diamant-purchase-dialog__heading">
+                  <div><span>DIAMANT / USDT</span><h2>{getDisplayName(confirmProduct)}</h2></div>
+                  <strong>{formatUsdt(Number(confirmProduct.price))}<small> USDT</small></strong>
+                </div>
+                <p className="diamant-purchase-dialog__hint">{copy.purchaseHint}</p>
+                <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
+                {availableBalance < parseFloat(String(confirmProduct.price)) && (
+                  <div className="diamant-purchase-alert">
+                    <AlertTriangle size={17} aria-hidden="true" />
+                    <p>{t.investInsufficient.replace("{0}", formatCurrency(
+                      parseFloat(String(confirmProduct.price)) - availableBalance, user.country
+                    ))}</p>
                   </div>
-                  {earningsDebit > 0 && (
-                    <div className="mt-1 flex justify-between text-xs text-[#666]">
-                      <span>{labels.earnings}</span>
-                      <span className="font-semibold text-[#222]">-{currency} {earningsDebit.toLocaleString(locale, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}</span>
-                    </div>
+                )}
+                <div className="diamant-payment-breakdown">
+                  <p>{copy.paymentBreakdown}</p>
+                  <div><span>{copy.depositBalance}</span><strong>−{formatUsdt(Math.min(Math.max(0, depositBalance), Number(confirmProduct.price)))} USDT</strong></div>
+                  {Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)) > 0 && (
+                    <div><span>{copy.earningsBalance}</span><strong>−{formatUsdt(Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)))} USDT</strong></div>
                   )}
                 </div>
-              );
-            })()}
-
-            {/* Stats 3 colonnes */}
-            <div className="flex" style={{ margin: "0 20px 16px", border: "1px solid #eee", borderRadius: 12, overflow: "hidden" }}>
-              {[
-                { value: `${confirmProduct.cycleDays} ${t.ordersDaysLbl}`, label: t.duration },
-                { value: `${currency} ${Number(confirmProduct.dailyEarnings).toLocaleString(locale)}`, label: t.dailyRevenue },
-                { value: `${currency} ${Number(confirmProduct.totalReturn).toLocaleString(locale)}`, label: t.totalRevenue },
-              ].map((stat, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center py-3"
-                  style={{ borderRight: i < 2 ? "1px solid #eee" : "none" }}>
-                  <p style={{ fontSize: 13, fontWeight: 800, color: "#12bc3e", lineHeight: 1.3 }}>{stat.value}</p>
-                  <p style={{ fontSize: 11, color: "#888", marginTop: 2, textAlign: "center", lineHeight: 1.3 }}>{stat.label}</p>
+                <div className="diamant-purchase-stats">
+                  {[
+                    { value: `${confirmProduct.cycleDays} ${t.ordersDaysLbl}`, label: t.duration },
+                    { value: `${formatUsdt(Number(confirmProduct.dailyEarnings))} USDT`, label: t.dailyRevenue },
+                    { value: `${formatUsdt(Number(confirmProduct.totalReturn))} USDT`, label: t.totalRevenue },
+                  ].map((stat) => (
+                    <div key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Boutons */}
-            <div className="flex" style={{ borderTop: "1px solid #f0f0f0" }}>
-              <button
-                onClick={() => setConfirmProduct(null)}
-                className="flex-1 font-semibold active:opacity-70"
-                style={{ padding: "17px 0", fontSize: 16, color: "#555", background: "#e8e8e8", border: "none", borderBottomLeftRadius: 24 }}
-                data-testid="button-cancel-purchase"
-              >
-                {t.cancel}
-              </button>
-              <button
-                onClick={() => purchaseMutation.mutate(confirmProduct.id)}
-                disabled={purchaseMutation.isPending || availableBalance < parseFloat(String(confirmProduct.price))}
-                className="flex-1 font-bold text-white flex items-center justify-center gap-2 active:opacity-80 disabled:opacity-50"
-                style={{ padding: "17px 0", fontSize: 16, background: "#12bc3e", border: "none", borderBottomRightRadius: 24 }}
-                data-testid="button-confirm-purchase"
-              >
-                {purchaseMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                {t.confirm}
-              </button>
-            </div>
-          </DialogContent>
-        )}
-      </Dialog>
+              </div>
+              <div className="diamant-purchase-actions">
+                <button type="button" onClick={() => setConfirmProduct(null)} data-testid="button-cancel-purchase">{t.cancel}</button>
+                <button
+                  type="button"
+                  onClick={() => purchaseMutation.mutate(confirmProduct.id)}
+                  disabled={purchaseMutation.isPending || availableBalance < parseFloat(String(confirmProduct.price))}
+                  data-testid="button-confirm-purchase"
+                >
+                  {purchaseMutation.isPending && <Loader2 size={17} className="animate-spin" />}
+                  {t.confirm}
+                </button>
+              </div>
+            </DialogContent>
+          )}
+        </Dialog>
       </div>
     </main>
   );

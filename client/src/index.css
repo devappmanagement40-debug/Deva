@@ -1424,10 +1424,10 @@ ol[data-radix-toast-viewport] li * {
   height: 76px;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .06);
+  border: 1px solid rgba(186, 174, 255, .2);
   border-radius: 17px;
-  background: rgba(48, 67, 78, .94);
-  box-shadow: 0 7px 21px rgba(0, 0, 0, .26);
+  background: rgba(13, 18, 54, .94);
+  box-shadow: 0 7px 21px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .06);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
