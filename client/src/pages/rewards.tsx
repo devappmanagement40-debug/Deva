@@ -7,8 +7,8 @@ import { ArrowLeft, HelpCircle, Users } from "lucide-react";
 import { getCountryByCode } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
 
-import globeImg from "@assets/generated_images/tgood-city-grid.jpg";
-import landscapeImg from "@assets/generated_images/tgood-charging-station-hero.jpg";
+import globeImg from "@assets/generated_images/diamant-city-grid.jpg";
+import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 
 export default function RewardsPage() {
   const { user, refreshUser } = useAuth();
@@ -136,7 +136,7 @@ export default function RewardsPage() {
         </div>
 
       </div>
-      <img src={landscapeImg} alt="TGOOD" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
+      <img src={landscapeImg} alt="DIAMANT" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
     </div>
   );
 }

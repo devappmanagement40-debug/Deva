@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { rebrandText } from "@/lib/content";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -105,7 +106,7 @@ export default function AdminStaking() {
   const openEdit = (sp: StakingProduct) => {
     setEditTarget(sp);
     const launchStr = sp.launchDate ? new Date(sp.launchDate).toISOString().slice(0, 16) : "";
-    setForms([{ name: sp.name, description: sp.description || "", price: String(sp.price), returnAmount: String(sp.returnAmount), lockDays: String(sp.lockDays), launchDate: launchStr, imageUrl: sp.imageUrl || "", isActive: sp.isActive }]);
+    setForms([{ name: rebrandText(sp.name), description: rebrandText(sp.description || ""), price: String(sp.price), returnAmount: String(sp.returnAmount), lockDays: String(sp.lockDays), launchDate: launchStr, imageUrl: sp.imageUrl || "", isActive: sp.isActive }]);
     setShowForm(true);
   };
 
@@ -248,7 +249,7 @@ export default function AdminStaking() {
                             {s.status === "released" ? "Libéré" : "En cours"}
                           </Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{s.user.phone} · {s.product.name}</p>
+                        <p className="text-xs text-muted-foreground">{s.user.phone} · {rebrandText(s.product.name)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           {s.amountPaid.toLocaleString()} USDT → {s.returnAmount.toLocaleString()} USDT · Déblocage : {formatDate(s.releaseDate)}
                         </p>

@@ -5,7 +5,7 @@ import { ChevronLeft, FileText } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 
-/* ── Palette TGOOD ────────────────────────────────── */
+/* ── Palette de la page ───────────────────────────── */
 const RED  = "#E8192C";
 const GRAY = "#f5f5f5";
 

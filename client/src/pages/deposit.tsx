@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { localeForLang, useI18n } from "@/lib/i18n";
-import depositHero from "@assets/generated_images/tgood-deposit-hero.jpg";
+import depositHero from "@assets/generated_images/diamant-deposit-hero.jpg";
 import tetherIcon from "@/assets/crypto/tether.png";
 import usdCoinIcon from "@/assets/crypto/usd-coin.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
@@ -16,7 +16,7 @@ import paypalUsdIcon from "@/assets/crypto/paypal-usd.png";
 import tronIcon from "@/assets/crypto/tron.png";
 
 const CURRENCY = "USDT";
-const TGOOD_GREEN = "#32c95b";
+const ACCENT_GREEN = "#32c95b";
 const DEFAULT_DEPOSIT_AMOUNTS = [3500, 5000, 7000, 10000, 15000, 20000, 50000, 70000];
 
 function parseDepositPresetAmounts(value: string | undefined): number[] {
@@ -66,7 +66,7 @@ const CRYPTO_CURRENCIES: CryptoCurrency[] = [
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="ielp-deposit-section-title mb-4 flex items-center gap-2" style={{ color: "#151515", fontSize: 14 }}>
-      <span className="ielp-brand-marker h-6 w-[5px] rounded-full" style={{ background: TGOOD_GREEN }} />
+      <span className="ielp-brand-marker h-6 w-[5px] rounded-full" style={{ background: ACCENT_GREEN }} />
       <span>{children}</span>
     </div>
   );
@@ -129,7 +129,7 @@ export default function DepositPage() {
     mutationFn: async (payload: { amount: number; accountNumber: string; screenshot?: string }) => {
       const response = await apiRequest("POST", "/api/deposits", {
         amount: payload.amount,
-        accountName: user?.fullName || user?.phone || "Client TGOOD",
+        accountName: user?.fullName || user?.phone || "Client DIAMANT",
         accountNumber: payload.accountNumber,
         paymentMethod: "Deposit bank",
         channelName: "Deposit bank",
@@ -293,7 +293,7 @@ export default function DepositPage() {
             <ArrowLeft size={24} strokeWidth={2} />
           </button>
           <div className="flex-1 pr-11 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">TGOOD deposit</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
             <h1 className="mt-0.5 text-[19px] font-semibold">Send payment</h1>
           </div>
         </header>
@@ -419,7 +419,7 @@ export default function DepositPage() {
             <ArrowLeft size={24} strokeWidth={2} />
           </button>
           <div className="flex-1 pr-11 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">TGOOD deposit</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
             <h1 className="mt-0.5 text-[19px] font-semibold">Choose a currency</h1>
           </div>
         </header>
@@ -534,7 +534,7 @@ export default function DepositPage() {
               type="button"
               onClick={() => proofInput.current?.click()}
               className="flex h-[123px] w-full flex-col items-center justify-center rounded-[10px] border-2 border-dashed active:opacity-75"
-              style={{ borderColor: "#d6d6d6", color: proof ? TGOOD_GREEN : "#a1a5ae" }}
+              style={{ borderColor: "#d6d6d6", color: proof ? ACCENT_GREEN : "#a1a5ae" }}
               data-testid="button-upload-deposit-proof"
             >
               {proof ? (
@@ -583,7 +583,7 @@ export default function DepositPage() {
   return (
     <main className="ielp-deposit-page min-h-screen bg-[#f4f4f4] pb-9" style={{ color: "#171717" }}>
       <section className="relative h-[282px] overflow-hidden bg-[#dceef7]">
-        <img src={depositHero} alt="TGOOD electric charging station" className="h-full w-full object-cover" />
+        <img src={depositHero} alt="DIAMANT electric charging station" className="h-full w-full object-cover" />
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/30 to-transparent" />
         <div className="absolute inset-x-0 top-5 flex items-center justify-between px-5">
           <Link href="/">
@@ -632,9 +632,9 @@ export default function DepositPage() {
                 className="ielp-deposit-preset h-[55px] rounded-[7px] border font-normal transition active:scale-[.97]"
                 data-selected={selected ? "true" : "false"}
                 style={{
-                  borderColor: TGOOD_GREEN,
+                  borderColor: ACCENT_GREEN,
                   color: selected ? "#fff" : "#656565",
-                  background: selected ? TGOOD_GREEN : "#fff",
+                  background: selected ? ACCENT_GREEN : "#fff",
                   fontSize: "clamp(13px, 4.1vw, 19px)",
                   boxShadow: selected ? "0 3px 8px rgba(50,201,91,.25)" : "none",
                 }}
@@ -651,7 +651,7 @@ export default function DepositPage() {
         <SectionTitle>Recharge method</SectionTitle>
         <button
           className="flex h-[56px] w-full items-center rounded-[10px] px-5 text-left text-white shadow-[0_3px_7px_rgba(44,185,86,.2)] transition active:scale-[.985]"
-          style={{ background: TGOOD_GREEN }}
+          style={{ background: ACCENT_GREEN }}
           data-testid="button-deposit-method"
         >
           <span className="mr-4 flex h-7 w-7 items-center justify-center rounded bg-white/20">

@@ -1,5 +1,5 @@
 /*
- * TGOOD public/member color harmonization.
+ * DIAMANT public/member color harmonization.
  * This class is applied only to routes outside the preserved IELP screens;
  * keeping the palette on html/body also themes Radix portals without touching
  * the application-wide tokens or the excluded admin/banker routes.
@@ -207,7 +207,7 @@ body.ielp-route-theme textarea::placeholder {
   opacity: 1;
 }
 
-/* Non-home navigation has inline TGOOD-green state; use route state, not its
+/* Non-home navigation has inline legacy-green state; use route state, not its
    serialized inline color, to recolor it safely. */
 body.ielp-route-theme .bottom-nav:not(.bottom-nav--ielp) {
   border-top: 1px solid rgba(178, 202, 255, .18) !important;

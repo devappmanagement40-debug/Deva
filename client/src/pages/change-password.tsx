@@ -6,7 +6,7 @@ import { Loader2, Lock, Eye, EyeOff, ChevronLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
 
-const TGOOD_GREEN = "#00C853";
+const ACCENT_GREEN = "#00C853";
 
 export default function ChangePasswordPage() {
   const { t } = useI18n();
@@ -80,10 +80,10 @@ export default function ChangePasswordPage() {
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#efefef" }}>
 
-      {/* ══ HEADER vert TGOOD ══ */}
+      {/* ══ HEADER vert de la plateforme ══ */}
       <header
         className="ielp-change-password-header flex items-center px-4 py-4"
-        style={{ background: TGOOD_GREEN }}
+        style={{ background: ACCENT_GREEN }}
       >
         <button
           onClick={() => navigate("/account")}
@@ -122,7 +122,7 @@ export default function ChangePasswordPage() {
                   onChange={e => field.onChange(e.target.value)}
                   placeholder={field.placeholder}
                   className="flex-1 outline-none bg-transparent text-sm"
-                   style={{ color: "#333", caretColor: TGOOD_GREEN }}
+                   style={{ color: "#333", caretColor: ACCENT_GREEN }}
                   data-testid={field.testId}
                 />
 
@@ -150,7 +150,7 @@ export default function ChangePasswordPage() {
           disabled={changePasswordMutation.isPending}
           className="w-full font-bold text-white text-lg disabled:opacity-50 active:scale-95 transition-transform"
           style={{
-             background: TGOOD_GREEN,
+             background: ACCENT_GREEN,
             borderRadius: 999,
             height: 56,
              boxShadow: "0 4px 14px rgba(0,200,83,0.35)",

@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { rebrandText } from "@/lib/content";
 import { Edit, Loader2, Plus, Trash2, Users, ShoppingBag, Lock } from "lucide-react";
 import type { Product } from "@shared/schema";
 import ImageUploader from "@/components/admin/image-uploader";
@@ -326,7 +327,7 @@ export default function AdminProducts() {
   const openEdit = (product: Product) => {
     setSelectedProduct(product);
     editForm.reset({
-      name: product.name,
+      name: rebrandText(product.name),
       price: product.price.toString(),
       dailyEarnings: product.dailyEarnings.toString(),
       cycleDays: product.cycleDays.toString(),
@@ -355,10 +356,10 @@ export default function AdminProducts() {
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <img src={getProductVisual(product.imageUrl, index)} alt={product.name} className="w-12 h-12 rounded-lg object-cover border border-border" />
+                  <img src={getProductVisual(product.imageUrl, index)} alt={rebrandText(product.name)} className="w-12 h-12 rounded-lg object-cover border border-border" />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-foreground">{product.name}</p>
+                      <p className="font-medium text-foreground">{rebrandText(product.name)}</p>
                       {product.isFree && <Badge variant="secondary" className="text-xs">Gratuit</Badge>}
                       <Badge variant={product.isActive ? "default" : "outline"} className="text-xs">
                         {product.isActive ? "Actif" : "Inactif"}

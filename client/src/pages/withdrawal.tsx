@@ -262,7 +262,7 @@ export default function WithdrawalPage() {
               <div className="relative flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <CreditCard size={27} strokeWidth={1.6} />
-                  <span className="text-[16px] font-semibold tracking-[.08em]">TGOOD</span>
+                  <span className="text-[16px] font-semibold tracking-[.08em]">DIAMANT</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={18} strokeWidth={1.6} className="opacity-80" />

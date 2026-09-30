@@ -1,5 +1,14 @@
-const CACHE_NAME = "tgood-v2";
-const STATIC_ASSETS = ["/", "/manifest.json", "/favicon.svg", "/tgood-logo.gif"];
+const CACHE_NAME = "diamant-v3";
+const STATIC_ASSETS = [
+  "/",
+  "/manifest.json",
+  "/favicon.svg",
+  "/diamant-mark.svg",
+  "/diamant-mark-192.png",
+  "/diamant-mark-512.png",
+  "/diamant-logo-dark.png",
+  "/diamant-logo-light.png",
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

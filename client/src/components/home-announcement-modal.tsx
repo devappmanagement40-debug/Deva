@@ -2,21 +2,21 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import popupMascot from "@assets/generated_images/tgood-popup-mascot.png";
+import popupMascot from "@assets/generated_images/diamant-popup-mascot.png";
 import { getContent } from "@/lib/content";
 
-const TGOOD_GREEN = "#08b83a";
+const POPUP_ACCENT = "#08b83a";
 
 const DEFAULT_LINES = [
-  "🚀 TGOOD RDC: official launch!",
-  "📅 TGOOD officially launches on 03/09/2026!",
+  "🚀 DIAMANT RDC: official launch!",
+  "📅 DIAMANT officially launches on 03/09/2026!",
   "✅ Minimum deposit: 18 USDT",
   "✅ Minimum withdrawal: 1 USDT via USDT BEP20, with no fee",
   "✅ Registration bonus: 2 USDT",
   "👥 Invite your friends and earn commissions",
   "🕘 Withdrawals and support: 09:00–17:00",
   "🔥 Your first earning is available after purchase. Collect it in Revenue, then collect new earnings every 24 hours 📈",
-  "📖 Please review the TGOOD rules before operating.",
+  "📖 Please review the DIAMANT rules before operating.",
 ];
 
 export default function HomeAnnouncementModal() {
@@ -28,7 +28,7 @@ export default function HomeAnnouncementModal() {
     `content_home_popupLine${index + 1}`,
     settings[`popupLine${index + 1}`] || DEFAULT_LINES[index],
   )).filter(Boolean);
-  const popupTitle = getContent(settings, "content_home_popupTitle", settings.popupTitle || "TGOOD Announcement");
+  const popupTitle = getContent(settings, "content_home_popupTitle", settings.popupTitle || "DIAMANT Announcement");
   // The homepage announcement must point to the configured official channel,
   // not to the customer-support link.
   const telegramUrl = settings.channelEnabled === "false"
@@ -75,7 +75,7 @@ export default function HomeAnnouncementModal() {
           <button
             onClick={() => setOpen(false)}
             className="flex min-w-0 flex-1 items-center justify-center px-2 active:opacity-70"
-            style={{ color: TGOOD_GREEN, fontSize: "clamp(24px, 6.3vw, 29px)", fontWeight: 400 }}
+            style={{ color: POPUP_ACCENT, fontSize: "clamp(24px, 6.3vw, 29px)", fontWeight: 400 }}
             data-testid="button-popup-ok"
           >
             {confirmLabel}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { rebrandText } from "@/lib/content";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -295,16 +296,16 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       level3Commission:       settings.level3Commission       ?? "1",
       signupBonusEnabled:     settings.signupBonusEnabled     !== "false",
       signupBonusAmount:      settings.signupBonusAmount      ?? "2",
-      popupTitle:             settings.popupTitle             ?? "",
+      popupTitle:             rebrandText(settings.popupTitle ?? ""),
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
-       popupLine1:             settings.popupLine1             || "🚀 TGOOD RDC : lancement officiel le 03/09/2026 !",
-       popupLine2:             settings.popupLine2             || "🤝 Dépôt minimum : 18 USDT",
-       popupLine3:             settings.popupLine3             || "💚 Retrait minimum : 1 USDT — USDT BEP20, sans frais",
-       popupLine4:             settings.popupLine4             || "✅ Bonus d'inscription : 2 USDT",
-       popupLine5:             settings.popupLine5             || "👥 Invitez vos amis et gagnez des commissions",
-       popupLine6:             settings.popupLine6             || "🕘 Retraits et support disponibles de 09:00 à 17:00",
-       popupLine7:             settings.popupLine7             || "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures",
+       popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
+       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 18 USDT"),
+       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 USDT — USDT BEP20, sans frais"),
+       popupLine4:             rebrandText(settings.popupLine4 || "✅ Bonus d'inscription : 2 USDT"),
+       popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
+       popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
+       popupLine7:             rebrandText(settings.popupLine7 || "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures"),
       westpayMerchantSlug:    settings.westpayMerchantSlug    ?? "",
       westpayWebhookSecret:   settings.westpayWebhookSecret   ?? "",
       westpayApiKey_CI:       settings.westpayApiKey_CI       ?? "",
@@ -954,7 +955,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               )} />
             ))}
             {([
-              { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 TGOOD RDC : lancement officiel le 03/09/2026 !" },
+              { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
               { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 18 USDT" },
               { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Minimum withdrawal: 1 USDT via USDT BEP20, no fee" },
               { name: "popupLine4" as const, label: "Ligne 4 — Bonus d'inscription", placeholder: "✅ Registration bonus: 2 USDT" },
@@ -997,7 +998,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               <FormItem>
                 <FormLabel>Slug marchand WestPay</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="ex : tgood" />
+                  <Input {...field} placeholder="ex : diamant" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

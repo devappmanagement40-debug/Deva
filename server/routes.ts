@@ -1024,6 +1024,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} USDT` });
       }
 
+      // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
       const orderId = `tgood-${user.id}-${Date.now()}`;
 
       // Stablecoins whose value is pegged 1:1 to USD.
@@ -1045,7 +1046,7 @@ export async function registerRoutes(
         priceCurrency,
         payCurrency: payCurrencyLower,
         orderId,
-        description: `Dépôt TGOOD de ${amountValue} USDT`,
+        description: `Dépôt DIAMANT de ${amountValue} USDT`,
       });
 
       if (!payment.pay_address || !payment.payment_id) {
@@ -2296,6 +2297,7 @@ export async function registerRoutes(
       if (!Number.isInteger(withdrawalId)) {
         return res.status(400).json({ message: "Identifiant de retrait invalide" });
       }
+      // NOWPayments uses this durable reference for reconciliation; do not rename it.
       const externalId = `tgood-withdrawal-${withdrawalId}`;
       const withdrawal = await storage.claimWithdrawalForNowPayments(
         withdrawalId,
@@ -2314,7 +2316,7 @@ export async function registerRoutes(
         currency: "usdtbsc",
         amount: Number(withdrawal.netAmount),
         uniqueExternalId: withdrawal.nowPaymentsExternalId || externalId,
-        description: `Retrait TGOOD #${withdrawal.id}`,
+        description: `Retrait DIAMANT #${withdrawal.id}`,
       });
       payoutMayExist = true;
       const payoutItem = payout.withdrawals?.[0];

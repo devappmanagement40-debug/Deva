@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
+import { rebrandText } from "@/lib/content";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
 import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/components/history-receipt";
 
@@ -118,7 +119,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[14px] font-medium text-[#202020]">T{transaction.id}</p>
-                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{transaction.description || "Gain TGOOD"}</p>
+                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{rebrandText(transaction.description || "Gain DIAMANT")}</p>
                         <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
                       </div>
                       <p className="shrink-0 text-[13px] text-[#16803b]">

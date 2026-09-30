@@ -4,7 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import { getCountryByCode } from "@/lib/countries";
 import { Skeleton } from "@/components/ui/skeleton";
-import landscapeImg from "@assets/generated_images/tgood-charging-station-hero.jpg";
+import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import { useI18n } from "@/lib/i18n";
 
 interface Deposit {
@@ -102,7 +102,7 @@ export default function DepositOrdersPage() {
           })
         )}
       </div>
-      <img src={landscapeImg} alt="TGOOD" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
+      <img src={landscapeImg} alt="DIAMANT" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
     </div>
   );
 }

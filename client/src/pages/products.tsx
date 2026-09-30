@@ -12,10 +12,10 @@ import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
 import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
-import { getContent } from "@/lib/content";
+import { getContent, rebrandText } from "@/lib/content";
 import "./products.css";
 
-const TGOOD_GREEN = "#00ef24";
+const PRODUCT_ACCENT = "#00ef24";
 const CURRENCY = "USDT";
 interface ProductWithOwnership extends Product {
   isOwned: boolean;
@@ -190,8 +190,8 @@ export default function ProductsPage() {
 
   const paidProducts = (products || []).filter(p => !p.isFree);
   const filtered = paidProducts;
-  const pageTitle = getContent(settings, "content_products_headerTitle", "Nos produits TGOOD");
-  const getDisplayName = (product: ProductWithOwnership) => product.name;
+  const pageTitle = getContent(settings, "content_products_headerTitle", "Nos produits DIAMANT");
+  const getDisplayName = (product: ProductWithOwnership) => rebrandText(product.name);
   const getProductImage = (product: ProductWithOwnership, index: number) => {
     return getProductVisual(product.imageUrl, index);
   };
@@ -348,7 +348,7 @@ export default function ProductsPage() {
 
             {/* Prix + nom */}
             <div className="px-5 pt-4 pb-2">
-              <p className="font-black" style={{ fontSize: 24, color: TGOOD_GREEN, lineHeight: 1.2 }}>
+              <p className="font-black" style={{ fontSize: 24, color: PRODUCT_ACCENT, lineHeight: 1.2 }}>
                 {currency} {Number(confirmProduct.price).toLocaleString(locale)}
               </p>
               <p style={{ fontSize: 14, color: "#555", marginTop: 2 }}>{getDisplayName(confirmProduct)}</p>
@@ -371,7 +371,7 @@ export default function ProductsPage() {
             {availableBalance < parseFloat(String(confirmProduct.price)) && (
               <div className="mx-5 mb-2 flex items-center gap-2 p-2.5 rounded-xl"
                 style={{ background: "#fff2f2", border: "1px solid #fca5a5" }}>
-                <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: TGOOD_GREEN }} />
+                <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: PRODUCT_ACCENT }} />
                 <p className="text-xs" style={{ color: "#149a39" }}>
                   {t.investInsufficient.replace("{0}", formatCurrency(
                     parseFloat(String(confirmProduct.price)) - availableBalance, user.country

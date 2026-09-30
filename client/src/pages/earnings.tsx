@@ -7,8 +7,10 @@ import { localeForLang, useI18n } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getProductVisual } from "@/lib/product-visuals";
+import { rebrandText } from "@/lib/content";
+import { DiamantBrand } from "@/components/diamant-brand";
 
-const TGOOD_GREEN = "#00c83c";
+const MEMBER_ACCENT = "#00c83c";
 
 function EmptyEarningsIllustration() {
   return (
@@ -76,9 +78,9 @@ export default function EarningsPage() {
           <ChevronLeft size={34} strokeWidth={1.8} />
         </button>
         <div className="flex flex-1 items-center justify-center">
-          <img src="/tgood-logo.gif" alt="TGOOD" className="h-8 w-auto" />
+          <DiamantBrand variant="on-dark" markSize={24} className="text-[12px]" />
         </div>
-        <Link href="/my-products" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: TGOOD_GREEN, fontSize: 19 }}>
+        <Link href="/my-products" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: MEMBER_ACCENT, fontSize: 19 }}>
           {t.myProductsTitle}
         </Link>
       </header>
@@ -92,7 +94,7 @@ export default function EarningsPage() {
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
           <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarnings.toLocaleString(localeForLang(lang))}</p>
-          <p className="ielp-products-accent mt-3" style={{ color: TGOOD_GREEN, fontSize: 16 }}>{t.totalRevenue}</p>
+          <p className="ielp-products-accent mt-3" style={{ color: MEMBER_ACCENT, fontSize: 16 }}>{t.totalRevenue}</p>
           {pendingTotal > 0 && (
             <p className="mt-2 text-sm text-white/70">
               {t.myProductsPending}: USDT {pendingTotal.toLocaleString(localeForLang(lang))}
@@ -122,11 +124,11 @@ export default function EarningsPage() {
                   <div className="flex gap-3 p-3">
                     <img
                       src={getProductVisual(product.imageUrl, index)}
-                      alt={product.name || "Produit TGOOD"}
+                      alt={rebrandText(product.name || "Produit DIAMANT")}
                       className="h-16 w-16 shrink-0 rounded-xl object-cover"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold">{product.name || "Produit TGOOD"}</p>
+                      <p className="truncate font-semibold">{rebrandText(product.name || "Produit DIAMANT")}</p>
                       <p className="mt-1 text-xs text-white/60">
                         {t.dailyRevenue}: USDT {Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}
                       </p>
@@ -138,7 +140,7 @@ export default function EarningsPage() {
                   <div className="flex items-center justify-between gap-3 border-t border-white/10 px-3 py-3">
                     <div className="min-w-0">
                       <p className="text-xs text-white/60">{t.myProductsPending}</p>
-                      <p className="font-semibold" style={{ color: isReady ? TGOOD_GREEN : "#a5a5a5" }}>
+                      <p className="font-semibold" style={{ color: isReady ? MEMBER_ACCENT : "#a5a5a5" }}>
                         USDT {pending.toLocaleString(localeForLang(lang))}
                       </p>
                       {!isReady && item.isActive && item.nextCollectionAt && !Number.isNaN(new Date(item.nextCollectionAt).getTime()) && (
@@ -152,7 +154,7 @@ export default function EarningsPage() {
                       onClick={() => collectMutation.mutate(item.id)}
                       disabled={!isReady || collectMutation.isPending}
                       className="flex min-w-[132px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-black transition-opacity disabled:cursor-not-allowed disabled:opacity-45"
-                      style={{ background: isReady ? TGOOD_GREEN : "#555" }}
+                      style={{ background: isReady ? MEMBER_ACCENT : "#555" }}
                       data-testid={`button-collect-earnings-${item.id}`}
                     >
                       {isCollecting && <Loader2 className="h-4 w-4 animate-spin" />}

@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
-import { getContent } from "@/lib/content";
+import { getContent, rebrandText } from "@/lib/content";
 
-/* ── Palette TGOOD ───────────────────────── */
+/* ── Palette de la page service ───────────── */
 const GREEN = "#078438";
 
 interface LinksSettings {
@@ -94,7 +94,7 @@ export default function ServicePage() {
   return (
     <div className="ielp-service-page flex flex-col min-h-screen" style={{ background: "#f2f2f2" }}>
 
-       {/* ══ HEADER TGOOD ══ */}
+       {/* ══ HEADER DIAMANT ══ */}
       <div
         className="ielp-service-header flex items-center px-4 py-3"
         style={{ background: GREEN }}
@@ -123,12 +123,12 @@ export default function ServicePage() {
           alignItems: "center",
         }}
       >
-        {/* Logo officiel TGOOD */}
+        {/* Logo DIAMANT */}
         <div
           style={{
             background: "#fff",
             borderRadius: 10,
-            padding: "10px 28px",
+            padding: "8px 20px",
             marginTop: 16,
             marginBottom: 10,
             display: "flex",
@@ -137,10 +137,8 @@ export default function ServicePage() {
             boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
           }}
         >
-          <img src="/tgood-logo.gif" alt="TGOOD" style={{ height: 48, objectFit: "contain" }} />
+          <img src="/diamant-logo-light.png" alt="DIAMANT" style={{ height: 90, width: 120, objectFit: "contain" }} />
         </div>
-
-        <p className="text-white text-sm font-medium tracking-wide">ENERGY, FAST!</p>
       </div>
 
       {/* ══ CARTE HORAIRES ══ */}
@@ -204,7 +202,7 @@ export default function ServicePage() {
                   fontWeight: 600,
                 }}
               >
-                @{link.label}
+                @{rebrandText(link.label)}
               </span>
               <ChevronRight
                 style={{ color: "#fff", width: 20, height: 20, flexShrink: 0 }}
@@ -231,17 +229,17 @@ export default function ServicePage() {
         <div className="ielp-service-guidance-copy" style={{ color: "#444", fontSize: 13, lineHeight: 1.8 }}>
            <p>
              1. Pour toute question concernant la plateforme, utilisez uniquement
-             les liens TGOOD publiés dans cette page.
+              les liens DIAMANT publiés dans cette page.
            </p>
            <p style={{ marginTop: 6 }}>
              2. Ne partagez jamais votre mot de passe, vos codes de validation ou
              vos informations de portefeuille.
            </p>
            <p style={{ marginTop: 6 }}>
-             3. Le support officiel TGOOD ne vous demandera jamais vos codes confidentiels.
+              3. Le support officiel DIAMANT ne vous demandera jamais vos codes confidentiels.
            </p>
            <p style={{ marginTop: 6 }}>
-             4. Méfiez-vous des comptes qui prétendent représenter TGOOD sans lien publié ici.
+              4. Méfiez-vous des comptes qui prétendent représenter DIAMANT sans lien publié ici.
            </p>
         </div>
       </div>

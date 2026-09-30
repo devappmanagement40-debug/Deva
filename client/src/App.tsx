@@ -113,12 +113,12 @@ function AuthLoadingScreen() {
         boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
       }}>
         <svg width="38" height="38" viewBox="0 0 38 38" fill="none"
-          style={{ animation: "tgood-spin 0.8s linear infinite" }}>
+          style={{ animation: "diamant-spin 0.8s linear infinite" }}>
           <circle cx="19" cy="19" r="15" stroke="rgba(255,255,255,0.3)" strokeWidth="2.5"/>
           <path d="M19 4 A15 15 0 0 1 34 19" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round"/>
         </svg>
       </div>
-      <style>{`@keyframes tgood-spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`@keyframes diamant-spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

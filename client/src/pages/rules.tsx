@@ -18,8 +18,8 @@ export default function RulesPage() {
   const lv2 = settings?.level2Commission || "2";
   const lv3 = settings?.level3Commission || "1";
 
-  const rPageTitle = getContent(settings, "content_rulespage_pageTitle", "Règles de la plateforme TGOOD");
-  const rS1Title = getContent(settings, "content_rulespage_s1Title", "1. Utilisation des produits TGOOD");
+  const rPageTitle = getContent(settings, "content_rulespage_pageTitle", "Règles de la plateforme DIAMANT");
+  const rS1Title = getContent(settings, "content_rulespage_s1Title", "1. Utilisation des produits DIAMANT");
   const rS1b1 = getContent(settings, "content_rulespage_s1b1", "Chaque produit affiche son prix, sa durée et ses conditions avant l'achat.");
   const rS1b2 = getContent(settings, "content_rulespage_s1b2", "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.");
   const rS1b3 = getContent(settings, "content_rulespage_s1b3", "Consultez les informations du produit avant de confirmer.");
@@ -30,7 +30,7 @@ export default function RulesPage() {
   const rS5Title = getContent(settings, "content_rulespage_s5Title", "5. Sécurité");
   const rS5b1 = getContent(settings, "content_rulespage_s5b1", "Chaque membre est responsable de la sécurité de son mot de passe et de ses moyens de paiement.");
   const rS5b2 = getContent(settings, "content_rulespage_s5b2", "Ne partagez jamais vos identifiants, codes de validation ou adresse de portefeuille.");
-  const rS5b3 = getContent(settings, "content_rulespage_s5b3", "Le support officiel TGOOD ne vous demandera jamais votre mot de passe ni vos codes confidentiels.");
+  const rS5b3 = getContent(settings, "content_rulespage_s5b3", "Le support officiel DIAMANT ne vous demandera jamais votre mot de passe ni vos codes confidentiels.");
 
   return (
     <div className="flex min-h-screen flex-col text-[#26352d]" style={{ background: "#f8f9fa", color: "#26352d" }}>

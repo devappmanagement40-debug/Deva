@@ -1,8 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n";
 
-const tgoodLogo = "/tgood-logo.gif";
-
 interface AboutModalProps {
   open: boolean;
   onClose: () => void;
@@ -16,8 +14,8 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
-              <img src={tgoodLogo} alt="TGOOD" className="w-10 h-10 object-contain" />
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#050923]">
+              <img src="/diamant-mark.svg" alt="" aria-hidden="true" className="h-9 w-9 object-contain" />
             </div>
             {t.aboutTitle}
           </DialogTitle>

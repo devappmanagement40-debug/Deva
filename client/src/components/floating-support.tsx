@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
-import supportAvatar from "@assets/generated_images/tgood-popup-mascot.png";
+import supportAvatar from "@assets/generated_images/diamant-popup-mascot.png";
 
 interface SettingsLinks {
   supportLink: string;

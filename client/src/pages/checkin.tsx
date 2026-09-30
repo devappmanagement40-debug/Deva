@@ -7,7 +7,7 @@ import { getContent } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import checkinHero from "@/assets/images/checkin-hero-tgood.png";
+import checkinHero from "@/assets/images/diamant-checkin-hero.png";
 import bonusIcon from "@/assets/images/checkin-bonus-icon-reference.png";
 import bonusChat from "@/assets/images/checkin-bonus-chat-reference.png";
 import rewardBike from "@/assets/images/checkin-reward-bike-reference.png";
@@ -106,10 +106,10 @@ export default function CheckinPage() {
           </button>
         </Link>
         <img
-          src="/tgood-logo.gif"
-          alt="TGOOD"
+          src="/diamant-mark.svg"
+          alt="DIAMANT"
           className="absolute object-contain"
-          style={{ left: "25.5%", top: 24, width: 62, height: 28 }}
+          style={{ left: "25.5%", top: 20, width: 36, height: 36 }}
         />
         <h1
           className="ielp-checkin-title absolute font-normal"

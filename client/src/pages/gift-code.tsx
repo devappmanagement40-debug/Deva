@@ -8,20 +8,20 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { getContent } from "@/lib/content";
-import productBike from "@assets/generated_images/tgood-product-bike-card.jpg";
-import electricScooter from "@assets/generated_images/tgood-scooter.jpg";
-import electricMoped from "@assets/generated_images/tgood-moped.jpg";
-import chargingStation from "@assets/generated_images/tgood-charging-station-hero.jpg";
-import chargingPile from "@assets/image_search/tgood-real-charging-pile-transparent.png";
+import productBike from "@assets/generated_images/diamant-product-bike-card.jpg";
+import electricScooter from "@assets/generated_images/diamant-scooter.jpg";
+import electricMoped from "@assets/generated_images/diamant-moped.jpg";
+import chargingStation from "@assets/generated_images/diamant-charging-station-hero.jpg";
+import chargingPile from "@assets/image_search/diamant-real-charging-pile-transparent.png";
 
 const GREEN = "#00b80b";
 const LOGO_GREEN = "#aed33e";
 const GIFT_BANNER_PRODUCTS = [
-  { image: productBike, label: "TGOOD electric bike" },
-  { image: electricScooter, label: "TGOOD electric scooter" },
-  { image: electricMoped, label: "TGOOD electric moped" },
-  { image: chargingStation, label: "TGOOD charging station" },
-  { image: chargingPile, label: "TGOOD charging pile" },
+  { image: productBike, label: "DIAMANT electric bike" },
+  { image: electricScooter, label: "DIAMANT electric scooter" },
+  { image: electricMoped, label: "DIAMANT electric moped" },
+  { image: chargingStation, label: "DIAMANT charging station" },
+  { image: chargingPile, label: "DIAMANT charging pile" },
 ];
 
 export default function GiftCodePage() {
@@ -37,10 +37,10 @@ export default function GiftCodePage() {
   const groupLink = settings?.channelLink || settings?.groupLink || "";
   const headerTitle = getContent(settings, "content_giftcode_headerTitle", "Code cadeau");
   const infoLine1 = getContent(settings, "content_giftcode_infoLine1", "Entrez votre code cadeau pour recevoir votre récompense.");
-  const infoLine2 = getContent(settings, "content_giftcode_infoLine2", "Les codes sont publiés sur les canaux officiels TGOOD.");
+  const infoLine2 = getContent(settings, "content_giftcode_infoLine2", "Les codes sont publiés sur les canaux officiels DIAMANT.");
   const groupLabel = getContent(settings, "content_giftcode_howToTitle", "Comment obtenir des codes ?");
-  const step1 = getContent(settings, "content_giftcode_step1", "Rejoignez un canal officiel TGOOD.");
-  const step2 = getContent(settings, "content_giftcode_step2", "Suivez les annonces publiées par TGOOD.");
+  const step1 = getContent(settings, "content_giftcode_step1", "Rejoignez un canal officiel DIAMANT.");
+  const step2 = getContent(settings, "content_giftcode_step2", "Suivez les annonces publiées par DIAMANT.");
   const step3 = getContent(settings, "content_giftcode_step3", "Copiez le code et utilisez-le avant son expiration.");
 
   const claimMutation = useMutation({
@@ -89,7 +89,7 @@ export default function GiftCodePage() {
             style={{ color: LOGO_GREEN }}
             aria-label="any"
           >
-             TGOOD
+             DIAMANT
           </span>
           <h1
             className="ielp-gift-title absolute right-[10%] top-[80px] whitespace-nowrap text-[18px] font-normal leading-none max-[380px]:right-5 max-[380px]:text-[16px]"
@@ -127,7 +127,7 @@ export default function GiftCodePage() {
             <SiTelegram className="h-[27px] w-[27px] text-white max-[380px]:h-6 max-[380px]:w-6" />
           </span>
           <span className="ml-[19px] flex-1 whitespace-nowrap text-[24px] font-normal leading-none text-[#292929] max-[380px]:ml-[10px] max-[380px]:text-[15px]">
-            {groupLink ? "Canal officiel TGOOD" : "Canal officiel non configuré"}
+            {groupLink ? "Canal officiel DIAMANT" : "Canal officiel non configuré"}
           </span>
           <ChevronRight className="h-7 w-7 shrink-0 text-[#8e979f] max-[380px]:h-5 max-[380px]:w-5" strokeWidth={1.8} />
         </button>

@@ -5,21 +5,21 @@ import { useI18n } from "@/lib/i18n";
 export const NEWS_ARTICLES = [
   {
     id: "1",
-    title: "TGOOD: innovative technology expertise",
-    summary: "TGOOD develops innovative technology solutions recognized for their design, performance, and quality.",
-    body: `TGOOD develops technology solutions designed for modern lifestyles.
+    title: "DIAMANT: innovative technology expertise",
+    summary: "DIAMANT develops innovative technology solutions recognized for their design, performance, and quality.",
+    body: `DIAMANT develops technology solutions designed for modern lifestyles.
 
 The brand relies on innovation, design, and reliability to deliver a simple, high-performance experience.
 
-Our platform builds on TGOOD's identity to offer a clear and accessible investment experience.`,
+Our platform builds on DIAMANT's identity to offer a clear and accessible investment experience.`,
     image: "",
     date: "Official source",
   },
   {
     id: "2",
-    title: "TGOOD investment products",
+    title: "DIAMANT investment products",
     summary: "The platform offers a complete range of investment products with attractive daily returns.",
-    body: `The TGOOD platform offers several product levels suited to every investor:
+    body: `The DIAMANT platform offers several product levels suited to every investor:
 
 - VIP 1 to VIP 3: entry-level products available from 600 USDT
 - VIP 4 to VIP 6: intermediate products with high returns
@@ -34,8 +34,8 @@ Earnings can be withdrawn through Mobile Money after approval by our team.`,
   {
     id: "3",
     title: "Quality, transparency, and service",
-    summary: "TGOOD is committed to transparency, security, and the satisfaction of every platform member.",
-    body: `The TGOOD platform is built on three fundamental pillars:
+    summary: "DIAMANT is committed to transparency, security, and the satisfaction of every platform member.",
+    body: `The DIAMANT platform is built on three fundamental pillars:
 
 1. **Transparency** — All amounts, fees, and terms are clearly shown before every transaction.
 
@@ -43,7 +43,7 @@ Earnings can be withdrawn through Mobile Money after approval by our team.`,
 
 3. **Support** — Our team is available 7 days a week to answer your questions and support you.
 
-Join the members who trust TGOOD to grow their capital.`,
+Join the members who trust DIAMANT to grow their capital.`,
     image: "",
     date: "Quality & service",
   },

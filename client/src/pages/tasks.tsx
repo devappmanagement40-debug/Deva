@@ -15,8 +15,8 @@ interface TaskWithStatus extends Task {
   currentInvites: number;
 }
 
-const TGOOD_GREEN = "#08b83a";
-const TGOOD_SKY = "#87ceeb";
+const REWARD_GREEN = "#08b83a";
+const REWARD_SKY = "#87ceeb";
 
 function formatInvitations(count: number, label: string) {
   return `${count} ${label}`;
@@ -73,7 +73,7 @@ export default function TasksPage() {
         <section
           className="ielp-task-hero relative h-[84px] overflow-hidden"
           style={{
-            background: `linear-gradient(105deg, #075d34 0%, ${TGOOD_GREEN} 53%, ${TGOOD_SKY} 125%)`,
+            background: `linear-gradient(105deg, #075d34 0%, ${REWARD_GREEN} 53%, ${REWARD_SKY} 125%)`,
           }}
           aria-hidden="true"
         >
@@ -86,7 +86,7 @@ export default function TasksPage() {
           <div className="mb-2 flex items-center gap-2">
             <span
               className="ielp-brand-marker h-[26px] w-[5px] rounded-full"
-              style={{ background: `linear-gradient(180deg, ${TGOOD_SKY}, ${TGOOD_GREEN})` }}
+              style={{ background: `linear-gradient(180deg, ${REWARD_SKY}, ${REWARD_GREEN})` }}
             />
             <h2 className="text-[18px] font-bold text-[#242424]">{t.taskRewardTitle}</h2>
           </div>
@@ -126,7 +126,7 @@ export default function TasksPage() {
                   <div
                     className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-r-[12px] rounded-l-[4px] text-[17px] font-bold text-white"
                     style={{
-                      background: `linear-gradient(135deg, ${TGOOD_SKY} 0%, ${TGOOD_GREEN} 100%)`,
+                      background: `linear-gradient(135deg, ${REWARD_SKY} 0%, ${REWARD_GREEN} 100%)`,
                       boxShadow: "0 2px 5px rgba(8,184,58,0.25)",
                     }}
                     aria-label={`${index + 1}`}
@@ -161,7 +161,7 @@ export default function TasksPage() {
                         style={{
                           background: task.isCompleted
                             ? "#aeb7b2"
-                            : `linear-gradient(105deg, ${TGOOD_GREEN}, ${TGOOD_SKY})`,
+                            : `linear-gradient(105deg, ${REWARD_GREEN}, ${REWARD_SKY})`,
                         }}
                         data-testid={`button-claim-${task.id}`}
                       >
@@ -175,7 +175,7 @@ export default function TasksPage() {
                     <div className="h-1 w-full max-w-[155px] overflow-hidden rounded-full bg-[#edf1ee]">
                       <div
                         className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${progress * 100}%`, background: TGOOD_GREEN }}
+                        style={{ width: `${progress * 100}%`, background: REWARD_GREEN }}
                       />
                     </div>
                   </div>

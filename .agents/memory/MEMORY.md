@@ -1,16 +1,16 @@
-- [TGOOD brand identity](tgood-branding.md) — keep TGOOD logos/copy; use IELP colors on public/member routes only, with admin and banker excluded.
+- [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
 - [Global country selection](rdc-only-market.md) — use worldwide country codes in auth; default new forms to US/+1 and keep all monetary labels in USDT.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — deposits start at 18 USDT, withdrawals at 1 USDT, and users receive the requested amount in full.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
-- [TGOOD static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.
+- [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.
 - [TGOOD customer service hours](tgood-service-hours.md) — support availability and link activation follow the configured start/end hour window.
 - [TGOOD task rewards](tgood-task-rewards.md) — task rewards support decimal USDT amounts; startup adds missing levels without overwriting admin-configured values.
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — popup defaults use the 03/09/2026 launch date and current USDT rules; check-in rewards run every 24 hours.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
-- [TGOOD web presentation](tgood-web-presentation.md) — keep the site in its classic web presentation; do not add an app-like mobile shell or PWA behavior without approval.
+- [DIAMANT web presentation](diamant-web-presentation.md) — keep the existing web presentation; do not expand app-shell or PWA behavior without approval.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD product earnings collection](tgood-product-earnings-collection.md) — product gains accrue pending per product and credit totalEarnings only after manual 24-hour collection.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.

@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import landscapeImg from "@assets/generated_images/tgood-charging-station-hero.jpg";
+import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getContent } from "@/lib/content";
+import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
 
-import productBike from "@assets/generated_images/tgood-product-bike-card.jpg";
-import productScooter from "@assets/generated_images/tgood-scooter.jpg";
-import productMoped from "@assets/generated_images/tgood-moped.jpg";
-import chargingStation from "@assets/generated_images/tgood-charging-station-hero.jpg";
+import productBike from "@assets/generated_images/diamant-product-bike-card.jpg";
+import productScooter from "@assets/generated_images/diamant-scooter.jpg";
+import productMoped from "@assets/generated_images/diamant-moped.jpg";
+import chargingStation from "@assets/generated_images/diamant-charging-station-hero.jpg";
 
 const productImages = [productBike, productScooter, productMoped, chargingStation];
 
@@ -104,7 +104,7 @@ export default function OrdersPage() {
                     <div className="w-24 h-24 flex-shrink-0">
                       <img
                         src={getProductImage(up.productId ? up.productId % productImages.length : index)}
-                        alt={up.product?.name || t.noProducts}
+                        alt={rebrandText(up.product?.name || t.noProducts)}
                         className="w-full h-full object-cover rounded-lg"
                       />
                     </div>
@@ -112,7 +112,7 @@ export default function OrdersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-1">
                         <p className="text-red-500 font-bold text-xs">
-                          {up.product?.name || t.noProducts}
+                          {rebrandText(up.product?.name || t.noProducts)}
                         </p>
                         <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
                           up.status === 'active'
@@ -165,7 +165,7 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-      <img src={landscapeImg} alt="TGOOD" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
+      <img src={landscapeImg} alt="DIAMANT" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
     </div>
   );
 }

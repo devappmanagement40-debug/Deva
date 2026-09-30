@@ -8,11 +8,12 @@ import { formatCurrency, getCountryByCode } from "@/lib/countries";
 import { Loader2, AlertTriangle, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
+import { DiamantBrand } from "@/components/diamant-brand";
+import { rebrandText } from "@/lib/content";
 import type { Product } from "@shared/schema";
 
-const tgoodLogo = "/tgood-logo.gif";
 import serviceIcon from "@assets/20260311_214852_1773265973964.png";
-import productImgFallback from "@assets/generated_images/tgood-product-bike-card.jpg";
+import productImgFallback from "@assets/generated_images/diamant-product-bike-card.jpg";
 
 interface ProductWithOwnership extends Product {
   isOwned: boolean;
@@ -64,7 +65,7 @@ export default function InvestPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 shadow-sm" style={{ background: "linear-gradient(135deg, #078438 0%, #034c25 100%)" }}>
-        <img src={tgoodLogo} alt="TGOOD" className="h-10 w-auto object-contain rounded" />
+        <DiamantBrand variant="on-dark" markSize={28} className="text-xs" />
         <button onClick={() => navigate("/service")} className="flex items-center justify-center" data-testid="button-service">
           <img src={serviceIcon} alt={t.customerService} className="w-8 h-8 object-contain" />
         </button>
@@ -87,11 +88,11 @@ export default function InvestPage() {
                   data-testid={`product-card-${product.id}`}
                 >
                   <div className="text-center pt-3 pb-1 px-2">
-                    <p className="font-bold text-gray-800 text-sm">{product.name}</p>
+                    <p className="font-bold text-gray-800 text-sm">{rebrandText(product.name)}</p>
                   </div>
 
                   <div className="mx-3 my-2 rounded-xl overflow-hidden" style={{ height: 110 }}>
-                    <img src={img} alt={product.name} className="w-full h-full object-cover" />
+                    <img src={img} alt={rebrandText(product.name)} className="w-full h-full object-cover" />
                   </div>
 
                   <div className="px-3 pb-1 space-y-0.5">

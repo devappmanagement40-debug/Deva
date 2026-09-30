@@ -7,7 +7,7 @@ import { ChevronDown, ChevronLeft, Check, CreditCard, Loader2, Trash2, Wifi } fr
 import { useLocation, useSearch } from "wouter";
 import type { WithdrawalWallet } from "@shared/schema";
 import { useI18n } from "@/lib/i18n";
-import withdrawalLandscape from "@/assets/images/tgood-withdrawal-method-landscape.png";
+import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-landscape.png";
 
 const WITHDRAWAL_ASSET = "USDT";
 const WITHDRAWAL_NETWORK = "BEP20";
@@ -255,7 +255,7 @@ export default function WalletPage() {
                     </div>
                     <div className="absolute left-5 top-5 flex items-center gap-2 text-[13px] font-semibold tracking-[.12em] text-white/90">
                       <CreditCard className="h-5 w-5" strokeWidth={1.7} />
-                      TGOOD
+                      DIAMANT
                     </div>
                     <div className="absolute bottom-5 left-5 flex items-center gap-2 text-[12px] text-white/75">
                       <Wifi className="h-4 w-4 rotate-90" />

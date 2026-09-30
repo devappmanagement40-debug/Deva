@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { rebrandText } from "@/lib/content";
 import { formatCurrency } from "@/lib/countries";
 import { Search, Edit, Ban, Shield, Lock, Unlock, Star, Users, Loader2, UserPlus, ChevronDown, ChevronUp, Trash2, ChevronLeft, ChevronRight, Landmark } from "lucide-react";
 import type { User, Product } from "@shared/schema";
@@ -610,7 +611,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                       <SelectContent>
                         {products?.filter(p => !p.isFree).map((product) => (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {product.name} - {product.price.toLocaleString()} USDT
+                            {rebrandText(product.name)} - {product.price.toLocaleString()} USDT
                           </SelectItem>
                         ))}
                       </SelectContent>

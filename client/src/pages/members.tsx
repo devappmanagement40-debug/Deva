@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
-/* ── Palette TGOOD ────────────────────────────────── */
+/* ── Palette de la page ───────────────────────────── */
 const RED  = "#E8192C";
 const GRAY = "#f5f5f5";
 

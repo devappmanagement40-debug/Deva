@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE - TGOOD Theme */
+/* LIGHT MODE - DIAMANT Theme */
 :root {
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
@@ -164,7 +164,7 @@
   html {
     /* Empêche le pull-to-refresh natif du navigateur (cercle orange/jaune Android) */
     overscroll-behavior-y: none;
-    /* Le fond initial doit rester cohérent avec le thème clair TGOOD. */
+    /* Le fond initial doit rester cohérent avec le thème clair DIAMANT. */
     background-color: hsl(var(--background));
   }
 
@@ -225,28 +225,12 @@
     padding-top: clamp(48px, 8.65dvh, 78px);
   }
 
-  .auth-brand__seal {
+  .auth-brand__logo {
     display: block;
-    width: 90px;
-    height: 90px;
+    width: min(200px, 58vw);
+    height: 141px;
     flex: none;
-  }
-
-  .auth-brand__seal-text {
-    fill: #fff;
-    font-family: Arial, Roboto, sans-serif;
-    font-size: 10px;
-    font-weight: 400;
-    letter-spacing: -.25px;
-  }
-
-  .auth-brand__wordmark {
-    margin-top: 17px;
-    color: #fff;
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 34px;
-    letter-spacing: -.5px;
+    object-fit: contain;
   }
 
   .auth-content {

@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { House, Bike, Hash, UserRound, Cpu, CircleDollarSign, UsersRound, WalletCards, type LucideIcon } from "lucide-react";
 import { useI18n, type Lang } from "@/lib/i18n";
 
-const TGOOD_GREEN = "#08b83a";
+const MEMBER_NAV_ACTIVE = "#08b83a";
 const INACTIVE = "#bdbdbd";
 
 const NAV_ITEMS: {
@@ -53,7 +53,7 @@ export default function BottomNav({ home = false }: { home?: boolean }) {
           const isActive = home
             ? path === "/" ? location === "/" : location === path || location.startsWith(`${path}/`)
             : location === path;
-          const color = home ? (isActive ? "#f26bc4" : "#f8f9fc") : (isActive ? TGOOD_GREEN : INACTIVE);
+          const color = home ? (isActive ? "#f26bc4" : "#f8f9fc") : (isActive ? MEMBER_NAV_ACTIVE : INACTIVE);
 
           return (
             <button

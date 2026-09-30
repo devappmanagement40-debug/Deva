@@ -170,7 +170,7 @@ function drawWheel(
     const end   = start + ARC;
     const midA  = start + ARC / 2;
 
-    // Palette TGOOD de la roue, tout en gardant la structure admin
+    // Palette de la roue, tout en gardant la structure admin
     const DEFAULT_FILLS = ["#E8192C", "#111111", "#f7f7f7", "#8f101d"];
     const fillColor = DEFAULT_FILLS[i % DEFAULT_FILLS.length];
     const textColor = fillColor === "#f7f7f7" ? "#222222" : "#ffffff";

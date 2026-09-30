@@ -1,4 +1,4 @@
-// ── Système VIP TGOOD ───────────────────────────────────────────────────────
+// ── Système VIP DIAMANT ─────────────────────────────────────────────────────
 
 export interface TeamStats {
   level1Count: number;
