@@ -263,13 +263,12 @@ export default function ProductsPage() {
 
                 return (
                   <article key={product.id} className="diamant-invest-product-card" data-testid={`product-card-${product.id}`}>
-                    <div className="diamant-invest-card-topline">
-                      <span className="diamant-invest-card-kicker">DIAMANT / {String(index + 1).padStart(2, "0")}</span>
-                      {product.isOwned && <span className="diamant-invest-owned-badge"><Check size={12} />{copy.owned} · {product.ownedCount || 1}</span>}
-                    </div>
                     <div className="diamant-invest-product-main">
                       <div className="diamant-invest-product-copy">
-                        <h3>{displayName}</h3>
+                        <div className="diamant-invest-product-title-row">
+                          <h3>{displayName}</h3>
+                          {product.isOwned && <span className="diamant-invest-owned-badge"><Check size={12} />{copy.owned} · {product.ownedCount || 1}</span>}
+                        </div>
                         <dl>
                           <div><dt>{copy.daily}</dt><dd>{formatUsdt(dailyEarnings)} <small>USDT</small></dd></div>
                           <div><dt>{copy.term}</dt><dd>{product.cycleDays} {copy.days}</dd></div>
@@ -283,7 +282,7 @@ export default function ProductsPage() {
                     </div>
                     <div className="diamant-invest-product-footer">
                       <div className="diamant-invest-price">
-                        <span>{copy.priceLabel}</span>
+                        <span className="sr-only">{copy.priceLabel}</span>
                         <strong>{formatUsdt(price)} <small>USDT</small></strong>
                       </div>
                       <button
