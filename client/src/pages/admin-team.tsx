@@ -93,7 +93,7 @@ export default function AdminTeamPage() {
             <div>
               <p className="text-xs text-muted-foreground">{t.teamTotalInvested}</p>
               <p className="text-xl font-bold text-primary">
-                {member.totalInvested.toLocaleString()} USDT
+                {member.totalInvested.toLocaleString()} XOF
               </p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function AdminTeamPage() {
                 <div key={i} className="flex items-center justify-between text-sm bg-secondary rounded-lg px-3 py-2">
                   <span>{p.productName}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{p.productPrice.toLocaleString()} USDT</span>
+                    <span className="font-medium">{p.productPrice.toLocaleString()} XOF</span>
                     <Badge variant={p.isActive ? "default" : "secondary"} className="text-xs">
                       {p.isActive ? t.teamActiveStatus : t.teamEndedStatus}
                     </Badge>
@@ -142,7 +142,7 @@ export default function AdminTeamPage() {
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">{t.teamTotalInvested}</p>
-            <p className="text-xl font-bold text-primary">{total.toLocaleString()} USDT</p>
+            <p className="text-xl font-bold text-primary">{total.toLocaleString()} XOF</p>
           </div>
         </div>
       </CardContent>
@@ -192,7 +192,7 @@ export default function AdminTeamPage() {
                 <div className="mt-4 pt-4 border-t text-center">
                   <p className="text-xs text-muted-foreground">{t.teamTotalTeamInvested}</p>
                   <p className="text-2xl font-bold text-primary">
-                    {(teamData.totalLevel1Invested + teamData.totalLevel2Invested + teamData.totalLevel3Invested).toLocaleString()} USDT
+                    {(teamData.totalLevel1Invested + teamData.totalLevel2Invested + teamData.totalLevel3Invested).toLocaleString()} XOF
                   </p>
                 </div>
               </CardContent>

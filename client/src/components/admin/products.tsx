@@ -80,14 +80,14 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
       <div className="grid grid-cols-2 gap-4">
         <FormField control={form.control} name="price" render={({ field }) => (
           <FormItem>
-            <FormLabel>Prix (USDT)</FormLabel>
+            <FormLabel>Prix (XOF)</FormLabel>
             <FormControl><Input {...field} type="number" placeholder="Ex: 15000" /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="dailyEarnings" render={({ field }) => (
           <FormItem>
-            <FormLabel>Gains/jour</FormLabel>
+            <FormLabel>Gains/jour (XOF)</FormLabel>
             <FormControl><Input {...field} type="number" placeholder="Ex: 300" /></FormControl>
             <FormMessage />
           </FormItem>
@@ -108,7 +108,7 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
         <div className="bg-primary/10 rounded-lg p-3 text-sm">
           <p className="text-muted-foreground">Retour total estimé :</p>
           <p className="font-bold text-primary text-lg">
-            {(parseFloat(form.watch("dailyEarnings") || "0") * parseInt(form.watch("cycleDays") || "0")).toLocaleString()} USDT
+            {(parseFloat(form.watch("dailyEarnings") || "0") * parseInt(form.watch("cycleDays") || "0")).toLocaleString()} XOF
           </p>
         </div>
       )}
@@ -369,7 +369,7 @@ export default function AdminProducts() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {Number(product.price).toLocaleString()} — {Number(product.dailyEarnings).toLocaleString()}/jour
+                      {Number(product.price).toLocaleString()} XOF — {Number(product.dailyEarnings).toLocaleString()} XOF/jour
                     </p>
                     <div className="flex gap-2 mt-0.5 flex-wrap">
                       {Number(product.minInviteCount) > 0 && (
@@ -429,15 +429,15 @@ export default function AdminProducts() {
 
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Prix</p>
+                   <p className="text-muted-foreground">Prix (XOF)</p>
                   <p className="font-medium text-foreground">{Number(product.price).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Gains/jour</p>
+                   <p className="text-muted-foreground">Gains/jour (XOF)</p>
                   <p className="font-medium text-foreground">{Number(product.dailyEarnings).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Total ({product.cycleDays}j)</p>
+                   <p className="text-muted-foreground">Total (XOF, {product.cycleDays}j)</p>
                   <p className="font-medium text-primary">{Number(product.totalReturn).toLocaleString()}</p>
                 </div>
               </div>

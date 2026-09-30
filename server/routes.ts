@@ -727,7 +727,7 @@ export async function registerRoutes(
         userId,
         "collect_product_earnings",
         null,
-        `Collecte des gains : ${result.collected} USDT`,
+        `Collecte des gains : ${result.collected} XOF`,
       );
       res.json({ success: true, ...result });
     } catch (error: any) {

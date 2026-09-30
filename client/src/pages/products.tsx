@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useI18n, type Lang } from "@/lib/i18n";
-import { formatCurrency } from "@/lib/countries";
 import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
@@ -133,7 +132,7 @@ const INVEST_COPY: Record<Lang, {
   },
 };
 
-function formatUsdt(value: number) {
+function formatXof(value: number) {
   return Number.isFinite(value)
     ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : "0.00";
@@ -270,9 +269,9 @@ export default function ProductsPage() {
                           {product.isOwned && <span className="diamant-invest-owned-badge"><Check size={12} />{copy.owned} · {product.ownedCount || 1}</span>}
                         </div>
                         <dl>
-                          <div><dt>{copy.daily}</dt><dd>{formatUsdt(dailyEarnings)} <small>USDT</small></dd></div>
+                          <div><dt>{copy.daily}</dt><dd>{formatXof(dailyEarnings)} <small>XOF</small></dd></div>
                           <div><dt>{copy.term}</dt><dd>{product.cycleDays} {copy.days}</dd></div>
-                          <div><dt>{copy.total}</dt><dd>{formatUsdt(totalReturn)} <small>USDT</small></dd></div>
+                          <div><dt>{copy.total}</dt><dd>{formatXof(totalReturn)} <small>XOF</small></dd></div>
                         </dl>
                       </div>
                       <div className="diamant-invest-product-visual">
@@ -283,7 +282,7 @@ export default function ProductsPage() {
                     <div className="diamant-invest-product-footer">
                       <div className="diamant-invest-price">
                         <span className="sr-only">{copy.priceLabel}</span>
-                        <strong>{formatUsdt(price)} <small>USDT</small></strong>
+                        <strong>{formatXof(price)} <small>XOF</small></strong>
                       </div>
                       <button
                         type="button"
@@ -317,31 +316,31 @@ export default function ProductsPage() {
               </div>
               <div className="diamant-purchase-dialog__body">
                 <div className="diamant-purchase-dialog__heading">
-                  <div><span>DIAMANT / USDT</span><h2>{getDisplayName(confirmProduct)}</h2></div>
-                  <strong>{formatUsdt(Number(confirmProduct.price))}<small> USDT</small></strong>
+                  <div><span>DIAMANT / XOF</span><h2>{getDisplayName(confirmProduct)}</h2></div>
+                  <strong>{formatXof(Number(confirmProduct.price))}<small> XOF</small></strong>
                 </div>
                 <p className="diamant-purchase-dialog__hint">{copy.purchaseHint}</p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
                 {availableBalance < parseFloat(String(confirmProduct.price)) && (
                   <div className="diamant-purchase-alert">
                     <AlertTriangle size={17} aria-hidden="true" />
-                    <p>{t.investInsufficient.replace("{0}", formatCurrency(
-                      parseFloat(String(confirmProduct.price)) - availableBalance, user.country
-                    ))}</p>
+                    <p>{t.investInsufficient.replace("{0}", `${formatXof(
+                      parseFloat(String(confirmProduct.price)) - availableBalance
+                    )} XOF`)}</p>
                   </div>
                 )}
                 <div className="diamant-payment-breakdown">
                   <p>{copy.paymentBreakdown}</p>
-                  <div><span>{copy.depositBalance}</span><strong>−{formatUsdt(Math.min(Math.max(0, depositBalance), Number(confirmProduct.price)))} USDT</strong></div>
+                  <div><span>{copy.depositBalance}</span><strong>−{formatXof(Math.min(Math.max(0, depositBalance), Number(confirmProduct.price)))} XOF</strong></div>
                   {Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)) > 0 && (
-                    <div><span>{copy.earningsBalance}</span><strong>−{formatUsdt(Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)))} USDT</strong></div>
+                    <div><span>{copy.earningsBalance}</span><strong>−{formatXof(Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)))} XOF</strong></div>
                   )}
                 </div>
                 <div className="diamant-purchase-stats">
                   {[
                     { value: `${confirmProduct.cycleDays} ${t.ordersDaysLbl}`, label: t.duration },
-                    { value: `${formatUsdt(Number(confirmProduct.dailyEarnings))} USDT`, label: t.dailyRevenue },
-                    { value: `${formatUsdt(Number(confirmProduct.totalReturn))} USDT`, label: t.totalRevenue },
+                    { value: `${formatXof(Number(confirmProduct.dailyEarnings))} XOF`, label: t.dailyRevenue },
+                    { value: `${formatXof(Number(confirmProduct.totalReturn))} XOF`, label: t.totalRevenue },
                   ].map((stat) => (
                     <div key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>
                   ))}

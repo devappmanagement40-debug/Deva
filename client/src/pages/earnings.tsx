@@ -58,7 +58,7 @@ export default function EarningsPage() {
       refreshUser();
       toast({
         title: t.rewardsSuccessTitle,
-        description: `${Number(data.collected).toLocaleString(localeForLang(lang))} USDT ${t.rewardsReceived.toLowerCase()}.`,
+        description: `${Number(data.collected).toLocaleString(localeForLang(lang))} XOF ${t.rewardsReceived.toLowerCase()}.`,
       });
     },
     onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
@@ -93,11 +93,11 @@ export default function EarningsPage() {
       </div>
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
-          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarnings.toLocaleString(localeForLang(lang))}</p>
+          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>XOF {totalEarnings.toLocaleString(localeForLang(lang))}</p>
           <p className="ielp-products-accent mt-3" style={{ color: MEMBER_ACCENT, fontSize: 16 }}>{t.totalRevenue}</p>
           {pendingTotal > 0 && (
             <p className="mt-2 text-sm text-white/70">
-              {t.myProductsPending}: USDT {pendingTotal.toLocaleString(localeForLang(lang))}
+              {t.myProductsPending}: XOF {pendingTotal.toLocaleString(localeForLang(lang))}
             </p>
           )}
         </div>
@@ -130,10 +130,10 @@ export default function EarningsPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-semibold">{rebrandText(product.name || "Produit DIAMANT")}</p>
                       <p className="mt-1 text-xs text-white/60">
-                        {t.dailyRevenue}: USDT {Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}
+                        {t.dailyRevenue}: XOF {Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}
                       </p>
                       <p className="mt-1 text-xs text-white/60">
-                        {t.myProductsEarned}: USDT {totalEarned.toLocaleString(localeForLang(lang))}
+                        {t.myProductsEarned}: XOF {totalEarned.toLocaleString(localeForLang(lang))}
                       </p>
                     </div>
                   </div>
@@ -141,7 +141,7 @@ export default function EarningsPage() {
                     <div className="min-w-0">
                       <p className="text-xs text-white/60">{t.myProductsPending}</p>
                       <p className="font-semibold" style={{ color: isReady ? MEMBER_ACCENT : "#a5a5a5" }}>
-                        USDT {pending.toLocaleString(localeForLang(lang))}
+                        XOF {pending.toLocaleString(localeForLang(lang))}
                       </p>
                       {!isReady && item.isActive && item.nextCollectionAt && !Number.isNaN(new Date(item.nextCollectionAt).getTime()) && (
                         <p className="mt-1 text-[11px] text-white/45">

@@ -95,7 +95,7 @@ export default function MyProductsPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
       refreshUser();
-      toast({ title: t.rewardsSuccessTitle, description: `${Number(data.collected).toLocaleString(localeForLang(lang))} USDT ${t.rewardsReceived.toLowerCase()}.` });
+      toast({ title: t.rewardsSuccessTitle, description: `${Number(data.collected).toLocaleString(localeForLang(lang))} XOF ${t.rewardsReceived.toLowerCase()}.` });
     },
     onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
   });
@@ -108,7 +108,7 @@ export default function MyProductsPage() {
       <PageHeader />
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
-          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarned.toLocaleString(localeForLang(lang))}</p>
+          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>XOF {totalEarned.toLocaleString(localeForLang(lang))}</p>
           <p className="ielp-products-accent mt-3" style={{ color: MEMBER_ACCENT, fontSize: 16 }}>{t.totalRevenue}</p>
         </div>
 
@@ -150,11 +150,11 @@ export default function MyProductsPage() {
                   <div className="relative z-10 min-h-[320px] px-5 pb-5 pt-6 text-white">
                     <h2 className="font-semibold" style={{ fontSize: 27, lineHeight: 1.15 }}>{displayName}</h2>
                     <div className="mt-4 w-[82%] max-w-[350px] bg-black/50 px-2.5 py-2.5">
-                      <InfoRow label={`${t.price}:`} value={`USDT ${Number(product.price || 0).toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.price}:`} value={`XOF ${Number(product.price || 0).toLocaleString(localeForLang(lang))}`} />
                       <InfoRow label={`${t.duration}:`} value={`${cycleDays} ${t.myProductsDays}`} />
-                      <InfoRow label={`${t.dailyRevenue}:`} value={`USDT ${Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}`} />
-                      <InfoRow label={`${t.totalRevenue}:`} value={`USDT ${Number(product.totalReturn || 0).toLocaleString(localeForLang(lang))}`} />
-                      <InfoRow label={`${t.myProductsRevenueReceived}:`} value={`USDT ${earned.toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.dailyRevenue}:`} value={`XOF ${Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.totalRevenue}:`} value={`XOF ${Number(product.totalReturn || 0).toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.myProductsRevenueReceived}:`} value={`XOF ${earned.toLocaleString(localeForLang(lang))}`} />
                     </div>
                     <div className="mt-3 h-1.5 w-[82%] max-w-[350px] overflow-hidden rounded-full bg-white/25">
                       <div className="ielp-member-products-progress h-full rounded-full" style={{ width: `${progress}%`, background: MEMBER_ACCENT }} />
@@ -169,7 +169,7 @@ export default function MyProductsPage() {
                         data-testid="button-collect-final"
                       >
                         {collectFinalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                        {t.rewardsClaim} USDT {earned.toLocaleString(localeForLang(lang))}
+                        {t.rewardsClaim} XOF {earned.toLocaleString(localeForLang(lang))}
                       </button>
                     ) : product.collectAtEnd ? (
                       <p className="mt-3 flex w-[82%] max-w-[350px] items-center justify-center gap-1 text-sm text-white/75"><Lock size={14} /> {t.ordersRemainingLbl}</p>
