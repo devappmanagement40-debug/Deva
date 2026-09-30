@@ -112,11 +112,11 @@
   justify-content: center;
   flex: none;
   padding: 0 12px;
-  border: 2px solid #9e8af0;
+  border: 2px solid #c2b3ff;
   border-radius: 10px;
   color: #fff;
-  background: #34266f;
-  box-shadow: 0 3px 0 #21184a;
+  background: #653de9;
+  box-shadow: 0 4px 0 #351c9b, 0 6px 12px rgba(63, 52, 125, .28);
   font-size: 11px;
   font-weight: 800;
   text-decoration: none;
@@ -124,8 +124,8 @@
 }
 
 .diamant-invest-owned-link:hover {
-  background: #493590;
-  box-shadow: 0 4px 0 #21184a;
+  background: #704cff;
+  box-shadow: 0 5px 0 #351c9b, 0 7px 14px rgba(63, 52, 125, .34);
   transform: translateY(-1px);
 }
 
@@ -217,7 +217,7 @@
   justify-content: space-between;
   gap: 6px;
   padding: 6px 8px;
-  border: 1px solid #c2cbe0;
+  border: 2px solid #aeb9d2;
   border-radius: 7px;
   background: #fff;
   font-size: 11px;
