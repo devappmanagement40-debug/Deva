@@ -47,21 +47,11 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import bannerPoster3dAsscher from "@/assets/images/diamant-poster-3d-01-asscher.jpg";
-import bannerPoster3dRough from "@/assets/images/diamant-poster-3d-02-rough.jpg";
-import bannerPoster3dCollection from "@/assets/images/diamant-poster-3d-03-collection.jpg";
-import bannerPoster3dAsscherPresenter from "@/assets/images/diamant-poster-3d-04-asscher-presenter.jpg";
-import bannerPoster3dGemShowcase from "@/assets/images/diamant-poster-3d-05-gem-showcase.jpg";
 import bannerTeamPhoto from "@/assets/images/diamant-banner-team-dsc-0636.jpg";
 import bannerLeadershipPhoto from "@/assets/images/diamant-banner-leadership-team.jpg";
 import "./account.css";
 
 const ACCOUNT_BANNER_POSTERS = [
-  { id: "3d-asscher-poster", src: bannerPoster3dAsscher },
-  { id: "3d-rough-diamonds-poster", src: bannerPoster3dRough },
-  { id: "3d-collection-poster", src: bannerPoster3dCollection },
-  { id: "3d-asscher-presenter-poster", src: bannerPoster3dAsscherPresenter },
-  { id: "3d-gem-showcase-poster", src: bannerPoster3dGemShowcase },
   { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198 },
   { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318 },
 ] as const;
