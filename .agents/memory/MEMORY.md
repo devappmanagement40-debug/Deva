@@ -1,7 +1,7 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global country selection](rdc-only-market.md) — global country codes, US/+1 defaults; product amounts are direct XOF values while payment rails remain USDT.
+- [Global country selection](rdc-only-market.md) — global country codes, US/+1; direct-XOF product/team amounts; the « Moi » raw balance label is FCFA; payment rails remain USDT.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — deposits start at 18 USDT, withdrawals at 1 USDT, and users receive the requested amount in full.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.

@@ -34,7 +34,6 @@ import { Button } from "@/components/ui/button";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import { LanguagePicker } from "@/components/language-picker";
-import { formatCurrency } from "@/lib/countries";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
@@ -512,7 +511,7 @@ export default function AccountPage() {
           <section className="ielp-account-balance-card" aria-label={copy.balance}>
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
-              <strong>{formatCurrency(Number(user.balance) || 0, user.country)}</strong>
+              <strong>{(Number(user.balance) || 0).toLocaleString()} FCFA</strong>
             </div>
             <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
               {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
