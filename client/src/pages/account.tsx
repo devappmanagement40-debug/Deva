@@ -107,7 +107,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipAmountRemaining: "Passer à {level} il manque encore {amount}",
+    vipAmountRemaining: "Il manque encore {amount} avant le VIP suivant",
     vipAction: "Méthodes pour améliorer votre statut privilégié (VIP)",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
@@ -143,7 +143,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipAmountRemaining: "Reach {level} — {amount} more needed",
+    vipAmountRemaining: "{amount} still needed before the next VIP",
     vipAction: "How to improve your premium (VIP) status",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
@@ -179,7 +179,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipAmountRemaining: "للوصول إلى {level}، ما زال ينقصك {amount}",
+    vipAmountRemaining: "ينقصك {amount} قبل مستوى VIP التالي",
     vipAction: "كيفية تحسين مكانتك المميزة (VIP)",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
@@ -215,7 +215,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipAmountRemaining: "升至 {level}，还差 {amount}",
+    vipAmountRemaining: "距离下一个VIP等级还差 {amount}",
     vipAction: "如何提升尊享等级（VIP）",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
@@ -331,7 +331,6 @@ export default function AccountPage() {
   const nextVipAmount = nextVipProduct ? Math.ceil(Number(nextVipProduct.price)) : null;
   const nextVipMessage = nextVip
     ? copy.vipAmountRemaining
-        .replace("{level}", nextVip.label.replace(/\s+/g, "").replace(/^VIP(?=\d)/i, "PRO"))
       .replace("{amount}", nextVipAmount !== null && Number.isFinite(nextVipAmount) ? String(nextVipAmount) : "…")
     : copy.vipMax;
 
