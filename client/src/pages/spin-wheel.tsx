@@ -475,7 +475,7 @@ export default function SpinWheelPage() {
   return (
     <>
       <div
-        className="min-h-screen flex flex-col overflow-x-hidden pb-20"
+        className="min-h-screen flex flex-col overflow-x-clip pb-20"
         style={{
           background: `linear-gradient(180deg, ${BG_TOP} 0%, ${BG_MID} 45%, ${BG_BOT} 100%)`,
         }}

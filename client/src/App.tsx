@@ -224,8 +224,13 @@ function RouterComponent() {
     };
   }, [location]);
 
+  useEffect(() => {
+    const viewport = document.querySelector<HTMLElement>(".diamant-route-viewport");
+    if (viewport) viewport.scrollTop = 0;
+  }, [location]);
+
   return (
-    <>
+    <div className="diamant-route-viewport">
       <Switch>
         <Route path="/login">
           <PublicRoute>
@@ -434,7 +439,7 @@ function RouterComponent() {
       </Route>
         <Route component={NotFound} />
       </Switch>
-    </>
+    </div>
   );
 }
 

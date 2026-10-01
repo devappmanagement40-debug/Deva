@@ -175,7 +175,7 @@ export default function WithdrawalPage() {
 
   return (
     <main
-      className="ielp-withdrawal-page min-h-screen w-full overflow-hidden"
+      className="ielp-withdrawal-page min-h-screen w-full overflow-clip"
       style={{ maxWidth: 480, margin: "0 auto", background: "#f5f5f5", color: "#202124" }}
     >
       <section className="relative w-full" style={{ aspectRatio: "720 / 404" }}>

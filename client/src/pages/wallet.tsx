@@ -125,7 +125,7 @@ export default function WalletPage() {
   const pickerTitle = picker === "asset" ? "Withdrawal type" : "Network";
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-white">
+    <div className="relative min-h-screen overflow-clip bg-white">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[570px] overflow-hidden bg-[#a5ebef]">
         <img
           src={withdrawalLandscape}

@@ -91,7 +91,7 @@ export default function CheckinPage() {
 
   return (
     <main
-      className="ielp-checkin-page min-h-screen w-full overflow-hidden"
+      className="ielp-checkin-page min-h-screen w-full overflow-clip"
       style={{ maxWidth: 480, margin: "0 auto", background: "#f2f2f2", color: "#151515" }}
     >
       <header className="relative w-full bg-white" style={{ height: 82 }}>

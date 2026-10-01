@@ -82,7 +82,7 @@ export default function ShareInformationPage() {
 
   return (
     <main
-      className="min-h-screen w-full overflow-x-hidden bg-[#f5f5f5] text-[#333]"
+      className="min-h-screen w-full overflow-x-clip bg-[#f5f5f5] text-[#333]"
       data-testid="page-share-information"
     >
       <header className="flex h-[139px] items-center gap-[22px] bg-[#f5f5f5] px-7 pt-[31px]">

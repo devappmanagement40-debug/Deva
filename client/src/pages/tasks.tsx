@@ -62,7 +62,7 @@ export default function TasksPage() {
       className="min-h-screen bg-[#fbfbfa] pb-[92px]"
       style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
     >
-      <div className="mx-auto min-h-screen w-full max-w-[480px] overflow-hidden bg-[#fbfbfa]">
+      <div className="mx-auto min-h-screen w-full max-w-[480px] overflow-clip bg-[#fbfbfa]">
         <header className="relative z-20 flex h-[58px] items-center justify-center border-b border-[#f1f1f1] bg-white">
           <Link href="/" className="absolute left-3 flex h-9 w-9 items-center justify-center">
             <ChevronLeft className="h-6 w-6 text-[#222]" strokeWidth={2.4} />
