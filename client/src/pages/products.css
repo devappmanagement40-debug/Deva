@@ -44,16 +44,6 @@
   padding: 24px 17px 48px;
 }
 
-.diamant-invest-list-heading > div > span {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  color: #b6b8e2;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .18em;
-}
-
 .diamant-invest-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -84,53 +74,6 @@
   color: #fff;
   background: #653de9;
   box-shadow: inset 0 1px rgba(255,255,255,.2), 0 4px 12px rgba(6, 8, 32, .4);
-}
-
-.diamant-invest-list-heading {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 26px 2px 13px;
-}
-
-.diamant-invest-list-heading > div > span {
-  color: #c9c7ee;
-  font-size: 10px;
-  letter-spacing: .16em;
-}
-
-.diamant-invest-list-heading h1 {
-  margin: 5px 0 0;
-  color: #fff;
-  font-family: Georgia, serif;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.diamant-invest-owned-link {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  padding: 0 12px;
-  border: 2px solid #c2b3ff;
-  border-radius: 10px;
-  color: #fff;
-  background: #653de9;
-  box-shadow: 0 4px 0 #351c9b, 0 6px 12px rgba(63, 52, 125, .28);
-  font-size: 11px;
-  font-weight: 800;
-  text-decoration: none;
-  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
-}
-
-.diamant-invest-owned-link:hover {
-  background: #704cff;
-  box-shadow: 0 5px 0 #351c9b, 0 7px 14px rgba(63, 52, 125, .34);
-  transform: translateY(-1px);
 }
 
 .diamant-invest-list {
@@ -352,8 +295,7 @@
 }
 
 .diamant-invest-buy:focus-visible,
-.diamant-invest-tabs button:focus-visible,
-.diamant-invest-owned-link:focus-visible {
+.diamant-invest-tabs button:focus-visible {
   outline: 3px solid #d5cbff;
   outline-offset: 3px;
 }

@@ -25,7 +25,6 @@ const PRODUCT_TAB_TYPES = ["stability", "wellness", "activity"] as const;
 const INVEST_COPY: Record<Lang, {
   tabs: [string, string, string];
   overview: string;
-  myInvestments: string;
   days: string;
   daily: string;
   term: string;
@@ -47,7 +46,6 @@ const INVEST_COPY: Record<Lang, {
   fr: {
     tabs: ["Stabiliser", "Bien-être", "Activité"],
     overview: "Découvrez les produits d’investissement DIAMANT",
-    myInvestments: "Mes investissements",
     days: "jours",
     daily: "Revenu quotidien",
     term: "Jours de revenu",
@@ -69,7 +67,6 @@ const INVEST_COPY: Record<Lang, {
   en: {
     tabs: ["Stability", "Wellness", "Activity"],
     overview: "Explore DIAMANT investment products",
-    myInvestments: "My investments",
     days: "days",
     daily: "Daily revenue",
     term: "Revenue days",
@@ -91,7 +88,6 @@ const INVEST_COPY: Record<Lang, {
   ar: {
     tabs: ["الاستقرار", "العافية", "النشاط"],
     overview: "اكتشف منتجات DIAMANT الاستثمارية",
-    myInvestments: "استثماراتي",
     days: "أيام",
     daily: "العائد اليومي",
     term: "أيام الربح",
@@ -113,7 +109,6 @@ const INVEST_COPY: Record<Lang, {
   zh: {
     tabs: ["稳健", "健康", "活力"],
     overview: "探索 DIAMANT 投资产品",
-    myInvestments: "我的投资",
     days: "天",
     daily: "每日收益",
     term: "收益天数",
@@ -220,16 +215,6 @@ export default function ProductsPage() {
                 {label}
               </button>
             ))}
-          </div>
-
-          <div className="diamant-invest-list-heading">
-            <div>
-              <span>{lang === "en" ? "THE COLLECTION" : lang === "ar" ? "المجموعة" : lang === "zh" ? "精选系列" : "LA COLLECTION"}</span>
-              <h1>{copy.tabs[selectedTab]}</h1>
-            </div>
-            <Link className="diamant-invest-owned-link" href="/my-products">
-              {copy.myInvestments}
-            </Link>
           </div>
 
           <section className="diamant-invest-list" aria-label={copy.overview}>
