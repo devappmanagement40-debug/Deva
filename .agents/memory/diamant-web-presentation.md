@@ -11,8 +11,8 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 ## Account-banner photo sourcing
 
-Use real photos with explicit free reuse licenses for the DIAMANT account banner's diamond carousel. A generated 3D character overlay is approved when the user requests it.
+Use freely licensed diamond photos as the source material for DIAMANT account-banner advertising posters. When requested, integrate the 3D characters into the posters themselves rather than adding a separate foreground overlay.
 
-**Why:** The user requested freely reusable diamond photos, then explicitly asked for a generated 3D duo beside them.
+**Why:** The user clarified that they want the existing diamond photos transformed into advertising-style images featuring 3D characters.
 
-**How to apply:** Keep the diamond photos sourced from CC0 or public-domain files, record their sources and licenses, and generate only the requested character overlay unless the user expands the scope.
+**How to apply:** Keep CC0 or public-domain source photos, record each image's source and license, and make the finished posters—not a standalone character cutout—the carousel slides.

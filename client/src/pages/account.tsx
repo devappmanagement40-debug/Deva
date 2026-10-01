@@ -47,16 +47,15 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import bannerAsscherDiamond from "@/assets/images/diamant-banner-asscher-cut.png";
-import bannerRoughDiamonds from "@/assets/images/diamant-banner-rough-diamonds.jpg";
-import bannerSmithsonianDiamonds from "@/assets/images/diamant-banner-smithsonian-diamonds.jpg";
-import bannerAccountDuo from "@/assets/images/diamant-account-banner-3d-duo.png";
+import bannerPosterAsscher from "@/assets/images/diamant-banner-poster-asscher.jpg";
+import bannerPosterRough from "@/assets/images/diamant-banner-poster-rough.jpg";
+import bannerPosterSmithsonian from "@/assets/images/diamant-banner-poster-smithsonian.jpg";
 import "./account.css";
 
-const ACCOUNT_BANNER_PHOTOS = [
-  { id: "asscher", src: bannerAsscherDiamond },
-  { id: "rough-diamonds", src: bannerRoughDiamonds },
-  { id: "smithsonian", src: bannerSmithsonianDiamonds },
+const ACCOUNT_BANNER_POSTERS = [
+  { id: "asscher-poster", src: bannerPosterAsscher },
+  { id: "rough-diamonds-poster", src: bannerPosterRough },
+  { id: "smithsonian-poster", src: bannerPosterSmithsonian },
 ] as const;
 
 type AccountCopy = {
@@ -445,13 +444,12 @@ export default function AccountPage() {
           <section className="ielp-account-hero" aria-label={copy.accountMenu}>
             <div className="ielp-account-banner" aria-hidden="true">
               <div className="ielp-account-banner-track">
-                {[...ACCOUNT_BANNER_PHOTOS, ...ACCOUNT_BANNER_PHOTOS].map((photo, index) => (
-                  <div className="ielp-account-banner-slide" key={`${photo.id}-${index}`}>
-                    <img src={photo.src} alt="" draggable={false} />
+                {[...ACCOUNT_BANNER_POSTERS, ...ACCOUNT_BANNER_POSTERS].map((poster, index) => (
+                  <div className="ielp-account-banner-slide" key={`${poster.id}-${index}`}>
+                    <img src={poster.src} alt="" draggable={false} />
                   </div>
                 ))}
               </div>
-              <img className="ielp-account-banner-duo" src={bannerAccountDuo} alt="" draggable={false} />
             </div>
             <div className="ielp-account-profile">
               <button

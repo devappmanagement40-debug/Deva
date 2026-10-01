@@ -1,0 +1,44 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "sXWFitCxIJBYNfBeJ0IEd"
+uri = "file://attached_assets/generated_images/diamant-poster-asscher.png"
+type = "image"
+title = "Affiche DIAMANT — diamant Asscher"
+description = "Composition publicitaire 3D créée à partir de la photo CC0 du diamant Asscher."
+logical_id = "98f90448-4449-456c-9bdb-b3cd0ed45758"
+content_hash = "sha256:f084e7ba2dfe1b27c22f48f609c251fda99ccac8cc86d657fd5e7fa4e3aede8e"
+size = 1233512
+mtime_ms = 1790872802770
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/98f90448-4449-456c-9bdb-b3cd0ed45758/5a86492f-163b-4156-9ee0-647eba1e3754"
+storage_version_token = "1790873016327379"
+content_type = "image/png"
+
+[[outputs]]
+id = "qoSkSkRGMYgS2ruIZhKi4"
+uri = "file://attached_assets/generated_images/diamant-poster-rough.png"
+type = "image"
+title = "Affiche DIAMANT — diamants bruts"
+description = "Composition publicitaire 3D créée à partir de la photo de diamants bruts dans le domaine public."
+logical_id = "fc138aa0-4dbf-448d-905a-0a7385734e27"
+content_hash = "sha256:4d0ce4cb256f4a2b730100d05ac4133b822cf9d5d9215a9b6701d94b106912d3"
+size = 1522636
+mtime_ms = 1790872804362
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/fc138aa0-4dbf-448d-905a-0a7385734e27/470baa77-4457-4845-8cca-c17c1312eeea"
+storage_version_token = "1790873016867874"
+content_type = "image/png"
+
+[[outputs]]
+id = "LRUGAfVxPLGyBY7DSmuV4"
+uri = "file://attached_assets/generated_images/diamant-poster-smithsonian.png"
+type = "image"
+title = "Affiche DIAMANT — collection de diamants"
+description = "Composition publicitaire 3D créée à partir de la photo Smithsonian dans le domaine public."
+logical_id = "1c6d0a46-2b55-42dc-b3ff-e920f5c33335"
+content_hash = "sha256:4c7c95dc13c513d9c2e7595925c627a4d9a648d7089f41f117f564beb2f471fc"
+size = 1288039
+mtime_ms = 1790872803290
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/1c6d0a46-2b55-42dc-b3ff-e920f5c33335/5cf35ea7-203a-46d7-92e3-99106ba58201"
+storage_version_token = "1790873017397313"
+content_type = "image/png"
