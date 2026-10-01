@@ -18,6 +18,9 @@ interface TeamStats {
   level2ValidCount: number;
   level3ValidCount: number;
   totalCommission: number;
+  level1Commission: number;
+  level2Commission: number;
+  level3Commission: number;
   teamTotalDeposits: number;
   teamTotalWithdrawals: number;
 }
@@ -40,6 +43,7 @@ const COPY: Record<Lang, {
   count: string;
   valid: string;
   details: string;
+  levelBonus: string;
   statsUnavailable: string;
 }> = {
   fr: {
@@ -60,6 +64,7 @@ const COPY: Record<Lang, {
     count: "Compter",
     valid: "Valide",
     details: "Détails",
+    levelBonus: "Bonus parrainage",
     statsUnavailable: "Impossible de charger les statistiques de l'équipe.",
   },
   en: {
@@ -80,6 +85,7 @@ const COPY: Record<Lang, {
     count: "Count",
     valid: "Valid",
     details: "Details",
+    levelBonus: "Referral bonus",
     statsUnavailable: "Could not load team statistics.",
   },
   ar: {
@@ -100,6 +106,7 @@ const COPY: Record<Lang, {
     count: "العدد",
     valid: "صالح",
     details: "التفاصيل",
+    levelBonus: "مكافأة الإحالة",
     statsUnavailable: "تعذر تحميل إحصاءات الفريق.",
   },
   zh: {
@@ -120,6 +127,7 @@ const COPY: Record<Lang, {
     count: "人数",
     valid: "有效",
     details: "详情",
+    levelBonus: "推荐奖励",
     statsUnavailable: "无法加载团队统计。",
   },
 };
@@ -169,10 +177,16 @@ export default function TeamPage() {
     stats?.level2ValidCount || 0,
     stats?.level3ValidCount || 0,
   ];
+  const levelCommissions = [
+    stats?.level1Commission || 0,
+    stats?.level2Commission || 0,
+    stats?.level3Commission || 0,
+  ];
   const levelCards = levelCounts.map((count, index) => ({
     level: index + 1,
     count,
     valid: levelValidCounts[index],
+    bonus: levelCommissions[index],
   }));
   const totalUsers = levelCounts.reduce((total, count) => total + count, 0);
   const displayedDate = selectedDate
@@ -368,7 +382,7 @@ export default function TeamPage() {
           </section>
 
           <section className="ielp-team-levels" aria-label={copy.teamSize}>
-            {levelCards.map(({ level, count, valid }) => (
+            {levelCards.map(({ level, count, valid, bonus }) => (
               <article className="ielp-team-level-card" key={level}>
                 <h2>LEV {level}</h2>
                 <div className="ielp-team-level-metric">
@@ -386,6 +400,10 @@ export default function TeamPage() {
                 >
                   {copy.details} <span aria-hidden="true">›</span>
                 </button>
+                <div className="ielp-team-level-bonus" data-testid={`text-team-level-bonus-${level}`}>
+                  <span>{copy.levelBonus}</span>
+                  <strong>{formatMoney(bonus)}</strong>
+                </div>
               </article>
             ))}
           </section>
