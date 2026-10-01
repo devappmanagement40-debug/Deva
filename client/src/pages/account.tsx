@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeftRight,
   Bookmark,
@@ -12,6 +12,8 @@ import {
   CircleDollarSign,
   CircleHelp,
   CreditCard,
+  Copy,
+  Crown,
   Download,
   Eye,
   EyeOff,
@@ -38,11 +40,18 @@ import { Button } from "@/components/ui/button";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import { LanguagePicker } from "@/components/language-picker";
-import { getCountryByCode } from "@/lib/countries";
+import { formatCurrency, getCountryByCode } from "@/lib/countries";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import {
+  computeVipLevelFromProduct,
+  DEFAULT_VIP_CONFIGS,
+  VIP_BADGE_STYLE,
+  mergeAdminVipConfig,
+} from "@/lib/vip";
+import accountHero from "@/assets/images/diamant-checkin-hero.png";
 import "./account.css";
 
 type AccountCopy = {
@@ -50,7 +59,20 @@ type AccountCopy = {
   withdraw: string;
   statements: string;
   transfer: string;
+  orders: string;
+  walletCard: string;
+  balance: string;
+  memberId: string;
   team: string;
+  myCompany: string;
+  earnings: string;
+  rewards: string;
+  vipTitle: string;
+  vipProgress: string;
+  vipNextPrefix: string;
+  vipAction: string;
+  vipMax: string;
+  idCopied: string;
   faq: string;
   password: string;
   securityPin: string;
@@ -71,11 +93,24 @@ type AccountCopy = {
 
 const COPY: Record<Lang, AccountCopy> = {
   fr: {
-    deposit: "Dépôt",
+    deposit: "Recharger",
     withdraw: "Retirer",
     statements: "Déclarations",
     transfer: "Transfert",
+    orders: "Commandes",
+    walletCard: "Portefeuille carte",
+    balance: "Mon solde",
+    memberId: "ID",
     team: "Équipe",
+    myCompany: "Mon entreprise",
+    earnings: "Solde",
+    rewards: "Récompenses",
+    vipTitle: "Niveau VIP",
+    vipProgress: "Niveau {level} sur {total}",
+    vipNextPrefix: "Prochain niveau",
+    vipAction: "Méthodes pour améliorer le VIP",
+    vipMax: "Vous avez atteint le niveau VIP maximum.",
+    idCopied: "ID copié",
     faq: "FAQ",
     password: "Mot de passe",
     securityPin: "Code PIN de sécurité",
@@ -98,7 +133,20 @@ const COPY: Record<Lang, AccountCopy> = {
     withdraw: "Withdraw",
     statements: "Statements",
     transfer: "Transfer",
+    orders: "Orders",
+    walletCard: "Card wallet",
+    balance: "My balance",
+    memberId: "ID",
     team: "Team",
+    myCompany: "My company",
+    earnings: "Balance",
+    rewards: "Rewards",
+    vipTitle: "VIP level",
+    vipProgress: "Level {level} of {total}",
+    vipNextPrefix: "Next level",
+    vipAction: "How to improve your VIP level",
+    vipMax: "You have reached the maximum VIP level.",
+    idCopied: "ID copied",
     faq: "FAQ",
     password: "Password",
     securityPin: "Security PIN",
@@ -121,7 +169,20 @@ const COPY: Record<Lang, AccountCopy> = {
     withdraw: "سحب",
     statements: "السجل",
     transfer: "تحويل",
+    orders: "الطلبات",
+    walletCard: "المحفظة",
+    balance: "رصيدي",
+    memberId: "المعرّف",
     team: "الفريق",
+    myCompany: "شركتي",
+    earnings: "الرصيد",
+    rewards: "المكافآت",
+    vipTitle: "مستوى VIP",
+    vipProgress: "المستوى {level} من {total}",
+    vipNextPrefix: "المستوى التالي",
+    vipAction: "كيفية تحسين مستوى VIP",
+    vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
+    idCopied: "تم نسخ المعرّف",
     faq: "الأسئلة الشائعة",
     password: "كلمة المرور",
     securityPin: "رمز PIN للأمان",
@@ -144,7 +205,20 @@ const COPY: Record<Lang, AccountCopy> = {
     withdraw: "提现",
     statements: "记录",
     transfer: "转账",
+    orders: "订单",
+    walletCard: "卡包",
+    balance: "我的余额",
+    memberId: "编号",
     team: "团队",
+    myCompany: "我的企业",
+    earnings: "余额",
+    rewards: "奖励",
+    vipTitle: "VIP等级",
+    vipProgress: "第 {level} 级，共 {total} 级",
+    vipNextPrefix: "下一级",
+    vipAction: "查看VIP升级方式",
+    vipMax: "您已达到最高VIP等级。",
+    idCopied: "编号已复制",
     faq: "常见问题",
     password: "密码",
     securityPin: "安全 PIN 码",
