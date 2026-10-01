@@ -331,7 +331,7 @@ export default function AccountPage() {
   const nextVipAmount = nextVipProduct ? Math.ceil(Number(nextVipProduct.price)) : null;
   const nextVipMessage = nextVip
     ? copy.vipAmountRemaining
-      .replace("{level}", nextVip.label.replace(/\s+/g, ""))
+        .replace("{level}", nextVip.label.replace(/\s+/g, "").replace(/^VIP(?=\d)/i, "PRO"))
       .replace("{amount}", nextVipAmount !== null && Number.isFinite(nextVipAmount) ? String(nextVipAmount) : "…")
     : copy.vipMax;
 
