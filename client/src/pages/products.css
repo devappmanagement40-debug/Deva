@@ -1,7 +1,16 @@
-.ielp-home-page.diamant-invest-page {
+.app-shell.diamant-invest-app-shell {
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
-  min-height: 100svh;
-  overflow-x: clip;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.ielp-home-page.diamant-invest-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   color: #f7f5ff;
   background: #050a24 url("/auth-night-sky.svg") center top / 100% 100% no-repeat;
   font-family: Arial, Roboto, sans-serif;
@@ -9,18 +18,19 @@
 
 .ielp-home-page .diamant-invest-shell {
   position: relative;
-  min-height: 100vh;
-  min-height: 100svh;
-  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
   background: transparent;
 }
 
 .ielp-home-page .diamant-invest-header {
-  position: fixed;
+  position: absolute;
   inset: 0 0 auto;
   z-index: 100;
-  width: min(100%, 480px);
-  margin-inline: auto;
+  width: 100%;
+  margin: 0;
   border-bottom: 1px solid rgba(197, 195, 255, .13);
   background: #050920;
   -webkit-backdrop-filter: none;
@@ -44,17 +54,21 @@
 }
 
 .diamant-invest-content {
+  position: absolute;
+  inset: 56px 0 calc(88px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   width: min(100%, 520px);
   margin: 0 auto;
-  padding: 132px 17px 48px;
+  padding: 12px 17px 0;
+  overflow: hidden;
 }
 
 .diamant-invest-tabs {
-  position: fixed;
-  inset: 56px 0 auto;
-  z-index: 90;
-  width: min(446px, calc(100% - 34px));
-  margin-inline: auto;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
@@ -88,7 +102,17 @@
 
 .diamant-invest-list {
   display: grid;
+  flex: 1 1 auto;
+  grid-auto-rows: max-content;
+  align-content: start;
+  min-height: 0;
   gap: 12px;
+  padding: 0 3px 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .diamant-invest-product-card {
@@ -568,7 +592,7 @@
 .diamant-purchase-actions button:focus-visible { outline: 2px solid #c9bdff; outline-offset: -4px; }
 
 @media (min-width: 600px) {
-  .diamant-invest-content { padding: 132px 22px 56px; }
+  .diamant-invest-content { padding: 12px 22px 0; }
   .diamant-invest-product-card { padding: 17px 18px 15px; }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 132px; }
   .diamant-invest-product-visual { height: 130px; }
@@ -578,7 +602,6 @@
 
 @media (max-width: 380px) {
   .diamant-invest-content { padding-inline: 13px; }
-  .diamant-invest-tabs { width: calc(100% - 26px); }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px; }
   .diamant-invest-product-visual { height: 100px; }
   .diamant-invest-product-copy h3 { font-size: 16px; }

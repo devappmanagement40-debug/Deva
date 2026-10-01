@@ -185,9 +185,9 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function AppLayout({ children, home = false }: { children: React.ReactNode; home?: boolean }) {
+function AppLayout({ children, home = false, productListScroll = false }: { children: React.ReactNode; home?: boolean; productListScroll?: boolean }) {
   return (
-    <div className={`app-shell min-h-screen ${home ? "ielp-home-app-shell" : "bg-background pb-2"}`}>
+    <div className={`app-shell min-h-screen ${home ? "ielp-home-app-shell" : "bg-background pb-2"} ${productListScroll ? "diamant-invest-app-shell" : ""}`}>
       {children}
       <BottomNav home={home} />
     </div>
@@ -268,7 +268,7 @@ function RouterComponent() {
       </Route>
       <Route path="/invest">
         <ProtectedRoute>
-          <AppLayout home>
+          <AppLayout home productListScroll>
             <ProductsPage />
           </AppLayout>
         </ProtectedRoute>
