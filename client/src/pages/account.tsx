@@ -52,6 +52,8 @@ import bannerPoster3dRough from "@/assets/images/diamant-poster-3d-02-rough.jpg"
 import bannerPoster3dCollection from "@/assets/images/diamant-poster-3d-03-collection.jpg";
 import bannerPoster3dAsscherPresenter from "@/assets/images/diamant-poster-3d-04-asscher-presenter.jpg";
 import bannerPoster3dGemShowcase from "@/assets/images/diamant-poster-3d-05-gem-showcase.jpg";
+import bannerTeamPhoto from "@/assets/images/diamant-banner-team-dsc-0636.jpg";
+import bannerLeadershipPhoto from "@/assets/images/diamant-banner-leadership-team.jpg";
 import "./account.css";
 
 const ACCOUNT_BANNER_POSTERS = [
@@ -60,6 +62,8 @@ const ACCOUNT_BANNER_POSTERS = [
   { id: "3d-collection-poster", src: bannerPoster3dCollection },
   { id: "3d-asscher-presenter-poster", src: bannerPoster3dAsscherPresenter },
   { id: "3d-gem-showcase-poster", src: bannerPoster3dGemShowcase },
+  { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198 },
+  { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318 },
 ] as const;
 
 type AccountCopy = {
@@ -449,7 +453,11 @@ export default function AccountPage() {
             <div className="ielp-account-banner" aria-hidden="true">
               <div className="ielp-account-banner-track">
                 {[...ACCOUNT_BANNER_POSTERS, ...ACCOUNT_BANNER_POSTERS].map((poster, index) => (
-                  <div className="ielp-account-banner-slide" key={`${poster.id}-${index}`}>
+                  <div
+                    className="ielp-account-banner-slide"
+                    key={`${poster.id}-${index}`}
+                    style={poster.slideWidth ? { width: poster.slideWidth, flexBasis: poster.slideWidth } : undefined}
+                  >
                     <img src={poster.src} alt="" draggable={false} />
                   </div>
                 ))}

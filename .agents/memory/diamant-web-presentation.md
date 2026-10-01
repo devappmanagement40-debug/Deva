@@ -11,8 +11,8 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 ## Account-banner photo sourcing
 
-Use freely licensed diamond photos as the source material for DIAMANT account-banner advertising posters. When requested, integrate the 3D characters into the posters themselves rather than adding a separate foreground overlay.
+Use freely licensed diamond photos as the source material for DIAMANT account-banner advertising posters. When requested, integrate the 3D characters into the posters themselves rather than adding a separate foreground overlay. Keep user-supplied team photos as real photographs: do not generate 3D versions or alter the people, preserve the original uploads, and fit the carousel slides to their natural aspect ratio so groups are not cropped.
 
-**Why:** The user clarified that they want the existing diamond photos transformed into advertising-style images featuring 3D characters.
+**Why:** The user clarified that they want the existing diamond photos transformed into advertising-style images featuring 3D characters, but later specified that the supplied workforce/team photos must be added as photos without 3D generation.
 
-**How to apply:** Keep CC0 or public-domain source photos, record each image's source and license, and make the finished posters—not a standalone character cutout—the carousel slides.
+**How to apply:** Keep CC0 or public-domain diamond source photos, record each image's source and license, and make the finished posters—not a standalone character cutout—the carousel slides. For user-provided documentary/team photos, use optimized presentation copies only and keep their source images unchanged.
