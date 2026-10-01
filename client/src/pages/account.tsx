@@ -72,8 +72,7 @@ type AccountCopy = {
   earnings: string;
   rewards: string;
   vipTitle: string;
-  vipProgress: string;
-  vipNextPrefix: string;
+  vipAmountRemaining: string;
   vipAction: string;
   vipMax: string;
   idCopied: string;
@@ -111,8 +110,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipProgress: "Niveau {level} sur {total}",
-    vipNextPrefix: "Prochain niveau",
+    vipAmountRemaining: "Passer à {level} il manque encore {amount}",
     vipAction: "Méthodes pour améliorer le VIP",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
@@ -148,8 +146,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipProgress: "Level {level} of {total}",
-    vipNextPrefix: "Next level",
+    vipAmountRemaining: "Reach {level} — {amount} more needed",
     vipAction: "How to improve your VIP level",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
@@ -185,8 +182,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipProgress: "المستوى {level} من {total}",
-    vipNextPrefix: "المستوى التالي",
+    vipAmountRemaining: "للوصول إلى {level}، ما زال ينقصك {amount}",
     vipAction: "كيفية تحسين مستوى VIP",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
@@ -222,8 +218,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipProgress: "第 {level} 级，共 {total} 级",
-    vipNextPrefix: "下一级",
+    vipAmountRemaining: "升至 {level}，还差 {amount}",
     vipAction: "查看VIP升级方式",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
@@ -326,12 +321,23 @@ export default function AccountPage() {
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
+  const { data: catalogProducts = [] } = useQuery<any[]>({
+    queryKey: ["/api/products"],
+  });
   const vipConfigs = mergeAdminVipConfig(DEFAULT_VIP_CONFIGS, settings);
   const vipLevel = computeVipLevelFromProduct(userProducts);
   const currentVip = vipConfigs[vipLevel] ?? DEFAULT_VIP_CONFIGS[0];
   const nextVip = vipConfigs[vipLevel + 1] ?? null;
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
-  const vipProgress = Math.round((vipLevel / 7) * 100);
+  const nextVipProduct = nextVip
+    ? catalogProducts.find((product: any) => Number(product.sortOrder) === vipLevel + 1 && product.isActive !== false)
+    : null;
+  const nextVipAmount = nextVipProduct ? Math.ceil(Number(nextVipProduct.price)) : null;
+  const nextVipMessage = nextVip
+    ? copy.vipAmountRemaining
+      .replace("{level}", nextVip.label.replace(/\s+/g, ""))
+      .replace("{amount}", nextVipAmount !== null && Number.isFinite(nextVipAmount) ? String(nextVipAmount) : "…")
+    : copy.vipMax;
 
   useEffect(() => {
     if ((window as any)._installPrompt) setInstallPrompt((window as any)._installPrompt);
@@ -545,42 +551,52 @@ export default function AccountPage() {
             onClick={() => navigate("/vip")}
             data-testid="account-vip-card"
           >
-            <div className="ielp-account-vip-heading">
-              <span className="ielp-account-vip-title">
-                <Crown size={18} fill="currentColor" aria-hidden="true" />
-                {copy.vipTitle}
-              </span>
-              <span
-                className="ielp-account-vip-badge"
-                style={{
-                  background: vipBadge.bg,
-                  color: vipBadge.text,
-                  borderColor: vipBadge.border,
-                }}
-              >
-                {currentVip.label}
-              </span>
+            <div className="ielp-account-vip-content">
+              <div className="ielp-account-vip-heading">
+                <span className="ielp-account-vip-title">
+                  <Crown size={18} fill="currentColor" aria-hidden="true" />
+                  {copy.vipTitle}
+                </span>
+                <span
+                  className="ielp-account-vip-badge"
+                  style={{
+                    background: vipBadge.bg,
+                    color: vipBadge.text,
+                    borderColor: vipBadge.border,
+                  }}
+                >
+                  {currentVip.label}
+                </span>
+              </div>
+              <p className="ielp-account-vip-next">{nextVipMessage}</p>
+              <div className="ielp-account-vip-progress" aria-hidden="true">
+                <span />
+              </div>
+              <div className="ielp-account-vip-footer">
+                <span>{copy.vipAction}</span>
+              </div>
             </div>
-            <p className="ielp-account-vip-next">
-              {nextVip ? `${copy.vipNextPrefix} : ${nextVip.label}` : copy.vipMax}
-            </p>
-            <div
-              className="ielp-account-vip-progress"
-              role="progressbar"
-              aria-label={copy.vipProgress.replace("{level}", String(vipLevel)).replace("{total}", "7")}
-              aria-valuemin={0}
-              aria-valuemax={7}
-              aria-valuenow={vipLevel}
-            >
-              <span style={{ width: `${vipProgress}%` }} />
-            </div>
-            <div className="ielp-account-vip-footer">
-              <span>{copy.vipProgress.replace("{level}", String(vipLevel)).replace("{total}", "7")}</span>
-              <span className="ielp-account-vip-link">
-                {copy.vipAction}
-                <ChevronRight size={16} aria-hidden="true" />
-              </span>
-            </div>
+            <svg className="ielp-account-vip-emblem" viewBox="0 0 90 104" aria-hidden="true">
+              <defs>
+                <linearGradient id="vip-emblem-shield" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#ffffff" />
+                  <stop offset=".42" stopColor="#aeb8c8" />
+                  <stop offset=".72" stopColor="#f8fbff" />
+                  <stop offset="1" stopColor="#8793a6" />
+                </linearGradient>
+                <linearGradient id="vip-emblem-gem" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#f8fbff" />
+                  <stop offset=".5" stopColor="#aebbd0" />
+                  <stop offset="1" stopColor="#eef3fb" />
+                </linearGradient>
+              </defs>
+              <path d="M45 3 82 20v40L45 94 8 60V20Z" fill="url(#vip-emblem-shield)" stroke="#f8fbff" strokeWidth="2" />
+              <path d="M45 12 72 25v31L45 81 18 56V25Z" fill="#526079" stroke="#7d899c" strokeWidth="1.5" />
+              <path d="m22 37 9-12h28l9 12-23 29Z" fill="url(#vip-emblem-gem)" stroke="#fff" strokeWidth="1.2" />
+              <path d="M22 37h46M31 25l7 12 7 29 7-29 7-12M38 37l7-12 7 12M31 37l14 9 14-9" fill="none" stroke="#71809a" strokeWidth="1.2" />
+              <path d="m22 37 16 9-7-9ZM68 37l-16 9 7-9ZM38 46l7 20V37ZM52 46l-7 20V37Z" fill="#dce4f0" opacity=".72" />
+              <text x="45" y="77" fill="#fff" fontSize="6" fontWeight="700" letterSpacing="1" textAnchor="middle">PREMIUM</text>
+            </svg>
           </button>
 
           <section className="ielp-account-company-card" aria-label={copy.myCompany}>

@@ -16,3 +16,11 @@ The DIAMANT profile carousel uses the user's real team photos; do not reintroduc
 **Why:** The user explicitly changed the profile-carousel direction to use the real uploaded team images and remove the 3D posters.
 
 **How to apply:** Use optimized copies for the profile carousel, retain the source uploads, and preserve each photo's natural aspect ratio so people or groups are not cropped. Track any separately requested promotional artwork independently from this carousel.
+
+## Profile VIP card
+
+Keep the card's next-level amount tied to the configured price of the next active VIP product; do not hardcode the screenshot's example amount. Keep its white bar as a full decorative line, not a numerical progress claim.
+
+**Why:** The VIP threshold is controlled by the product catalog and can change, while the screenshot's 3000 is only an example of the desired text and style. VIP is based on discrete product levels, so the card has no continuous progress value to show.
+
+**How to apply:** Match the visible copy and visual treatment, but calculate the amount from the next product's configured price and keep the current VIP label dynamic.
