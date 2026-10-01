@@ -23,7 +23,6 @@ import {
   KeyRound,
   LockKeyhole,
   LogOut,
-  MessageCircleMore,
   MessageSquare,
   PanelsTopLeft,
   ReceiptText,
@@ -419,15 +418,6 @@ export default function AccountPage() {
           </button>
         </div>
 
-        <button
-          className="ielp-home-chat-float"
-          type="button"
-          aria-label={copy.chat}
-          onClick={() => navigate("/service")}
-          data-testid="button-account-chat-floating"
-        >
-          <MessageCircleMore size={32} strokeWidth={2.6} aria-hidden="true" />
-        </button>
       </div>
 
       <FloatingSupport placement="home" />

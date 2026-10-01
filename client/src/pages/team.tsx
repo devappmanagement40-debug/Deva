@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { CalendarDays, MessageCircleMore, MessageSquare, Send, UsersRound } from "lucide-react";
+import { CalendarDays, MessageSquare, Send, UsersRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
@@ -145,17 +145,6 @@ function IelpSeal() {
       <text x="57" y="36" textAnchor="middle">ICAHN</text>
       <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
       <text x="60" y="62" textAnchor="middle">L.P.</text>
-    </svg>
-  );
-}
-
-function TeamChatIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-      <path d="M8 8.5h18a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-9l-5.4 4v-4H8a3 3 0 0 1-3-3v-10a3 3 0 0 1 3-3Z" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" />
-      <circle cx="12.2" cy="16.5" r="1.5" fill="currentColor" />
-      <circle cx="17" cy="16.5" r="1.5" fill="currentColor" />
-      <circle cx="21.8" cy="16.5" r="1.5" fill="currentColor" />
     </svg>
   );
 }
@@ -414,15 +403,6 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <button
-        className="ielp-home-chat-float"
-        type="button"
-        aria-label={t.customerService}
-        onClick={() => navigate("/service")}
-        data-testid="button-team-chat-floating"
-      >
-        <TeamChatIcon />
-      </button>
       <FloatingSupport placement="home" />
     </main>
   );

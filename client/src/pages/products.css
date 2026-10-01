@@ -430,11 +430,6 @@
   font-weight: 800;
 }
 
-.diamant-invest-chat-float {
-  color: #fff;
-  background: linear-gradient(140deg, #6256ce, #304e9b);
-}
-
 .diamant-purchase-dialog {
   width: min(calc(100% - 30px), 420px) !important;
   max-width: 420px !important;

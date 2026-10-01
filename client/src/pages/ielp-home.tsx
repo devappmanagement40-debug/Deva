@@ -22,7 +22,6 @@ import { getContent } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
-import { FloatingWheel } from "@/components/floating-wheel";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
 
 type HomeStats = {
@@ -485,19 +484,9 @@ function HomePage() {
           </section>
         </div>
 
-        <button
-          className="ielp-home-chat-float"
-          type="button"
-          aria-label={copy.chat}
-          onClick={() => navigate("/service")}
-          data-testid="button-home-chat-floating"
-        >
-          <MessageCircleMore size={32} strokeWidth={2.6} aria-hidden="true" />
-        </button>
       </div>
 
       <FloatingSupport placement="home" />
-      <FloatingWheel />
       <HomeAnnouncementModal />
     </main>
   );

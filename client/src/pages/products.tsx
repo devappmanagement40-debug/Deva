@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Check, CircleHelp, Loader2, MessageCircleMore, MessageSquare, RefreshCw } from "lucide-react";
+import { AlertTriangle, Check, CircleHelp, Loader2, MessageSquare, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -311,9 +311,6 @@ export default function ProductsPage() {
         </div>
 
         <FloatingSupport placement="home" />
-        <Link className="ielp-home-chat-float diamant-invest-chat-float" href="/service" aria-label={copy.support} data-testid="button-invest-chat-floating">
-          <MessageCircleMore size={30} strokeWidth={2.4} aria-hidden="true" />
-        </Link>
 
         <Dialog open={!!confirmProduct} onOpenChange={(open) => !open && setConfirmProduct(null)}>
           {confirmProduct && (

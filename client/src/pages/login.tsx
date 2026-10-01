@@ -90,7 +90,7 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthScene showChatButton>
+    <AuthScene>
       <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form auth-login-form" noValidate>
         <input type="hidden" {...form.register("country")} />
         <div className="auth-input">

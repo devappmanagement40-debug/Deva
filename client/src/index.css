@@ -477,28 +477,6 @@
     text-align: center;
   }
 
-  .auth-chat-button {
-    position: fixed;
-    z-index: 100;
-    left: 16px;
-    bottom: calc(12.4vh + env(safe-area-inset-bottom));
-    display: flex;
-    width: 59px;
-    height: 59px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    color: #fff;
-    background: #d3134d;
-    box-shadow: 0 3px 11px rgba(7, 13, 36, .32);
-  }
-
-  .auth-chat-button:active {
-    transform: scale(.94);
-  }
-
   input[type="search"]::-webkit-search-cancel-button {
     @apply hidden;
   }
@@ -1396,23 +1374,6 @@ ol[data-radix-toast-viewport] li * {
   background: #fff;
   color: #326b9c;
   font-size: 14px;
-}
-
-.ielp-home-chat-float {
-  position: fixed;
-  z-index: 120;
-  bottom: 112px;
-  left: max(16px, calc((100vw - 480px) / 2 + 16px));
-  display: flex;
-  width: 58px;
-  height: 58px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 50%;
-  color: #fff;
-  background: #df1450;
-  box-shadow: 0 7px 18px rgba(0, 0, 0, .25);
 }
 
 .bottom-nav--ielp {
