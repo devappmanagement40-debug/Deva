@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import { localeForLang, useI18n } from "@/lib/i18n";
+import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getProductVisual } from "@/lib/product-visuals";
@@ -11,6 +11,12 @@ import { rebrandText } from "@/lib/content";
 import { DiamantBrand } from "@/components/diamant-brand";
 
 const MEMBER_ACCENT = "#00c83c";
+const BALANCE_COPY: Record<Lang, { title: string; deposits: string; earnings: string }> = {
+  fr: { title: "Mes soldes", deposits: "Solde des dépôts", earnings: "Solde des gains" },
+  en: { title: "My balances", deposits: "Deposit balance", earnings: "Earnings balance" },
+  ar: { title: "أرصدتي", deposits: "رصيد الإيداعات", earnings: "رصيد الأرباح" },
+  zh: { title: "我的余额", deposits: "存款余额", earnings: "收益余额" },
+};
 
 function EmptyEarningsIllustration() {
   return (
@@ -41,6 +47,7 @@ export default function EarningsPage() {
   const { user, refreshUser } = useAuth();
   const [, navigate] = useLocation();
   const { t, lang } = useI18n();
+  const balanceCopy = BALANCE_COPY[lang];
   const { toast } = useToast();
   const [collectingId, setCollectingId] = useState<number | null>(null);
   const { data: userProducts = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/user/products"] });
@@ -68,6 +75,7 @@ export default function EarningsPage() {
   if (!user) return null;
 
   const totalEarnings = Number.isFinite(Number(user.totalEarnings)) ? Number(user.totalEarnings) : 0;
+  const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
   const hasProducts = userProducts.length > 0;
   const pendingTotal = userProducts.reduce((sum: number, item: any) => sum + Number(item.pendingEarnings || 0), 0);
 
@@ -92,11 +100,26 @@ export default function EarningsPage() {
         </div>
       </div>
       <section className="flex flex-1 flex-col bg-black pb-20">
-        <div className="pt-3 text-center text-white">
-          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>XOF {totalEarnings.toLocaleString(localeForLang(lang))}</p>
-          <p className="ielp-products-accent mt-3" style={{ color: MEMBER_ACCENT, fontSize: 16 }}>{t.totalRevenue}</p>
+        <div className="px-5 pt-4 text-white">
+          <h1 className="mb-3 text-center text-base font-semibold">{balanceCopy.title}</h1>
+          <div className="grid grid-cols-2 gap-3">
+            <article className="min-w-0 rounded-2xl border border-white/10 bg-[#171717] px-3 py-4">
+              <p className="text-xs leading-snug text-white/65">{balanceCopy.deposits}</p>
+              <p className="mt-2 break-words text-lg font-bold leading-tight">
+                <span className="mr-1 text-xs font-medium text-white/60">USDT</span>
+                {depositBalance.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </article>
+            <article className="min-w-0 rounded-2xl border border-white/10 bg-[#171717] px-3 py-4">
+              <p className="text-xs leading-snug text-white/65">{balanceCopy.earnings}</p>
+              <p className="mt-2 break-words text-lg font-bold leading-tight">
+                <span className="mr-1 text-xs font-medium text-white/60">XOF</span>
+                {totalEarnings.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </article>
+          </div>
           {pendingTotal > 0 && (
-            <p className="mt-2 text-sm text-white/70">
+            <p className="mt-3 text-center text-sm text-white/70">
               {t.myProductsPending}: XOF {pendingTotal.toLocaleString(localeForLang(lang))}
             </p>
           )}
