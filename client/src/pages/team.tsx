@@ -141,7 +141,7 @@ const SOCIALS = [
 
 function formatMoney(value: unknown) {
   const amount = Number(value);
-  return `USDT ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
+  return `XOF ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
 }
 
 export default function TeamPage() {
