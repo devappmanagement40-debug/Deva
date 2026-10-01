@@ -44,6 +44,8 @@ const COPY: Record<Lang, {
   valid: string;
   details: string;
   levelBonus: string;
+  referralRates: string;
+  level: string;
   statsUnavailable: string;
 }> = {
   fr: {
@@ -65,6 +67,8 @@ const COPY: Record<Lang, {
     valid: "Valide",
     details: "Détails",
     levelBonus: "Bonus parrainage",
+    referralRates: "Taux de parrainage",
+    level: "Niveau",
     statsUnavailable: "Impossible de charger les statistiques de l'équipe.",
   },
   en: {
@@ -86,6 +90,8 @@ const COPY: Record<Lang, {
     valid: "Valid",
     details: "Details",
     levelBonus: "Referral bonus",
+    referralRates: "Referral rates",
+    level: "Level",
     statsUnavailable: "Could not load team statistics.",
   },
   ar: {
@@ -107,6 +113,8 @@ const COPY: Record<Lang, {
     valid: "صالح",
     details: "التفاصيل",
     levelBonus: "مكافأة الإحالة",
+    referralRates: "نسب الإحالة",
+    level: "المستوى",
     statsUnavailable: "تعذر تحميل إحصاءات الفريق.",
   },
   zh: {
@@ -128,6 +136,8 @@ const COPY: Record<Lang, {
     valid: "有效",
     details: "详情",
     levelBonus: "推荐奖励",
+    referralRates: "推荐比例",
+    level: "级别",
     statsUnavailable: "无法加载团队统计。",
   },
 };
@@ -152,6 +162,13 @@ function formatMoney(value: unknown) {
   return `XOF ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
 }
 
+function formatPercentage(value: unknown, lang: Lang) {
+  if (value === undefined || value === null || value === "") return "—";
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return "—";
+  return `${amount.toLocaleString(lang, { maximumFractionDigits: 2 })}%`;
+}
+
 export default function TeamPage() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -165,6 +182,9 @@ export default function TeamPage() {
   const { data: stats, isError } = useQuery<TeamStats>({
     queryKey: [statsUrl],
     staleTime: 60_000,
+  });
+  const { data: settings } = useQuery<Record<string, string>>({
+    queryKey: ["/api/settings"],
   });
 
   if (!user) return null;
@@ -188,6 +208,11 @@ export default function TeamPage() {
     valid: levelValidCounts[index],
     bonus: levelCommissions[index],
   }));
+  const referralRates = [
+    { level: 1, value: settings?.level1Commission },
+    { level: 2, value: settings?.level2Commission },
+    { level: 3, value: settings?.level3Commission },
+  ];
   const totalUsers = levelCounts.reduce((total, count) => total + count, 0);
   const displayedDate = selectedDate
     ? new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric" })
@@ -409,6 +434,26 @@ export default function TeamPage() {
           </section>
         </div>
       </div>
+
+      <section
+        className="ielp-team-referral-rate-bar"
+        aria-label={copy.referralRates}
+        data-testid="team-referral-rates"
+      >
+        <h2>{copy.referralRates}</h2>
+        <div className="ielp-team-referral-rate-items">
+          {referralRates.map(({ level, value }) => (
+            <div
+              className="ielp-team-referral-rate-item"
+              key={level}
+              data-testid={`team-referral-rate-${level}`}
+            >
+              <span>{copy.level} {level}</span>
+              <strong>{formatPercentage(value, lang)}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <FloatingSupport placement="home" />
     </main>
