@@ -49,11 +49,13 @@ import {
 } from "@/lib/vip";
 import bannerTeamPhoto from "@/assets/images/diamant-banner-team-dsc-0636.jpg";
 import bannerLeadershipPhoto from "@/assets/images/diamant-banner-leadership-team.jpg";
+import bannerMeganePhoto from "@/assets/images/diamant-banner-megane.jpg";
 import "./account.css";
 
 const ACCOUNT_BANNER_POSTERS = [
-  { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198 },
-  { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318 },
+  { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198, fit: "cover" },
+  { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318, fit: "cover" },
+  { id: "megane-photo", src: bannerMeganePhoto, slideWidth: 132, fit: "contain" },
 ] as const;
 
 type AccountCopy = {
@@ -446,9 +448,21 @@ export default function AccountPage() {
                   <div
                     className="ielp-account-banner-slide"
                     key={`${poster.id}-${index}`}
-                    style={poster.slideWidth ? { width: poster.slideWidth, flexBasis: poster.slideWidth } : undefined}
+                    style={{
+                      width: poster.slideWidth,
+                      flexBasis: poster.slideWidth,
+                      backgroundColor: poster.fit === "contain" ? "#020304" : undefined,
+                    }}
                   >
-                    <img src={poster.src} alt="" draggable={false} />
+                    <img
+                      src={poster.src}
+                      alt=""
+                      draggable={false}
+                      style={{
+                        objectFit: poster.fit,
+                        transform: poster.fit === "contain" ? "none" : undefined,
+                      }}
+                    />
                   </div>
                 ))}
               </div>
