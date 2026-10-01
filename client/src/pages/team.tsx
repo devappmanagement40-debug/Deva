@@ -381,7 +381,7 @@ export default function TeamPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => navigate("/team-details")}
+                  onClick={() => navigate(`/team-details/${level}`)}
                   data-testid={`button-team-level-${level}`}
                 >
                   {copy.details} <span aria-hidden="true">›</span>

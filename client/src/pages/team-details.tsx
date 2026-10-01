@@ -91,9 +91,12 @@ function EmptyState() {
 /* ── Main component ──────────────────────────────────── */
 export default function TeamDetailsPage() {
   const [activeLevel, setActiveLevel] = useState<1 | 2 | 3>(1);
-  const [, navigate]  = useLocation();
+  const [location, navigate]  = useLocation();
   const { user }      = useAuth();
   const { t }         = useI18n();
+  const routeLevel = location.match(/^\/team-details\/([1-3])$/)?.[1];
+  const lockedLevel = routeLevel ? Number(routeLevel) as 1 | 2 | 3 : null;
+  const selectedLevel = lockedLevel ?? activeLevel;
 
   const { data: team, isLoading } = useQuery<TeamDetails>({
     queryKey: ["/api/team/details"],
@@ -105,7 +108,7 @@ export default function TeamDetailsPage() {
     { num: 3 as const, label: "Niveau 3", members: team?.level3 || [] },
   ];
 
-  const members     = levels[activeLevel - 1].members;
+  const members     = levels[selectedLevel - 1].members;
   const totalCount  = members.length;
   const activeCount = members.filter(m => m.hasDeposited).length;
 
@@ -136,30 +139,31 @@ export default function TeamDetailsPage() {
           style={{ color: "#111" }}
           data-testid="text-page-title"
         >
-          Parrainage Niveau {activeLevel}
+          Parrainage Niveau {selectedLevel}
         </h1>
       </div>
 
-      {/* ══ NIVEAU TABS ══ */}
-      <div className="flex" style={{ background: "#fff", borderBottom: "1px solid #eee" }}>
-        {levels.map(lv => (
-          <button
-            key={lv.num}
-            onClick={() => setActiveLevel(lv.num)}
-            className="flex-1 py-3 text-center text-sm font-semibold relative transition-colors"
-            style={{ color: activeLevel === lv.num ? RED : "#9ca3af" }}
-            data-testid={`tab-level-${lv.num}`}
-          >
-            {lv.label}
-            {activeLevel === lv.num && (
-              <span
-                className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full"
-                style={{ background: RED }}
-              />
-            )}
-          </button>
-        ))}
-      </div>
+      {lockedLevel === null && (
+        <div className="flex" style={{ background: "#fff", borderBottom: "1px solid #eee" }}>
+          {levels.map(lv => (
+            <button
+              key={lv.num}
+              onClick={() => setActiveLevel(lv.num)}
+              className="flex-1 py-3 text-center text-sm font-semibold relative transition-colors"
+              style={{ color: selectedLevel === lv.num ? RED : "#9ca3af" }}
+              data-testid={`tab-level-${lv.num}`}
+            >
+              {lv.label}
+              {selectedLevel === lv.num && (
+                <span
+                  className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full"
+                  style={{ background: RED }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* ══ STATS CARD ══ */}
       <div className="mx-3 mt-4 rounded-2xl overflow-hidden" style={{ background: GRAY }}>

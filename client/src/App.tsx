@@ -388,6 +388,11 @@ function RouterComponent() {
           <GiftCodePage />
         </ProtectedRoute>
       </Route>
+      <Route path="/team-details/:level">
+        <ProtectedRoute>
+          <TeamDetailsPage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/team-details">
         <ProtectedRoute>
           <TeamDetailsPage />
