@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
-  ArrowLeftRight,
   Bookmark,
-  Bot,
   BookOpen,
   CalendarDays,
-  ChartNoAxesCombined,
   ChevronRight,
   CircleDollarSign,
   CircleHelp,
@@ -73,6 +70,7 @@ type AccountCopy = {
   vipAction: string;
   vipMax: string;
   idCopied: string;
+  idCopyFailed: string;
   faq: string;
   password: string;
   securityPin: string;
@@ -111,6 +109,7 @@ const COPY: Record<Lang, AccountCopy> = {
     vipAction: "Méthodes pour améliorer le VIP",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
+    idCopyFailed: "Impossible de copier l’ID.",
     faq: "FAQ",
     password: "Mot de passe",
     securityPin: "Code PIN de sécurité",
@@ -147,6 +146,7 @@ const COPY: Record<Lang, AccountCopy> = {
     vipAction: "How to improve your VIP level",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
+    idCopyFailed: "Could not copy the ID.",
     faq: "FAQ",
     password: "Password",
     securityPin: "Security PIN",
@@ -183,6 +183,7 @@ const COPY: Record<Lang, AccountCopy> = {
     vipAction: "كيفية تحسين مستوى VIP",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
+    idCopyFailed: "تعذر نسخ المعرّف.",
     faq: "الأسئلة الشائعة",
     password: "كلمة المرور",
     securityPin: "رمز PIN للأمان",
@@ -219,6 +220,7 @@ const COPY: Record<Lang, AccountCopy> = {
     vipAction: "查看VIP升级方式",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
+    idCopyFailed: "无法复制编号。",
     faq: "常见问题",
     password: "密码",
     securityPin: "安全 PIN 码",
@@ -239,15 +241,24 @@ const COPY: Record<Lang, AccountCopy> = {
 };
 
 const QUICK_ACTIONS: {
-  copyKey: "deposit" | "withdraw" | "statements" | "transfer" | "team";
+  copyKey: "deposit" | "withdraw" | "orders" | "walletCard";
   href: string;
   Icon: LucideIcon;
 }[] = [
   { copyKey: "deposit", href: "/deposit", Icon: WalletCards },
-  { copyKey: "withdraw", href: "/withdrawal", Icon: Bot },
-  { copyKey: "statements", href: "/history", Icon: ChartNoAxesCombined },
-  { copyKey: "transfer", href: "/wallet", Icon: ArrowLeftRight },
+  { copyKey: "withdraw", href: "/withdrawal", Icon: HandCoins },
+  { copyKey: "orders", href: "/orders", Icon: ReceiptText },
+  { copyKey: "walletCard", href: "/wallet", Icon: WalletCards },
+];
+
+const BUSINESS_ACTIONS: {
+  copyKey: "team" | "earnings" | "rewards";
+  href: string;
+  Icon: LucideIcon;
+}[] = [
   { copyKey: "team", href: "/team", Icon: UsersRound },
+  { copyKey: "earnings", href: "/earnings", Icon: CircleDollarSign },
+  { copyKey: "rewards", href: "/salary-bonus", Icon: Gift },
 ];
 
 const ACCOUNT_LINKS: {
@@ -302,6 +313,18 @@ export default function AccountPage() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installing, setInstalling] = useState(false);
   const [phoneVisible, setPhoneVisible] = useState(false);
+  const { data: userProducts = [] } = useQuery<any[]>({
+    queryKey: ["/api/user/products"],
+  });
+  const { data: settings = {} } = useQuery<Record<string, string>>({
+    queryKey: ["/api/settings"],
+  });
+  const vipConfigs = mergeAdminVipConfig(DEFAULT_VIP_CONFIGS, settings);
+  const vipLevel = computeVipLevelFromProduct(userProducts);
+  const currentVip = vipConfigs[vipLevel] ?? DEFAULT_VIP_CONFIGS[0];
+  const nextVip = vipConfigs[vipLevel + 1] ?? null;
+  const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
+  const vipProgress = Math.round((vipLevel / 7) * 100);
 
   useEffect(() => {
     if ((window as any)._installPrompt) setInstallPrompt((window as any)._installPrompt);
@@ -338,6 +361,7 @@ export default function AccountPage() {
   const phoneDigits = String(user.phone || "").replace(/\D/g, "");
   const visiblePhone = `${phonePrefix}${phoneDigits ? ` ${phoneDigits}` : ""}`.trim();
   const maskedPhone = `${phonePrefix}*****${phoneDigits.slice(-8)}`.trim();
+  const memberCode = user.referralCode || user.id;
 
   const handleLogout = async () => {
     await logout();
@@ -359,6 +383,15 @@ export default function AccountPage() {
       }
     } finally {
       setInstalling(false);
+    }
+  };
+
+  const handleCopyMemberId = async () => {
+    try {
+      await navigator.clipboard.writeText(String(memberCode));
+      toast({ title: copy.idCopied });
+    } catch {
+      toast({ title: copy.idCopyFailed, variant: "destructive" });
     }
   };
 
@@ -401,58 +434,148 @@ export default function AccountPage() {
         </header>
 
         <div className="ielp-account-content">
-          <section className="ielp-account-profile" aria-label={copy.accountMenu}>
-            <button
-              type="button"
-              className="ielp-account-avatar-button"
-              onClick={() => setShowAccountMenu(true)}
-              aria-label={copy.accountMenu}
-              data-testid="button-account-menu"
-            >
-              <span className="ielp-account-avatar" aria-hidden="true">
-                <UserRound size={36} strokeWidth={2.8} />
-              </span>
-            </button>
-            <div className="ielp-account-profile-copy">
-              <div className="ielp-account-phone">
-                <button
-                  type="button"
-                  className="ielp-account-phone-menu"
-                  onClick={() => setShowAccountMenu(true)}
-                  aria-label={copy.accountMenu}
-                  data-testid="button-account-menu-phone"
-                >
-                  {phoneVisible ? visiblePhone : maskedPhone}
-                </button>
-                <button
-                  type="button"
-                  className="ielp-account-phone-toggle"
-                  aria-label={phoneVisible ? "Masquer le numéro" : "Afficher le numéro"}
-                  onClick={() => setPhoneVisible((visible) => !visible)}
-                  data-testid="button-toggle-phone"
-                >
-                  {phoneVisible ? <Eye size={17} /> : <EyeOff size={17} />}
-                </button>
+          <section className="ielp-account-hero" aria-label={copy.accountMenu}>
+            <div
+              className="ielp-account-banner"
+              aria-hidden="true"
+              style={{
+                backgroundImage: `linear-gradient(100deg, rgba(5, 9, 35, .18), rgba(8, 40, 95, .52)), url(${accountHero})`,
+              }}
+            />
+            <div className="ielp-account-profile">
+              <button
+                type="button"
+                className="ielp-account-avatar-button"
+                onClick={() => setShowAccountMenu(true)}
+                aria-label={copy.accountMenu}
+                data-testid="button-account-menu"
+              >
+                <span className="ielp-account-avatar" aria-hidden="true">
+                  <UserRound size={40} strokeWidth={1.8} />
+                </span>
+              </button>
+              <div className="ielp-account-profile-copy">
+                <h1 className="ielp-account-name">{user.fullName}</h1>
+                <div className="ielp-account-identity-meta">
+                  <span className="ielp-account-member-badge">{copy.memberId}</span>
+                  <button
+                    type="button"
+                    className="ielp-account-phone-menu"
+                    onClick={() => setShowAccountMenu(true)}
+                    aria-label={copy.accountMenu}
+                    data-testid="button-account-menu-phone"
+                  >
+                    {phoneVisible ? visiblePhone : maskedPhone}
+                  </button>
+                  <span className="ielp-account-member-code">({memberCode})</span>
+                  <button
+                    type="button"
+                    className="ielp-account-copy-id"
+                    onClick={handleCopyMemberId}
+                    aria-label={copy.idCopied}
+                    data-testid="button-copy-member-id"
+                  >
+                    <Copy size={15} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="ielp-account-phone-toggle"
+                    aria-label={phoneVisible ? "Masquer le numéro" : "Afficher le numéro"}
+                    onClick={() => setPhoneVisible((visible) => !visible)}
+                    data-testid="button-toggle-phone"
+                  >
+                    {phoneVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+                  </button>
+                </div>
               </div>
-              <span className="ielp-account-level">Launchpool</span>
             </div>
           </section>
 
-          <section className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
-            {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
-              <button
-                key={copyKey}
-                type="button"
-                className={`ielp-account-shortcut ielp-account-shortcut--${index + 1}`}
-                onClick={() => navigate(href)}
-                data-testid={`account-shortcut-${href.slice(1)}`}
+          <section className="ielp-account-balance-card" aria-label={copy.balance}>
+            <div className="ielp-account-balance-heading">
+              <span>{copy.balance}</span>
+              <strong>{formatCurrency(Number(user.balance) || 0, user.country)}</strong>
+            </div>
+            <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
+              {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
+                <button
+                  key={copyKey}
+                  type="button"
+                  className={`ielp-account-shortcut ielp-account-shortcut--${index + 1}`}
+                  onClick={() => navigate(href)}
+                  data-testid={`account-shortcut-${href.slice(1)}`}
+                >
+                  <span className="ielp-account-shortcut-icon">
+                    <Icon size={23} strokeWidth={2.1} aria-hidden="true" />
+                  </span>
+                  <span>{copy[copyKey]}</span>
+                </button>
+              ))}
+            </nav>
+          </section>
+
+          <button
+            type="button"
+            className="ielp-account-vip-card"
+            onClick={() => navigate("/vip")}
+            data-testid="account-vip-card"
+          >
+            <div className="ielp-account-vip-heading">
+              <span className="ielp-account-vip-title">
+                <Crown size={18} fill="currentColor" aria-hidden="true" />
+                {copy.vipTitle}
+              </span>
+              <span
+                className="ielp-account-vip-badge"
+                style={{
+                  background: vipBadge.bg,
+                  color: vipBadge.text,
+                  borderColor: vipBadge.border,
+                }}
               >
-                <span className="ielp-account-shortcut-icon">
-                  <Icon size={25} strokeWidth={2.4} aria-hidden="true" />
-                </span>
-                <span>{copy[copyKey]}</span>
-              </button>
-            ))}
+                {currentVip.label}
+              </span>
+            </div>
+            <p className="ielp-account-vip-next">
+              {nextVip ? `${copy.vipNextPrefix} : ${nextVip.label}` : copy.vipMax}
+            </p>
+            <div
+              className="ielp-account-vip-progress"
+              role="progressbar"
+              aria-label={copy.vipProgress.replace("{level}", String(vipLevel)).replace("{total}", "7")}
+              aria-valuemin={0}
+              aria-valuemax={7}
+              aria-valuenow={vipLevel}
+            >
+              <span style={{ width: `${vipProgress}%` }} />
+            </div>
+            <div className="ielp-account-vip-footer">
+              <span>{copy.vipProgress.replace("{level}", String(vipLevel)).replace("{total}", "7")}</span>
+              <span className="ielp-account-vip-link">
+                {copy.vipAction}
+                <ChevronRight size={16} aria-hidden="true" />
+              </span>
+            </div>
+          </button>
+
+          <section className="ielp-account-company-card" aria-label={copy.myCompany}>
+            <h2>{copy.myCompany}</h2>
+            <nav className="ielp-account-company-actions" aria-label={copy.myCompany}>
+              {BUSINESS_ACTIONS.map(({ copyKey, href, Icon }) => (
+                <button
+                  key={copyKey}
+                  type="button"
+                  className="ielp-account-company-action"
+                  onClick={() => navigate(href)}
+                  data-testid={`account-company-${href.slice(1)}`}
+                >
+                  <span className="ielp-account-company-icon">
+                    <Icon size={25} strokeWidth={1.9} aria-hidden="true" />
+                  </span>
+                  <span>{copy[copyKey]}</span>
+                </button>
+              ))}
+            </nav>
           </section>
 
           <section className="ielp-account-links" aria-label={copy.accountMenu}>

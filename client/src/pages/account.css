@@ -298,3 +298,387 @@
     font-size: 14px;
   }
 }
+
+.ielp-account-content {
+  padding-top: 13px;
+}
+
+.ielp-account-hero {
+  margin: 0 0 18px;
+}
+
+.ielp-account-banner {
+  position: relative;
+  height: 132px;
+  overflow: hidden;
+  border: 1px solid rgba(191, 208, 255, .16);
+  border-radius: 20px;
+  background-color: #0b2d65;
+  background-position: center 43%;
+  background-size: cover;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .18);
+}
+
+.ielp-account-banner::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(4, 9, 34, .04), rgba(4, 9, 34, .35));
+}
+
+.ielp-account-profile {
+  position: relative;
+  display: flex;
+  height: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: -47px 0 0;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  text-align: center;
+}
+
+.ielp-account-avatar-button {
+  position: relative;
+  z-index: 1;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: #081b45;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .34);
+}
+
+.ielp-account-avatar {
+  width: 96px;
+  height: 96px;
+  border: 3px solid rgba(255, 255, 255, .92);
+  color: #e7e3ff;
+  background: linear-gradient(145deg, #263b87, #7041f2 60%, #8c46df);
+}
+
+.ielp-account-profile-copy {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ielp-account-name {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ielp-account-identity-meta {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: rgba(240, 243, 255, .84);
+  font-size: 12px;
+}
+
+.ielp-account-member-badge {
+  display: inline-flex;
+  min-height: 21px;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(100deg, #247eea, #7041f2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.ielp-account-phone-menu {
+  max-width: 150px;
+  overflow: hidden;
+  color: #f3f4ff;
+  background: transparent;
+  font: inherit;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ielp-account-member-code {
+  color: rgba(230, 235, 255, .72);
+  font-weight: 600;
+}
+
+.ielp-account-copy-id,
+.ielp-account-phone-toggle {
+  display: inline-flex;
+  width: 25px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 7px;
+  color: #c9c3ff;
+  background: rgba(255, 255, 255, .08);
+}
+
+.ielp-account-balance-card,
+.ielp-account-company-card {
+  border: 1px solid rgba(184, 205, 255, .13);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(24, 36, 79, .96), rgba(15, 56, 103, .92));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
+}
+
+.ielp-account-balance-card {
+  padding: 16px 14px 13px;
+}
+
+.ielp-account-balance-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 12px;
+  color: rgba(242, 245, 255, .84);
+  font-size: 15px;
+}
+
+.ielp-account-balance-heading strong {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ielp-account-shortcuts {
+  display: grid;
+  height: auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: auto;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ielp-account-shortcut {
+  gap: 7px;
+  padding: 2px 1px 0;
+  color: #f7f8ff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ielp-account-shortcut-icon {
+  width: 43px;
+  height: 43px;
+  border: 1px solid rgba(255, 255, 255, .17);
+  border-radius: 13px;
+  color: #fff;
+  background: linear-gradient(145deg, rgba(85, 104, 255, .58), rgba(112, 65, 242, .38));
+}
+
+.ielp-account-shortcut--2 .ielp-account-shortcut-icon {
+  background: linear-gradient(145deg, rgba(30, 180, 224, .5), rgba(37, 106, 224, .36));
+}
+
+.ielp-account-shortcut--3 .ielp-account-shortcut-icon {
+  background: linear-gradient(145deg, rgba(247, 185, 70, .48), rgba(211, 122, 37, .3));
+}
+
+.ielp-account-shortcut--4 .ielp-account-shortcut-icon {
+  background: linear-gradient(145deg, rgba(112, 65, 242, .6), rgba(140, 70, 223, .38));
+}
+
+.ielp-account-shortcut--4,
+.ielp-account-shortcut--5 {
+  grid-column: auto;
+}
+
+.ielp-account-vip-card {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(208, 198, 255, .28);
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(110deg, #17366f 0%, #3c3485 52%, #783ca8 100%);
+  box-shadow: 0 9px 22px rgba(26, 20, 89, .32), inset 0 1px rgba(255, 255, 255, .11);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ielp-account-vip-heading,
+.ielp-account-vip-title,
+.ielp-account-vip-footer,
+.ielp-account-vip-link {
+  display: flex;
+  align-items: center;
+}
+
+.ielp-account-vip-heading,
+.ielp-account-vip-footer {
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.ielp-account-vip-title {
+  gap: 8px;
+  color: #f6d58a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.ielp-account-vip-badge {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.ielp-account-vip-next {
+  margin: 13px 0 9px;
+  color: rgba(255, 255, 255, .93);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.ielp-account-vip-progress {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .2);
+}
+
+.ielp-account-vip-progress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f7d88b, #fff2ca);
+  transition: width 220ms ease;
+}
+
+.ielp-account-vip-footer {
+  margin-top: 9px;
+  color: rgba(247, 248, 255, .73);
+  font-size: 10px;
+}
+
+.ielp-account-vip-link {
+  gap: 2px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: end;
+}
+
+.ielp-account-company-card {
+  margin-top: 16px;
+  padding: 15px 13px 13px;
+}
+
+.ielp-account-company-card h2 {
+  margin: 0 0 14px;
+  color: #f8f8ff;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.ielp-account-company-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.ielp-account-company-action {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 2px 2px;
+  border-radius: 12px;
+  color: rgba(246, 247, 255, .92);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 550;
+  text-align: center;
+  transition: background 140ms ease, transform 100ms ease;
+}
+
+.ielp-account-company-action:active {
+  transform: scale(.97);
+  background: rgba(255, 255, 255, .07);
+}
+
+.ielp-account-company-icon {
+  display: flex;
+  width: 45px;
+  height: 45px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(163, 183, 255, .2);
+  border-radius: 14px;
+  color: #d9d4ff;
+  background: linear-gradient(145deg, rgba(73, 97, 187, .48), rgba(112, 65, 242, .25));
+}
+
+.ielp-account-links {
+  margin-top: 16px;
+}
+
+.ielp-account-profile button:focus-visible,
+.ielp-account-company-action:focus-visible,
+.ielp-account-vip-card:focus-visible {
+  outline: 2px solid #b6a8ff;
+  outline-offset: 3px;
+}
+
+@media (max-width: 380px) {
+  .ielp-account-identity-meta {
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .ielp-account-phone-menu {
+    max-width: 126px;
+  }
+
+  .ielp-account-balance-heading strong {
+    font-size: 18px;
+  }
+
+  .ielp-account-shortcut {
+    font-size: 10px;
+  }
+
+  .ielp-account-vip-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
