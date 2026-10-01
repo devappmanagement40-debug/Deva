@@ -47,8 +47,16 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import accountHero from "@/assets/images/diamant-checkin-hero.png";
+import bannerAsscherDiamond from "@/assets/images/diamant-banner-asscher-cut.png";
+import bannerRoughDiamonds from "@/assets/images/diamant-banner-rough-diamonds.jpg";
+import bannerSmithsonianDiamonds from "@/assets/images/diamant-banner-smithsonian-diamonds.jpg";
 import "./account.css";
+
+const ACCOUNT_BANNER_PHOTOS = [
+  { id: "asscher", src: bannerAsscherDiamond },
+  { id: "rough-diamonds", src: bannerRoughDiamonds },
+  { id: "smithsonian", src: bannerSmithsonianDiamonds },
+] as const;
 
 type AccountCopy = {
   deposit: string;
@@ -434,13 +442,15 @@ export default function AccountPage() {
 
         <div className="ielp-account-content">
           <section className="ielp-account-hero" aria-label={copy.accountMenu}>
-            <div
-              className="ielp-account-banner"
-              aria-hidden="true"
-              style={{
-                backgroundImage: `linear-gradient(100deg, rgba(5, 9, 35, .18), rgba(8, 40, 95, .52)), url(${accountHero})`,
-              }}
-            />
+            <div className="ielp-account-banner" aria-hidden="true">
+              <div className="ielp-account-banner-track">
+                {[...ACCOUNT_BANNER_PHOTOS, ...ACCOUNT_BANNER_PHOTOS].map((photo, index) => (
+                  <div className="ielp-account-banner-slide" key={`${photo.id}-${index}`}>
+                    <img src={photo.src} alt="" draggable={false} />
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="ielp-account-profile">
               <button
                 type="button"
