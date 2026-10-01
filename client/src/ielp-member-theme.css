@@ -253,7 +253,8 @@ body.ielp-route-theme [data-testid="button-select-wallet"] {
   background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
 }
 
-body.ielp-route-theme [data-testid^="wallet-card-"] {
+body.ielp-route-theme [data-testid^="wallet-card-"],
+body.ielp-route-theme [data-testid^="balance-card-"] {
   background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
 }
 
