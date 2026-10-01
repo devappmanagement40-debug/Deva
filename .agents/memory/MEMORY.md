@@ -13,4 +13,5 @@
 - [DIAMANT web presentation](diamant-web-presentation.md) — keep the existing web presentation; do not expand app-shell or PWA behavior without approval.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD product earnings collection](tgood-product-earnings-collection.md) — product gains accrue pending per product and credit totalEarnings only after manual 24-hour collection.
+- [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.

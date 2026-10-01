@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import session from "express-session";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
-import { registerSchema, loginSchema } from "@shared/schema";
+import { PRODUCT_TYPES, registerSchema, loginSchema } from "@shared/schema";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -2630,14 +2630,19 @@ export async function registerRoutes(
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
       const { name, price, dailyEarnings, cycleDays, imageUrl, minInviteCount, maxOwned, collectAtEnd, stockPercentage } = req.body;
+      const productType = req.body.productType ?? "all";
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
+      }
+      if (!PRODUCT_TYPES.includes(productType)) {
+        return res.status(400).json({ message: "Type de produit invalide" });
       }
       const priceNum = parseFloat(price);
       const dailyNum = parseFloat(dailyEarnings);
       const cycleInt = parseInt(cycleDays);
       const product = await storage.createProduct({
         name,
+        productType,
         price: String(priceNum),
         dailyEarnings: String(dailyNum),
         cycleDays: cycleInt,
@@ -2662,6 +2667,9 @@ export async function registerRoutes(
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const body = { ...req.body };
+      if (body.productType !== undefined && !PRODUCT_TYPES.includes(body.productType)) {
+        return res.status(400).json({ message: "Type de produit invalide" });
+      }
       // Normalize numeric fields when present
       if (body.minInviteCount !== undefined) body.minInviteCount = parseInt(body.minInviteCount) || 0;
       if (body.maxOwned !== undefined) body.maxOwned = parseInt(body.maxOwned) || 0;

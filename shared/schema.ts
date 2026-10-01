@@ -88,9 +88,13 @@ export type ProductSeries = typeof productSeries.$inferSelect;
 export type InsertProductSeries = typeof productSeries.$inferInsert;
 
 // Products table
+export const PRODUCT_TYPES = ["all", "stability", "wellness", "activity"] as const;
+export type ProductType = typeof PRODUCT_TYPES[number];
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  productType: text("product_type").$type<ProductType>().notNull().default("all"),
   price: decimal("price", { precision: 15, scale: 2 }).notNull(),
   dailyEarnings: decimal("daily_earnings", { precision: 15, scale: 2 }).notNull(),
   cycleDays: integer("cycle_days").notNull().default(80),

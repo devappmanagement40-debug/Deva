@@ -20,6 +20,8 @@ interface ProductWithOwnership extends Product {
   ownedCount?: number;
 }
 
+const PRODUCT_TAB_TYPES = ["stability", "wellness", "activity"] as const;
+
 const INVEST_COPY: Record<Lang, {
   tabs: [string, string, string];
   overview: string;
@@ -178,10 +180,15 @@ export default function ProductsPage() {
   const earningsBalance = Number.isFinite(parseFloat(user.totalEarnings || "0")) ? parseFloat(user.totalEarnings || "0") : 0;
   const availableBalance = depositBalance + earningsBalance;
   const paidProducts = (products || []).filter((product) => !product.isFree);
+  const selectedProductType = PRODUCT_TAB_TYPES[selectedTab] ?? PRODUCT_TAB_TYPES[0];
+  const sectionProducts = paidProducts.filter(
+    (product) => !product.productType || product.productType === "all" || product.productType === selectedProductType,
+  );
+  const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
   const getDisplayName = (product: ProductWithOwnership) => rebrandText(product.name);
   const getProductImage = (product: ProductWithOwnership, index: number) => getProductVisual(product.imageUrl, index);
   const confirmProductIndex = confirmProduct
-    ? Math.max(0, paidProducts.findIndex((product) => product.id === confirmProduct.id))
+    ? Math.max(0, sectionProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
   const handleBuy = (product: ProductWithOwnership) => setConfirmProduct(product);
 
@@ -243,13 +250,14 @@ export default function ProductsPage() {
                 <p>{t.errorOccurred}</p>
                 <button type="button" onClick={() => void refetch()}><RefreshCw size={15} />{copy.retry}</button>
               </div>
-            ) : paidProducts.length === 0 ? (
+            ) : sectionProducts.length === 0 ? (
               <div className="diamant-invest-state">
                 <span className="diamant-invest-state__mark"><DiamantBrand markSize={34} showWordmark={false} /></span>
                 <p>{t.noProducts}</p>
               </div>
             ) : (
-              paidProducts.map((product, index) => {
+              sectionProducts.map((product) => {
+                const index = productIndexes.get(product.id) ?? 0;
                 const price = Number(product.price) || 0;
                 const dailyEarnings = Number(product.dailyEarnings) || 0;
                 const totalReturn = Number(product.totalReturn) || 0;

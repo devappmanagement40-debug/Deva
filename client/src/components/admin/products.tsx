@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
@@ -21,6 +22,7 @@ import { getProductVisual } from "@/lib/product-visuals";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nom requis"),
+  productType: z.enum(["all", "stability", "wellness", "activity"]),
   price: z.string().min(1, "Prix requis"),
   dailyEarnings: z.string().min(1, "Gains journaliers requis"),
   cycleDays: z.string().min(1, "Durée requise"),
@@ -32,6 +34,13 @@ const productSchema = z.object({
 });
 
 type ProductForm = z.infer<typeof productSchema>;
+
+const PRODUCT_TYPE_LABELS: Record<ProductForm["productType"], string> = {
+  all: "Toutes les sections (produit existant)",
+  stability: "Stabiliser",
+  wellness: "Bien-être",
+  activity: "Activité",
+};
 
 // ─── ImageUploadField ────────────────────────────────────────────────────────
 function ImageUploadField({ form }: { form: any }) {
@@ -72,6 +81,23 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
         <FormItem>
           <FormLabel>Nom du produit</FormLabel>
           <FormControl><Input {...field} placeholder="Ex: VIP 3" /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+
+      <FormField control={form.control} name="productType" render={({ field }) => (
+        <FormItem>
+          <FormLabel>Type / section du produit</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <FormControl>
+              <SelectTrigger><SelectValue placeholder="Choisir une section" /></SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {Object.entries(PRODUCT_TYPE_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <FormMessage />
         </FormItem>
       )} />
@@ -234,7 +260,7 @@ export default function AdminProducts() {
   });
 
   const defaultValues: ProductForm = {
-    name: "", price: "", dailyEarnings: "", cycleDays: "80",
+    name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: "80",
     imageUrl: "", minInviteCount: "0", maxOwned: "0", collectAtEnd: false, stockPercentage: 0,
   };
 
@@ -261,6 +287,7 @@ export default function AdminProducts() {
     mutationFn: async ({ id, data }: { id: number; data: ProductForm }) => {
       const payload = {
         name: data.name,
+        productType: data.productType,
         price: parseFloat(data.price),
         dailyEarnings: parseFloat(data.dailyEarnings),
         cycleDays: parseInt(data.cycleDays),
@@ -328,6 +355,7 @@ export default function AdminProducts() {
     setSelectedProduct(product);
     editForm.reset({
       name: rebrandText(product.name),
+      productType: product.productType ?? "all",
       price: product.price.toString(),
       dailyEarnings: product.dailyEarnings.toString(),
       cycleDays: product.cycleDays.toString(),
@@ -360,6 +388,7 @@ export default function AdminProducts() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{rebrandText(product.name)}</p>
+                      <Badge variant="outline" className="text-xs">{PRODUCT_TYPE_LABELS[product.productType ?? "all"]}</Badge>
                       {product.isFree && <Badge variant="secondary" className="text-xs">Gratuit</Badge>}
                       <Badge variant={product.isActive ? "default" : "outline"} className="text-xs">
                         {product.isActive ? "Actif" : "Inactif"}
