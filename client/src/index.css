@@ -1393,8 +1393,6 @@ ol[data-radix-toast-viewport] li * {
   border-radius: 18px 18px 0 0;
   background: linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98));
   box-shadow: 0 -7px 22px rgba(0, 0, 0, .27), inset 0 1px rgba(255, 255, 255, .06);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
 }
 
 .bottom-nav--ielp .bottom-nav__inner {

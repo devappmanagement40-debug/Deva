@@ -1,21 +1,25 @@
 .ielp-home-page.diamant-invest-page {
-  min-height: 100dvh;
+  min-height: 100vh;
+  min-height: 100svh;
   overflow-x: clip;
   color: #f7f5ff;
-  background: #050a24 url("/auth-night-sky.svg") center top / 100% 100% fixed no-repeat;
+  background: #050a24 url("/auth-night-sky.svg") center top / 100% 100% no-repeat;
   font-family: Arial, Roboto, sans-serif;
 }
 
 .ielp-home-page .diamant-invest-shell {
   position: relative;
-  min-height: 100dvh;
+  min-height: 100vh;
+  min-height: 100svh;
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
   background: transparent;
 }
 
 .diamant-invest-header {
   border-bottom: 1px solid rgba(197, 195, 255, .13);
-  background: rgba(5, 9, 32, .72);
+  background: #050920;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .diamant-invest-brand {
@@ -143,16 +147,6 @@
   background: #f5f7ff;
   box-shadow: 0 12px 28px rgba(1, 5, 28, .32), inset 0 1px 0 #fff;
   color: #122044;
-  animation: diamant-card-enter 440ms both;
-}
-
-.diamant-invest-product-card:nth-child(2) { animation-delay: 55ms; }
-.diamant-invest-product-card:nth-child(3) { animation-delay: 110ms; }
-.diamant-invest-product-card:nth-child(4) { animation-delay: 165ms; }
-
-@keyframes diamant-card-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .diamant-invest-owned-badge {
@@ -257,6 +251,7 @@
 }
 
 .diamant-invest-product-visual img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -640,7 +635,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .diamant-invest-product-card,
   .diamant-invest-skeleton > div,
   .diamant-invest-buy,
   .diamant-invest-tabs button {
