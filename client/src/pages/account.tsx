@@ -70,7 +70,6 @@ type AccountCopy = {
   rewards: string;
   vipTitle: string;
   vipAmountRemaining: string;
-  vipAction: string;
   vipMax: string;
   idCopied: string;
   idCopyFailed: string;
@@ -108,7 +107,6 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
     vipAmountRemaining: "Passer à {level} il manque encore {amount}",
-    vipAction: "Méthodes pour améliorer le VIP",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
     idCopyFailed: "Impossible de copier l’ID.",
@@ -144,7 +142,6 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "Rewards",
     vipTitle: "VIP level",
     vipAmountRemaining: "Reach {level} — {amount} more needed",
-    vipAction: "How to improve your VIP level",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
     idCopyFailed: "Could not copy the ID.",
@@ -180,7 +177,6 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
     vipAmountRemaining: "للوصول إلى {level}، ما زال ينقصك {amount}",
-    vipAction: "كيفية تحسين مستوى VIP",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
     idCopyFailed: "تعذر نسخ المعرّف.",
@@ -216,7 +212,6 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "奖励",
     vipTitle: "VIP等级",
     vipAmountRemaining: "升至 {level}，还差 {amount}",
-    vipAction: "查看VIP升级方式",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
     idCopyFailed: "无法复制编号。",
@@ -531,10 +526,9 @@ export default function AccountPage() {
             </nav>
           </section>
 
-          <button
-            type="button"
+          <section
             className="ielp-account-vip-card"
-            onClick={() => navigate("/vip")}
+            aria-label={copy.vipTitle}
             data-testid="account-vip-card"
           >
             <div className="ielp-account-vip-content">
@@ -558,9 +552,6 @@ export default function AccountPage() {
               <div className="ielp-account-vip-progress" aria-hidden="true">
                 <span />
               </div>
-              <div className="ielp-account-vip-footer">
-                <span>{copy.vipAction}</span>
-              </div>
             </div>
             <svg className="ielp-account-vip-emblem" viewBox="0 0 90 104" aria-hidden="true">
               <defs>
@@ -583,7 +574,7 @@ export default function AccountPage() {
               <path d="m22 37 16 9-7-9ZM68 37l-16 9 7-9ZM38 46l7 20V37ZM52 46l-7 20V37Z" fill="#dce4f0" opacity=".72" />
               <text x="45" y="77" fill="#fff" fontSize="6" fontWeight="700" letterSpacing="1" textAnchor="middle">PREMIUM</text>
             </svg>
-          </button>
+          </section>
 
           <section className="ielp-account-company-card" aria-label={copy.myCompany}>
             <h2>{copy.myCompany}</h2>

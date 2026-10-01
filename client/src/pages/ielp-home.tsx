@@ -8,7 +8,6 @@ import {
   CircleDollarSign,
   CircleHelp,
   CloudDownload,
-  Crown,
   HandCoins,
   Lightbulb,
   MessageCircleMore,
@@ -42,7 +41,6 @@ const COPY: Record<Lang, {
   commissionWallet: string;
   deposit: string;
   withdraw: string;
-  vip: string;
   events: string;
   faq: string;
   invite: string;
@@ -71,7 +69,6 @@ const COPY: Record<Lang, {
     commissionWallet: "Portefeuille de commission",
     deposit: "Dépôt",
     withdraw: "Retirer",
-    vip: "VIP",
     events: "Événements",
     faq: "FAQ",
     invite: "Inviter",
@@ -100,7 +97,6 @@ const COPY: Record<Lang, {
     commissionWallet: "Commission portfolio",
     deposit: "Deposit",
     withdraw: "Withdraw",
-    vip: "VIP",
     events: "Events",
     faq: "FAQ",
     invite: "Invite",
@@ -129,7 +125,6 @@ const COPY: Record<Lang, {
     commissionWallet: "محفظة العمولات",
     deposit: "إيداع",
     withdraw: "سحب",
-    vip: "VIP",
     events: "الأحداث",
     faq: "الأسئلة",
     invite: "دعوة",
@@ -158,7 +153,6 @@ const COPY: Record<Lang, {
     commissionWallet: "佣金钱包",
     deposit: "充值",
     withdraw: "提现",
-    vip: "VIP",
     events: "活动",
     faq: "常见问题",
     invite: "邀请",
@@ -182,13 +176,12 @@ const COPY: Record<Lang, {
 };
 
 const SHORTCUTS: {
-  key: keyof Pick<typeof COPY.fr, "deposit" | "withdraw" | "vip" | "events" | "faq" | "invite" | "about" | "application">;
+  key: keyof Pick<typeof COPY.fr, "deposit" | "withdraw" | "events" | "faq" | "invite" | "about" | "application">;
   href?: string;
   Icon: LucideIcon;
 }[] = [
   { key: "deposit", href: "/deposit", Icon: CircleDollarSign },
   { key: "withdraw", href: "/withdrawal", Icon: HandCoins },
-  { key: "vip", href: "/vip", Icon: Crown },
   { key: "events", href: "/checkin", Icon: CalendarDays },
   { key: "faq", href: "/rules", Icon: CircleHelp },
   { key: "invite", href: "/team", Icon: UsersRound },
