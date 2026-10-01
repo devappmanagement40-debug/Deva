@@ -1,0 +1,189 @@
+.diamant-purchase-dialog {
+  width: min(calc(100% - 30px), 420px) !important;
+  max-width: 420px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 2px solid #8876e8 !important;
+  border-radius: 21px !important;
+  color: #f5f4ff !important;
+  background: #11183c !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .42) !important;
+}
+
+.diamant-purchase-dialog__visual {
+  height: 166px;
+  padding: 12px;
+  background:
+    radial-gradient(ellipse at 50% 100%, rgba(113, 103, 215, .3), transparent 70%),
+    linear-gradient(135deg, #252e64, #1b244f);
+}
+
+.diamant-purchase-dialog__visual img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.diamant-purchase-dialog__body { padding: 17px 18px 16px; }
+
+.diamant-purchase-dialog__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.diamant-purchase-dialog__heading > div > span {
+  color: #c8c1ff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.diamant-purchase-dialog__heading h2 {
+  margin: 5px 0 0;
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.diamant-purchase-dialog__heading > strong {
+  flex: none;
+  color: #e1d9ff;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.diamant-purchase-dialog__heading small {
+  color: #aaa5d7;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 9px;
+}
+
+.diamant-purchase-dialog__hint {
+  margin: 14px 0 0;
+  color: #f0eeff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.diamant-purchase-dialog__hint--subtle {
+  margin-top: 4px;
+  color: #c4c5e2;
+  font-size: 11px;
+}
+
+.diamant-purchase-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 13px;
+  padding: 10px 11px;
+  border: 2px solid #bd5877;
+  border-radius: 10px;
+  color: #ffd9e0;
+  background: rgba(126, 45, 84, .23);
+}
+
+.diamant-purchase-alert svg { flex: none; margin-top: 1px; color: #ffc0cf; }
+.diamant-purchase-alert p { margin: 0; font-size: 11px; font-weight: 700; line-height: 1.45; }
+
+.diamant-payment-breakdown {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 13px;
+  border: 2px solid #6865a8;
+  border-radius: 11px;
+  background: #0a1232;
+  box-shadow: inset 0 1px rgba(255,255,255,.04);
+}
+
+.diamant-payment-breakdown > p {
+  margin: 0 0 1px;
+  color: #ded8ff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diamant-payment-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #e1e3f7;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.diamant-payment-breakdown strong {
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.diamant-purchase-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 13px;
+  overflow: hidden;
+  border: 2px solid #6966a4;
+  border-radius: 10px;
+}
+
+.diamant-purchase-stats > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px;
+  background: #171e46;
+  text-align: center;
+}
+
+.diamant-purchase-stats > div + div { border-inline-start: 2px solid #57558b; }
+.diamant-purchase-stats strong { color: #ded7ff; font-size: 11px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.diamant-purchase-stats span { color: #d2d2ea; font-size: 10px; font-weight: 600; line-height: 1.2; }
+
+.diamant-purchase-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 2px solid #514e81;
+}
+
+.diamant-purchase-actions button {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: #f0efff;
+  background: #1a2148;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.diamant-purchase-actions button + button {
+  color: #fff;
+  border-bottom: 4px solid #3e22b4;
+  background: #653de9;
+  box-shadow: 0 3px 0 #351c9b;
+}
+
+.diamant-purchase-actions button + button:active:not(:disabled) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  background: #5632d3;
+  box-shadow: 0 1px 0 #351c9b;
+}
+
+.diamant-purchase-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.diamant-purchase-actions button:focus-visible { outline: 2px solid #c9bdff; outline-offset: -4px; }

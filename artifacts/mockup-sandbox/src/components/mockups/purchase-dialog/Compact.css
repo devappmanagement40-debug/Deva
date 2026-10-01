@@ -1,0 +1,140 @@
+.diamant-purchase-dialog--compact {
+  display: flex !important;
+  width: min(calc(100% - 40px), 350px) !important;
+  max-width: 350px !important;
+  max-height: min(660px, calc(100dvh - 40px)) !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__visual {
+  height: 116px;
+  flex: 0 0 116px;
+  padding: 8px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 13px 10px;
+  overscroll-behavior: contain;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__heading h2 {
+  font-size: 18px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__heading > strong {
+  font-size: 16px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__hint {
+  margin-top: 9px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-dialog__hint--subtle {
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-alert {
+  margin-top: 10px;
+  padding: 8px 9px;
+  border-color: #ff0000;
+  color: #000000;
+  background: #ff0000;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-alert svg {
+  color: #000000;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-alert p {
+  font-size: 10px;
+}
+
+.diamant-purchase-dialog--compact .diamant-payment-breakdown {
+  gap: 7px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.diamant-purchase-dialog--compact .diamant-payment-breakdown > p {
+  font-size: 11px;
+}
+
+.diamant-purchase-dialog--compact .diamant-payment-breakdown > div,
+.diamant-purchase-dialog--compact .diamant-payment-breakdown strong {
+  font-size: 10px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-stats {
+  margin-top: 9px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-stats > div {
+  gap: 3px;
+  padding: 7px 3px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-stats strong {
+  font-size: 9px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-stats span {
+  font-size: 9px;
+}
+
+.diamant-purchase-dialog--compact .diamant-purchase-actions button {
+  min-height: 48px;
+  font-size: 13px;
+}
+
+@media (max-height: 680px) {
+  .diamant-purchase-dialog--compact {
+    max-height: calc(100dvh - 24px) !important;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-dialog__visual {
+    height: 82px;
+    flex-basis: 82px;
+    padding: 6px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-dialog__body {
+    padding: 9px 12px 7px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-dialog__hint {
+    margin-top: 7px;
+    line-height: 1.32;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-alert {
+    margin-top: 8px;
+    padding: 7px 8px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-payment-breakdown {
+    gap: 6px;
+    margin-top: 8px;
+    padding: 8px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-stats {
+    margin-top: 7px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-stats > div {
+    padding: 5px 2px;
+  }
+
+  .diamant-purchase-dialog--compact .diamant-purchase-actions button {
+    min-height: 46px;
+  }
+}
