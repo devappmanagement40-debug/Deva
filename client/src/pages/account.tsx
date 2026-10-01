@@ -47,15 +47,19 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import bannerPosterAsscher from "@/assets/images/diamant-banner-poster-asscher.jpg";
-import bannerPosterRough from "@/assets/images/diamant-banner-poster-rough.jpg";
-import bannerPosterSmithsonian from "@/assets/images/diamant-banner-poster-smithsonian.jpg";
+import bannerPoster3dAsscher from "@/assets/images/diamant-poster-3d-01-asscher.jpg";
+import bannerPoster3dRough from "@/assets/images/diamant-poster-3d-02-rough.jpg";
+import bannerPoster3dCollection from "@/assets/images/diamant-poster-3d-03-collection.jpg";
+import bannerPoster3dAsscherPresenter from "@/assets/images/diamant-poster-3d-04-asscher-presenter.jpg";
+import bannerPoster3dGemShowcase from "@/assets/images/diamant-poster-3d-05-gem-showcase.jpg";
 import "./account.css";
 
 const ACCOUNT_BANNER_POSTERS = [
-  { id: "asscher-poster", src: bannerPosterAsscher },
-  { id: "rough-diamonds-poster", src: bannerPosterRough },
-  { id: "smithsonian-poster", src: bannerPosterSmithsonian },
+  { id: "3d-asscher-poster", src: bannerPoster3dAsscher },
+  { id: "3d-rough-diamonds-poster", src: bannerPoster3dRough },
+  { id: "3d-collection-poster", src: bannerPoster3dCollection },
+  { id: "3d-asscher-presenter-poster", src: bannerPoster3dAsscherPresenter },
+  { id: "3d-gem-showcase-poster", src: bannerPoster3dGemShowcase },
 ] as const;
 
 type AccountCopy = {

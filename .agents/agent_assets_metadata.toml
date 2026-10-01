@@ -42,3 +42,73 @@ mtime_ms = 1790872803290
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/1c6d0a46-2b55-42dc-b3ff-e920f5c33335/5cf35ea7-203a-46d7-92e3-99106ba58201"
 storage_version_token = "1790873017397313"
 content_type = "image/png"
+
+[[outputs]]
+id = "SlBETWeB2tlVHxraRXpDV"
+uri = "file://attached_assets/generated_images/diamant-poster-3d-01-asscher.png"
+type = "image"
+title = "Affiche DIAMANT 3D — diamant Asscher"
+description = "Affiche carrée haute résolution avec deux personnages stylisés en 3D présentant un diamant Asscher."
+logical_id = "f0c52cfe-32e0-46a1-b023-bec7ed3a10a5"
+content_hash = "sha256:4dbbc82086e49d28c95d2d4f1df3affb9ac33de99f19312729353435fd71505f"
+size = 1333289
+mtime_ms = 1790873108038
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/f0c52cfe-32e0-46a1-b023-bec7ed3a10a5/05996413-4d9d-4d6c-b0f0-cb985608612f"
+storage_version_token = "1790873247273272"
+content_type = "image/png"
+
+[[outputs]]
+id = "Lg5kmvxu_5lrqx-210Fvn"
+uri = "file://attached_assets/generated_images/diamant-poster-3d-02-rough.png"
+type = "image"
+title = "Affiche DIAMANT 3D — diamants bruts"
+description = "Affiche carrée haute résolution avec deux personnages stylisés en 3D et un plateau de diamants."
+logical_id = "17ba1d16-c4f1-487d-9e1a-3d832016685f"
+content_hash = "sha256:ccd28846de8b30762ef0f2b314aa4adda117e097351922e4302f788ecb11c99d"
+size = 1555991
+mtime_ms = 1790873107930
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/17ba1d16-c4f1-487d-9e1a-3d832016685f/8d0e3dfe-6806-4126-a94b-48ea0bac8632"
+storage_version_token = "1790873247834837"
+content_type = "image/png"
+
+[[outputs]]
+id = "vnuEJ6kowV7n_MoRV-tEL"
+uri = "file://attached_assets/generated_images/diamant-poster-3d-03-collection.png"
+type = "image"
+title = "Affiche DIAMANT 3D — collection"
+description = "Affiche carrée haute résolution avec deux personnages stylisés en 3D présentant plusieurs pierres précieuses."
+logical_id = "943b1250-6dfb-4fe2-a89d-84f6d95e1464"
+content_hash = "sha256:670b17507ef91e4731034890ee4146ed67639146bfee84d3141c98f630a6fcf1"
+size = 1412404
+mtime_ms = 1790873110446
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/943b1250-6dfb-4fe2-a89d-84f6d95e1464/85a6b530-996f-48b5-bb9c-9562d2b66e82"
+storage_version_token = "1790873248405272"
+content_type = "image/png"
+
+[[outputs]]
+id = "lpwCXHyGI_H_S1d5WDxWV"
+uri = "file://attached_assets/generated_images/diamant-poster-3d-04-asscher-presenter.png"
+type = "image"
+title = "Affiche DIAMANT 3D — présentation Asscher"
+description = "Affiche carrée haute résolution avec deux personnages stylisés en 3D présentant un grand diamant Asscher."
+logical_id = "2e4b3314-58d8-4d78-8055-cd0c1fcb250d"
+content_hash = "sha256:83c0d8eb017b76ec9a895094c2ab8ec5fb9dae56074d1ac43748dbeff1622e25"
+size = 1283923
+mtime_ms = 1790873108510
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/2e4b3314-58d8-4d78-8055-cd0c1fcb250d/17ec21f4-6ab4-41a2-bffb-25271620d68a"
+storage_version_token = "1790873249391997"
+content_type = "image/png"
+
+[[outputs]]
+id = "5i5QI-rhiAqDmOZYr-Vkv"
+uri = "file://attached_assets/generated_images/diamant-poster-3d-05-gem-showcase.png"
+type = "image"
+title = "Affiche DIAMANT 3D — vitrine de gemmes"
+description = "Affiche carrée haute résolution avec deux personnages stylisés en 3D devant une sélection de diamants."
+logical_id = "ea09d570-22f1-4f37-8519-dac78c6af00e"
+content_hash = "sha256:f46d2680bd4a73343c2d6dcb1363b9705d8dafeef49e84c4c96c70dac3a389c1"
+size = 1474426
+mtime_ms = 1790873107682
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/ea09d570-22f1-4f37-8519-dac78c6af00e/d1ca55cf-4de0-45e1-9598-671fe47b9834"
+storage_version_token = "1790873249933920"
+content_type = "image/png"
