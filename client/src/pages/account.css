@@ -613,6 +613,15 @@
   white-space: nowrap;
 }
 
+.ielp-account-vip-footer {
+  display: flex;
+  align-items: center;
+  margin-top: 13px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 750;
+}
+
 .ielp-account-vip-badge {
   display: inline-flex;
   min-height: 23px;
