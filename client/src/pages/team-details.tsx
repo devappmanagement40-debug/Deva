@@ -123,9 +123,9 @@ export default function TeamDetailsPage() {
     <div className="flex flex-col min-h-screen" style={{ background: "#fff" }}>
 
       {/* ══ HEADER ══ */}
-      <div
-        className="flex items-center px-4 py-3"
-        style={{ background: "#fff", borderBottom: "1px solid #f0f0f0" }}
+      <header
+        className="sticky top-0 z-[80] flex shrink-0 items-center bg-white px-4 py-3 shadow-[0_2px_8px_rgba(0,0,0,0.05)]"
+        style={{ borderBottom: "1px solid #f0f0f0" }}
       >
         <button
           onClick={() => navigate("/team")}
@@ -141,7 +141,7 @@ export default function TeamDetailsPage() {
         >
           Parrainage Niveau {selectedLevel}
         </h1>
-      </div>
+      </header>
 
       {lockedLevel === null && (
         <div className="flex" style={{ background: "#fff", borderBottom: "1px solid #eee" }}>
