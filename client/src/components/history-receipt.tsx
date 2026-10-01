@@ -160,7 +160,7 @@ export function ReceiptCard({ transaction }: { transaction: ReceiptTransaction }
           <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt, lang)}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-7 text-right">
-          <p className="text-[13px] text-[#858585]">{amount} USDT</p>
+          <p className="text-[13px] text-[#858585]">{amount} XOF</p>
           <span className={`text-[12px] font-semibold ${statusClass}`}>{statusLabel}</span>
         </div>
       </div>

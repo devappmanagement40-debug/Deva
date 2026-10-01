@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import { getUserAvatar } from "@/lib/avatar";
+import { displayCurrencyText } from "@/lib/content";
 import {
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   type SpinWheelSegment,
@@ -70,7 +71,7 @@ function WinnersTicker({ entries }: { entries: RecentSpin[] }) {
                 </span>
               </div>
               <span className="text-sm font-extrabold" style={{ color: "#E8192C" }}>
-                + {w.amount}
+                + {displayCurrencyText(w.amount)}
               </span>
             </div>
           ))}
@@ -230,7 +231,7 @@ function drawWheel(
         ? `${(seg.amount / 1000).toLocaleString("fr-FR")}kf`
         : `${seg.amount}f`;
     } else {
-      displayText = seg.label;
+      displayText = displayCurrencyText(seg.label);
     }
 
     const fontSize = Math.max(10, Math.min(15, segR * 0.118));
@@ -329,12 +330,12 @@ export default function SpinWheelPage() {
   const { data: platformSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
-  const inviteText = platformSettings?.spinWheelInviteText
-    ?? "Invite your friends to sign up for more chances to win prizes, up to 50 times per day.";
-  const inviteHighlight = platformSettings?.spinWheelInviteHighlight ?? "50";
-  const rulesText = platformSettings?.spinWheelRulesText
-    ?? "Buy a product to get free spins. Each spin gives you a chance to win USDT credited directly to your balance.";
-  const rulesHighlight = platformSettings?.spinWheelRulesHighlight ?? "";
+  const inviteText = displayCurrencyText(platformSettings?.spinWheelInviteText
+    ?? "Invite your friends to sign up for more chances to win prizes, up to 50 times per day.");
+  const inviteHighlight = displayCurrencyText(platformSettings?.spinWheelInviteHighlight ?? "50");
+  const rulesText = displayCurrencyText(platformSettings?.spinWheelRulesText
+    ?? "Buy a product to get free spins. Each spin gives you a chance to win XOF credited directly to your balance.");
+  const rulesHighlight = displayCurrencyText(platformSettings?.spinWheelRulesHighlight ?? "");
   const [segments, setSegments] = useState<SpinWheelSegment[]>(DEFAULT_SPIN_WHEEL_SEGMENTS);
   const rotDrawRef   = useRef(rotation);
   const segDrawRef   = useRef(segments);
@@ -519,7 +520,7 @@ export default function SpinWheelPage() {
               </div>
             </div>
            <p className="text-center text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.78)" }}>
-             Spin the wheel for a chance to win USDT rewards.
+             Spin the wheel for a chance to win XOF rewards.
            </p>
            <div className="grid grid-cols-2 gap-3 mt-3">
              <button

@@ -276,7 +276,7 @@ export default function BankerPage() {
                       <div className="grid grid-cols-2 gap-2 text-sm bg-secondary/50 rounded-lg p-3 mb-3">
                         <div>
                           <p className="text-muted-foreground text-xs">{t.amount}</p>
-                          <p className="font-bold text-lg text-primary">{Number(deposit.amount).toLocaleString()} USDT</p>
+                          <p className="font-bold text-lg text-primary">{Number(deposit.amount).toLocaleString()} XOF</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.channel}</p>
@@ -370,11 +370,11 @@ export default function BankerPage() {
                       <div className="grid grid-cols-2 gap-2 text-sm bg-secondary/50 rounded-lg p-3 mb-3">
                         <div>
                           <p className="text-muted-foreground text-xs">{t.grossAmount}</p>
-                           <p className="font-bold text-lg">{Number(w.amount).toLocaleString()} USDT</p>
+                           <p className="font-bold text-lg">{Number(w.amount).toLocaleString()} XOF</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.netAmount}</p>
-                           <p className="font-bold text-lg text-primary">{Number(w.netAmount).toLocaleString()} USDT</p>
+                           <p className="font-bold text-lg text-primary">{Number(w.netAmount).toLocaleString()} XOF</p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.beneficiary}</p>
@@ -474,7 +474,7 @@ export default function BankerPage() {
                         </div>
                         <div className="text-right">
                           <p className={`font-bold ${type === "deposit" ? "text-gray-600" : "text-emerald-600"}`}>
-                             {type === "deposit" ? "+" : "-"}{Number(type === "deposit" ? item.amount : item.netAmount).toLocaleString()} {type === "deposit" ? "USDT" : "USDT"}
+                             {type === "deposit" ? "+" : "-"}{Number(type === "deposit" ? item.amount : item.netAmount).toLocaleString()} XOF
                           </p>
                           <StatusBadge status={item.status} />
                         </div>

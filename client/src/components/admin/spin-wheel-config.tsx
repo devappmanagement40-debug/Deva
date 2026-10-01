@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { displayCurrencyText } from "@/lib/content";
 import { Loader2, Save, RotateCcw, Image as ImageIcon, Trophy, AlertCircle, MessageSquare } from "lucide-react";
 import { DEFAULT_SPIN_WHEEL_SEGMENTS, type SpinWheelSegment } from "@shared/spin-wheel";
 
@@ -55,7 +56,7 @@ function SegmentCard({
           <div className="col-span-2">
             <label className="text-xs font-medium text-muted-foreground">Texte affiché *</label>
             <Input
-              value={seg.label}
+              value={displayCurrencyText(seg.label)}
               maxLength={40}
               placeholder="Petit gain, Grand prix…"
               onChange={e => onChange(index, "label", e.target.value)}
@@ -65,7 +66,7 @@ function SegmentCard({
           {/* Amount */}
           <div>
             <label className="text-xs font-medium text-muted-foreground">
-              Montant gagné (USDT)
+              Montant gagné (XOF)
             </label>
             <Input
               type="number"

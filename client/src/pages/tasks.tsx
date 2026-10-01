@@ -142,7 +142,7 @@ export default function TasksPage() {
                       <p className="mt-1 text-[14px] leading-tight text-[#9b9b9b]">
                         {t.taskRewardLabel}:{" "}
                         <span className="font-bold text-[#6db98a]">
-                          {task.reward.toLocaleString()} USDT
+                          {task.reward.toLocaleString()} XOF
                         </span>
                       </p>
                     </div>

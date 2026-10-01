@@ -1,6 +1,8 @@
 /**
  * White result card shown after a wheel spin.
  */
+import { displayCurrencyText } from "@/lib/content";
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -12,12 +14,13 @@ interface Props {
 export default function WheelResultModal({ open, onClose, won, amount, label }: Props) {
   if (!open) return null;
 
-  const displayAmount =
+  const displayAmount = displayCurrencyText(
     amount && amount > 0
       ? amount >= 1000
-        ? `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)} 000 USDT`
-        : `${amount} USDT`
-      : label ?? "0 USDT";
+        ? `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)} 000 XOF`
+        : `${amount} XOF`
+      : label ?? "0 XOF",
+  );
 
   return (
     <div

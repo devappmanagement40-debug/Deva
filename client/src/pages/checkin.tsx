@@ -65,7 +65,7 @@ export default function CheckinPage() {
 
   if (!user) return null;
 
-  const currency = "USDT";
+  const currency = "XOF";
   const totalBonusClaimed = bonusStatus?.totalBonusClaimed || 0;
   const daysPointed = bonusStatus?.daysPointed || 0;
   // The page title follows the selected UI language. Admin content settings are

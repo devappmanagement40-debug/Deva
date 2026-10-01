@@ -337,12 +337,12 @@ function HomePage() {
               <div className="ielp-home-total">
                 <span>{copy.totalAssets}</span>
                 <span className="ielp-home-total__divider" />
-                <strong><small>USDT</small> {formatMoney(totalAssets)}</strong>
+                <strong><small>XOF</small> {formatMoney(totalAssets)}</strong>
               </div>
               <div className="ielp-home-balances">
-                <div><span>{copy.miningWallet}</span><strong>USDT {formatMoney(balance)}</strong></div>
-                <div><span>{copy.earningsWallet}</span><strong>USDT {formatMoney(earnings)}</strong></div>
-                <div><span>{copy.commissionWallet}</span><strong>USDT {formatMoney(commission)}</strong></div>
+                <div><span>{copy.miningWallet}</span><strong>XOF {formatMoney(balance)}</strong></div>
+                <div><span>{copy.earningsWallet}</span><strong>XOF {formatMoney(earnings)}</strong></div>
+                <div><span>{copy.commissionWallet}</span><strong>XOF {formatMoney(commission)}</strong></div>
               </div>
             </div>
 
@@ -388,7 +388,7 @@ function HomePage() {
             </article>
             <article className="ielp-home-stat-card">
               <span className="ielp-home-stat-card__icon"><CircleDollarSign size={30} strokeWidth={2.5} aria-hidden="true" /></span>
-              <strong>USDT {formatMoney(homeStats?.totalProduction || 0)}</strong>
+              <strong>XOF {formatMoney(homeStats?.totalProduction || 0)}</strong>
               <span>{copy.production}</span>
             </article>
           </section>

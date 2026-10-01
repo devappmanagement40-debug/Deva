@@ -27,7 +27,7 @@ export default function DepositOrdersPage() {
   const { user } = useAuth();
   const { t } = useI18n();
   const countryInfo = user ? getCountryByCode(user.country) : null;
-  const currency = "USDT";
+  const currency = "XOF";
 
   const STATUS_CONFIG = {
     approved: { label: t.statusApproved, bg: "bg-gray-900",   text: "text-white" },

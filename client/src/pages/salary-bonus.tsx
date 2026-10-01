@@ -54,7 +54,7 @@ export default function SalaryBonusPage() {
   if (!user) return null;
 
   const country = getCountryByCode(user.country);
-  const currency = "USDT";
+  const currency = "XOF";
   const activeMembers = tasks.length > 0 ? ((tasks[0] as any).currentInvites || 0) : 0;
   const totalClaimed = (tasks as any[])
     .filter((tk) => tk.isCompleted)

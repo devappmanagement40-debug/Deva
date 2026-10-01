@@ -15,7 +15,7 @@ export default function AboutPage() {
   const s2Title   = getContent(settings, "content_about_s2Title", "Produits et solutions");
   const s2Text    = getContent(settings, "content_about_s2Text", "DIAMANT propose des solutions de mobilité électrique, notamment des vélos, scooters, cyclomoteurs et équipements de recharge.");
   const s3Title   = getContent(settings, "content_about_s3Title", "Fonctionnement de la plateforme");
-  const s3Text    = getContent(settings, "content_about_s3Text", "Les membres peuvent consulter les produits disponibles, gérer leur solde USDT, suivre leurs revenus et demander un retrait selon les règles affichées.");
+  const s3Text    = getContent(settings, "content_about_s3Text", "Les membres peuvent consulter les produits disponibles, gérer leur solde XOF, suivre leurs revenus et demander un retrait selon les règles affichées.");
   const s4Title   = getContent(settings, "content_about_s4Title", "Notre engagement");
   const s4Text    = getContent(settings, "content_about_s4Text", "DIAMANT privilégie des informations à jour, la sécurité du compte, la transparence des conditions et la qualité du support.");
 

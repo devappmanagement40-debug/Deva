@@ -21,7 +21,7 @@ Our platform builds on DIAMANT's identity to offer a clear and accessible invest
     summary: "The platform offers a complete range of investment products with attractive daily returns.",
     body: `The DIAMANT platform offers several product levels suited to every investor:
 
-- VIP 1 to VIP 3: entry-level products available from 600 USDT
+- VIP 1 to VIP 3: entry-level products available from 600 XOF
 - VIP 4 to VIP 6: intermediate products with high returns
 - VIP 7 to VIP 9: premium products for experienced investors
 

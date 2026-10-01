@@ -300,9 +300,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
-       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 18 USDT"),
-       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 USDT — USDT BEP20, sans frais"),
-       popupLine4:             rebrandText(settings.popupLine4 || "✅ Bonus d'inscription : 2 USDT"),
+       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 18 XOF"),
+       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 XOF — USDT BEP20, sans frais"),
+       popupLine4:             rebrandText(settings.popupLine4 || "✅ Bonus d'inscription : 2 XOF"),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
        popupLine7:             rebrandText(settings.popupLine7 || "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures"),
@@ -744,14 +744,14 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="minDeposit" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Recharge minimum (USDT)</FormLabel>
+                  <FormLabel>Recharge minimum (XOF)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="depositPresetAmounts" render={({ field }) => (
                 <FormItem className="col-span-2">
-                  <FormLabel>Montants rapides de recharge (USDT)</FormLabel>
+                  <FormLabel>Montants rapides de recharge (XOF)</FormLabel>
                   <FormControl><Input {...field} placeholder="3500,5000,7000,10000,15000,20000,50000,70000" /></FormControl>
                   <FormDescription>Liste de montants séparés par des virgules, affichés comme boutons rapides sur la page de recharge.</FormDescription>
                   <FormMessage />
@@ -759,14 +759,14 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               )} />
               <FormField control={form.control} name="minWithdrawal" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Retrait minimum (USDT)</FormLabel>
+                  <FormLabel>Retrait minimum (XOF)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="maxWithdrawal" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Retrait maximum (USDT)</FormLabel>
+                  <FormLabel>Retrait maximum (XOF)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" /></FormControl>
                   <FormMessage />
                 </FormItem>
@@ -790,7 +790,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <textarea
                     {...field}
                     rows={6}
-                    placeholder={"1. Le montant minimum de retrait est de 1 USDT\n2. Le montant demandé sera reçu intégralement\n3. Les retraits sont disponibles sous 4 à 24 heures\n4. Maximum 1 retrait par jour"}
+                    placeholder={"1. Le montant minimum de retrait est de 1 XOF\n2. Le montant demandé sera reçu intégralement\n3. Les retraits sont disponibles sous 4 à 24 heures\n4. Maximum 1 retrait par jour"}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
                   />
                 </FormControl>
@@ -920,7 +920,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             )} />
             <FormField control={form.control} name="signupBonusAmount" render={({ field }) => (
               <FormItem>
-                <FormLabel>Montant du bonus d'inscription (USDT)</FormLabel>
+                <FormLabel>Montant du bonus d'inscription (XOF)</FormLabel>
                 <FormControl><Input {...field} type="number" min="0" /></FormControl>
                 <FormMessage />
               </FormItem>
@@ -956,9 +956,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             ))}
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 18 USDT" },
-              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Minimum withdrawal: 1 USDT via USDT BEP20, no fee" },
-              { name: "popupLine4" as const, label: "Ligne 4 — Bonus d'inscription", placeholder: "✅ Registration bonus: 2 USDT" },
+              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 18 XOF" },
+              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Minimum withdrawal: 1 XOF via USDT BEP20, no fee" },
+              { name: "popupLine4" as const, label: "Ligne 4 — Bonus d'inscription", placeholder: "✅ Registration bonus: 2 XOF" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },
               { name: "popupLine7" as const, label: "Ligne 7 — Gains", placeholder: "🔥 Your first earning is available after purchase. Collect earnings in Revenue every 24 hours" },

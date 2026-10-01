@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { displayCurrencyText } from "@/lib/content";
 import { Edit, Loader2, Trophy, Plus, Trash2 } from "lucide-react";
 import type { Task } from "@shared/schema";
 
@@ -209,13 +210,13 @@ export default function AdminTasks() {
                         </Badge>
                         <Badge variant="outline" className="text-xs">#{task.sortOrder}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{task.description}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{displayCurrencyText(task.description)}</p>
                       <div className="flex gap-4 mt-2 text-xs">
                         <span className="text-blue-600 font-medium">
                           👥 {task.requiredInvites} {t.adminTaskRequiredInvites}
                         </span>
                         <span className="text-gray-600 font-medium">
-                          🎁 {task.reward.toLocaleString()} USDT
+                          🎁 {task.reward.toLocaleString()} XOF
                         </span>
                       </div>
                     </div>

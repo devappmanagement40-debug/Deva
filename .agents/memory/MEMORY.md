@@ -1,7 +1,7 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global country selection](rdc-only-market.md) — global country codes, US/+1; direct-XOF product/team amounts; the « Moi » raw balance label is FCFA; payment rails remain USDT.
+- [Global country selection](rdc-only-market.md) — global countries/US default; visible amount labels are XOF without conversion, « Moi » stays FCFA, and payment rails stay USDT.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — deposits start at 18 USDT, withdrawals at 1 USDT, and users receive the requested amount in full.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
@@ -12,6 +12,6 @@
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first layout, fixed navigation, no removed floaters, and verified free-use photos in the account banner.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
-- [TGOOD product earnings collection](tgood-product-earnings-collection.md) — product gains accrue pending per product and credit totalEarnings only after manual 24-hour collection.
+- [TGOOD product earnings collection](tgood-product-earnings-collection.md) — 24-hour gains are collected per product; « Commande » separates active cycles from expired purchases.
 - [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.

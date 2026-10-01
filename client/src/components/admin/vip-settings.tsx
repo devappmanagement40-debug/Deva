@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Save } from "lucide-react";
 import { DEFAULT_VIP_CONFIGS } from "@/lib/vip";
+import { displayCurrencyText } from "@/lib/content";
 
 export default function AdminVipSettings() {
   const { toast } = useToast();
@@ -134,7 +135,7 @@ export default function AdminVipSettings() {
               {cfg.level >= 2 && (
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-muted-foreground w-52 shrink-0">
-                    Récompense de passage (USDT)
+                    Récompense de passage (XOF)
                   </label>
                   <Input
                     type="number" min="0"
@@ -143,7 +144,7 @@ export default function AdminVipSettings() {
                     value={val(`vip${cfg.level}Reward`, String(cfg.reward))}
                     onChange={(e) => set(`vip${cfg.level}Reward`, e.target.value)}
                   />
-                  <span className="text-xs text-muted-foreground">USDT</span>
+                  <span className="text-xs text-muted-foreground">XOF</span>
                 </div>
               )}
             </div>
@@ -156,8 +157,8 @@ export default function AdminVipSettings() {
                 <textarea
                   rows={2}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder={cfg.description}
-                  value={val(`vip${cfg.level}Description`, cfg.description)}
+                  placeholder={displayCurrencyText(cfg.description)}
+                  value={displayCurrencyText(val(`vip${cfg.level}Description`, cfg.description))}
                   onChange={(e) => set(`vip${cfg.level}Description`, e.target.value)}
                 />
               </div>

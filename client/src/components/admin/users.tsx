@@ -79,14 +79,14 @@ function TeamMemberCard({ member }: { member: TeamMember; level: number }) {
         </div>
         <div className="mt-2 pt-2 border-t">
           <p className="text-sm font-medium text-primary">
-            Total investi: {member.totalInvested.toLocaleString()} USDT
+            Total investi: {member.totalInvested.toLocaleString()} XOF
           </p>
           {member.products.length > 0 && (
             <div className="mt-1">
               <p className="text-xs text-muted-foreground">Produits:</p>
               {member.products.map((p, i) => (
                 <p key={i} className="text-xs">
-                  - {p.productName} ({p.productPrice.toLocaleString()} USDT)
+                  - {p.productName} ({p.productPrice.toLocaleString()} XOF)
                   {p.isActive ? " (actif)" : " (termine)"}
                 </p>
               ))}
@@ -415,7 +415,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel1Invested.toLocaleString()} USDT
+                      {teamData.totalLevel1Invested.toLocaleString()} XOF
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 1</p>
                   </CardContent>
@@ -433,7 +433,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel2Invested.toLocaleString()} USDT
+                      {teamData.totalLevel2Invested.toLocaleString()} XOF
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 2</p>
                   </CardContent>
@@ -451,7 +451,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel3Invested.toLocaleString()} USDT
+                      {teamData.totalLevel3Invested.toLocaleString()} XOF
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 3</p>
                   </CardContent>
@@ -611,7 +611,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                       <SelectContent>
                         {products?.filter(p => !p.isFree).map((product) => (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {rebrandText(product.name)} - {product.price.toLocaleString()} USDT
+                            {rebrandText(product.name)} - {product.price.toLocaleString()} XOF
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -636,7 +636,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                           <div>
                             <p className="text-sm font-medium">{up.productName}</p>
                             <p className="text-xs text-muted-foreground">
-                              {up.productPrice.toLocaleString()} USDT - Jour {up.daysClaimed}/{up.totalCycle}
+                              {up.productPrice.toLocaleString()} XOF - Jour {up.daysClaimed}/{up.totalCycle}
                               {up.isActive ? " (Actif)" : " (Termine)"}
                             </p>
                           </div>

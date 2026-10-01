@@ -155,7 +155,7 @@ export default function AdminGiftCodes() {
               {formData.randomAmount ? (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="amount-min">Montant minimum (USDT)</Label>
+                    <Label htmlFor="amount-min">Montant minimum (XOF)</Label>
                     <Input
                       id="amount-min"
                       type="number"
@@ -168,7 +168,7 @@ export default function AdminGiftCodes() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="amount-max">Montant maximum (USDT)</Label>
+                    <Label htmlFor="amount-max">Montant maximum (XOF)</Label>
                     <Input
                       id="amount-max"
                       type="number"
@@ -183,7 +183,7 @@ export default function AdminGiftCodes() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Montant (USDT)</Label>
+                  <Label htmlFor="amount">Montant (XOF)</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -256,8 +256,8 @@ export default function AdminGiftCodes() {
                   <span className="text-muted-foreground">Montant</span>
                   <span className="font-semibold" data-testid={`text-amount-${giftCode.id}`}>
                     {giftCode.amountMin !== null && giftCode.amountMin !== undefined && giftCode.amountMax !== null && giftCode.amountMax !== undefined
-                      ? `${parseFloat(giftCode.amountMin).toLocaleString()} – ${parseFloat(giftCode.amountMax).toLocaleString()} USDT (aléatoire)`
-                      : `${parseFloat(giftCode.amount).toLocaleString()} USDT`}
+                      ? `${parseFloat(giftCode.amountMin).toLocaleString()} – ${parseFloat(giftCode.amountMax).toLocaleString()} XOF (aléatoire)`
+                      : `${parseFloat(giftCode.amount).toLocaleString()} XOF`}
                   </span>
                 </div>
                 <div className="flex justify-between">

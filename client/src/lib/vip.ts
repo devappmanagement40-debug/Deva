@@ -1,4 +1,5 @@
 // ── Système VIP DIAMANT ─────────────────────────────────────────────────────
+import { displayCurrencyText } from "@/lib/content";
 
 export interface TeamStats {
   level1Count: number;
@@ -93,8 +94,8 @@ export function mergeAdminVipConfig(
     return {
       ...cfg,
       label:         settings[`vip${cfg.level}Label`]       || cfg.label,
-      description:   settings[`vip${cfg.level}Description`] || cfg.description,
-      advantages:    settings[`vip${cfg.level}Advantages`]  || cfg.advantages,
+      description:   displayCurrencyText(settings[`vip${cfg.level}Description`] || cfg.description),
+      advantages:    displayCurrencyText(settings[`vip${cfg.level}Advantages`]  || cfg.advantages),
       minDirectA:    n(`vip${cfg.level}MinDirectA`,  cfg.minDirectA),
       minLevelB:     n(`vip${cfg.level}MinLevelB`,   cfg.minLevelB),
       minTotalTeam:  n(`vip${cfg.level}MinTotalTeam`, cfg.minTotalTeam),

@@ -24,9 +24,9 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
 
   const title = getContent(settings, "content_rules_title", "Platform Rules");
   const s1Title = getContent(settings, "content_rules_section1Title", "1. Deposits");
-  const s1Body = getContent(settings, "content_rules_section1Body", `- Minimum amount: ${parseInt(minDeposit).toLocaleString()} USDT\n- Deposits are processed promptly\n- Make sure payment information is correct`);
+  const s1Body = getContent(settings, "content_rules_section1Body", `- Minimum amount: ${parseInt(minDeposit).toLocaleString()} XOF\n- Deposits are processed promptly\n- Make sure payment information is correct`);
   const s2Title = getContent(settings, "content_rules_section2Title", "2. Withdrawals");
-  const s2Body = getContent(settings, "content_rules_section2Body", `- Minimum amount: ${parseInt(minWithdrawal).toLocaleString()} USDT\n- The requested amount is received in full\n- Hours: ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} withdrawal(s) per day\n- An active product is required to withdraw\n- A withdrawal wallet must be registered`);
+  const s2Body = getContent(settings, "content_rules_section2Body", `- Minimum amount: ${parseInt(minWithdrawal).toLocaleString()} XOF\n- The requested amount is received in full\n- Hours: ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} withdrawal(s) per day\n- An active product is required to withdraw\n- A withdrawal wallet must be registered`);
   const s3Title = getContent(settings, "content_rules_section3Title", "3. Products");
   const s3Body = getContent(settings, "content_rules_section3Body", "- Standard cycle: 80 days\n- Your first earning is available immediately after purchase\n- Collect earnings in Revenue, then collect a new earning every 24 hours");
   const s4Title = getContent(settings, "content_rules_section4Title", "4. Referral");

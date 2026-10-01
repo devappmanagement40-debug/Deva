@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, HelpCircle, Users } from "lucide-react";
 import { getCountryByCode } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
+import { displayCurrencyText } from "@/lib/content";
 
 import globeImg from "@assets/generated_images/diamant-city-grid.jpg";
 import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
@@ -49,7 +50,7 @@ export default function RewardsPage() {
   if (!user) return null;
 
   const country = getCountryByCode(user.country);
-  const currency = "USDT";
+  const currency = "XOF";
 
   const totalReward = tasks?.reduce((sum, t) => sum + t.reward, 0) || 0;
   const claimedReward = tasks?.filter(t => t.isCompleted).reduce((sum: number, t: any) => sum + t.reward, 0) || 0;
@@ -104,7 +105,7 @@ export default function RewardsPage() {
                     <Users className="w-3 h-3" style={{ color: "#2196F3" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-gray-800 leading-tight truncate">{task.description}</p>
+                    <p className="text-[11px] font-semibold text-gray-800 leading-tight truncate">{displayCurrencyText(task.description)}</p>
                     <p className="text-[10px] text-gray-400 leading-tight">{t.rewardsRewardLabel}: <span className="text-blue-500 font-semibold">{task.reward.toLocaleString()} {currency}</span></p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">

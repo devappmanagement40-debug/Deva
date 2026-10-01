@@ -39,7 +39,7 @@ export default function WithdrawalPage() {
   const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
   const [, navigate] = useLocation();
 
-  const currency = "USDT";
+  const currency = "XOF";
 
   const { data: withdrawalSettings } = useQuery<{
     withdrawalEnabled: boolean;
@@ -266,7 +266,7 @@ export default function WithdrawalPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={18} strokeWidth={1.6} className="opacity-80" />
-                  <span className="text-[12px] font-semibold tracking-[.12em] opacity-90">USDT</span>
+                  <span className="text-[12px] font-semibold tracking-[.12em] opacity-90">XOF</span>
                 </div>
               </div>
               <div className="relative mt-5 flex items-center gap-4">

@@ -170,15 +170,15 @@ export default function AdminStaking() {
                               {!sp.isActive ? "Inactif" : scheduled ? "Planifié" : "Actif"}
                             </Badge>
                           </div>
-                          {sp.description && <p className="text-xs text-muted-foreground mb-2">{sp.description}</p>}
+                          {sp.description && <p className="text-xs text-muted-foreground mb-2">{rebrandText(sp.description)}</p>}
                           <div className="grid grid-cols-3 gap-2 text-sm">
                             <div className="bg-secondary/50 rounded-lg p-2 text-center">
                               <p className="text-muted-foreground text-xs">Prix</p>
-                              <p className="font-bold text-primary">{sp.price.toLocaleString()} USDT</p>
+                              <p className="font-bold text-primary">{sp.price.toLocaleString()} XOF</p>
                             </div>
                             <div className="bg-secondary/50 rounded-lg p-2 text-center">
                               <p className="text-muted-foreground text-xs">Retour</p>
-                              <p className="font-bold text-gray-600">{sp.returnAmount.toLocaleString()} USDT</p>
+                              <p className="font-bold text-gray-600">{sp.returnAmount.toLocaleString()} XOF</p>
                             </div>
                             <div className="bg-secondary/50 rounded-lg p-2 text-center">
                               <p className="text-muted-foreground text-xs">Durée</p>
@@ -224,11 +224,11 @@ export default function AdminStaking() {
             </div>
             <div className="bg-secondary rounded-xl p-3 text-center">
               <p className="text-xs text-muted-foreground">Total bloqué</p>
-              <p className="font-bold text-gray-600">{totalStaked.toLocaleString()} USDT</p>
+              <p className="font-bold text-gray-600">{totalStaked.toLocaleString()} XOF</p>
             </div>
             <div className="bg-secondary rounded-xl p-3 text-center">
               <p className="text-xs text-muted-foreground">Total libéré</p>
-              <p className="font-bold text-gray-600">{totalReleased.toLocaleString()} USDT</p>
+              <p className="font-bold text-gray-600">{totalReleased.toLocaleString()} XOF</p>
             </div>
           </div>
 
@@ -251,7 +251,7 @@ export default function AdminStaking() {
                         </div>
                         <p className="text-xs text-muted-foreground">{s.user.phone} · {rebrandText(s.product.name)}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {s.amountPaid.toLocaleString()} USDT → {s.returnAmount.toLocaleString()} USDT · Déblocage : {formatDate(s.releaseDate)}
+                          {s.amountPaid.toLocaleString()} XOF → {s.returnAmount.toLocaleString()} XOF · Déblocage : {formatDate(s.releaseDate)}
                         </p>
                       </div>
                       <div className="text-right">
@@ -293,12 +293,12 @@ export default function AdminStaking() {
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-sm font-medium">Prix (USDT)</label>
+                    <label className="text-sm font-medium">Prix (XOF)</label>
                     <Input type="number" value={form.price} onChange={e => updateForm(i, "price", e.target.value)}
                       placeholder="5000" className="mt-1" data-testid={`input-price-${i}`} />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Retour (USDT)</label>
+                    <label className="text-sm font-medium">Retour (XOF)</label>
                     <Input type="number" value={form.returnAmount} onChange={e => updateForm(i, "returnAmount", e.target.value)}
                       placeholder="7000" className="mt-1" data-testid={`input-return-${i}`} />
                   </div>

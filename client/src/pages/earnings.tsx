@@ -79,7 +79,7 @@ export default function EarningsPage() {
   const hasProducts = userProducts.length > 0;
   const pendingTotal = userProducts.reduce((sum: number, item: any) => sum + Number(item.pendingEarnings || 0), 0);
   const balanceCards = [
-    { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "USDT" },
+    { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
     { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
   ];
 

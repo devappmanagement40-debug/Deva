@@ -97,5 +97,5 @@ export function getPaymentMethodsForCountry(code: string, apiCountries?: ApiCoun
 }
 
 export function formatCurrency(amount: number, countryCode: string, apiCountries?: ApiCountry[]): string {
-  return `${amount.toLocaleString()} ${APP_CURRENCY}`;
+  return `${amount.toLocaleString()} XOF`;
 }

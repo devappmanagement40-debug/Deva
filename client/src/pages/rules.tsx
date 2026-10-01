@@ -56,8 +56,8 @@ export default function RulesPage() {
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS2Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
-            <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} USDT.</li>
-            <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} USDT via USDT BEP20, sans frais.</li>
+            <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} XOF.</li>
+            <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} XOF via USDT BEP20, sans frais.</li>
             <li>Horaires de retrait : {withdrawalStartHour}h00 – {withdrawalEndHour}h00.</li>
             <li>Maximum {maxWithdrawalsPerDay} retrait(s) par jour et par utilisateur.</li>
           </ul>
@@ -76,7 +76,7 @@ export default function RulesPage() {
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS4Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
-            <li>Chaque nouveau membre reçoit le bonus d'inscription configuré, actuellement de {parseInt(signupBonus).toLocaleString()} USDT.</li>
+            <li>Chaque nouveau membre reçoit le bonus d'inscription configuré, actuellement de {parseInt(signupBonus).toLocaleString()} XOF.</li>
           </ul>
         </section>
 

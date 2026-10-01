@@ -1,6 +1,7 @@
 import { ChevronLeft, Loader2, XCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
+import { displayCurrencyText } from "@/lib/content";
 import type { Transaction } from "@shared/schema";
 
 interface WheelHistoryModalProps {
@@ -82,7 +83,7 @@ function StatCard({
 function HistoryRow({ tx, noGainLabel }: { tx: Transaction; noGainLabel: string }) {
   const amount = parseFloat(tx.amount);
   const won = amount > 0;
-  const label = tx.description.replace(/^Gain roue\s*:\s*/i, "").trim() || "—";
+  const label = displayCurrencyText(tx.description.replace(/^Gain roue\s*:\s*/i, "").trim()) || "—";
 
   return (
     <div
@@ -131,7 +132,7 @@ function HistoryRow({ tx, noGainLabel }: { tx: Transaction; noGainLabel: string 
         >
           {won ? `+${amount.toFixed(2)}` : "—"}
         </p>
-        <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>USDT</p>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>XOF</p>
       </div>
     </div>
   );
@@ -204,7 +205,7 @@ export default function WheelHistoryModal({ open, onClose }: WheelHistoryModalPr
           <StatCard
             label={t.wheelTotalRewardsLabel.replace(":", "")}
             value={`${totalWon.toFixed(2)}`}
-            sub="USDT"
+            sub="XOF"
             accent="#ffd700"
             img="/trophy.jpg"
             imgPosition="center 20%"

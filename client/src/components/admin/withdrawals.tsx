@@ -240,11 +240,11 @@ export default function AdminWithdrawals() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground">{t.grossAmount}</p>
-                      <p className="font-medium text-foreground">{withdrawal.amount.toLocaleString()} USDT</p>
+                      <p className="font-medium text-foreground">{withdrawal.amount.toLocaleString()} XOF</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.netAmount}</p>
-                      <p className="font-medium text-primary">{withdrawal.netAmount.toLocaleString()} USDT</p>
+                      <p className="font-medium text-primary">{withdrawal.netAmount.toLocaleString()} XOF</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.method}</p>

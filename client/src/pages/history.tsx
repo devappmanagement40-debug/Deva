@@ -116,7 +116,7 @@ function ActivityCard({ item }: { item: HistoryItem }) {
           <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{rebrandText(description || (lang === "en" ? "DIAMANT earnings" : "Gain DIAMANT"))}</p>
           <p className="mt-2 text-[12px] text-[#8a8a8a]">{date}</p>
         </div>
-        <p className="shrink-0 text-[13px] text-[#16803b]">+{safeAmount} USDT</p>
+        <p className="shrink-0 text-[13px] text-[#16803b]">+{safeAmount} XOF</p>
       </div>
     </article>
   );

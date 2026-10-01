@@ -84,7 +84,7 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
   const defaultWallet = wallets?.find(w => w.isDefault);
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
   const minWithdrawal = withdrawalSettings?.minWithdrawal || 1;
-  const currency = "USDT";
+  const currency = "XOF";
 
   const amount = parseInt(form.watch("amount") || "0");
 

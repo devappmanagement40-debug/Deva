@@ -103,7 +103,7 @@ export default function DepositModal({ open, onClose }: DepositModalProps) {
       setSelectedAmount(amount);
       setStep("details");
     } else {
-      toast({ title: t.invalidAmount, description: `${t.minAmountPrefix} 2 USDT`, variant: "destructive" });
+      toast({ title: t.invalidAmount, description: `${t.minAmountPrefix} 2 XOF`, variant: "destructive" });
     }
   };
 

@@ -10,9 +10,9 @@ const POPUP_ACCENT = "#08b83a";
 const DEFAULT_LINES = [
   "🚀 DIAMANT RDC: official launch!",
   "📅 DIAMANT officially launches on 03/09/2026!",
-  "✅ Minimum deposit: 18 USDT",
-  "✅ Minimum withdrawal: 1 USDT via USDT BEP20, with no fee",
-  "✅ Registration bonus: 2 USDT",
+  "✅ Minimum deposit: 18 XOF",
+  "✅ Minimum withdrawal: 1 XOF via USDT BEP20, with no fee",
+  "✅ Registration bonus: 2 XOF",
   "👥 Invite your friends and earn commissions",
   "🕘 Withdrawals and support: 09:00–17:00",
   "🔥 Your first earning is available after purchase. Collect it in Revenue, then collect new earnings every 24 hours 📈",

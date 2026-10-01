@@ -691,7 +691,7 @@ export async function registerRoutes(
         nextCollectionAt: up.userProduct.lastEarningDate
           ? new Date(new Date(up.userProduct.lastEarningDate).getTime() + 24 * 60 * 60 * 1000)
           : null,
-        status: up.userProduct.isActive ? 'active' : 'completed',
+        status: up.userProduct.isActive && up.userProduct.daysRemaining > 0 ? 'active' : 'completed',
         product: up.product
       }));
       
@@ -1021,7 +1021,7 @@ export async function registerRoutes(
       const settings = await storage.getSettings();
       const minDeposit = parseInt(settings.minDeposit || "18", 10);
       if (amountValue < minDeposit) {
-        return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} USDT` });
+        return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
 
       // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
@@ -1293,7 +1293,7 @@ export async function registerRoutes(
       const settings = await storage.getSettings();
       const minDeposit = parseInt(settings.minDeposit || "18");
       if (amount < minDeposit) {
-        return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} USDT` });
+        return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
 
       if (!accountName || !accountNumber || !paymentMethod || !country) {
@@ -1367,7 +1367,7 @@ export async function registerRoutes(
       const minDeposit = parseInt(settings.minDeposit || "18");
       if (Number(amount) < minDeposit)
         return res.status(400).json({
-          message: `Montant minimum : ${minDeposit.toLocaleString()} USDT`,
+          message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
         });
 
       // Résolution DB → env var pour tous les paramètres WestPay
@@ -1577,11 +1577,11 @@ export async function registerRoutes(
       }
       const minWithdrawal = parseInt(settingsForWithdrawal.minWithdrawal || "1");
       if (amount < minWithdrawal) {
-        return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} USDT` });
+        return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} XOF` });
       }
       const maxWithdrawal = parseInt(settingsForWithdrawal.maxWithdrawal || "1000000");
       if (amount > maxWithdrawal) {
-        return res.status(400).json({ message: `Montant maximum : ${maxWithdrawal.toLocaleString()} USDT` });
+        return res.status(400).json({ message: `Montant maximum : ${maxWithdrawal.toLocaleString()} XOF` });
       }
 
       if (user.isWithdrawalBlocked) {
@@ -1852,7 +1852,7 @@ export async function registerRoutes(
       res.json({
         success: true,
         amount: reward,
-        message: `Félicitations ! Vous avez reçu ${reward.toLocaleString()} USDT`,
+        message: `Félicitations ! Vous avez reçu ${reward.toLocaleString()} XOF`,
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1890,13 +1890,13 @@ export async function registerRoutes(
         userId: user.id,
         type: "bonus",
         amount: bonusAmount.toFixed(2),
-        description: `Pointage quotidien : +${bonusAmount.toFixed(2)} USDT`,
+        description: `Pointage quotidien : +${bonusAmount.toFixed(2)} XOF`,
       });
 
       return res.json({
         success: true,
         amount: bonusAmount.toFixed(2),
-        message: `Pointage validé : +${bonusAmount.toFixed(2)} USDT ajouté à votre solde des gains`,
+        message: `Pointage validé : +${bonusAmount.toFixed(2)} XOF ajouté à votre solde des gains`,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
@@ -2211,7 +2211,7 @@ export async function registerRoutes(
         });
       }
 
-      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé: ${deposit.amount} USDT`);
+      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé: ${deposit.amount} XOF`);
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2395,7 +2395,7 @@ export async function registerRoutes(
         processedBy: req.session.userId,
       });
 
-      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé: ${withdrawalData.netAmount} USDT`);
+      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé: ${withdrawalData.netAmount} XOF`);
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2498,7 +2498,7 @@ export async function registerRoutes(
       switch (action) {
         case "balance":
           await storage.updateUser(userId, { balance: value.toFixed(2) });
-          await storage.logAdminAction(req.session.userId!, "update_balance", userId, `Solde modifié: ${value} USDT`);
+          await storage.logAdminAction(req.session.userId!, "update_balance", userId, `Solde modifié: ${value} XOF`);
           break;
         case "password":
           await storage.updateUser(userId, { password: value });
@@ -2586,7 +2586,7 @@ export async function registerRoutes(
           break;
         case "total-earnings":
           await storage.updateUser(userId, { totalEarnings: Number(value).toFixed(2) });
-          await storage.logAdminAction(req.session.userId!, "update_total_earnings", userId, `Solde des gains modifié: ${value} USDT`);
+          await storage.logAdminAction(req.session.userId!, "update_total_earnings", userId, `Solde des gains modifié: ${value} XOF`);
           break;
         default:
           return res.status(400).json({ message: "Action invalide" });
@@ -2977,8 +2977,8 @@ export async function registerRoutes(
       });
 
       const amountLabel = randomAmount
-        ? `${amountMin} à ${amountMax} USDT (aléatoire)`
-        : `${amount} USDT`;
+        ? `${amountMin} à ${amountMax} XOF (aléatoire)`
+        : `${amount} XOF`;
       await storage.logAdminAction(req.session.userId!, "create_gift_code", null, `Code cadeau cree: ${code} - ${amountLabel}`);
       res.json(giftCode);
     } catch (error: any) {
@@ -3044,7 +3044,7 @@ export async function registerRoutes(
       
       res.json({ 
         success: true, 
-        message: `Félicitations! Vous avez reçu ${rewardAmount.toLocaleString()} USDT`,
+        message: `Félicitations! Vous avez reçu ${rewardAmount.toLocaleString()} XOF`,
         amount: rewardAmount
       });
     } catch (error: any) {
@@ -3213,7 +3213,7 @@ export async function registerRoutes(
         await storage.updateUser(user.id, { balance: newBalance.toFixed(2), hasDeposited: true });
         await storage.createTransaction({ userId: user.id, type: "deposit", amount: deposit.amount.toString(), description: "Dépôt validé par bankier" });
       }
-      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé par bankier: ${deposit.amount} USDT`);
+      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé par bankier: ${deposit.amount} XOF`);
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3258,7 +3258,7 @@ export async function registerRoutes(
         processedAt: new Date(),
         processedBy: req.session.userId,
       });
-      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé par bankier: ${withdrawalData.netAmount} USDT`);
+      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé par bankier: ${withdrawalData.netAmount} XOF`);
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });

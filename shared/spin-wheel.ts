@@ -10,14 +10,14 @@ export interface SpinWheelSegment {
 }
 
 export const DEFAULT_SPIN_WHEEL_SEGMENTS: SpinWheelSegment[] = [
-  { id: 1, label: "10 USDT",    amount: 10,    color: "#F5C518", dark: "#5C3D00", canWin: true,  weight: 40 },
-  { id: 2, label: "200 USDT",   amount: 200,   color: "#FFFDE7", dark: "#7C5200", canWin: true,  weight: 35 },
+  { id: 1, label: "10 XOF",     amount: 10,    color: "#F5C518", dark: "#5C3D00", canWin: true,  weight: 40 },
+  { id: 2, label: "200 XOF",    amount: 200,   color: "#FFFDE7", dark: "#7C5200", canWin: true,  weight: 35 },
   { id: 3, label: "😊",         amount: 0,     color: "#F5C518", dark: "#5C3D00", canWin: false, weight: 1  },
-  { id: 4, label: "500 USDT",   amount: 500,   color: "#FFFDE7", dark: "#7C5200", canWin: true,  weight: 3  },
-  { id: 5, label: "5000 USDT",  amount: 5000,  color: "#F5C518", dark: "#5C3D00", canWin: false, weight: 1  },
-  { id: 6, label: "10000 USDT", amount: 10000, color: "#FFFDE7", dark: "#7C5200", canWin: false, weight: 1  },
-  { id: 7, label: "20000 USDT", amount: 20000, color: "#F5C518", dark: "#5C3D00", canWin: false, weight: 1  },
-  { id: 8, label: "50000 USDT", amount: 50000, color: "#FFFDE7", dark: "#7C5200", canWin: false, weight: 1  },
+  { id: 4, label: "500 XOF",    amount: 500,   color: "#FFFDE7", dark: "#7C5200", canWin: true,  weight: 3  },
+  { id: 5, label: "5000 XOF",  amount: 5000,  color: "#F5C518", dark: "#5C3D00", canWin: false, weight: 1  },
+  { id: 6, label: "10000 XOF", amount: 10000, color: "#FFFDE7", dark: "#7C5200", canWin: false, weight: 1  },
+  { id: 7, label: "20000 XOF", amount: 20000, color: "#F5C518", dark: "#5C3D00", canWin: false, weight: 1  },
+  { id: 8, label: "50000 XOF", amount: 50000, color: "#FFFDE7", dark: "#7C5200", canWin: false, weight: 1  },
 ];
 
 export const SPIN_WHEEL_SETTING_KEY = "spinWheelConfig";

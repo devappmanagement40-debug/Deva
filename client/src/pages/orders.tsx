@@ -13,6 +13,10 @@ import chargingStation from "@assets/generated_images/diamant-charging-station-h
 
 const productImages = [productBike, productScooter, productMoped, chargingStation];
 
+function isProductActive(product: any): boolean {
+  return product.status === "active" && Number(product.daysRemaining) > 0;
+}
+
 export default function OrdersPage() {
   const { user } = useAuth();
   const { t } = useI18n();
@@ -37,7 +41,7 @@ export default function OrdersPage() {
   };
 
   const filteredProducts = userProducts?.filter((up: any) =>
-    activeTab === "active" ? up.status === "active" : up.status !== "active"
+    activeTab === "active" ? isProductActive(up) : !isProductActive(up)
   ) || [];
 
   return (
@@ -88,6 +92,7 @@ export default function OrdersPage() {
         ) : filteredProducts.length > 0 ? (
           <div className="space-y-4">
             {filteredProducts.map((up: any, index: number) => {
+              const productIsActive = isProductActive(up);
               const daysCompleted = (up.product?.cycleDays || 0) - (up.daysRemaining || 0);
               const totalEarned = daysCompleted * Number(up.product?.dailyEarnings || 0);
               const purchaseDateTime = up.purchasedAt ? new Date(up.purchasedAt) : null;
@@ -115,20 +120,20 @@ export default function OrdersPage() {
                           {rebrandText(up.product?.name || t.noProducts)}
                         </p>
                         <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
-                          up.status === 'active'
-                            ? 'bg-gray-100 text-gray-600'
+                          productIsActive
+                            ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-gray-100 text-gray-600'
                         }`}>
-                          {up.status === 'active' ? t.ordersStatusActive : t.ordersStatusDone}
+                          {productIsActive ? t.ordersStatusActive : t.ordersStatusDone}
                         </span>
                       </div>
 
                       <div className="space-y-0.5 text-[11px]">
                         <p className="text-gray-600">
-                          {t.price}：<span className="text-gray-800 font-medium">{Number(up.product?.price || 0).toLocaleString() || 0} USDT</span>
+                          {t.price}：<span className="text-gray-800 font-medium">{Number(up.product?.price || 0).toLocaleString() || 0} XOF</span>
                         </p>
                         <p className="text-gray-600">
-                          {t.ordersDailyLbl}：<span className="text-gray-800 font-medium">{Number(up.product?.dailyEarnings || 0).toLocaleString() || 0} USDT</span>
+                          {t.ordersDailyLbl}：<span className="text-gray-800 font-medium">{Number(up.product?.dailyEarnings || 0).toLocaleString() || 0} XOF</span>
                         </p>
                         <p className="text-gray-600">
                           {t.ordersCycleLbl}：<span className="text-gray-800 font-medium">{up.product?.cycleDays || 0} {t.ordersDaysLbl}</span>
@@ -137,7 +142,7 @@ export default function OrdersPage() {
                           {t.ordersRemainingLbl}：<span className="text-[#2196F3] font-medium">{up.daysRemaining || 0}</span>
                         </p>
                         <p className="text-gray-600">
-                          {t.ordersTotalEarnedLbl}：<span className="text-gray-600 font-bold">{totalEarned.toLocaleString()} USDT</span>
+                          {t.ordersTotalEarnedLbl}：<span className="text-gray-600 font-bold">{totalEarned.toLocaleString()} XOF</span>
                         </p>
                         <p className="text-gray-600">
                           {t.ordersDateLbl}：<span className="text-gray-700 font-medium">{purchaseDate}</span> {purchaseTime}

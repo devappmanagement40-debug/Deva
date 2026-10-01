@@ -15,7 +15,7 @@ import polygonIcon from "@/assets/crypto/polygon.png";
 import paypalUsdIcon from "@/assets/crypto/paypal-usd.png";
 import tronIcon from "@/assets/crypto/tron.png";
 
-const CURRENCY = "USDT";
+const CURRENCY = "XOF";
 const ACCENT_GREEN = "#32c95b";
 const DEFAULT_DEPOSIT_AMOUNTS = [3500, 5000, 7000, 10000, 15000, 20000, 50000, 70000];
 
@@ -432,7 +432,7 @@ export default function DepositPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Deposit amount</p>
-                <p className="mt-0.5 truncate text-[19px] font-bold text-[#087a38]">{Number(amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT</p>
+                <p className="mt-0.5 truncate text-[19px] font-bold text-[#087a38]">{Number(amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} XOF</p>
               </div>
               <span className="shrink-0 rounded-full bg-[#e4f6e9] px-2 py-1 text-[10px] font-semibold text-[#087a38]">Step 2 of 2</span>
             </div>
