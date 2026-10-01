@@ -785,24 +785,22 @@ ol[data-radix-toast-viewport] li * {
   text-decoration: none;
 }
 
-.ielp-home-brand > span {
-  font-size: 23px;
+.ielp-home-brand > .diamant-home-brand {
+  font-size: 20px;
   font-weight: 700;
-  letter-spacing: -.7px;
   line-height: 1;
 }
 
-.ielp-home-seal {
-  width: 53px;
-  height: 53px;
-  flex: 0 0 auto;
-}
+@media (max-width: 360px) {
+  .ielp-home-brand > .diamant-home-brand {
+    gap: 5px;
+    font-size: 17px;
+  }
 
-.ielp-home-seal text {
-  fill: #fff;
-  font-family: Georgia, serif;
-  font-size: 8px;
-  font-weight: 700;
+  .ielp-home-brand > .diamant-home-brand img {
+    width: 31px;
+    height: 31px;
+  }
 }
 
 .ielp-home-header__actions {

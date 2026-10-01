@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
 import { LanguagePicker } from "@/components/language-picker";
+import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import "./team.css";
 
@@ -138,17 +139,6 @@ const SOCIALS = [
   { id: "native", label: "Share", mark: "" },
 ] as const;
 
-function IelpSeal() {
-  return (
-    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
-      <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
-    </svg>
-  );
-}
-
 function formatMoney(value: unknown) {
   const amount = Number(value);
   return `USDT ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
@@ -232,14 +222,13 @@ export default function TeamPage() {
           <a
             className="ielp-home-brand"
             href="#/"
-            aria-label="IELP accueil"
+            aria-label="DIAMANT accueil"
             onClick={(event) => {
               event.preventDefault();
               navigate("/");
             }}
           >
-            <IelpSeal />
-            <span>IELP</span>
+            <DiamantBrand variant="on-dark" markSize={36} className="diamant-home-brand" />
           </a>
           <div className="ielp-home-header__actions">
             <LanguagePicker variant="home" />

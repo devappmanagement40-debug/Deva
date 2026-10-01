@@ -21,6 +21,7 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import { getContent } from "@/lib/content";
 import { useToast } from "@/hooks/use-toast";
 import { LanguagePicker } from "@/components/language-picker";
+import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
 
@@ -226,17 +227,6 @@ const numberFormat = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-function IelpSeal() {
-  return (
-    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
-      <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
-    </svg>
-  );
-}
-
 function formatMoney(value: unknown) {
   const amount = Number(value);
   return numberFormat.format(Number.isFinite(amount) ? amount : 0);
@@ -324,9 +314,8 @@ function HomePage() {
     <main className="ielp-home-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="ielp-home-shell">
         <header className="ielp-home-header">
-          <a className="ielp-home-brand" href="#/" aria-label="IELP accueil" onClick={(event) => { event.preventDefault(); navigate("/"); }}>
-            <IelpSeal />
-            <span>IELP</span>
+          <a className="ielp-home-brand" href="#/" aria-label="DIAMANT accueil" onClick={(event) => { event.preventDefault(); navigate("/"); }}>
+            <DiamantBrand variant="on-dark" markSize={36} className="diamant-home-brand" />
           </a>
           <div className="ielp-home-header__actions">
             <LanguagePicker variant="home" />

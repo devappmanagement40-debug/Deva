@@ -35,6 +35,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import { LanguagePicker } from "@/components/language-picker";
 import { getCountryByCode } from "@/lib/countries";
@@ -206,17 +207,6 @@ const ACCOUNT_MENU_ACTIONS: {
   { labelKey: "about", href: "/about", Icon: Info },
 ];
 
-function IelpSeal() {
-  return (
-    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
-      <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
-    </svg>
-  );
-}
-
 function PasswordGlyph() {
   return (
     <span className="ielp-account-password-icon" aria-hidden="true">
@@ -319,9 +309,8 @@ export default function AccountPage() {
     <main className="ielp-home-page ielp-account-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
       <div className="ielp-home-shell ielp-account-shell">
         <header className="ielp-home-header">
-          <a className="ielp-home-brand" href="#/" aria-label="IELP accueil" onClick={(event) => { event.preventDefault(); navigate("/"); }}>
-            <IelpSeal />
-            <span>IELP</span>
+          <a className="ielp-home-brand" href="#/" aria-label="DIAMANT accueil" onClick={(event) => { event.preventDefault(); navigate("/"); }}>
+            <DiamantBrand variant="on-dark" markSize={36} className="diamant-home-brand" />
           </a>
           <div className="ielp-home-header__actions">
             <LanguagePicker variant="home" />
