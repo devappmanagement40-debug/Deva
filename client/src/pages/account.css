@@ -147,23 +147,23 @@
 }
 
 .ielp-account-links {
-  margin-top: 18px;
-  padding: 0 12px;
+  margin-top: 20px;
+  padding: 0 14px;
   overflow: hidden;
-  border: 1px solid rgba(157, 190, 255, .25);
-  border-radius: 18px;
-  background: linear-gradient(145deg, #182c57, #112749);
-  box-shadow: 0 12px 26px rgba(3, 10, 29, .28), inset 0 1px rgba(255, 255, 255, .06);
+  border: 1px solid rgba(190, 210, 255, .055);
+  border-radius: 17px;
+  background: linear-gradient(160deg, rgba(32, 47, 99, .96), rgba(31, 60, 113, .92));
+  box-shadow: 0 7px 20px rgba(0, 0, 0, .10);
 }
 
 .ielp-account-link {
   display: flex;
   width: 100%;
-  min-height: 65px;
+  min-height: 63.5px;
   align-items: center;
   gap: 13px;
-  padding: 0 4px;
-  border-bottom: 1px solid rgba(226, 235, 255, .2);
+  padding: 0 1px;
+  border-bottom: 1px solid rgba(226, 235, 255, .12);
   color: #f5f7ff;
   background: transparent;
   font-size: 15px;
@@ -482,11 +482,12 @@
   background: rgba(255, 255, 255, .08);
 }
 
-.ielp-account-balance-card {
-  border: 1px solid rgba(115, 185, 255, .34);
+.ielp-account-balance-card,
+.ielp-account-company-card {
+  border: 1px solid rgba(184, 205, 255, .13);
   border-radius: 18px;
-  background: linear-gradient(145deg, #1b3d6b 0%, #132a50 100%);
-  box-shadow: 0 12px 27px rgba(4, 12, 32, .3), inset 0 1px rgba(255, 255, 255, .08);
+  background: linear-gradient(145deg, rgba(24, 36, 79, .96), rgba(15, 56, 103, .92));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .16);
 }
 
 .ielp-account-balance-card {
@@ -498,9 +499,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
   padding: 0 4px 12px;
-  border-bottom: 1px solid rgba(229, 240, 255, .17);
   color: rgba(242, 245, 255, .84);
   font-size: 15px;
 }
@@ -517,7 +516,7 @@
   height: auto;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: auto;
-  gap: 8px;
+  gap: 4px;
   margin: 0;
   padding: 0;
   overflow: visible;
@@ -528,16 +527,12 @@
 }
 
 .ielp-account-shortcut {
-  min-height: 86px;
   gap: 7px;
-  padding: 8px 3px;
-  border: 1px solid rgba(168, 198, 255, .34);
-  border-radius: 14px;
+  padding: 2px 1px 0;
   color: #f7f8ff;
-  background: linear-gradient(155deg, #294879, #203761);
-  box-shadow: 0 5px 12px rgba(4, 12, 32, .2), inset 0 1px rgba(255, 255, 255, .08);
+  background: transparent;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.2;
 }
 
@@ -584,11 +579,11 @@
   margin-top: 16px;
   padding: 16px 14px 16px 18px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .25);
+  border: 1px solid rgba(255, 255, 255, .13);
   border-radius: 12px;
   color: #fff;
   background: linear-gradient(108deg, #16437e 0%, #5e3658 50%, #b92a2e 100%);
-  box-shadow: 0 11px 24px rgba(23, 30, 74, .32), inset 0 1px rgba(255, 255, 255, .14);
+  box-shadow: 0 6px 16px rgba(23, 30, 74, .22), inset 0 1px rgba(255, 255, 255, .1);
   font: inherit;
   text-align: start;
   cursor: pointer;
@@ -680,12 +675,8 @@
 }
 
 .ielp-account-company-card {
-  margin-top: 18px;
+  margin-top: 16px;
   padding: 15px 13px 13px;
-  border: 1px solid rgba(171, 152, 255, .34);
-  border-radius: 18px;
-  background: linear-gradient(145deg, #2a2456 0%, #17345f 100%);
-  box-shadow: 0 12px 27px rgba(4, 12, 32, .3), inset 0 1px rgba(255, 255, 255, .08);
 }
 
 .ielp-account-company-card h2 {
@@ -704,30 +695,22 @@
 .ielp-account-company-action {
   display: flex;
   min-width: 0;
-  min-height: 98px;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 9px 4px 8px;
-  border: 1px solid rgba(190, 180, 255, .3);
-  border-radius: 15px;
+  gap: 6px;
+  padding: 3px 2px 2px;
+  border-radius: 12px;
   color: rgba(246, 247, 255, .92);
-  background: linear-gradient(155deg, #393268, #2a2b59);
-  box-shadow: 0 4px 11px rgba(4, 12, 32, .18), inset 0 1px rgba(255, 255, 255, .06);
+  background: transparent;
   font-size: 12px;
   font-weight: 550;
   text-align: center;
-  transition: background 140ms ease, border-color 140ms ease, transform 100ms ease;
-}
-
-.ielp-account-company-action:hover {
-  border-color: rgba(215, 208, 255, .48);
-  background: #423b78;
+  transition: background 140ms ease, transform 100ms ease;
 }
 
 .ielp-account-company-action:active {
   transform: scale(.97);
-  background: #48417f;
+  background: rgba(255, 255, 255, .07);
 }
 
 .ielp-account-company-icon {
@@ -761,7 +744,7 @@
 }
 
 .ielp-account-links {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .ielp-account-profile button:focus-visible,
@@ -786,7 +769,7 @@
   }
 
   .ielp-account-shortcut {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .ielp-account-vip-card {
