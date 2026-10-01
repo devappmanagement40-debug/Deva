@@ -9,7 +9,7 @@
 .ielp-team-shell {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-bottom: calc(170px + env(safe-area-inset-bottom));
+  padding-bottom: 115px;
   background:
     radial-gradient(ellipse at 80% 44%, rgba(33, 89, 156, .18), transparent 21rem),
     linear-gradient(180deg, #050923 0%, #07113a 38%, #08285f 70%, #075486 100%);
@@ -377,29 +377,22 @@ button.ielp-team-stat-card:active {
   line-height: 12px;
 }
 
-.ielp-team-referral-rate-bar {
-  position: fixed;
-  z-index: 40;
-  bottom: calc(76px + env(safe-area-inset-bottom) + 8px);
-  left: 50%;
-  width: min(456px, calc(100vw - 24px));
-  padding: 10px 12px;
-  transform: translateX(-50%);
+.ielp-team-referral-rate-card {
+  margin-top: 18px;
+  padding: 13px 14px;
   border: 1px solid rgba(186, 174, 255, .24);
-  border-radius: 14px;
+  border-radius: 18px;
   color: #fff;
-  background: linear-gradient(110deg, rgba(11, 18, 53, .97), rgba(35, 25, 82, .97));
-  box-shadow: 0 6px 22px rgba(0, 0, 0, .25), inset 0 1px rgba(255, 255, 255, .06);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: linear-gradient(180deg, rgba(62, 97, 155, .45) 0%, rgba(44, 111, 164, .5) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .16), inset 0 1px rgba(255, 255, 255, .06);
 }
 
-.ielp-team-referral-rate-bar h2 {
+.ielp-team-referral-rate-card h2 {
   margin: 0 0 7px;
   color: rgba(255, 255, 255, .82);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
   text-align: center;
 }
 

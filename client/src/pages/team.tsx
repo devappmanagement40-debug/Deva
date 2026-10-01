@@ -432,28 +432,28 @@ export default function TeamPage() {
               </article>
             ))}
           </section>
+
+          <section
+            className="ielp-team-referral-rate-card"
+            aria-label={copy.referralRates}
+            data-testid="team-referral-rates"
+          >
+            <h2>{copy.referralRates}</h2>
+            <div className="ielp-team-referral-rate-items">
+              {referralRates.map(({ level, value }) => (
+                <div
+                  className="ielp-team-referral-rate-item"
+                  key={level}
+                  data-testid={`team-referral-rate-${level}`}
+                >
+                  <span>{copy.level} {level}</span>
+                  <strong>{formatPercentage(value, lang)}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
-
-      <section
-        className="ielp-team-referral-rate-bar"
-        aria-label={copy.referralRates}
-        data-testid="team-referral-rates"
-      >
-        <h2>{copy.referralRates}</h2>
-        <div className="ielp-team-referral-rate-items">
-          {referralRates.map(({ level, value }) => (
-            <div
-              className="ielp-team-referral-rate-item"
-              key={level}
-              data-testid={`team-referral-rate-${level}`}
-            >
-              <span>{copy.level} {level}</span>
-              <strong>{formatPercentage(value, lang)}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <FloatingSupport placement="home" />
     </main>
