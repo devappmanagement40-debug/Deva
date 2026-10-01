@@ -380,11 +380,11 @@ button.ielp-team-stat-card:active {
 .ielp-team-referral-rate-card {
   margin-top: 18px;
   padding: 13px 14px;
-  border: 1px solid rgba(186, 174, 255, .24);
+  border: 1px solid rgba(255, 255, 255, .24);
   border-radius: 18px;
   color: #fff;
-  background: linear-gradient(180deg, rgba(62, 97, 155, .45) 0%, rgba(44, 111, 164, .5) 100%);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .16), inset 0 1px rgba(255, 255, 255, .06);
+  background: linear-gradient(105deg, #7041f2 0%, #8c46df 100%);
+  box-shadow: 0 8px 24px rgba(36, 23, 111, .28), inset 0 1px rgba(255, 255, 255, .12);
 }
 
 .ielp-team-referral-rate-card h2 {
