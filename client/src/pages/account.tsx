@@ -248,7 +248,7 @@ const QUICK_ACTIONS: {
   { copyKey: "deposit", href: "/deposit", Icon: WalletCards },
   { copyKey: "withdraw", href: "/withdrawal", Icon: HandCoins },
   { copyKey: "orders", href: "/orders", Icon: ReceiptText },
-  { copyKey: "walletCard", href: "/wallet", Icon: WalletCards },
+  { copyKey: "walletCard", href: "/wallet", Icon: CreditCard },
 ];
 
 const BUSINESS_ACTIONS: {
@@ -565,7 +565,7 @@ export default function AccountPage() {
                 <button
                   key={copyKey}
                   type="button"
-                  className="ielp-account-company-action"
+                  className={`ielp-account-company-action ielp-account-company-action--${copyKey}`}
                   onClick={() => navigate(href)}
                   data-testid={`account-company-${href.slice(1)}`}
                 >
