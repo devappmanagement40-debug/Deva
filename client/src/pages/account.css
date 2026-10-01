@@ -490,22 +490,29 @@
 .ielp-account-shortcut-icon {
   width: 43px;
   height: 43px;
-  border: 1px solid rgba(255, 255, 255, .17);
+  border: 1px solid rgba(161, 148, 255, .27);
   border-radius: 13px;
-  color: #fff;
-  background: linear-gradient(145deg, rgba(85, 104, 255, .58), rgba(112, 65, 242, .38));
+  color: #c8bdff;
+  background: linear-gradient(145deg, rgba(112, 65, 242, .3), rgba(53, 73, 162, .25));
+  box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 3px 10px rgba(18, 20, 81, .2);
 }
 
 .ielp-account-shortcut--2 .ielp-account-shortcut-icon {
-  background: linear-gradient(145deg, rgba(30, 180, 224, .5), rgba(37, 106, 224, .36));
+  border-color: rgba(104, 195, 255, .27);
+  color: #9cddff;
+  background: linear-gradient(145deg, rgba(30, 151, 224, .28), rgba(37, 106, 224, .2));
 }
 
 .ielp-account-shortcut--3 .ielp-account-shortcut-icon {
-  background: linear-gradient(145deg, rgba(247, 185, 70, .48), rgba(211, 122, 37, .3));
+  border-color: rgba(143, 162, 255, .27);
+  color: #b7c3ff;
+  background: linear-gradient(145deg, rgba(71, 103, 218, .3), rgba(112, 65, 242, .2));
 }
 
 .ielp-account-shortcut--4 .ielp-account-shortcut-icon {
-  background: linear-gradient(145deg, rgba(112, 65, 242, .6), rgba(140, 70, 223, .38));
+  border-color: rgba(192, 165, 255, .28);
+  color: #d4c1ff;
+  background: linear-gradient(145deg, rgba(140, 70, 223, .32), rgba(81, 61, 169, .22));
 }
 
 .ielp-account-shortcut--4,
@@ -544,7 +551,7 @@
 
 .ielp-account-vip-title {
   gap: 8px;
-  color: #f6d58a;
+  color: #d5c9ff;
   font-size: 14px;
   font-weight: 800;
 }
@@ -644,8 +651,26 @@
   justify-content: center;
   border: 1px solid rgba(163, 183, 255, .2);
   border-radius: 14px;
-  color: #d9d4ff;
-  background: linear-gradient(145deg, rgba(73, 97, 187, .48), rgba(112, 65, 242, .25));
+  color: #bdb1ff;
+  background: linear-gradient(145deg, rgba(73, 97, 187, .32), rgba(112, 65, 242, .2));
+}
+
+.ielp-account-company-action--team .ielp-account-company-icon {
+  border-color: rgba(119, 185, 255, .28);
+  color: #a7d0ff;
+  background: linear-gradient(145deg, rgba(37, 106, 224, .3), rgba(68, 86, 181, .2));
+}
+
+.ielp-account-company-action--earnings .ielp-account-company-icon {
+  border-color: rgba(168, 148, 255, .3);
+  color: #c5b9ff;
+  background: linear-gradient(145deg, rgba(112, 65, 242, .3), rgba(72, 72, 184, .2));
+}
+
+.ielp-account-company-action--rewards .ielp-account-company-icon {
+  border-color: rgba(143, 162, 255, .28);
+  color: #acbeff;
+  background: linear-gradient(145deg, rgba(71, 103, 218, .3), rgba(140, 70, 223, .2));
 }
 
 .ielp-account-links {
