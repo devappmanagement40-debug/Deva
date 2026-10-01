@@ -45,6 +45,9 @@
 }
 
 .diamant-invest-tabs {
+  position: sticky;
+  top: 56px;
+  z-index: 79;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
