@@ -486,7 +486,7 @@ export default function AccountPage() {
                 </span>
               </button>
               <div className="ielp-account-profile-copy">
-                <h1 className="ielp-account-name">{user.fullName}</h1>
+                <h1 className="ielp-account-name">DIAMANT</h1>
                 <div className="ielp-account-identity-meta">
                   <span className="ielp-account-member-badge">{copy.memberId}</span>
                   <button
