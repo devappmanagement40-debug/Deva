@@ -10,7 +10,7 @@
 - [TGOOD task rewards](tgood-task-rewards.md) — task rewards support decimal USDT amounts; startup adds missing levels without overwriting admin-configured values.
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — popup defaults use the 03/09/2026 launch date and current USDT rules; check-in rewards run every 24 hours.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
-- [DIAMANT web presentation](diamant-web-presentation.md) — keep the existing web presentation; do not expand app-shell or PWA behavior without approval.
+- [DIAMANT web presentation](diamant-web-presentation.md) — member pages use the approved fixed four-item bottom nav in DIAMANT colors; don't expand the app shell elsewhere without approval.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD product earnings collection](tgood-product-earnings-collection.md) — product gains accrue pending per product and credit totalEarnings only after manual 24-hour collection.
 - [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.

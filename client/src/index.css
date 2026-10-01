@@ -1416,24 +1416,28 @@ ol[data-radix-toast-viewport] li * {
 }
 
 .bottom-nav--ielp {
-  right: max(15px, calc((100vw - 480px) / 2 + 15px));
-  bottom: 20px;
-  left: max(15px, calc((100vw - 480px) / 2 + 15px));
-  width: auto;
-  max-width: 450px;
-  height: 76px;
-  padding: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: 480px;
+  height: calc(76px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  margin-right: auto;
+  margin-left: auto;
+  padding: 0 0 env(safe-area-inset-bottom);
   overflow: hidden;
-  border: 1px solid rgba(186, 174, 255, .2);
-  border-radius: 17px;
-  background: rgba(13, 18, 54, .94);
-  box-shadow: 0 7px 21px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .06);
+  border: 1px solid rgba(186, 174, 255, .24);
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background: linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98));
+  box-shadow: 0 -7px 22px rgba(0, 0, 0, .27), inset 0 1px rgba(255, 255, 255, .06);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
 
 .bottom-nav--ielp .bottom-nav__inner {
-  max-width: 450px;
+  max-width: 480px;
   height: 76px;
 }
 
