@@ -185,6 +185,7 @@ export default function TeamPage() {
   });
   const { data: settings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
+    refetchInterval: 15_000,
   });
 
   if (!user) return null;
