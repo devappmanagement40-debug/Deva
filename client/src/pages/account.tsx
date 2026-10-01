@@ -27,7 +27,6 @@ import {
   ReceiptText,
   Shield,
   UsersRound,
-  UserRound,
   WalletCards,
   type LucideIcon,
 } from "lucide-react";
@@ -451,7 +450,7 @@ export default function AccountPage() {
                 data-testid="button-account-menu"
               >
                 <span className="ielp-account-avatar" aria-hidden="true">
-                  <UserRound size={40} strokeWidth={1.8} />
+                  <DiamantBrand variant="on-light" markSize={62} showWordmark={false} />
                 </span>
               </button>
               <div className="ielp-account-profile-copy">

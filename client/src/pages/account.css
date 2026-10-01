@@ -356,8 +356,14 @@
   width: 96px;
   height: 96px;
   border: 3px solid rgba(255, 255, 255, .92);
-  color: #e7e3ff;
-  background: linear-gradient(145deg, #263b87, #7041f2 60%, #8c46df);
+  color: #7041f2;
+  background: linear-gradient(145deg, #fff 0%, #f0edff 100%);
+}
+
+.ielp-account-avatar > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ielp-account-profile-copy {
