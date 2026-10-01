@@ -83,17 +83,6 @@
   text-overflow: ellipsis;
 }
 
-.ielp-account-phone-toggle {
-  display: flex;
-  width: 23px;
-  height: 24px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  color: #e5ecfa;
-}
-
 .ielp-account-level {
   display: inline-flex;
   min-height: 27px;
@@ -480,8 +469,7 @@
   font-weight: 600;
 }
 
-.ielp-account-copy-id,
-.ielp-account-phone-toggle {
+.ielp-account-copy-id {
   display: inline-flex;
   width: 25px;
   height: 25px;

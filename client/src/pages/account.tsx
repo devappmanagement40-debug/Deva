@@ -12,8 +12,6 @@ import {
   Copy,
   Crown,
   Download,
-  Eye,
-  EyeOff,
   FileText,
   Gift,
   HandCoins,
@@ -36,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import { LanguagePicker } from "@/components/language-picker";
-import { formatCurrency, getCountryByCode } from "@/lib/countries";
+import { formatCurrency } from "@/lib/countries";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
@@ -314,7 +312,6 @@ export default function AccountPage() {
   const [adminPin, setAdminPin] = useState("");
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installing, setInstalling] = useState(false);
-  const [phoneVisible, setPhoneVisible] = useState(false);
   const { data: userProducts = [] } = useQuery<any[]>({
     queryKey: ["/api/user/products"],
   });
@@ -369,11 +366,10 @@ export default function AccountPage() {
 
   if (!user) return null;
 
-  const country = getCountryByCode(user.country);
-  const phonePrefix = country?.phonePrefix ? `+${country.phonePrefix}` : "";
   const phoneDigits = String(user.phone || "").replace(/\D/g, "");
-  const visiblePhone = `${phonePrefix}${phoneDigits ? ` ${phoneDigits}` : ""}`.trim();
-  const maskedPhone = `${phonePrefix}*****${phoneDigits.slice(-8)}`.trim();
+  const maskedPhone = phoneDigits.length > 4
+    ? `${phoneDigits.slice(0, 2)}${"*".repeat(phoneDigits.length - 4)}${phoneDigits.slice(-2)}`
+    : "*".repeat(phoneDigits.length);
   const memberCode = user.referralCode || user.id;
 
   const handleLogout = async () => {
@@ -496,7 +492,7 @@ export default function AccountPage() {
                     aria-label={copy.accountMenu}
                     data-testid="button-account-menu-phone"
                   >
-                    {phoneVisible ? visiblePhone : maskedPhone}
+                    {maskedPhone}
                   </button>
                   <span className="ielp-account-member-code">({memberCode})</span>
                   <button
@@ -507,15 +503,6 @@ export default function AccountPage() {
                     data-testid="button-copy-member-id"
                   >
                     <Copy size={15} aria-hidden="true" />
-                  </button>
-                  <button
-                    type="button"
-                    className="ielp-account-phone-toggle"
-                    aria-label={phoneVisible ? "Masquer le numéro" : "Afficher le numéro"}
-                    onClick={() => setPhoneVisible((visible) => !visible)}
-                    data-testid="button-toggle-phone"
-                  >
-                    {phoneVisible ? <Eye size={16} /> : <EyeOff size={16} />}
                   </button>
                 </div>
               </div>
@@ -656,7 +643,7 @@ export default function AccountPage() {
           </DialogHeader>
           <div className="space-y-1">
             <div className="mb-3 rounded-xl bg-[#f3faf5] px-4 py-3">
-              <p className="font-medium text-[#1f2933]">{visiblePhone}</p>
+              <p className="font-medium text-[#1f2933]">{maskedPhone}</p>
               <p className="mt-1 text-xs text-[#65736e]">{copy.member}</p>
             </div>
             {ACCOUNT_MENU_ACTIONS.map(({ labelKey, href, Icon }) => (
