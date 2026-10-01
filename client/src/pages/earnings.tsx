@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, CreditCard, Loader2, Wifi } from "lucide-react";
 import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +78,10 @@ export default function EarningsPage() {
   const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
   const hasProducts = userProducts.length > 0;
   const pendingTotal = userProducts.reduce((sum: number, item: any) => sum + Number(item.pendingEarnings || 0), 0);
+  const balanceCards = [
+    { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "USDT" },
+    { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
+  ];
 
   return (
     <main className="flex min-h-screen flex-col bg-black">
@@ -102,21 +106,36 @@ export default function EarningsPage() {
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="px-5 pt-4 text-white">
           <h1 className="mb-3 text-center text-base font-semibold">{balanceCopy.title}</h1>
-          <div className="grid grid-cols-2 gap-3">
-            <article className="min-w-0 rounded-2xl border border-white/10 bg-[#171717] px-3 py-4">
-              <p className="text-xs leading-snug text-white/65">{balanceCopy.deposits}</p>
-              <p className="mt-2 break-words text-lg font-bold leading-tight">
-                <span className="mr-1 text-xs font-medium text-white/60">USDT</span>
-                {depositBalance.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </article>
-            <article className="min-w-0 rounded-2xl border border-white/10 bg-[#171717] px-3 py-4">
-              <p className="text-xs leading-snug text-white/65">{balanceCopy.earnings}</p>
-              <p className="mt-2 break-words text-lg font-bold leading-tight">
-                <span className="mr-1 text-xs font-medium text-white/60">XOF</span>
-                {totalEarnings.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </article>
+          <div className="space-y-4">
+            {balanceCards.map((card) => (
+              <article
+                key={card.id}
+                aria-label={`${card.label}: ${card.currency} ${card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                className="relative block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]"
+                style={{ background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)" }}
+                data-testid={`balance-card-${card.id}`}
+              >
+                <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
+                <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
+                <div className="absolute right-[11%] -top-12 h-80 w-10 rotate-[-18deg] bg-white/[0.09]" />
+                <div className="absolute left-5 top-5 flex items-center gap-2 text-[13px] font-semibold tracking-[.12em] text-white/90">
+                  <CreditCard className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
+                  DIAMANT
+                </div>
+                <p className="absolute left-[14px] top-[108px] max-w-[82%] break-all text-[23px] font-semibold leading-[28px] tracking-[.01em]">
+                  {card.currency} {card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
+                  <div className="absolute inset-x-0 top-[15px] border-t border-[#9d8440]/40" />
+                  <div className="absolute inset-x-0 top-[30px] border-t border-[#9d8440]/40" />
+                  <div className="absolute bottom-0 left-[25px] top-0 border-l border-[#9d8440]/35" />
+                </div>
+                <div className="absolute bottom-5 left-5 flex max-w-[68%] items-center gap-2 truncate text-[12px] text-white/75">
+                  <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
+                  <span className="truncate">{card.label}</span>
+                </div>
+              </article>
+            ))}
           </div>
           {pendingTotal > 0 && (
             <p className="mt-3 text-center text-sm text-white/70">
