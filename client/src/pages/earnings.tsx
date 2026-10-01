@@ -96,13 +96,6 @@ export default function EarningsPage() {
           {t.myProductsTitle}
         </Link>
       </header>
-      <div className="flex h-[52px] items-center gap-3 bg-[#f1f2f4] px-7 text-[#5b616a]">
-        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#626975] text-[10px] font-bold text-white">i</span>
-        <div style={{ fontSize: 12, lineHeight: 1.55 }}>
-          <p>{t.myProductsSettledEvery24h}</p>
-          <p>{t.purchaseSuccessDescription}</p>
-        </div>
-      </div>
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="px-5 pt-4 text-white">
           <h1 className="mb-3 text-center text-base font-semibold">{balanceCopy.title}</h1>
