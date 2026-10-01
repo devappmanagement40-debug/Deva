@@ -16,6 +16,11 @@
 }
 
 .ielp-home-page .diamant-invest-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  width: min(100%, 480px);
+  margin-inline: auto;
   border-bottom: 1px solid rgba(197, 195, 255, .13);
   background: #050920;
   -webkit-backdrop-filter: none;
@@ -41,13 +46,15 @@
 .diamant-invest-content {
   width: min(100%, 520px);
   margin: 0 auto;
-  padding: 24px 17px 48px;
+  padding: 132px 17px 48px;
 }
 
 .diamant-invest-tabs {
-  position: sticky;
-  top: 56px;
-  z-index: 79;
+  position: fixed;
+  inset: 56px 0 auto;
+  z-index: 90;
+  width: min(446px, calc(100% - 34px));
+  margin-inline: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
@@ -561,7 +568,7 @@
 .diamant-purchase-actions button:focus-visible { outline: 2px solid #c9bdff; outline-offset: -4px; }
 
 @media (min-width: 600px) {
-  .diamant-invest-content { padding: 32px 22px 56px; }
+  .diamant-invest-content { padding: 132px 22px 56px; }
   .diamant-invest-product-card { padding: 17px 18px 15px; }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 132px; }
   .diamant-invest-product-visual { height: 130px; }
@@ -571,6 +578,7 @@
 
 @media (max-width: 380px) {
   .diamant-invest-content { padding-inline: 13px; }
+  .diamant-invest-tabs { width: calc(100% - 26px); }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px; }
   .diamant-invest-product-visual { height: 100px; }
   .diamant-invest-product-copy h3 { font-size: 16px; }
