@@ -50,6 +50,7 @@ import {
 import bannerAsscherDiamond from "@/assets/images/diamant-banner-asscher-cut.png";
 import bannerRoughDiamonds from "@/assets/images/diamant-banner-rough-diamonds.jpg";
 import bannerSmithsonianDiamonds from "@/assets/images/diamant-banner-smithsonian-diamonds.jpg";
+import bannerAccountDuo from "@/assets/images/diamant-account-banner-3d-duo.png";
 import "./account.css";
 
 const ACCOUNT_BANNER_PHOTOS = [
@@ -450,6 +451,7 @@ export default function AccountPage() {
                   </div>
                 ))}
               </div>
+              <img className="ielp-account-banner-duo" src={bannerAccountDuo} alt="" draggable={false} />
             </div>
             <div className="ielp-account-profile">
               <button
