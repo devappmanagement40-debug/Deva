@@ -81,6 +81,7 @@ export default function SupportChatPage() {
   const [filePreviewUrl, setFilePreviewUrl] = useState("");
   const [validationError, setValidationError] = useState("");
   const [sendingError, setSendingError] = useState("");
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
@@ -137,7 +138,8 @@ export default function SupportChatPage() {
       setFilePreviewUrl("");
       setValidationError("");
       setSendingError("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+        if (imageInputRef.current) imageInputRef.current.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = "";
       queryClient.invalidateQueries({ queryKey: ["/api/support-chat/messages"] });
     },
     onError: (error: Error) => setSendingError(error.message || "Votre message n’a pas pu être envoyé."),
@@ -161,16 +163,18 @@ export default function SupportChatPage() {
   }, [messages]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     setValidationError("");
     setSendingError("");
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
       setValidationError("Le fichier dépasse la taille maximale de 10 Mo.");
-      event.target.value = "";
+      input.value = "";
       return;
     }
     setSelectedFile(file);
+    input.value = "";
   };
 
   const handleSend = async (event?: FormEvent) => {
@@ -255,6 +259,7 @@ export default function SupportChatPage() {
                 onClick={() => {
                   setSelectedFile(null);
                   setFilePreviewUrl("");
+                  if (imageInputRef.current) imageInputRef.current.value = "";
                   if (fileInputRef.current) fileInputRef.current.value = "";
                 }}
                 aria-label="Retirer la pièce jointe"
@@ -280,9 +285,9 @@ export default function SupportChatPage() {
             <button
               className="sc-tool-button"
               type="button"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => imageInputRef.current?.click()}
               disabled={sendMessage.isPending}
-              aria-label="Ajouter une image, une vidéo ou un fichier"
+              aria-label="Choisir une image dans la galerie"
               data-testid="button-support-attach"
             >
               <ImagePlus size={23} aria-hidden="true" />
@@ -308,12 +313,23 @@ export default function SupportChatPage() {
             </button>
           </div>
           <input
+            ref={imageInputRef}
+            className="sc-hidden-file"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={handleFileChange}
+            aria-label="Choisir une image dans la galerie"
+            tabIndex={-1}
+            data-testid="input-support-image"
+          />
+          <input
             ref={fileInputRef}
             className="sc-hidden-file"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,application/pdf,.pdf"
             onChange={handleFileChange}
             aria-label="Sélectionner une pièce jointe"
+            tabIndex={-1}
             data-testid="input-support-file"
           />
         </form>

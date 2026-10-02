@@ -189,22 +189,33 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   });
 
   const chooseProof = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       toast({ title: "Fichier non valide", description: "Choisissez une image JPG, PNG ou WebP.", variant: "destructive" });
+      input.value = "";
       return;
     }
     if (file.size > 3 * 1024 * 1024) {
       toast({ title: "Fichier trop volumineux", description: "L'image doit faire moins de 3 Mo.", variant: "destructive" });
+      input.value = "";
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
-      setProof(String(reader.result));
+      if (typeof reader.result !== "string") {
+        toast({ title: "Image illisible", description: "Choisissez une autre image depuis votre galerie.", variant: "destructive" });
+        return;
+      }
+      setProof(reader.result);
       setProofName(file.name);
     };
+    reader.onerror = () => {
+      toast({ title: "Image illisible", description: "Choisissez une autre image depuis votre galerie.", variant: "destructive" });
+    };
     reader.readAsDataURL(file);
+    input.value = "";
   };
 
   const submitMainDeposit = () => {
@@ -554,7 +565,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             <p className="ielp-deposit-form-label mb-4 font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
               <span style={{ color: "#ea4f55" }}>* </span>Capture du paiement
             </p>
-            <input ref={proofInput} className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseProof} />
+            <input ref={proofInput} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseProof} tabIndex={-1} />
             <button
               type="button"
               onClick={() => proofInput.current?.click()}

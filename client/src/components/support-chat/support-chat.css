@@ -403,8 +403,21 @@
   line-height: 1.5;
 }
 
+body.ielp-route-theme .sc-page .sc-compose-line textarea {
+  color: #24364d !important;
+  -webkit-text-fill-color: #24364d;
+  caret-color: #1769bd !important;
+  color-scheme: light;
+}
+
 .sc-compose-line textarea::placeholder {
   color: #8c96a3;
+}
+
+body.ielp-route-theme .sc-page .sc-compose-line textarea::placeholder {
+  color: #7c8999 !important;
+  -webkit-text-fill-color: #7c8999;
+  opacity: 1;
 }
 
 .sc-compose-line textarea:focus-visible {
@@ -457,7 +470,15 @@
 }
 
 .sc-hidden-file {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .sc-admin {
