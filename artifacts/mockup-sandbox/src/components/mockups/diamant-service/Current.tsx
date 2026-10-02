@@ -114,7 +114,11 @@ export default function ServicePage() {
       className="ielp-service-page flex flex-col min-h-screen"
       style={{
         color: "#f7f8ff",
-        background: "linear-gradient(180deg, #050923 0%, #07123c 36%, #08265e 69%, #075587 100%)",
+        backgroundColor: "#02071d",
+        backgroundImage: "url('/__mockup/images/auth-night-sky.svg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center top",
+        backgroundRepeat: "no-repeat",
       }}
     >
 
@@ -140,7 +144,7 @@ export default function ServicePage() {
       <div
         className="ielp-service-hero"
         style={{
-          background: "linear-gradient(145deg, #050923 0%, #07123c 48%, #075587 100%)",
+          background: "linear-gradient(145deg, rgba(5, 9, 35, .76) 0%, rgba(7, 18, 60, .54) 48%, rgba(7, 85, 135, .62) 100%)",
           paddingBottom: 30,
           display: "flex",
           flexDirection: "column",
