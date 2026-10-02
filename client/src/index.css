@@ -1726,10 +1726,11 @@ ol[data-radix-toast-viewport] li * {
   flex-direction: column;
   gap: 11px;
   margin-top: 5px;
-  --home-panel: linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98));
-  --home-panel-border: rgba(183, 168, 255, .22);
+  --home-panel: linear-gradient(108deg, #16437e 0%, #5e3658 50%, #b92a2e 100%);
+  --home-panel-border: rgba(255, 255, 255, .13);
+  --home-panel-shadow: 0 6px 16px rgba(23, 30, 74, .22), inset 0 1px rgba(255, 255, 255, .1);
   --home-metric-violet: #c9c2ff;
-  --home-muted: #929aa9;
+  --home-muted: rgba(255, 255, 255, .78);
 }
 
 .ielp-home-section-heading {
@@ -1804,10 +1805,10 @@ ol[data-radix-toast-viewport] li * {
   padding: 12px;
   overflow: hidden;
   border: 1px solid var(--home-panel-border);
-  border-radius: 13px;
+  border-radius: 12px;
   color: #f7f8ff;
   background: var(--home-panel);
-  box-shadow: 0 6px 15px rgba(1, 7, 20, .14);
+  box-shadow: var(--home-panel-shadow);
   text-align: start;
   scroll-snap-align: start;
   -webkit-tap-highlight-color: transparent;
@@ -1909,9 +1910,10 @@ ol[data-radix-toast-viewport] li * {
   margin: 0;
   padding: 14px;
   border: 1px solid var(--home-panel-border);
-  border-radius: 15px;
-  color: #a8b0bd;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, .86);
   background: var(--home-panel);
+  box-shadow: var(--home-panel-shadow);
   font-size: 13px;
   text-align: center;
 }
@@ -1943,10 +1945,10 @@ ol[data-radix-toast-viewport] li * {
   gap: 14px;
   padding: 13px 14px 13px 16px;
   border: 1px solid var(--home-panel-border);
-  border-radius: 13px;
+  border-radius: 12px;
   color: inherit;
   background: var(--home-panel);
-  box-shadow: 0 5px 14px rgba(1, 7, 20, .12);
+  box-shadow: var(--home-panel-shadow);
   text-align: start;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1975,7 +1977,7 @@ ol[data-radix-toast-viewport] li * {
   display: -webkit-box;
   min-width: 0;
   overflow: hidden;
-  color: #929aa9;
+  color: rgba(255, 255, 255, .82);
   font-size: 12px;
   line-height: 1.45;
   -webkit-box-orient: vertical;
@@ -1995,9 +1997,10 @@ ol[data-radix-toast-viewport] li * {
   margin: 0;
   padding: 19px 14px;
   border: 1px solid var(--home-panel-border);
-  border-radius: 13px;
+  border-radius: 12px;
   color: var(--home-muted);
   background: var(--home-panel);
+  box-shadow: var(--home-panel-shadow);
   font-size: 13px;
   text-align: center;
 }
