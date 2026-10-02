@@ -254,7 +254,8 @@ body.ielp-route-theme [data-testid="button-select-wallet"] {
 }
 
 body.ielp-route-theme [data-testid^="wallet-card-"],
-body.ielp-route-theme [data-testid^="balance-card-"] {
+body.ielp-route-theme [data-testid^="balance-card-"],
+body.ielp-route-theme [data-testid="income-summary-card"] {
   background: linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%) !important;
 }
 

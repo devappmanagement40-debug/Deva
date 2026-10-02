@@ -14,7 +14,7 @@ const MEMBER_ACCENT = "#00c83c";
 const BALANCE_CARD_CLASS_NAME =
   "relative block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]";
 const BALANCE_CARD_STYLE = {
-  background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)",
+  background: "linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%)",
 } as const;
 type IncomeSummary = { productEarnings: number; teamEarnings: number };
 
@@ -209,45 +209,45 @@ export default function EarningsPage() {
               aria-label={balanceCopy.summaryTitle}
               data-testid="income-summary-card"
             >
-            <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
-            <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
-            <div className="absolute right-[11%] -top-12 h-80 w-10 rotate-[-18deg] bg-white/[0.09]" />
-            <div className="absolute left-5 top-5 flex items-center gap-2 text-[13px] font-semibold tracking-[.12em] text-white/90">
-              <CreditCard className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
-              DIAMANT
-            </div>
-            <p className="absolute left-[14px] top-[78px] max-w-[82%] break-all text-[22px] font-semibold leading-[26px] tracking-[.01em]" data-testid="income-summary-total">
-              {formatSummaryAmount(productIncome + teamIncome)}
-            </p>
-            <div className="absolute left-[14px] top-[132px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
-              <div className="border-b border-white/25 pb-1">
-                <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
-                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">{balanceCopy.productShort}</span>
-                </p>
-                <p className="pl-5 text-[12px] font-bold leading-4 tabular-nums" data-testid="income-summary-products">
-                  {formatSummaryAmount(productIncome)}
-                </p>
+              <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
+              <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
+              <div className="absolute right-[11%] -top-12 h-80 w-10 rotate-[-18deg] bg-white/[0.09]" />
+              <div className="absolute left-5 top-5 flex items-center gap-2 text-[13px] font-semibold tracking-[.12em] text-white/90">
+                <CreditCard className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
+                DIAMANT
               </div>
-              <div>
-                <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
-                  <UsersRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span className="truncate">{balanceCopy.teamShort}</span>
-                </p>
-                <p className="pl-5 text-[12px] font-bold leading-4 tabular-nums" data-testid="income-summary-team">
-                  {formatSummaryAmount(teamIncome)}
-                </p>
+              <div className="absolute left-[14px] top-[66px] flex items-center gap-1.5 text-[10px] leading-4 text-white/75">
+                <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
+                <span>{balanceCopy.combinedTotal}</span>
               </div>
-            </div>
-            <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
-              <div className="absolute inset-x-0 top-[15px] border-t border-[#9d8440]/40" />
-              <div className="absolute inset-x-0 top-[30px] border-t border-[#9d8440]/40" />
-              <div className="absolute bottom-0 left-[25px] top-0 border-l border-[#9d8440]/35" />
-            </div>
-            <div className="absolute bottom-5 left-5 flex max-w-[68%] items-center gap-2 truncate text-[12px] text-white/75">
-              <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
-              <span className="truncate">{balanceCopy.combinedTotal}</span>
-            </div>
+              <p className="absolute left-[14px] top-[84px] max-w-[82%] break-all text-[23px] font-semibold leading-[28px] tracking-[.01em]" data-testid="income-summary-total">
+                {formatSummaryAmount(productIncome + teamIncome)}
+              </p>
+              <div className="absolute left-[14px] top-[128px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
+                <div className="border-b border-white/25 pb-1">
+                  <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
+                    <Package className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{balanceCopy.productShort}</span>
+                  </p>
+                  <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-products">
+                    {formatSummaryAmount(productIncome)}
+                  </p>
+                </div>
+                <div>
+                  <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
+                    <UsersRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{balanceCopy.teamShort}</span>
+                  </p>
+                  <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-team">
+                    {formatSummaryAmount(teamIncome)}
+                  </p>
+                </div>
+              </div>
+              <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
+                <div className="absolute inset-x-0 top-[15px] border-t border-[#9d8440]/40" />
+                <div className="absolute inset-x-0 top-[30px] border-t border-[#9d8440]/40" />
+                <div className="absolute bottom-0 left-[25px] top-0 border-l border-[#9d8440]/35" />
+              </div>
             </article>
           </div>
           {incomeSummaryQuery.isError && (
