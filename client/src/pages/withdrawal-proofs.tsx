@@ -1,7 +1,7 @@
 import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowLeft, Camera, CheckCircle2, Clock3, ImagePlus, ShieldCheck, Upload, X } from "lucide-react";
+import { ArrowLeft, Camera, CheckCircle2, Clock3, ImagePlus, Plus, ShieldCheck, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { localeForLang, useI18n } from "@/lib/i18n";
@@ -137,13 +137,13 @@ export default function WithdrawalProofsPage() {
             aria-label="Retour à l’accueil"
             data-testid="button-withdrawal-proofs-back"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={21} strokeWidth={2.8} />
           </button>
           <div className="withdrawal-proofs-header__copy">
             <span className="withdrawal-proofs-eyebrow">DIAMANT · COMMUNAUTÉ</span>
             <h1>Preuves de retrait</h1>
           </div>
-          <span className="withdrawal-proofs-header__mark" aria-hidden="true"><ShieldCheck size={20} /></span>
+          <span className="withdrawal-proofs-header__mark" aria-hidden="true"><ShieldCheck size={21} strokeWidth={2.8} /></span>
         </header>
 
         <section className="withdrawal-proofs-intro">
@@ -160,9 +160,9 @@ export default function WithdrawalProofsPage() {
                 onClick={() => setFormOpen(true)}
                 data-testid="button-open-withdrawal-proof-form"
               >
-                <span className="withdrawal-proof-submit__icon"><Upload size={19} /></span>
+                <span className="withdrawal-proof-submit__icon"><Upload size={22} strokeWidth={2.8} /></span>
                 <span><strong>Partager une preuve</strong><small>Montrez votre retrait à la communauté</small></span>
-                <span className="withdrawal-proof-submit__plus">+</span>
+                <span className="withdrawal-proof-submit__plus" aria-hidden="true"><Plus size={22} strokeWidth={3} /></span>
               </button>
             ) : (
               <form className="withdrawal-proof-form" onSubmit={handleSubmit}>
@@ -177,7 +177,7 @@ export default function WithdrawalProofsPage() {
                     onClick={() => setFormOpen(false)}
                     aria-label="Fermer le formulaire"
                   >
-                    <X size={18} />
+                    <X size={19} strokeWidth={2.8} />
                   </button>
                 </div>
                 <label className="withdrawal-proof-field">
@@ -211,18 +211,18 @@ export default function WithdrawalProofsPage() {
                     <>
                       <img src={proof} alt="Aperçu de la preuve sélectionnée" />
                       <span><strong>Image prête</strong><small data-no-static-translation>{proofName}</small></span>
-                      <CheckCircle2 size={20} />
+                      <CheckCircle2 size={22} strokeWidth={2.8} />
                     </>
                   ) : (
                     <>
-                      <ImagePlus size={21} />
+                      <ImagePlus size={23} strokeWidth={2.8} />
                       <span><strong>Ajouter une capture</strong><small>PNG, JPEG ou WebP · 5 Mo maximum</small></span>
-                      <Camera size={18} />
+                      <Camera size={20} strokeWidth={2.8} />
                     </>
                   )}
                 </button>
                 <p className="withdrawal-proof-approval-note">
-                  <ShieldCheck size={16} />
+                  <ShieldCheck size={18} strokeWidth={2.7} />
                   Votre preuve ne sera visible par les autres membres qu’après validation par l’administration.
                 </p>
                 <Button
@@ -255,14 +255,14 @@ export default function WithdrawalProofsPage() {
             </div>
           ) : feed.isError ? (
             <div className="withdrawal-proof-state withdrawal-proof-state--error">
-              <ShieldCheck size={25} />
+              <ShieldCheck size={28} strokeWidth={2.8} />
               <h3>Le fil ne peut pas être chargé</h3>
               <p>Vérifiez votre connexion puis réessayez.</p>
               <Button variant="outline" onClick={() => void feed.refetch()}>Réessayer</Button>
             </div>
           ) : !feed.data?.length ? (
             <div className="withdrawal-proof-state">
-              <div className="withdrawal-proof-state__icon"><ImagePlus size={23} /></div>
+              <div className="withdrawal-proof-state__icon"><ImagePlus size={27} strokeWidth={2.8} /></div>
               <h3>Les premières preuves arrivent bientôt</h3>
               <p>Vous pouvez aider la communauté en partageant votre expérience de retrait.</p>
               <button type="button" onClick={() => setFormOpen(true)}>Partager la première preuve</button>
@@ -274,9 +274,9 @@ export default function WithdrawalProofsPage() {
                   <div className="withdrawal-proof-card__top">
                     <div className="withdrawal-proof-card__member">
                   <span className="withdrawal-proof-card__avatar" aria-hidden="true" data-no-static-translation>{item.maskedPhone.slice(-2)}</span>
-                  <span><strong data-no-static-translation>{item.maskedPhone}</strong><small data-no-static-translation><Clock3 size={12} /> {formatDate(item.createdAt, locale)}</small></span>
+                  <span><strong data-no-static-translation>{item.maskedPhone}</strong><small data-no-static-translation><Clock3 size={13} strokeWidth={2.6} /> {formatDate(item.createdAt, locale)}</small></span>
                     </div>
-                    <span className="withdrawal-proof-card__verified"><ShieldCheck size={13} /> Vérifié</span>
+                    <span className="withdrawal-proof-card__verified"><ShieldCheck size={15} strokeWidth={2.8} /> Vérifié</span>
                   </div>
                   <div className="withdrawal-proof-card__content">
                     <p data-no-static-translation>{item.message}</p>
@@ -299,10 +299,6 @@ export default function WithdrawalProofsPage() {
               ))}
             </div>
           )}
-          <footer className="withdrawal-proofs-footer">
-            <ShieldCheck size={15} />
-            <span>Les numéros sont masqués pour protéger la confidentialité des membres.</span>
-          </footer>
         </div>
       </div>
     </main>

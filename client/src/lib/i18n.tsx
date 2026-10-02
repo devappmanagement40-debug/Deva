@@ -2033,7 +2033,6 @@ const WITHDRAWAL_PROOF_STATIC_TRANSLATIONS: StaticTranslationRow[] = [
   ["Capture de retrait partagée", "Shared withdrawal screenshot", "لقطة شاشة لعملية سحب تمت مشاركتها", "分享的提现截图"],
   ["Capture de retrait", "Withdrawal screenshot", "لقطة شاشة للسحب", "提现截图"],
   ["Prime de partage affichée", "Displayed sharing bonus", "مكافأة المشاركة المعروضة", "显示的分享奖励"],
-  ["Les numéros sont masqués pour protéger la confidentialité des membres.", "Phone numbers are masked to protect members’ privacy.", "تُخفى أرقام الهواتف لحماية خصوصية الأعضاء.", "电话号码已隐藏，以保护成员隐私。"],
   ["Retour à l’accueil", "Back to home", "العودة إلى الرئيسية", "返回首页"],
   ["Preuve envoyée", "Proof submitted", "تم إرسال الإثبات", "凭证已提交"],
   ["Elle sera visible par les autres membres après validation par l’administration.", "Other members will see it after the administration approves it.", "سيتمكن الأعضاء الآخرون من رؤيتها بعد موافقة الإدارة.", "管理员批准后，其他成员即可查看。"],
