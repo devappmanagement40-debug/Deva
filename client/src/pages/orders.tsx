@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, localeForLang } from "@/lib/i18n";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 import productBike from "@assets/generated_images/diamant-product-bike-card.jpg";
 import productScooter from "@assets/generated_images/diamant-scooter.jpg";
@@ -17,12 +20,35 @@ function isProductActive(product: any): boolean {
 }
 
 export default function OrdersPage() {
-  const { user } = useAuth();
-  const { t } = useI18n();
+  const { user, refreshUser } = useAuth();
+  const { t, lang } = useI18n();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
+  const [collectingId, setCollectingId] = useState<number | null>(null);
 
   const { data: userProducts, isLoading } = useQuery<any[]>({
     queryKey: ["/api/user/products"],
+  });
+
+  const collectMutation = useMutation({
+    mutationFn: async (userProductId: number) => {
+      const response = await apiRequest("POST", "/api/user/collect-earnings", { userProductId });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || t.errorOccurred);
+      return data;
+    },
+    onMutate: (userProductId) => setCollectingId(userProductId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/income-summary"] });
+      refreshUser();
+      toast({
+        title: t.rewardsSuccessTitle,
+        description: `${Number(data.collected).toLocaleString(localeForLang(lang))} XOF ${t.rewardsReceived.toLowerCase()}.`,
+      });
+    },
+    onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
+    onSettled: () => setCollectingId(null),
   });
 
   const { data: settings } = useQuery<Record<string, string>>({
@@ -89,6 +115,7 @@ export default function OrdersPage() {
               const productIsActive = isProductActive(up);
               const daysCompleted = (up.product?.cycleDays || 0) - (up.daysRemaining || 0);
               const totalEarned = daysCompleted * Number(up.product?.dailyEarnings || 0);
+              const pendingEarnings = Number(up.pendingEarnings || 0);
               const purchaseDateTime = up.purchasedAt ? new Date(up.purchasedAt) : null;
               const purchaseDate = purchaseDateTime ? purchaseDateTime.toLocaleDateString() : '-';
               const purchaseTime = purchaseDateTime ? purchaseDateTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '-';
@@ -138,10 +165,27 @@ export default function OrdersPage() {
                         <p className="text-gray-600">
                           {t.ordersTotalEarnedLbl}：<span className="text-gray-600 font-bold">{totalEarned.toLocaleString()} XOF</span>
                         </p>
+                        {pendingEarnings > 0 && (
+                          <p className="text-gray-600">
+                            {t.myProductsPending}: <span className="text-gray-800 font-medium">{pendingEarnings.toLocaleString(localeForLang(lang))} XOF</span>
+                          </p>
+                        )}
                         <p className="text-gray-600">
                           {t.ordersDateLbl}：<span className="text-gray-700 font-medium">{purchaseDate}</span> {purchaseTime}
                         </p>
                       </div>
+                      {pendingEarnings > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => collectMutation.mutate(up.id)}
+                          disabled={collectMutation.isPending}
+                          className="mt-2 flex min-h-8 w-full items-center justify-center gap-2 rounded-lg px-2 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                          data-testid={`button-collect-earnings-${up.id}`}
+                        >
+                          {collectingId === up.id && collectMutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                          {t.myProductsCollect}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
