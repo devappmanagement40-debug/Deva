@@ -1726,8 +1726,8 @@ ol[data-radix-toast-viewport] li * {
   flex-direction: column;
   gap: 11px;
   margin-top: 5px;
-  --home-panel: #242b38;
-  --home-panel-border: rgba(210, 221, 239, .055);
+  --home-panel: linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98));
+  --home-panel-border: rgba(183, 168, 255, .22);
   --home-teal: #40c9c5;
   --home-muted: #929aa9;
 }
