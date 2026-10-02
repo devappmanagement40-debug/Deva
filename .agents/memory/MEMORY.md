@@ -12,7 +12,7 @@
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first layout, fixed navigation, no removed floaters, and verified free-use photos in the account banner.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
-- [TGOOD product earnings collection](tgood-product-earnings-collection.md) — 24-hour gains are collected per product; « Commande » separates active cycles from expired purchases.
+- [TGOOD product earnings collection](tgood-product-earnings-collection.md) — Solde shows aggregates only; product cards and daily collection belong in « Commande ».
 - [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
