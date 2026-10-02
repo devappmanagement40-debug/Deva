@@ -11,11 +11,11 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 ## Home product carousel and information cards
 
-The homepage carousel is manually curated by admins, with up to four paid products; the order selected in the admin panel is the display order. The homepage keeps the Invitation card, replaces the large Wheel and Check-in cards with floating shortcuts, and shows four information cards. Current information values are registered members, total production, the signed-in user's team members, and team commissions.
+The homepage uses horizontal product cards followed by vertically stacked Information article cards with an image, title, and excerpt. Admin-selected paid products appear in selection order, up to four; when no selection exists, show up to four active paid products by sort order. Do not show the “Invite Friends” promotional card at the bottom; Wheel and Check-in remain floating shortcuts on the homepage only.
 
-**Why:** The user requested manual product selection, four information cards, and floating Wheel/Check-in shortcuts only on the homepage. The four current metrics were chosen from existing APIs because no exact metric labels were specified.
+**Why:** The user clarified with a screenshot that “Information” means article previews, not statistics, asked for popular products to be visible in the carousel, and then requested removal of the Invitation card.
 
-**How to apply:** Reuse the existing `specialProductIds` setting without a schema migration, preserve selection order, and do not infer product popularity from sales. Keep the Wheel and Check-in shortcuts out of other screens. If changing the four metric labels or meaning, confirm the intended metrics with the user first.
+**How to apply:** Reuse the existing admin product setting and keep its order; use catalog order only as the empty-selection default, never sales-based guesses. Reuse localized DIAMANT article content and images for Information cards rather than inventing external company news or returning to homepage statistics. Keep the Invitation card out of the home layout.
 
 ## Horizontal navigation palette
 

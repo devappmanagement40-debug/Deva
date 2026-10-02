@@ -6,11 +6,8 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
   MessageSquare,
   Send,
-  Sparkles,
-  UserRound,
   UsersRound,
   WalletCards,
   type LucideIcon,
@@ -27,6 +24,7 @@ import BannerCarousel from "@/components/banner-carousel";
 import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
+import { NEWS_ARTICLES } from "@/pages/news-detail";
 import productsHero from "@assets/generated_images/diamant-home-products-hero.jpg";
 import chargingHero from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
@@ -34,18 +32,6 @@ import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
 type IncomeSummary = {
   productEarnings?: number | string;
   teamEarnings?: number | string;
-};
-
-type HomeStats = {
-  totalUsers: number;
-  totalProduction: number;
-};
-
-type TeamStats = {
-  level1Count: number;
-  level2Count: number;
-  level3Count: number;
-  totalCommission: number;
 };
 
 type HomeCopy = {
@@ -58,11 +44,7 @@ type HomeCopy = {
   withdraw: string;
   team: string;
   telegram: string;
-  inviteTitle: string;
-  inviteDescription: string;
-  wheelTitle: string;
   checkinTitle: string;
-  go: string;
   loading: string;
   retry: string;
   retryLabel: string;
@@ -72,13 +54,13 @@ type HomeCopy = {
   nextProduct: string;
   productsEmpty: string;
   productsError: string;
-  statsTitle: string;
-  totalMembers: string;
-  totalProduction: string;
-  myTeamMembers: string;
-  teamCommissions: string;
+  information: string;
+  informationEmpty: string;
   productPrice: string;
   dailyIncome: string;
+  totalReturn: string;
+  cycle: string;
+  returnRatio: string;
 };
 
 const COPY: Record<Lang, HomeCopy> = {
@@ -92,11 +74,7 @@ const COPY: Record<Lang, HomeCopy> = {
     withdraw: "Retirer",
     team: "Équipe",
     telegram: "Telegram",
-    inviteTitle: "Inviter des Amis",
-    inviteDescription: "Invitez des amis pour gagner des commissions",
-    wheelTitle: "Roue de la Chance",
     checkinTitle: "Pointage",
-    go: "Aller",
     loading: "Chargement",
     retry: "Réessayer",
     retryLabel: "Réessayer le chargement des revenus produits",
@@ -104,15 +82,15 @@ const COPY: Record<Lang, HomeCopy> = {
     seeAllProducts: "Voir tout",
     previousProduct: "Produit précédent",
     nextProduct: "Produit suivant",
-    productsEmpty: "Aucun produit sélectionné pour le carrousel.",
+    productsEmpty: "Aucun produit payant actif n’est disponible.",
     productsError: "Impossible de charger les produits.",
-    statsTitle: "DIAMANT en chiffres",
-    totalMembers: "Membres inscrits",
-    totalProduction: "Production totale",
-    myTeamMembers: "Membres de mon équipe",
-    teamCommissions: "Commissions d’équipe",
+    information: "Information",
+    informationEmpty: "Aucune information disponible.",
     productPrice: "Prix",
     dailyIncome: "Revenu quotidien",
+    totalReturn: "Revenu total",
+    cycle: "Cycle",
+    returnRatio: "Ratio du total",
   },
   en: {
     chat: "Customer service",
@@ -124,11 +102,7 @@ const COPY: Record<Lang, HomeCopy> = {
     withdraw: "Withdraw",
     team: "Team",
     telegram: "Telegram",
-    inviteTitle: "Invite Friends",
-    inviteDescription: "Invite friends and earn commissions",
-    wheelTitle: "Lucky Wheel",
     checkinTitle: "Daily Check-in",
-    go: "Go",
     loading: "Loading",
     retry: "Retry",
     retryLabel: "Retry loading product revenue",
@@ -136,15 +110,15 @@ const COPY: Record<Lang, HomeCopy> = {
     seeAllProducts: "View all",
     previousProduct: "Previous product",
     nextProduct: "Next product",
-    productsEmpty: "No products have been selected for the carousel.",
+    productsEmpty: "No active paid products are available.",
     productsError: "Could not load the products.",
-    statsTitle: "DIAMANT in numbers",
-    totalMembers: "Registered members",
-    totalProduction: "Total production",
-    myTeamMembers: "My team members",
-    teamCommissions: "Team commissions",
+    information: "Information",
+    informationEmpty: "No information is available.",
     productPrice: "Price",
     dailyIncome: "Daily income",
+    totalReturn: "Total return",
+    cycle: "Cycle",
+    returnRatio: "Total ratio",
   },
   ar: {
     chat: "خدمة العملاء",
@@ -156,11 +130,7 @@ const COPY: Record<Lang, HomeCopy> = {
     withdraw: "سحب",
     team: "الفريق",
     telegram: "تيليجرام",
-    inviteTitle: "ادعُ الأصدقاء",
-    inviteDescription: "ادعُ أصدقاءك واربح العمولات",
-    wheelTitle: "عجلة الحظ",
     checkinTitle: "تسجيل الحضور",
-    go: "اذهب",
     loading: "جارٍ التحميل",
     retry: "إعادة المحاولة",
     retryLabel: "إعادة تحميل أرباح المنتجات",
@@ -168,15 +138,15 @@ const COPY: Record<Lang, HomeCopy> = {
     seeAllProducts: "عرض الكل",
     previousProduct: "المنتج السابق",
     nextProduct: "المنتج التالي",
-    productsEmpty: "لم يتم اختيار منتجات لشريط العرض بعد.",
+    productsEmpty: "لا توجد منتجات مدفوعة نشطة متاحة.",
     productsError: "تعذر تحميل المنتجات.",
-    statsTitle: "DIAMANT بالأرقام",
-    totalMembers: "الأعضاء المسجلون",
-    totalProduction: "إجمالي الإنتاج",
-    myTeamMembers: "أعضاء فريقي",
-    teamCommissions: "عمولات الفريق",
+    information: "المعلومات",
+    informationEmpty: "لا توجد معلومات متاحة.",
     productPrice: "السعر",
     dailyIncome: "الدخل اليومي",
+    totalReturn: "الإجمالي",
+    cycle: "الدورة",
+    returnRatio: "نسبة الإجمالي",
   },
   zh: {
     chat: "客户服务",
@@ -188,11 +158,7 @@ const COPY: Record<Lang, HomeCopy> = {
     withdraw: "提现",
     team: "团队",
     telegram: "Telegram",
-    inviteTitle: "邀请好友",
-    inviteDescription: "邀请好友，赚取佣金",
-    wheelTitle: "幸运转盘",
     checkinTitle: "每日签到",
-    go: "前往",
     loading: "加载中",
     retry: "重试",
     retryLabel: "重新加载产品收益",
@@ -200,15 +166,15 @@ const COPY: Record<Lang, HomeCopy> = {
     seeAllProducts: "查看全部",
     previousProduct: "上一个产品",
     nextProduct: "下一个产品",
-    productsEmpty: "尚未选择轮播产品。",
+    productsEmpty: "暂无启用的付费产品。",
     productsError: "无法加载产品。",
-    statsTitle: "DIAMANT 数据",
-    totalMembers: "注册会员",
-    totalProduction: "总产值",
-    myTeamMembers: "我的团队成员",
-    teamCommissions: "团队佣金",
+    information: "信息",
+    informationEmpty: "暂无信息。",
     productPrice: "价格",
     dailyIncome: "每日收入",
+    totalReturn: "总回报",
+    cycle: "周期",
+    returnRatio: "总额比例",
   },
 };
 
@@ -218,7 +184,6 @@ const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 const COUNT_FORMAT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-
 const QUICK_ACTIONS: {
   id: "recharge" | "withdraw" | "team" | "telegram";
   Icon: LucideIcon;
@@ -326,24 +291,6 @@ function HomePage() {
     staleTime: 60_000,
   });
   const {
-    data: homeStats,
-    isLoading: isHomeStatsLoading,
-    isError: isHomeStatsError,
-    refetch: refetchHomeStats,
-  } = useQuery<HomeStats>({
-    queryKey: ["/api/home/stats"],
-    staleTime: 60_000,
-  });
-  const {
-    data: teamStats,
-    isLoading: isTeamStatsLoading,
-    isError: isTeamStatsError,
-    refetch: refetchTeamStats,
-  } = useQuery<TeamStats>({
-    queryKey: ["/api/team/stats"],
-    staleTime: 60_000,
-  });
-  const {
     data: incomeSummary,
     isLoading: isIncomeLoading,
     isError: isIncomeError,
@@ -359,9 +306,17 @@ function HomePage() {
   );
   const popularProducts = useMemo(() => {
     const productsById = new Map(catalogProducts.map((product) => [product.id, product]));
-    return selectedPopularIds
-      .map((id) => productsById.get(id))
-      .filter((product): product is Product => Boolean(product && !product.isFree));
+    if (selectedPopularIds.length > 0) {
+      return selectedPopularIds
+        .map((id) => productsById.get(id))
+        .filter((product): product is Product => Boolean(product && product.isActive && !product.isFree))
+        .slice(0, 4);
+    }
+    return catalogProducts
+      .filter((product) => product.isActive && !product.isFree)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder)
+      .slice(0, 4);
   }, [catalogProducts, selectedPopularIds]);
   const telegramUrl = getTelegramDestination(settings);
 
@@ -389,65 +344,9 @@ function HomePage() {
     });
   }
 
-  function retryHomeStats() {
-    if (isHomeStatsError) void refetchHomeStats();
-    if (isTeamStatsError) void refetchTeamStats();
-  }
-
   const balances = [
     { id: "deposit", label: copy.depositBalance, value: user.balance },
     { id: "withdrawal", label: copy.withdrawalBalance, value: user.totalEarnings },
-  ];
-
-  const promotions = [
-    {
-      id: "invite",
-      title: copy.inviteTitle,
-      description: copy.inviteDescription,
-      href: "/team",
-      ArtIcon: UsersRound,
-      AccentIcon: Sparkles,
-    },
-  ];
-
-  const teamMemberCount = teamStats
-    ? Number(teamStats.level1Count || 0) + Number(teamStats.level2Count || 0) + Number(teamStats.level3Count || 0)
-    : undefined;
-  const infoCards: {
-    id: string;
-    label: string;
-    value?: string;
-    loading: boolean;
-    Icon: LucideIcon;
-  }[] = [
-    {
-      id: "members",
-      label: copy.totalMembers,
-      value: homeStats ? formatCount(homeStats.totalUsers) : undefined,
-      loading: isHomeStatsLoading,
-      Icon: UsersRound,
-    },
-    {
-      id: "production",
-      label: copy.totalProduction,
-      value: homeStats ? `XOF ${formatMoney(homeStats.totalProduction)}` : undefined,
-      loading: isHomeStatsLoading,
-      Icon: CircleDollarSign,
-    },
-    {
-      id: "team-members",
-      label: copy.myTeamMembers,
-      value: teamMemberCount === undefined ? undefined : formatCount(teamMemberCount),
-      loading: isTeamStatsLoading,
-      Icon: UserRound,
-    },
-    {
-      id: "team-commissions",
-      label: copy.teamCommissions,
-      value: teamStats ? `XOF ${formatMoney(teamStats.totalCommission)}` : undefined,
-      loading: isTeamStatsLoading,
-      Icon: WalletCards,
-    },
   ];
 
   return (
@@ -570,6 +469,11 @@ function HomePage() {
               >
                 {popularProducts.map((product, index) => {
                   const name = rebrandText(product.name);
+                  const price = Number(product.price);
+                  const totalReturn = Number(product.totalReturn);
+                  const ratio = Number.isFinite(price) && price > 0 && Number.isFinite(totalReturn)
+                    ? (totalReturn / price) * 100
+                    : undefined;
                   return (
                     <button
                       className="ielp-home-product-card"
@@ -586,15 +490,35 @@ function HomePage() {
                         loading="lazy"
                         draggable={false}
                       />
-                      <span className="ielp-home-product-card__name">{name}</span>
-                      <span className="ielp-home-product-card__details">
-                        <span>
-                          <small>{copy.productPrice}</small>
-                          <strong><small>XOF</small> {formatMoney(product.price)}</strong>
+                      <span className="ielp-home-product-card__content">
+                        <span className="ielp-home-product-card__topline">
+                          <span className="ielp-home-product-card__name">{name}</span>
+                          <span
+                            className="ielp-home-product-card__ratio"
+                            aria-label={ratio === undefined ? copy.returnRatio : `${copy.returnRatio}: ${ratio.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
+                          >
+                            {ratio === undefined
+                              ? "—"
+                              : `${ratio.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
+                          </span>
                         </span>
-                        <span>
-                          <small>{copy.dailyIncome}</small>
-                          <strong><small>XOF</small> {formatMoney(product.dailyEarnings)}</strong>
+                        <span className="ielp-home-product-card__details">
+                          <span>
+                            <small>{copy.totalReturn}</small>
+                            <strong><small>XOF</small> {formatMoney(product.totalReturn)}</strong>
+                          </span>
+                          <span>
+                            <small>{copy.dailyIncome}</small>
+                            <strong><small>XOF</small> {formatMoney(product.dailyEarnings)}</strong>
+                          </span>
+                          <span>
+                            <small>{copy.cycle}</small>
+                            <strong>{formatCount(product.cycleDays)} {lang === "fr" ? "j" : lang === "zh" ? "天" : lang === "ar" ? "يوم" : "days"}</strong>
+                          </span>
+                          <span>
+                            <small>{copy.productPrice}</small>
+                            <strong><small>XOF</small> {formatMoney(product.price)}</strong>
+                          </span>
                         </span>
                       </span>
                     </button>
@@ -605,51 +529,35 @@ function HomePage() {
           </section>
 
           <section className="ielp-home-info" aria-labelledby="ielp-home-info-title">
-            <h2 id="ielp-home-info-title">{copy.statsTitle}</h2>
-            <div className="ielp-home-info__grid">
-              {infoCards.map(({ id, label, value, loading, Icon }) => (
-                <article className="ielp-home-info-card" key={id}>
-                  <span className="ielp-home-info-card__icon"><Icon size={20} aria-hidden="true" /></span>
-                  <strong className="ielp-home-info-card__value">
-                    {loading ? (
-                      <span className="ielp-home-info-card__skeleton" role="status" aria-label={copy.loading} />
-                    ) : value ?? "—"}
-                  </strong>
-                  <span className="ielp-home-info-card__label">{label}</span>
-                </article>
-              ))}
-            </div>
-            {(isHomeStatsError || isTeamStatsError) && (
-              <button className="ielp-home-info__retry" type="button" onClick={retryHomeStats}>
-                {copy.retry}
-              </button>
+            <h2 id="ielp-home-info-title">{copy.information}</h2>
+            {NEWS_ARTICLES.length ? (
+              <div className="ielp-home-info__articles">
+                {NEWS_ARTICLES.map((article) => {
+                  const articleCopy = article.copy[lang];
+                  return (
+                    <button
+                      className="ielp-home-info-card"
+                      type="button"
+                      key={article.id}
+                      dir={lang === "ar" ? "rtl" : "ltr"}
+                      onClick={() => navigate(`/news/${article.id}`)}
+                      aria-label={`${articleCopy.title}. ${articleCopy.summary}`}
+                      data-testid={`home-information-${article.id}`}
+                    >
+                      <span className="ielp-home-info-card__copy">
+                        <strong className="ielp-home-info-card__title">{articleCopy.title}</strong>
+                        <span className="ielp-home-info-card__summary">{articleCopy.summary}</span>
+                      </span>
+                      <img className="ielp-home-info-card__image" src={article.image} alt="" loading="lazy" />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="ielp-home-info__empty">{copy.informationEmpty}</p>
             )}
           </section>
 
-          <section className="ielp-home-refresh__promotions" aria-label={copy.inviteTitle}>
-            {promotions.map(({ id, title, description, href, ArtIcon, AccentIcon }) => (
-              <button
-                className={`ielp-home-refresh__promo ielp-home-refresh__promo--${id}`}
-                type="button"
-                key={id}
-                onClick={() => navigate(href)}
-                data-testid={`home-promo-${id}`}
-              >
-                <span className="ielp-home-refresh__promo-copy">
-                  <strong>{title}</strong>
-                  <span>{description}</span>
-                  <span className="ielp-home-refresh__promo-cta">
-                    {copy.go}<ArrowRight size={14} strokeWidth={2.4} aria-hidden="true" />
-                  </span>
-                </span>
-                <span className="ielp-home-refresh__promo-art" aria-hidden="true">
-                  <span className="ielp-home-refresh__promo-art-orbit" />
-                  <ArtIcon className="ielp-home-refresh__promo-art-main" size={39} strokeWidth={1.8} />
-                  <AccentIcon className="ielp-home-refresh__promo-art-accent" size={20} strokeWidth={2} />
-                </span>
-              </button>
-            ))}
-          </section>
         </div>
       </div>
 
