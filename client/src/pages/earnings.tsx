@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, CreditCard, Loader2, Package, TrendingUp, UsersRound, Wifi } from "lucide-react";
+import { ChevronLeft, CreditCard, Loader2, Package, UsersRound, Wifi } from "lucide-react";
 import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -19,8 +19,8 @@ const BALANCE_COPY: Record<Lang, {
   earnings: string;
   summaryTitle: string;
   combinedTotal: string;
-  productIncome: string;
-  teamIncome: string;
+  productShort: string;
+  teamShort: string;
   summaryUnavailable: string;
 }> = {
   fr: {
@@ -29,8 +29,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "Solde des gains",
     summaryTitle: "Récapitulatif des revenus et gains",
     combinedTotal: "Total produits + équipe",
-    productIncome: "Revenus reçus des produits",
-    teamIncome: "Gains générés par l’équipe",
+    productShort: "Produits",
+    teamShort: "Équipe",
     summaryUnavailable: "Récapitulatif indisponible pour le moment.",
   },
   en: {
@@ -39,8 +39,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "Earnings balance",
     summaryTitle: "Income and earnings summary",
     combinedTotal: "Products + team total",
-    productIncome: "Product earnings received",
-    teamIncome: "Team-generated earnings",
+    productShort: "Products",
+    teamShort: "Team",
     summaryUnavailable: "Summary is temporarily unavailable.",
   },
   ar: {
@@ -49,8 +49,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "رصيد الأرباح",
     summaryTitle: "ملخص الإيرادات والأرباح",
     combinedTotal: "إجمالي المنتجات والفريق",
-    productIncome: "إيرادات المنتجات المستلمة",
-    teamIncome: "أرباح الفريق",
+    productShort: "المنتجات",
+    teamShort: "الفريق",
     summaryUnavailable: "الملخص غير متاح مؤقتًا.",
   },
   zh: {
@@ -59,8 +59,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "收益余额",
     summaryTitle: "收入与收益汇总",
     combinedTotal: "产品与团队总额",
-    productIncome: "已收到的产品收益",
-    teamIncome: "团队产生的收益",
+    productShort: "产品",
+    teamShort: "团队",
     summaryUnavailable: "暂时无法获取汇总。",
   },
 };
@@ -138,10 +138,14 @@ export default function EarningsPage() {
   const teamIncome = Number.isFinite(Number(incomeSummaryQuery.data?.teamEarnings))
     ? Number(incomeSummaryQuery.data?.teamEarnings)
     : 0;
-  const formatSummaryAmount = (amount: number) => {
+  const formatSummaryValue = (amount: number) => {
     if (incomeSummaryQuery.isLoading) return "…";
     if (incomeSummaryQuery.isError) return "—";
-    return `XOF ${amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  const formatSummaryAmount = (amount: number) => {
+    const value = formatSummaryValue(amount);
+    return value === "…" || value === "—" ? value : `XOF ${value}`;
   };
   const balanceCards = [
     { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
@@ -196,46 +200,54 @@ export default function EarningsPage() {
             ))}
           </div>
           <article
-            className="mt-4 rounded-[20px] border border-white/10 bg-[#171717] p-4 text-white shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
+            className="relative mt-4 block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]"
+            style={{ background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)" }}
             aria-label={balanceCopy.summaryTitle}
             data-testid="income-summary-card"
           >
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#00c83c]/15 text-[#00c83c]">
-                <TrendingUp className="h-5 w-5" aria-hidden="true" />
-              </span>
-              <h2 className="text-sm font-semibold">{balanceCopy.summaryTitle}</h2>
+            <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
+            <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
+            <div className="absolute right-[11%] -top-12 h-80 w-10 rotate-[-18deg] bg-white/[0.09]" />
+            <div className="absolute left-5 top-5 flex items-center gap-2 text-[13px] font-semibold tracking-[.12em] text-white/90">
+              <CreditCard className="h-5 w-5" strokeWidth={1.7} aria-hidden="true" />
+              DIAMANT
             </div>
-            <div className="mt-4 rounded-xl bg-white/[0.055] p-3">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-white/55">{balanceCopy.combinedTotal}</p>
-              <p className="mt-1 text-xl font-bold text-[#00c83c]" data-testid="income-summary-total">
-                {formatSummaryAmount(productIncome + teamIncome)}
-              </p>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <div className="min-w-0 rounded-xl bg-white/[0.04] p-3">
-                <div className="flex min-h-8 items-start gap-2 text-[11px] leading-4 text-white/65">
-                  <Package className="mt-0.5 h-4 w-4 shrink-0 text-[#00c83c]" aria-hidden="true" />
-                  <span>{balanceCopy.productIncome}</span>
-                </div>
-                <p className="mt-2 break-words text-sm font-semibold" data-testid="income-summary-products">
-                  {formatSummaryAmount(productIncome)}
-                </p>
+            <p className="absolute left-[14px] top-[78px] max-w-[82%] break-all text-[22px] font-semibold leading-[26px] tracking-[.01em]" data-testid="income-summary-total">
+              {formatSummaryAmount(productIncome + teamIncome)}
+            </p>
+            <div className="absolute left-[14px] top-[138px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
+              <div className="flex h-[27px] items-center justify-between gap-2 rounded-md border border-white/25 bg-white/10 px-2">
+                <span className="flex min-w-0 items-center gap-1.5 text-[10px] text-white/85">
+                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{balanceCopy.productShort}</span>
+                </span>
+                <span className="shrink-0 text-right text-[10px] font-semibold tabular-nums" data-testid="income-summary-products">
+                  {formatSummaryValue(productIncome)}
+                </span>
               </div>
-              <div className="min-w-0 rounded-xl bg-white/[0.04] p-3">
-                <div className="flex min-h-8 items-start gap-2 text-[11px] leading-4 text-white/65">
-                  <UsersRound className="mt-0.5 h-4 w-4 shrink-0 text-[#00c83c]" aria-hidden="true" />
-                  <span>{balanceCopy.teamIncome}</span>
-                </div>
-                <p className="mt-2 break-words text-sm font-semibold" data-testid="income-summary-team">
-                  {formatSummaryAmount(teamIncome)}
-                </p>
+              <div className="flex h-[27px] items-center justify-between gap-2 rounded-md border border-white/25 bg-white/10 px-2">
+                <span className="flex min-w-0 items-center gap-1.5 text-[10px] text-white/85">
+                  <UsersRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{balanceCopy.teamShort}</span>
+                </span>
+                <span className="shrink-0 text-right text-[10px] font-semibold tabular-nums" data-testid="income-summary-team">
+                  {formatSummaryValue(teamIncome)}
+                </span>
               </div>
             </div>
-            {incomeSummaryQuery.isError && (
-              <p className="mt-3 text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>
-            )}
+            <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
+              <div className="absolute inset-x-0 top-[15px] border-t border-[#9d8440]/40" />
+              <div className="absolute inset-x-0 top-[30px] border-t border-[#9d8440]/40" />
+              <div className="absolute bottom-0 left-[25px] top-0 border-l border-[#9d8440]/35" />
+            </div>
+            <div className="absolute bottom-5 left-5 flex max-w-[68%] items-center gap-2 truncate text-[12px] text-white/75">
+              <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
+              <span className="truncate">{balanceCopy.combinedTotal}</span>
+            </div>
           </article>
+          {incomeSummaryQuery.isError && (
+            <p className="mt-2 text-center text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>
+          )}
           {pendingTotal > 0 && (
             <p className="mt-3 text-center text-sm text-white/70">
               {t.myProductsPending}: XOF {pendingTotal.toLocaleString(localeForLang(lang))}
