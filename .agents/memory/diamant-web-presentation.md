@@ -11,11 +11,11 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 ## Home product carousel and information cards
 
-The homepage uses horizontal product cards followed by vertically stacked Information article cards with an image, title, and excerpt. Admin-selected paid products appear in selection order, up to four; when no selection exists, show up to four active paid products by sort order. Popular-product cards open the deposit page directly; do not show a “View all” link. Do not show the “Invite Friends” promotional card at the bottom; Wheel and Check-in remain floating shortcuts on the homepage only.
+The homepage uses horizontal product cards followed by vertically stacked Information article cards with an image, title, and excerpt. Admin-selected paid products appear in selection order, up to four; when no selection exists, show up to four active paid products by sort order. Popular-product cards open the Products page directly; do not show a “View all” link. Display popular-product metric text in violet. Do not show the “Invite Friends” promotional card at the bottom; Wheel and Check-in remain floating shortcuts on the homepage only.
 
-**Why:** The user clarified with a screenshot that “Information” means article previews, not statistics, asked for popular products to be visible in the carousel, requested removal of the Invitation card, then directed that popular products open deposits and the “View all” link be removed.
+**Why:** The user clarified with a screenshot that “Information” means article previews, asked for popular products to be visible in the carousel, requested removal of the Invitation card, then specified that popular products open the Products page, the “View all” link be removed, and green metric text be violet.
 
-**How to apply:** Reuse the existing admin product setting and keep its order; use catalog order only as the empty-selection default, never sales-based guesses. Keep product-card clicks directed to deposits and omit the “View all” control. Reuse localized DIAMANT article content and images for Information cards rather than inventing external company news or returning to homepage statistics. Keep the Invitation card out of the home layout.
+**How to apply:** Reuse the existing admin product setting and keep its order; use catalog order only as the empty-selection default, never sales-based guesses. Keep product-card clicks directed to `/products`, use violet for green metric text, and omit the “View all” control. Reuse localized DIAMANT article content and images for Information cards rather than inventing external company news or returning to homepage statistics. Keep the Invitation card out of the home layout.
 
 ## Horizontal navigation palette
 

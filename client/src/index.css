@@ -1728,7 +1728,7 @@ ol[data-radix-toast-viewport] li * {
   margin-top: 5px;
   --home-panel: linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98));
   --home-panel-border: rgba(183, 168, 255, .22);
-  --home-teal: #40c9c5;
+  --home-metric-violet: #c9c2ff;
   --home-muted: #929aa9;
 }
 
@@ -1887,7 +1887,7 @@ ol[data-radix-toast-viewport] li * {
 
 .ielp-home-product-card__details strong {
   overflow: hidden;
-  color: var(--home-teal);
+  color: var(--home-metric-violet);
   font-size: 12px;
   font-weight: 720;
   line-height: 1.2;
@@ -1896,7 +1896,7 @@ ol[data-radix-toast-viewport] li * {
 }
 
 .ielp-home-product-card__details strong small {
-  color: #91d5d2;
+  color: var(--home-metric-violet);
   font-size: 9px;
 }
 

@@ -48,6 +48,7 @@ type HomeCopy = {
   retry: string;
   retryLabel: string;
   popularProducts: string;
+  viewProducts: string;
   previousProduct: string;
   nextProduct: string;
   productsEmpty: string;
@@ -77,6 +78,7 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "Réessayer",
     retryLabel: "Réessayer le chargement des revenus produits",
     popularProducts: "Produits populaires",
+    viewProducts: "Voir les produits",
     previousProduct: "Produit précédent",
     nextProduct: "Produit suivant",
     productsEmpty: "Aucun produit payant actif n’est disponible.",
@@ -104,6 +106,7 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "Retry",
     retryLabel: "Retry loading product revenue",
     popularProducts: "Popular products",
+    viewProducts: "View products",
     previousProduct: "Previous product",
     nextProduct: "Next product",
     productsEmpty: "No active paid products are available.",
@@ -131,6 +134,7 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "إعادة المحاولة",
     retryLabel: "إعادة تحميل أرباح المنتجات",
     popularProducts: "المنتجات الشائعة",
+    viewProducts: "عرض المنتجات",
     previousProduct: "المنتج السابق",
     nextProduct: "المنتج التالي",
     productsEmpty: "لا توجد منتجات مدفوعة نشطة متاحة.",
@@ -158,6 +162,7 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "重试",
     retryLabel: "重新加载产品收益",
     popularProducts: "热门产品",
+    viewProducts: "查看产品",
     previousProduct: "上一个产品",
     nextProduct: "下一个产品",
     productsEmpty: "暂无启用的付费产品。",
@@ -466,8 +471,8 @@ function HomePage() {
                       className="ielp-home-product-card"
                       type="button"
                       key={product.id}
-                      onClick={() => navigate("/deposit")}
-                      aria-label={`${name} — ${copy.recharge}`}
+                      onClick={() => navigate("/products")}
+                      aria-label={`${name} — ${copy.viewProducts}`}
                       data-testid={`home-popular-product-${product.id}`}
                     >
                       <img
