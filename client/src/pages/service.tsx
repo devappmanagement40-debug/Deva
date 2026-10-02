@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
-  CircleDollarSign,
   Clock3,
   Headset,
   MessageCircleMore,
@@ -154,7 +153,7 @@ export default function ServicePage() {
       <main className="diamant-service-content">
         <section className="diamant-service-card diamant-service-deposit">
           <div className="diamant-service-icon diamant-service-icon-deposit" aria-hidden="true">
-            <CircleDollarSign size={36} strokeWidth={2.1} />
+            <img src="/deposit-cfa-icon.jpg" alt="" />
           </div>
           <div className="diamant-service-card-copy">
             <h2>Votre dépôt n'a pas encore été reçu&nbsp;?</h2>

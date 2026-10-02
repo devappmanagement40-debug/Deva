@@ -4,7 +4,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
   Clock3,
   Download,
   EllipsisVertical,
@@ -102,9 +101,8 @@ export default function Reference() {
 
           <section className="diamant-content" aria-label="Informations de service">
             <article className="diamant-card diamant-deposit-card">
-              <div className="diamant-card-icon diamant-card-icon--deposit">
-                <CircleHelp size={43} strokeWidth={2.7} />
-                <span className="diamant-card-icon__dot" />
+              <div className="diamant-card-icon diamant-card-icon--deposit" aria-hidden="true">
+                <img src="/__mockup/images/deposit-cfa-icon.jpg" alt="" />
               </div>
               <div className="diamant-card-copy">
                 <h3>Votre dépôt n’a pas encore été reçu&nbsp;?</h3>
