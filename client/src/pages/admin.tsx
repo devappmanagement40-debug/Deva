@@ -23,6 +23,7 @@ import AdminSpinWheelConfig from "@/components/admin/spin-wheel-config";
 import AdminBannerConfig from "@/components/admin/banner-config";
 import AdminShareReports from "@/components/admin/share-reports";
 import AdminSupportInbox from "@/components/support-chat/AdminSupportInbox";
+import AdminWithdrawalProofs from "@/components/admin/withdrawal-proofs";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -49,6 +50,7 @@ export default function AdminPage() {
               <TabsTrigger value="deposits" data-testid="tab-deposits">{t.adminTabDeposits}</TabsTrigger>
               <TabsTrigger value="support-chat" data-testid="tab-support-chat">Support client</TabsTrigger>
               <TabsTrigger value="share-reports" data-testid="tab-share-reports">Rapports partagés</TabsTrigger>
+              <TabsTrigger value="withdrawal-proofs" data-testid="tab-withdrawal-proofs">Preuves de retrait</TabsTrigger>
               <TabsTrigger value="withdrawals" data-testid="tab-withdrawals">{t.adminTabWithdrawals}</TabsTrigger>
               <TabsTrigger value="users" data-testid="tab-users">{t.adminTabUsers}</TabsTrigger>
               <TabsTrigger value="products" data-testid="tab-products">{t.adminTabProducts}</TabsTrigger>
@@ -78,6 +80,9 @@ export default function AdminPage() {
           </TabsContent>
           <TabsContent value="share-reports" className="mt-4">
             <AdminShareReports />
+          </TabsContent>
+          <TabsContent value="withdrawal-proofs" className="mt-4">
+            <AdminWithdrawalProofs />
           </TabsContent>
 
           <TabsContent value="withdrawals" className="mt-4">

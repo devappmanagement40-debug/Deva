@@ -1,9 +1,9 @@
 import { 
-  users, products, userProducts, deposits, shareReports, withdrawals, withdrawalWallets,
+  users, products, userProducts, deposits, shareReports, withdrawalProofs, withdrawals, withdrawalWallets,
   paymentChannels, paymentNumbers, depositChannels, stakingProducts, userStakings, referralCommissions, tasks, userTasks, transactions, platformSettings, adminAuditLog,
   giftCodes, giftCodeClaims, countries, supportChatMessages,
   referralCodeAliases,
-  type User, type Product, type UserProduct, type Deposit, type ShareReport, type Withdrawal, type WithdrawalWallet,
+  type User, type Product, type UserProduct, type Deposit, type ShareReport, type WithdrawalProof, type WithdrawalProofStatus, type Withdrawal, type WithdrawalWallet,
   type PaymentChannel, type PaymentNumber, type DepositChannel, type StakingProduct, type UserStaking, type ReferralCommission, type Task, type UserTask, type Transaction, type PlatformSetting,
   type GiftCode, type GiftCodeClaim, type Country, type SupportChatMessage, type SupportChatSenderRole,
   type SupportChatAttachmentType, type SupportChatConversation
@@ -25,6 +25,7 @@ function finiteAmount(value: unknown): number {
 }
 
 type ShareReportUser = Pick<User, "id" | "fullName" | "phone" | "country">;
+type WithdrawalProofUser = Pick<User, "id" | "fullName" | "phone" | "country">;
 
 export interface IStorage {
   // Users
@@ -76,6 +77,13 @@ export interface IStorage {
   createShareReport(data: Partial<ShareReport>): Promise<ShareReport>;
   getShareReports(status?: string): Promise<(ShareReport & { user: ShareReportUser })[]>;
   updateShareReport(id: number, data: Partial<ShareReport>): Promise<ShareReport>;
+  createWithdrawalProof(data: { userId: number; proofImage: string; message: string }): Promise<WithdrawalProof>;
+  getWithdrawalProofs(status?: WithdrawalProofStatus | "all", limit?: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser })[]>;
+  getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined>;
+  reviewPendingWithdrawalProof(
+    id: number,
+    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "processedAt" | "processedBy">,
+  ): Promise<WithdrawalProof | undefined>;
 
   // Internal customer support chat
   getSupportChatMessages(userId: number): Promise<SupportChatMessage[]>;
@@ -865,6 +873,65 @@ export class DatabaseStorage implements IStorage {
   async updateShareReport(id: number, data: Partial<ShareReport>): Promise<ShareReport> {
     const [shareReport] = await db.update(shareReports).set(data).where(eq(shareReports.id, id)).returning();
     return shareReport;
+  }
+
+  async createWithdrawalProof(data: { userId: number; proofImage: string; message: string }): Promise<WithdrawalProof> {
+    const [proof] = await db.insert(withdrawalProofs).values(data).returning();
+    return proof;
+  }
+
+  async getWithdrawalProofs(
+    status?: WithdrawalProofStatus | "all",
+    limit = 100,
+  ): Promise<(WithdrawalProof & { user: WithdrawalProofUser })[]> {
+    let query = db.select({
+      proof: withdrawalProofs,
+      user: {
+        id: users.id,
+        fullName: users.fullName,
+        phone: users.phone,
+        country: users.country,
+      },
+    }).from(withdrawalProofs)
+      .innerJoin(users, eq(withdrawalProofs.userId, users.id));
+
+    if (status && status !== "all") {
+      query = query.where(eq(withdrawalProofs.status, status)) as any;
+    }
+
+    const results = await query
+      .orderBy(desc(withdrawalProofs.createdAt))
+      .limit(Math.min(Math.max(Math.floor(limit), 1), 500));
+
+    return results.map((result) => ({ ...result.proof, user: result.user }));
+  }
+
+  async getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined> {
+    const [result] = await db.select({
+      proof: withdrawalProofs,
+      user: {
+        id: users.id,
+        fullName: users.fullName,
+        phone: users.phone,
+        country: users.country,
+      },
+    }).from(withdrawalProofs)
+      .innerJoin(users, eq(withdrawalProofs.userId, users.id))
+      .where(eq(withdrawalProofs.id, id))
+      .limit(1);
+
+    return result ? { ...result.proof, user: result.user } : undefined;
+  }
+
+  async reviewPendingWithdrawalProof(
+    id: number,
+    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "processedAt" | "processedBy">,
+  ): Promise<WithdrawalProof | undefined> {
+    const [proof] = await db.update(withdrawalProofs)
+      .set(data)
+      .where(and(eq(withdrawalProofs.id, id), eq(withdrawalProofs.status, "pending")))
+      .returning();
+    return proof;
   }
 
   async getSupportChatMessages(userId: number): Promise<SupportChatMessage[]> {

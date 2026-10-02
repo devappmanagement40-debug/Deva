@@ -191,7 +191,7 @@ const QUICK_ACTIONS: {
   { id: "recharge", Icon: WalletCards, href: "/deposit" },
   { id: "withdraw", Icon: ArrowDownToLine, href: "/withdrawal" },
   { id: "team", Icon: UsersRound, href: "/team" },
-  { id: "proofs", Icon: FileCheck2, href: "/share-information" },
+  { id: "proofs", Icon: FileCheck2, href: "/withdrawal-proofs" },
 ];
 
 function formatMoney(value: unknown) {

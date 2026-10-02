@@ -180,6 +180,20 @@ export const shareReports = pgTable("share_reports", {
   processedBy: integer("processed_by"),
 });
 
+export type WithdrawalProofStatus = "pending" | "approved" | "rejected";
+
+export const withdrawalProofs = pgTable("withdrawal_proofs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  proofImage: text("proof_image").notNull(),
+  message: text("message").notNull(),
+  status: text("status").$type<WithdrawalProofStatus>().notNull().default("pending"),
+  shareBonusXof: integer("share_bonus_xof").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  processedAt: timestamp("processed_at"),
+  processedBy: integer("processed_by").references(() => users.id, { onDelete: "set null" }),
+});
+
 export type SupportChatSenderRole = "user" | "admin";
 export type SupportChatAttachmentType = "image" | "video" | "file";
 
@@ -417,6 +431,7 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   products: many(userProducts),
   deposits: many(deposits),
   shareReports: many(shareReports),
+  withdrawalProofs: many(withdrawalProofs),
   withdrawals: many(withdrawals),
   wallets: many(withdrawalWallets),
   commissionsReceived: many(referralCommissions, { relationName: "receiver" }),
@@ -443,6 +458,11 @@ export const depositsRelations = relations(deposits, ({ one }) => ({
 
 export const shareReportsRelations = relations(shareReports, ({ one }) => ({
   user: one(users, { fields: [shareReports.userId], references: [users.id] }),
+}));
+
+export const withdrawalProofsRelations = relations(withdrawalProofs, ({ one }) => ({
+  user: one(users, { fields: [withdrawalProofs.userId], references: [users.id] }),
+  reviewer: one(users, { fields: [withdrawalProofs.processedBy], references: [users.id] }),
 }));
 
 export const withdrawalsRelations = relations(withdrawals, ({ one }) => ({
@@ -534,6 +554,7 @@ export type Product = typeof products.$inferSelect;
 export type UserProduct = typeof userProducts.$inferSelect;
 export type Deposit = typeof deposits.$inferSelect;
 export type ShareReport = typeof shareReports.$inferSelect;
+export type WithdrawalProof = typeof withdrawalProofs.$inferSelect;
 export type SupportChatMessage = typeof supportChatMessages.$inferSelect;
 export type SupportChatConversation = {
   user: Pick<User, "id" | "fullName" | "phone" | "country">;

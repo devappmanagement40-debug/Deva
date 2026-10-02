@@ -55,6 +55,7 @@ import ProductsPage from "@/pages/products";
 import OrdersPage from "@/pages/orders";
 import TeamPage from "@/pages/team";
 import ShareInformationPage from "@/pages/share-information";
+import WithdrawalProofsPage from "@/pages/withdrawal-proofs";
 import AccountPage from "@/pages/account";
 import AdminPage from "@/pages/admin";
 import AdminTeamPage from "@/pages/admin-team";
@@ -296,6 +297,13 @@ function RouterComponent() {
       <Route path="/share-information">
         <ProtectedRoute>
           <ShareInformationPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/withdrawal-proofs">
+        <ProtectedRoute>
+          <AppLayout>
+            <WithdrawalProofsPage />
+          </AppLayout>
         </ProtectedRoute>
       </Route>
       <Route path="/my-products">

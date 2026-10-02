@@ -11,6 +11,7 @@
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — popup defaults use the 03/09/2026 launch date and current USDT rules; check-in rewards run every 24 hours.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first layout, fixed navigation, no removed floaters, and verified free-use photos in the account banner.
+- [DIAMANT withdrawal proofs](diamant-withdrawal-proofs.md) — publish proofs only after admin approval; mask phone numbers and display bonuses without crediting wallets.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
 - [TGOOD product cycle credits](tgood-product-earnings-collection.md) — product gains accrue for a full cycle, then credit once automatically; legacy unpaid gains settle without repeating prior credits.

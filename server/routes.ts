@@ -15,6 +15,11 @@ import fs from "fs";
 import crypto from "crypto";
 import { isSecureShareLink } from "./share-report-validation";
 import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
+import {
+  maskPhoneForWithdrawalProof,
+  withdrawalProofReviewSchema,
+  withdrawalProofSubmissionSchema,
+} from "./withdrawal-proof-validation";
 
 /**
  * Résout les paramètres WestPay.
@@ -1196,6 +1201,69 @@ export async function registerRoutes(
     }
   });
 
+  const sendWithdrawalProofImage = (res: Response, dataUrl: string) => {
+    const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
+    if (!match) return res.status(500).json({ message: "Image de preuve invalide" });
+
+    res.setHeader("Content-Type", match[1]);
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "private, no-store");
+    return res.status(200).send(Buffer.from(match[2], "base64"));
+  };
+
+  app.get("/api/withdrawal-proofs", requireAuth, async (_req, res) => {
+    try {
+      const proofs = await storage.getWithdrawalProofs("approved", 100);
+      return res.json(proofs.map(({ id, message, shareBonusXof, createdAt, user }) => ({
+        id,
+        message,
+        shareBonusXof,
+        createdAt,
+        maskedPhone: maskPhoneForWithdrawalProof(user.phone),
+      })));
+    } catch (error) {
+      console.error("Withdrawal proof feed error:", error);
+      return res.status(500).json({ message: "Impossible de charger les preuves de retrait" });
+    }
+  });
+
+  app.get("/api/withdrawal-proofs/:id/image", requireAuth, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return res.status(400).json({ message: "Identifiant de preuve invalide" });
+    }
+
+    try {
+      const proof = await storage.getWithdrawalProof(id);
+      if (!proof || proof.status !== "approved") return res.status(404).json({ message: "Image introuvable" });
+      return sendWithdrawalProofImage(res, proof.proofImage);
+    } catch (error) {
+      console.error("Withdrawal proof image error:", error);
+      return res.status(500).json({ message: "Impossible de charger cette image" });
+    }
+  });
+
+  app.post("/api/withdrawal-proofs", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const payload = withdrawalProofSubmissionSchema.parse(req.body);
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+
+      const proof = await storage.createWithdrawalProof({
+        userId: user.id,
+        proofImage: payload.proof,
+        message: payload.message,
+      });
+      return res.status(201).json({ id: proof.id, status: proof.status });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Preuve de retrait invalide" });
+      }
+      console.error("Withdrawal proof submission error:", error);
+      return res.status(500).json({ message: "Impossible d'envoyer la preuve de retrait pour le moment" });
+    }
+  });
+
   app.get("/api/support-chat/messages", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
@@ -2150,6 +2218,81 @@ export async function registerRoutes(
       return res.json(shareReports);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/admin/withdrawal-proofs", requireAdmin, async (req, res) => {
+    try {
+      const status = String(req.query.status || "pending");
+      if (!["pending", "approved", "rejected", "all"].includes(status)) {
+        return res.status(400).json({ message: "Filtre de preuve invalide" });
+      }
+
+      const proofs = await storage.getWithdrawalProofs(
+        status as "pending" | "approved" | "rejected" | "all",
+        250,
+      );
+      return res.json(proofs.map(({ proofImage: _proofImage, ...proof }) => proof));
+    } catch (error) {
+      console.error("Admin withdrawal proofs list error:", error);
+      return res.status(500).json({ message: "Impossible de charger les preuves de retrait" });
+    }
+  });
+
+  app.get("/api/admin/withdrawal-proofs/:id/image", requireAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return res.status(400).json({ message: "Identifiant de preuve invalide" });
+    }
+
+    try {
+      const proof = await storage.getWithdrawalProof(id);
+      if (!proof) return res.status(404).json({ message: "Image introuvable" });
+      return sendWithdrawalProofImage(res, proof.proofImage);
+    } catch (error) {
+      console.error("Admin withdrawal proof image error:", error);
+      return res.status(500).json({ message: "Impossible de charger cette image" });
+    }
+  });
+
+  app.post("/api/admin/withdrawal-proofs/:id/review", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id < 1) {
+        return res.status(400).json({ message: "Identifiant de preuve invalide" });
+      }
+
+      const payload = withdrawalProofReviewSchema.parse(req.body);
+      const current = await storage.getWithdrawalProof(id);
+      if (!current) return res.status(404).json({ message: "Preuve introuvable" });
+      if (current.status !== "pending") {
+        return res.status(409).json({ message: "Cette preuve a déjà été traitée" });
+      }
+
+      const action = payload.action;
+      const updated = await storage.reviewPendingWithdrawalProof(id, {
+        status: action === "approve" ? "approved" : "rejected",
+        shareBonusXof: action === "approve" ? payload.shareBonusXof : 0,
+        processedAt: new Date(),
+        processedBy: req.session.userId!,
+      });
+      if (!updated) return res.status(409).json({ message: "Cette preuve a déjà été traitée" });
+
+      await storage.logAdminAction(
+        req.session.userId!,
+        `${action}_withdrawal_proof`,
+        current.userId,
+        action === "approve"
+          ? `Preuve de retrait ${id} approuvée; prime affichée: ${payload.shareBonusXof} XOF, sans crédit`
+          : `Preuve de retrait ${id} rejetée`,
+      );
+      return res.json(updated);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Décision invalide" });
+      }
+      console.error("Admin withdrawal proof review error:", error);
+      return res.status(500).json({ message: "Impossible de traiter cette preuve pour le moment" });
     }
   });
 

@@ -1,0 +1,306 @@
+.withdrawal-proofs-page {
+  min-height: 100dvh;
+  color: #f4f5ff;
+  background:
+    radial-gradient(ellipse at 50% -15%, rgba(76, 65, 172, .25), transparent 52%),
+    linear-gradient(180deg, #070b25 0%, #0a1032 46%, #08102b 100%);
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+.withdrawal-proofs-shell {
+  width: min(100%, 520px);
+  min-height: 100dvh;
+  margin-inline: auto;
+}
+
+.withdrawal-proofs-header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(196, 205, 255, .09);
+  background: rgba(7, 11, 37, .92);
+  backdrop-filter: blur(16px);
+}
+
+.withdrawal-proofs-back,
+.withdrawal-proof-form__close {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(198, 206, 255, .14);
+  border-radius: 12px;
+  color: #e8e9ff;
+  background: rgba(255, 255, 255, .04);
+}
+
+.withdrawal-proofs-header__copy { flex: 1; min-width: 0; }
+.withdrawal-proofs-eyebrow {
+  display: block;
+  color: #a9a5e7;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .17em;
+  line-height: 1.4;
+}
+.withdrawal-proofs-header h1 {
+  margin: 3px 0 0;
+  color: #fff;
+  font-size: 19px;
+  font-weight: 720;
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+.withdrawal-proofs-header__mark {
+  display: grid;
+  width: 37px;
+  height: 37px;
+  place-items: center;
+  border: 1px solid rgba(161, 148, 255, .24);
+  border-radius: 12px;
+  color: #c1b6ff;
+  background: rgba(112, 87, 226, .13);
+}
+
+.withdrawal-proofs-intro {
+  padding: 24px 23px 20px;
+}
+.withdrawal-proofs-intro p {
+  margin: 0 0 5px;
+  color: #f0efff;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.withdrawal-proofs-intro > span { color: #a8b0d0; font-size: 12px; }
+.withdrawal-proofs-feed {
+  margin: 0 12px 22px;
+  padding: 12px;
+  border: 1px solid rgba(174, 184, 244, .12);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(24, 31, 75, .9), rgba(13, 22, 58, .92));
+  box-shadow: 0 22px 55px rgba(0, 0, 0, .18), inset 0 1px rgba(255,255,255,.035);
+}
+
+.withdrawal-proof-submit {
+  overflow: hidden;
+  border: 1px solid rgba(172, 158, 255, .21);
+  border-radius: 16px;
+  background: linear-gradient(115deg, rgba(100, 76, 202, .22), rgba(57, 63, 131, .18));
+}
+.withdrawal-proof-submit__trigger {
+  display: flex;
+  width: 100%;
+  min-height: 75px;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  color: #f9f8ff;
+  text-align: left;
+  background: transparent;
+}
+.withdrawal-proof-submit__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(193, 178, 255, .3);
+  border-radius: 13px;
+  color: #d0c5ff;
+  background: rgba(113, 86, 221, .23);
+}
+.withdrawal-proof-submit__trigger > span:nth-child(2) { display: grid; flex: 1; gap: 4px; }
+.withdrawal-proof-submit__trigger strong { font-size: 14px; font-weight: 680; }
+.withdrawal-proof-submit__trigger small { color: #b3b9d5; font-size: 11px; }
+.withdrawal-proof-submit__plus { color: #c7baff; font-size: 24px; font-weight: 300; }
+.withdrawal-proof-form { padding: 17px 14px 14px; }
+.withdrawal-proof-form__heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 17px; }
+.withdrawal-proof-form__heading h2 { margin: 4px 0 0; font-size: 17px; }
+.withdrawal-proof-form__close { width: 32px; height: 32px; }
+.withdrawal-proof-field { position: relative; display: grid; gap: 7px; margin-bottom: 12px; }
+.withdrawal-proof-field > span { color: #edf0ff; font-size: 12px; font-weight: 620; }
+.withdrawal-proof-field textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(187, 198, 245, .17);
+  border-radius: 11px;
+  padding: 11px 12px 22px;
+  color: #f6f6ff;
+  outline: none;
+  background: rgba(5, 10, 36, .45);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.withdrawal-proof-field textarea:focus { border-color: rgba(167, 147, 255, .68); box-shadow: 0 0 0 3px rgba(119, 93, 220, .13); }
+.withdrawal-proof-field textarea::placeholder { color: #828cae; }
+.withdrawal-proof-field > small { position: absolute; right: 10px; bottom: 7px; color: #8993b3; font-size: 10px; }
+.withdrawal-proof-upload {
+  display: flex;
+  width: 100%;
+  min-height: 62px;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(182, 190, 232, .34);
+  border-radius: 11px;
+  color: #c8c9ff;
+  text-align: left;
+  background: rgba(7, 12, 39, .4);
+}
+.withdrawal-proof-upload > span { display: grid; flex: 1; gap: 3px; min-width: 0; }
+.withdrawal-proof-upload strong { color: #f1f0ff; font-size: 12px; font-weight: 630; }
+.withdrawal-proof-upload small { overflow: hidden; color: #9fa8c9; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.withdrawal-proof-upload img { width: 44px; height: 44px; border-radius: 7px; object-fit: cover; }
+.withdrawal-proof-upload.has-image { border-style: solid; border-color: rgba(111, 204, 173, .35); }
+.withdrawal-proof-approval-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 12px 1px;
+  color: #b8c1df;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.withdrawal-proof-approval-note svg { flex: 0 0 auto; color: #a99af2; }
+.withdrawal-proof-submit__button {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  background: linear-gradient(105deg, #684fe0, #8b5fda);
+  box-shadow: 0 6px 18px rgba(105, 76, 214, .22);
+}
+
+.withdrawal-proof-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin: 22px 3px 11px;
+}
+.withdrawal-proof-list-heading h2 { margin: 4px 0 0; color: #fff; font-size: 17px; font-weight: 670; letter-spacing: -.02em; }
+.withdrawal-proof-list-heading__count { color: #7e89b1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.withdrawal-proof-list { display: grid; gap: 10px; }
+.withdrawal-proof-card {
+  overflow: hidden;
+  border: 1px solid rgba(186, 195, 236, .1);
+  border-radius: 15px;
+  background: linear-gradient(140deg, rgba(22, 30, 72, .9), rgba(16, 25, 62, .94));
+}
+.withdrawal-proof-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 13px 12px 10px; }
+.withdrawal-proof-card__member { display: flex; min-width: 0; align-items: center; gap: 9px; }
+.withdrawal-proof-card__avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(165, 159, 255, .25);
+  border-radius: 11px;
+  color: #d2c9ff;
+  background: linear-gradient(145deg, rgba(112, 82, 205, .3), rgba(41, 67, 128, .35));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+}
+.withdrawal-proof-card__member > span:last-child { display: grid; min-width: 0; gap: 4px; }
+.withdrawal-proof-card__member strong { overflow: hidden; color: #f3f3ff; font-size: 12px; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.withdrawal-proof-card__member small { display: flex; align-items: center; gap: 4px; color: #929dbc; font-size: 10px; }
+.withdrawal-proof-card__verified {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 7px;
+  border: 1px solid rgba(121, 214, 184, .15);
+  border-radius: 99px;
+  color: #9edfc9;
+  background: rgba(43, 132, 103, .1);
+  font-size: 9px;
+  font-weight: 640;
+}
+.withdrawal-proof-card__content { display: grid; grid-template-columns: minmax(0, 1fr) 90px; gap: 12px; align-items: start; padding: 4px 12px 12px; }
+.withdrawal-proof-card__content > p { margin: 2px 0 0; color: #e0e3f5; font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
+.withdrawal-proof-card__image { position: relative; overflow: hidden; margin: 0; border: 1px solid rgba(193, 200, 233, .2); border-radius: 10px; background: #080d28; }
+.withdrawal-proof-card__image img { display: block; width: 100%; height: 107px; object-fit: cover; }
+.withdrawal-proof-card__image figcaption { position: absolute; right: 0; bottom: 0; left: 0; padding: 4px 3px; color: #dce0f3; background: rgba(7, 11, 33, .78); font-size: 8px; text-align: center; }
+.withdrawal-proof-card__bonus { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(185, 193, 231, .09); background: rgba(7, 12, 40, .26); }
+.withdrawal-proof-card__bonus > span { color: #99a3c4; font-size: 10px; }
+.withdrawal-proof-card__bonus strong { color: #d9a6e0; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.withdrawal-proof-card__bonus strong small { font-size: 9px; font-weight: 600; }
+.withdrawal-proofs-footer { display: flex; align-items: flex-start; gap: 7px; margin: 15px 4px 5px; color: #8994b6; font-size: 10px; line-height: 1.45; }
+.withdrawal-proofs-footer svg { flex: 0 0 auto; color: #9e9ad5; }
+.withdrawal-proof-skeleton-list { display: grid; gap: 10px; }
+.withdrawal-proof-skeleton { height: 150px; padding: 14px; border: 1px solid rgba(186,195,236,.08); border-radius: 15px; background: rgba(20,29,69,.56); animation: proof-pulse 1.2s ease-in-out infinite alternate; }
+.withdrawal-proof-skeleton__line,.withdrawal-proof-skeleton__body { border-radius: 7px; background: rgba(195,202,244,.1); }
+.withdrawal-proof-skeleton__line { width: 55%; height: 26px; }
+.withdrawal-proof-skeleton__body { width: 100%; height: 75px; margin-top: 17px; }
+@keyframes proof-pulse { from { opacity: .55; } to { opacity: 1; } }
+.withdrawal-proof-state { display: grid; justify-items: center; gap: 8px; padding: 29px 18px; border: 1px dashed rgba(186,195,236,.2); border-radius: 15px; color: #a9b3d2; text-align: center; background: rgba(7,13,40,.24); }
+.withdrawal-proof-state > svg { color: #aaa0ee; }
+.withdrawal-proof-state h3 { margin: 2px 0 0; color: #eff0ff; font-size: 14px; font-weight: 650; }
+.withdrawal-proof-state p { max-width: 280px; margin: 0; font-size: 11px; line-height: 1.5; }
+.withdrawal-proof-state button { margin-top: 5px; padding: 9px 13px; border: 1px solid rgba(170,154,255,.3); border-radius: 9px; color: #d5ccff; background: rgba(106,81,201,.15); font-size: 11px; }
+.withdrawal-proof-state--error { border-color: rgba(246,130,145,.3); }
+
+.admin-proof-review { display: grid; gap: 15px; }
+.admin-proof-review__intro { display: flex; align-items: center; gap: 12px; padding: 2px 0; }
+.admin-proof-review__intro-icon { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border: 1px solid rgba(108,79,200,.2); border-radius: 13px; color: #654bb7; background: #f1edff; }
+.admin-proof-review__intro h2 { margin: 0; color: #29243f; font-size: 17px; font-weight: 700; }
+.admin-proof-review__intro p { margin: 4px 0 0; color: #716b84; font-size: 12px; }
+.admin-proof-review__note { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid #e7ddbd; border-radius: 12px; color: #5c4b27; background: #fbf7e9; }
+.admin-proof-review__note strong { font-size: 12px; }
+.admin-proof-review__note span { font-size: 11px; line-height: 1.5; }
+.admin-proof-review__filters { display: flex; align-items: center; gap: 7px; overflow-x: auto; padding-bottom: 2px; }
+.admin-proof-review__filters > button { flex: 0 0 auto; padding: 8px 12px; border: 1px solid #e1ddea; border-radius: 99px; color: #615b72; background: #fff; font-size: 11px; font-weight: 600; }
+.admin-proof-review__filters > button[aria-pressed="true"] { border-color: #6045bb; color: #fff; background: #6045bb; }
+.admin-proof-review__filters > .admin-proof-review__refresh { display: grid; width: 34px; height: 34px; place-items: center; margin-left: auto; padding: 0; border-radius: 10px; }
+.admin-proof-review__list { display: grid; gap: 12px; }
+.admin-proof-card { display: grid; gap: 11px; padding: 14px; border: 1px solid #e7e2ef; border-radius: 15px; background: #fff; box-shadow: 0 5px 18px rgba(40,29,81,.045); }
+.admin-proof-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.admin-proof-card__header > div { display: grid; gap: 4px; min-width: 0; }
+.admin-proof-card__header strong { color: #2f293e; font-size: 13px; }
+.admin-proof-card__header > div > span { color: #827c91; font-size: 11px; overflow-wrap: anywhere; }
+.admin-proof-card__status { padding: 5px 8px; border-radius: 99px; color: #66577d; background: #f1edf7; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.admin-proof-card__status--pending { color: #92651d; background: #fff4d8; }
+.admin-proof-card__status--approved { color: #287456; background: #e8f7ee; }
+.admin-proof-card__status--rejected { color: #a34d58; background: #fff0f0; }
+.admin-proof-card__date { display: flex; align-items: center; gap: 5px; color: #8b8497; font-size: 10px; }
+.admin-proof-card__message { margin: 0; color: #433d50; font-size: 12px; line-height: 1.55; }
+.admin-proof-card__image-button { position: relative; display: block; width: 100%; max-height: 270px; overflow: hidden; border: 1px solid #e8e4ed; border-radius: 11px; background: #f4f2f7; }
+.admin-proof-card__image-button img { display: block; width: 100%; max-height: 270px; object-fit: contain; }
+.admin-proof-card__image-button > span { position: absolute; right: 7px; bottom: 7px; display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 7px; color: #fff; background: rgba(28,24,39,.72); font-size: 10px; }
+.admin-proof-card__actions { display: grid; gap: 10px; padding-top: 3px; }
+.admin-proof-card__amount { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #635d70; font-size: 11px; font-weight: 600; }
+.admin-proof-card__amount input { width: 118px; height: 36px; border: 1px solid #ddd7e8; border-radius: 8px; padding: 0 9px; color: #362d4f; background: #fbfaff; font-size: 13px; }
+.admin-proof-card__buttons { display: flex; gap: 8px; }
+.admin-proof-card__buttons button { min-height: 38px; flex: 1; gap: 6px; font-size: 11px; }
+.admin-proof-card__buttons .admin-proof-card__approve { color: #fff; background: #5941a9; }
+.admin-proof-card__processed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #6f6781; font-size: 10px; }
+.admin-proof-card__processed small { width: 100%; padding-left: 20px; color: #948da1; }
+.admin-proof-review__state { display: grid; justify-items: center; gap: 8px; padding: 32px 18px; border: 1px dashed #ddd6e8; border-radius: 14px; color: #756d83; background: #fcfbfe; text-align: center; }
+.admin-proof-review__state > svg { color: #7763b3; }
+.admin-proof-review__state strong { color: #3d354d; font-size: 13px; }
+.admin-proof-review__state span,.admin-proof-review__state p { margin: 0; font-size: 11px; }
+.admin-proof-review__skeletons { display: grid; gap: 12px; }
+.admin-proof-review__skeleton { height: 250px; border-radius: 15px; background: linear-gradient(110deg, #f0edf5 25%, #f8f7fa 45%, #f0edf5 65%); background-size: 220% 100%; animation: admin-proof-shimmer 1.2s linear infinite; }
+@keyframes admin-proof-shimmer { to { background-position-x: -220%; } }
+.admin-proof-lightbox { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 54px 16px 20px; background: rgba(8,8,17,.91); }
+.admin-proof-lightbox > img { display: block; max-width: min(100%, 900px); max-height: 100%; object-fit: contain; }
+.admin-proof-lightbox > button { position: absolute; top: 14px; right: 14px; display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; color: #fff; background: rgba(255,255,255,.1); }
+
+@media (min-width: 720px) {
+  .withdrawal-proofs-shell { max-width: 580px; }
+  .withdrawal-proofs-header { padding-inline: 25px; }
+  .withdrawal-proofs-intro { padding-inline: 28px; }
+  .withdrawal-proofs-feed { margin-inline: 18px; padding: 16px; }
+  .withdrawal-proof-card__content { grid-template-columns: minmax(0, 1fr) 112px; }
+  .withdrawal-proof-card__image img { height: 130px; }
+}
