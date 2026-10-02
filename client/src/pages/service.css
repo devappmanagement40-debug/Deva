@@ -1,15 +1,17 @@
 .diamant-service-page {
-  --service-green: #078438;
-  --service-green-deep: #05652e;
-  --service-mint: #f1faf3;
-  --service-text: #172920;
-  --service-muted: #68766e;
+  --service-primary: #078de9;
+  --service-violet: #704cff;
+  --service-deep: #07123c;
+  --service-text: #f7f8ff;
+  --service-muted: #c4cde2;
   position: relative;
   min-height: 100vh;
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
   overflow: hidden;
   color: var(--service-text);
-  background: var(--service-mint);
+  background:
+    radial-gradient(ellipse at 78% 4%, rgba(32, 124, 203, .25), transparent 22rem),
+    linear-gradient(180deg, #050923 0%, #07123c 34%, #08265e 69%, #075587 100%);
   font-family: Roboto, Arial, sans-serif;
 }
 
@@ -23,7 +25,11 @@
   min-height: 58px;
   padding: 0 14px;
   color: #fff;
-  background: var(--service-green);
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+  background: rgba(4, 8, 29, .94);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .12);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 }
 
 .diamant-service-header h1 {
@@ -67,7 +73,9 @@
   padding: 30px 20px 58px 22px;
   overflow: hidden;
   color: #fff;
-  background: linear-gradient(160deg, var(--service-green) 0%, var(--service-green-deep) 100%);
+  background:
+    radial-gradient(ellipse at 88% 8%, rgba(32, 124, 203, .28), transparent 16rem),
+    linear-gradient(145deg, #050923 0%, #07123c 48%, #075587 100%);
   border-radius: 0 0 42px 42px;
 }
 
@@ -112,8 +120,8 @@
   height: 126px;
   object-fit: cover;
   object-position: center 28%;
-  background: #f2fff5;
-  border: 4px solid rgba(255, 255, 255, .76);
+  background: #dceeff;
+  border: 4px solid rgba(205, 226, 255, .76);
   border-radius: 50%;
   box-shadow: 0 8px 22px rgba(0, 55, 25, .2);
 }
@@ -124,10 +132,10 @@
   bottom: 18px;
   width: 104px;
   height: 50px;
-  border: 5px solid #e9eee9;
+  border: 5px solid #e4efff;
   border-bottom-width: 9px;
   border-radius: 7px 7px 2px 2px;
-  background: #c9dbd1;
+  background: #bfd5f5;
   transform: skewY(-4deg);
 }
 
@@ -138,7 +146,7 @@
   left: -14px;
   height: 7px;
   border-radius: 2px 2px 8px 8px;
-  background: #f4f7f4;
+  background: #eaf2ff;
   content: "";
 }
 
@@ -149,7 +157,7 @@
   width: 27px;
   height: 20px;
   border-radius: 2px;
-  background: rgba(7, 132, 56, .17);
+  background: rgba(7, 141, 233, .24);
 }
 
 .diamant-service-hero-headset {
@@ -161,8 +169,8 @@
   height: 31px;
   place-items: center;
   color: #fff;
-  background: var(--service-green-deep);
-  border: 2px solid #d7f4df;
+  background: var(--service-violet);
+  border: 2px solid #c6d7ff;
   border-radius: 50%;
 }
 
@@ -181,10 +189,10 @@
   align-items: start;
   gap: 15px;
   padding: 20px 18px;
-  background: #fff;
-  border: 1px solid rgba(5, 93, 42, .035);
+  background: linear-gradient(145deg, rgba(32, 47, 99, .96), rgba(31, 60, 113, .92));
+  border: 1px solid rgba(155, 193, 255, .09);
   border-radius: 23px;
-  box-shadow: 0 8px 24px rgba(20, 64, 38, .045);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .13);
 }
 
 .diamant-service-icon {
@@ -193,23 +201,23 @@
   height: 66px;
   align-items: center;
   justify-content: center;
-  color: #098a43;
-  background: #e8f7ed;
+  color: #56b9ff;
+  background: rgba(8, 141, 233, .16);
   border-radius: 50%;
 }
 
 .diamant-service-icon-deposit {
-  color: #078438;
+  color: #078de9;
 }
 
 .diamant-service-icon-hours {
-  color: #078438;
-  background: #e4f6e9;
+  color: #9cddff;
+  background: rgba(30, 151, 224, .2);
 }
 
 .diamant-service-icon-telegram {
-  color: #078438;
-  background: #e4f6e9;
+  color: #c8bdff;
+  background: rgba(112, 65, 242, .2);
 }
 
 .diamant-service-card-copy {
@@ -218,7 +226,7 @@
 
 .diamant-service-card-copy h2 {
   margin: 0 0 5px;
-  color: #13271e;
+  color: #f7f8ff;
   font-size: 18px;
   font-weight: 750;
   line-height: 1.28;
@@ -237,7 +245,7 @@
   gap: 5px;
   margin: 10px 0 0;
   padding: 0;
-  color: var(--service-green);
+  color: var(--service-primary);
   background: transparent;
   border: 0;
   font: inherit;
@@ -264,8 +272,8 @@
   align-items: center;
   min-height: 21px;
   padding: 2px 8px;
-  color: #08763a;
-  background: #eaf8ee;
+  color: #76e0bd;
+  background: rgba(16, 201, 147, .16);
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
@@ -274,12 +282,12 @@
 }
 
 .diamant-service-status[data-online="false"] {
-  color: #8b5c0b;
-  background: #fff3d7;
+  color: #ffd78a;
+  background: rgba(207, 143, 27, .18);
 }
 
 .diamant-service-hours-value {
-  color: #53645a;
+  color: #c4d1e8;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -298,7 +306,7 @@
   gap: 12px;
   padding: 9px 13px;
   color: #fff;
-  background: var(--service-green);
+  background: linear-gradient(100deg, #078be4, #704cff);
   border: 0;
   border-radius: 999px;
   font: inherit;
@@ -316,15 +324,15 @@
 
 .diamant-service-unconfigured {
   margin-top: 10px !important;
-  color: #8a534a !important;
+  color: #ffb9c2 !important;
   font-weight: 600;
 }
 
 .diamant-service-security {
   padding: 18px 20px 19px;
   color: var(--service-muted);
-  background: rgba(255, 255, 255, .78);
-  border: 1px solid rgba(5, 93, 42, .06);
+  background: rgba(31, 39, 78, .84);
+  border: 1px solid rgba(180, 200, 255, .08);
   border-radius: 22px;
 }
 
@@ -333,12 +341,12 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
-  color: #137a40;
+  color: #78baff;
 }
 
 .diamant-service-security-title h2 {
   margin: 0;
-  color: #172920;
+  color: #f7f8ff;
   font-size: 15px;
   font-weight: 800;
 }
@@ -363,10 +371,10 @@
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: #16b7c6;
-  border: 3px solid rgba(255, 255, 255, .92);
+  background: linear-gradient(145deg, #704cff, #078be4);
+  border: 3px solid rgba(205, 226, 255, .82);
   border-radius: 50%;
-  box-shadow: 0 7px 18px rgba(10, 102, 111, .25);
+  box-shadow: 0 7px 20px rgba(6, 29, 89, .42);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
