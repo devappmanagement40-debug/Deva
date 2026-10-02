@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
-  Clock3,
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "wouter";
@@ -169,7 +168,7 @@ export default function ServicePage() {
 
         <section className="diamant-service-card diamant-service-hours-card">
           <div className="diamant-service-icon diamant-service-icon-hours" aria-hidden="true">
-            <Clock3 size={34} strokeWidth={2.1} />
+            <img src={customerServiceIcon} alt="" draggable={false} />
           </div>
           <div className="diamant-service-card-copy">
             <div className="diamant-service-card-heading">
