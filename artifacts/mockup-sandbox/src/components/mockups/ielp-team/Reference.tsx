@@ -37,13 +37,11 @@ const navItems = [
   { label: "Moi", Icon: WalletCards },
 ];
 
-function IelpSeal() {
+function DiamantSeal() {
   return (
-    <svg className="ielp-invest-mock-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+    <svg className="ielp-invest-mock-seal" viewBox="0 0 90 90" role="img" aria-label="DIAMANT">
       <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
+      <text x="45" y="51" textAnchor="middle" fontSize="8">DIAMANT</text>
     </svg>
   );
 }
@@ -60,7 +58,7 @@ function BrowserChrome() {
         <House size={21} strokeWidth={2.7} />
         <div className="ielp-team-address">
           <span className="ielp-team-sliders">☷</span>
-          <span>ielp-mining.cc/#/team</span>
+          <span>/#/team</span>
         </div>
         <span className="ielp-team-browser-plus">+</span>
         <span className="ielp-team-tab">▣</span>
@@ -89,9 +87,9 @@ function Reference() {
     <main className="ielp-invest-mock-root ielp-team-reference" lang="fr">
       <BrowserChrome />
       <header className="ielp-invest-mock-header">
-        <a className="ielp-invest-mock-brand" href="#/team" aria-label="IELP">
-          <IelpSeal />
-          <span>IELP</span>
+        <a className="ielp-invest-mock-brand" href="#/team" aria-label="DIAMANT">
+          <DiamantSeal />
+          <span>DIAMANT</span>
         </a>
         <div className="ielp-invest-mock-actions">
           <button className="ielp-invest-mock-language" type="button" onClick={() => setNotice("Français")}>
@@ -116,15 +114,15 @@ function Reference() {
           </div>
           <div className="ielp-team-link-label">
             <span>Partagez votre lien et gagnez</span>
-            <button type="button" onClick={() => void copyText("https://www.ielp-mining.cc/#/reg?invite_code=dj65gm", "Lien")}>Copie</button>
+            <button type="button" onClick={() => void copyText("/#/reg?invite_code=dj65gm", "Lien")}>Copie</button>
           </div>
           <button
             type="button"
             className="ielp-team-link"
-            onClick={() => void copyText("https://www.ielp-mining.cc/#/reg?invite_code=dj65gm", "Lien")}
+            onClick={() => void copyText("/#/reg?invite_code=dj65gm", "Lien")}
             aria-label="Copier le lien d'invitation"
           >
-            https://www.ielp-mining.cc/#/reg?<br />invite_code=dj65gm
+            /#/reg?<br />invite_code=dj65gm
           </button>
         </section>
 

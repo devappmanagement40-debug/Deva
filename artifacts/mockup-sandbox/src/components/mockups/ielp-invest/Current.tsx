@@ -3,9 +3,9 @@ import "./_group.css";
 import "./Current.css";
 
 const products = [
-  { name: "TGOOD Electric Bike", price: 10, days: 8, daily: 0.2, total: 1.6 },
-  { name: "TGOOD Electric Scooter", price: 100, days: 18, daily: 2, total: 36 },
-  { name: "TGOOD Moped", price: 300, days: 40, daily: 6, total: 240 },
+  { name: "DIAMANT Electric Bike", price: 10, days: 8, daily: 0.2, total: 1.6 },
+  { name: "DIAMANT Electric Scooter", price: 100, days: 18, daily: 2, total: 36 },
+  { name: "DIAMANT Moped", price: 300, days: 40, daily: 6, total: 240 },
 ];
 
 function CurrentInfoRow({ label, value }: { label: string; value: string }) {
@@ -36,7 +36,7 @@ export function Current() {
           <article
             className="current-invest-product"
             key={product.name}
-            style={{ backgroundImage: "url('/__mockup/images/tgood-product-bike-card.jpg')" }}
+            style={{ backgroundImage: "url('/__mockup/images/diamant-product-bike-card.jpg')" }}
           >
             <div className="current-invest-product-overlay" />
             <div className="current-invest-product-content">

@@ -18,25 +18,21 @@ const products = [
   { days: 120, price: 100, dailyRate: "5.00", count: 1, fixedRate: 700 },
 ];
 
-function IelpSeal() {
+function DiamantSeal() {
   return (
-    <svg className="ielp-invest-mock-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+    <svg className="ielp-invest-mock-seal" viewBox="0 0 90 90" role="img" aria-label="DIAMANT">
       <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
+      <text x="45" y="51" textAnchor="middle" fontSize="8">DIAMANT</text>
     </svg>
   );
 }
 
 function ProductMark() {
   return (
-    <svg className="ielp-invest-mock-product-mark" viewBox="0 0 112 112" role="img" aria-label="Icahn Enterprises L.P.">
+    <svg className="ielp-invest-mock-product-mark" viewBox="0 0 112 112" role="img" aria-label="DIAMANT">
       <rect width="112" height="112" rx="7" fill="#346b96" />
       <g fill="#f4f7fa" fontFamily="Georgia, serif" textAnchor="middle">
-        <text x="76" y="47" fontSize="12">ICAHN</text>
-        <text x="76" y="62" fontSize="12">ENTERPRISES</text>
-        <text x="76" y="77" fontSize="12">L.P.</text>
+        <text x="56" y="60" fontSize="12">DIAMANT</text>
       </g>
     </svg>
   );
@@ -45,7 +41,7 @@ function ProductMark() {
 function ReferenceProduct({ product, index }: { product: typeof products[number]; index: number }) {
   return (
     <article className="ielp-invest-mock-card">
-      <h2 dir="ltr">IELP Investment Products {index + 1}</h2>
+      <h2 dir="ltr">DIAMANT Investment Products {index + 1}</h2>
       <div className="ielp-invest-mock-card-details">
         <ProductMark />
         <dl>
@@ -66,8 +62,8 @@ export function Reference() {
     <main className="ielp-invest-mock-root">
       <header className="ielp-invest-mock-header">
         <a className="ielp-invest-mock-brand" href="#/">
-          <IelpSeal />
-          <span>IELP</span>
+          <DiamantSeal />
+          <span>DIAMANT</span>
         </a>
         <div className="ielp-invest-mock-actions">
           <div className="ielp-invest-mock-language"><Globe2 size={19} /><span>Français</span><ChevronDown size={15} /></div>

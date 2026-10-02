@@ -37,17 +37,15 @@ const ACCOUNT_LINKS = [
   { label: "Mot de passe", Icon: BookOpen },
   { label: "Code PIN de sécurité", Icon: KeyRound },
   { label: "Soutien", Icon: Headphones },
-  { label: "Détails de l'entreprise IELP", Icon: BookOpen },
+  { label: "Détails de l'entreprise DIAMANT", Icon: BookOpen },
   { label: "À propos", Icon: PanelsTopLeft },
 ];
 
-function IelpSeal() {
+function DiamantSeal() {
   return (
-    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="Icahn Enterprises L.P.">
+    <svg className="ielp-home-seal" viewBox="0 0 90 90" role="img" aria-label="DIAMANT">
       <circle cx="45" cy="45" r="45" fill="#3775a8" />
-      <text x="57" y="36" textAnchor="middle">ICAHN</text>
-      <text x="45" y="49" textAnchor="middle">ENTERPRISES</text>
-      <text x="60" y="62" textAnchor="middle">L.P.</text>
+      <text x="45" y="51" textAnchor="middle" fontSize="8">DIAMANT</text>
     </svg>
   );
 }
@@ -89,9 +87,9 @@ export function Reference() {
     <main className="ielp-home-page ielp-account-page" lang="fr">
       <div className="ielp-home-shell ielp-account-shell">
         <header className="ielp-home-header">
-          <a className="ielp-home-brand" href="#/" aria-label="IELP accueil">
-            <IelpSeal />
-            <span>IELP</span>
+          <a className="ielp-home-brand" href="#/" aria-label="DIAMANT accueil">
+            <DiamantSeal />
+            <span>DIAMANT</span>
           </a>
           <div className="ielp-home-header__actions">
             <button type="button" className="ielp-account-language">

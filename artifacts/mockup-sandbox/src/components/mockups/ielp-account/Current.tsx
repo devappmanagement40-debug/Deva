@@ -26,10 +26,10 @@ import {
 } from "lucide-react";
 import "./_group.css";
 
-const profileBike = "/__mockup/images/tgood-profile-bike.png";
-const missionBanner = "/__mockup/images/tgood-tasks-bike-banner.jpg";
+const profileBike = "/__mockup/images/diamant-profile-bike.png";
+const missionBanner = "/__mockup/images/diamant-tasks-bike-banner.jpg";
 
-const TGOOD_GREEN = "#08b83a";
+const DIAMANT_GREEN = "#08b83a";
 const t = {
   logout: "Log out",
   incorrectPin: "Incorrect PIN",
@@ -128,7 +128,7 @@ function CurrentBottomNav() {
       aria-label="Primary navigation"
     >
       {items.map(({ label, Icon }, index) => (
-        <button key={label} className="flex flex-col items-center gap-1 text-[14px]" style={{ color: index === 3 ? TGOOD_GREEN : "#bdbdbd" }}>
+        <button key={label} className="flex flex-col items-center gap-1 text-[14px]" style={{ color: index === 3 ? DIAMANT_GREEN : "#bdbdbd" }}>
           <Icon size={24} />
           <span>{label}</span>
         </button>
@@ -221,7 +221,7 @@ export default function Current() {
           <div className="flex h-[112px] items-center px-4">
             <img
               src={profileBike}
-              alt="TGOOD electric bike"
+              alt="DIAMANT electric bike"
               className="h-[78px] w-[94px] object-contain"
             />
             <div className="min-w-0 flex-1 pl-2">
@@ -262,7 +262,7 @@ export default function Current() {
               className="border-r border-[#eeeeee] py-4 text-center active:bg-slate-50"
               data-testid="button-profile-balance"
             >
-              <p className="font-normal" style={{ color: TGOOD_GREEN, fontSize: 26 }}>USDT {formatAmount(balance)}</p>
+              <p className="font-normal" style={{ color: DIAMANT_GREEN, fontSize: 26 }}>USDT {formatAmount(balance)}</p>
               <p className="mt-1" style={{ color: "#222", fontSize: 14 }}>{t.accountBalance}</p>
             </button>
             <button
@@ -270,7 +270,7 @@ export default function Current() {
               className="py-4 text-center active:bg-slate-50"
               data-testid="button-profile-earnings"
             >
-              <p className="font-normal" style={{ color: TGOOD_GREEN, fontSize: 26 }}>USDT {formatAmount(earnings)}</p>
+              <p className="font-normal" style={{ color: DIAMANT_GREEN, fontSize: 26 }}>USDT {formatAmount(earnings)}</p>
               <p className="mt-1" style={{ color: "#222", fontSize: 14 }}>{t.revenue}</p>
             </button>
           </div>
@@ -299,7 +299,7 @@ export default function Current() {
         <section className="relative mx-3 mt-3 h-[272px] overflow-hidden" style={{ borderRadius: 12 }}>
           <img
             src={missionBanner}
-            alt="Sustainable mobility with TGOOD electric bikes"
+            alt="Sustainable mobility with DIAMANT electric bikes"
             className="h-full w-full object-cover"
             style={{ objectPosition: "center" }}
           />
@@ -349,7 +349,7 @@ export default function Current() {
           <div className="space-y-1">
             <div className="mb-3 rounded-xl bg-[#f3faf5] px-4 py-3">
               <p className="font-medium text-[#1f2933]">{phonePrefix}{user.phone}</p>
-              <p className="mt-1 text-xs text-[#65736e]">TGOOD member</p>
+              <p className="mt-1 text-xs text-[#65736e]">DIAMANT member</p>
             </div>
             {[
               { label: t.changePassword, href: "/change-password", Icon: KeyRound },
@@ -361,7 +361,7 @@ export default function Current() {
                 onClick={() => { setShowAccountMenu(false); navigate(href); }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
-                <Icon size={19} color={TGOOD_GREEN} />
+                <Icon size={19} color={DIAMANT_GREEN} />
                 <span className="text-sm text-[#30363a]">{label}</span>
               </button>
             ))}
@@ -370,7 +370,7 @@ export default function Current() {
               disabled={installing}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50 disabled:opacity-60"
             >
-              <Download size={19} color={TGOOD_GREEN} />
+              <Download size={19} color={DIAMANT_GREEN} />
               <span className="text-sm text-[#30363a]">{installing ? "Installing…" : "Install app"}</span>
             </button>
             {user.isAdmin && (
@@ -378,7 +378,7 @@ export default function Current() {
                 onClick={openAdmin}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
-                <Shield size={19} color={TGOOD_GREEN} />
+                <Shield size={19} color={DIAMANT_GREEN} />
                 <span className="text-sm text-[#30363a]">{t.adminPanel}</span>
               </button>
             )}
@@ -418,7 +418,7 @@ export default function Current() {
               }}
               disabled={verifyPinMutation.isPending || adminPin.length < 4}
               className="w-full"
-              style={{ backgroundColor: TGOOD_GREEN }}
+              style={{ backgroundColor: DIAMANT_GREEN }}
               data-testid="button-verify-pin"
             >
               {verifyPinMutation.isPending ? "Verifying…" : t.confirm}

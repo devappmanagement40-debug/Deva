@@ -246,7 +246,7 @@ export default function TeamPage() {
     }
     if (navigator.share) {
       try {
-        await navigator.share({ title: "IELP", text: copy.sharePrompt, url: referralLink });
+        await navigator.share({ title: "DIAMANT", text: copy.sharePrompt, url: referralLink });
       } catch {
         // The user can dismiss the native share sheet without an error.
       }

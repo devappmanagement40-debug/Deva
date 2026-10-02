@@ -78,7 +78,7 @@ const COPY: Record<Lang, {
     earn: "Gagner",
     users: "Nombre total d'utilisateurs",
     production: "Production totale",
-    companyDetails: "Détails de l'entreprise IELP",
+    companyDetails: "Détails de l'entreprise DIAMANT",
     livePrices: "prix en direct",
     partners: "Partenaires",
     share: "Partager",
@@ -106,7 +106,7 @@ const COPY: Record<Lang, {
     earn: "Earn",
     users: "Total users",
     production: "Total production",
-    companyDetails: "IELP company details",
+    companyDetails: "DIAMANT company details",
     livePrices: "live prices",
     partners: "Partners",
     share: "Share",
@@ -134,7 +134,7 @@ const COPY: Record<Lang, {
     earn: "اربح",
     users: "إجمالي المستخدمين",
     production: "إجمالي الإنتاج",
-    companyDetails: "تفاصيل شركة IELP",
+    companyDetails: "تفاصيل شركة DIAMANT",
     livePrices: "الأسعار المباشرة",
     partners: "الشركاء",
     share: "مشاركة",
@@ -162,7 +162,7 @@ const COPY: Record<Lang, {
     earn: "赚取",
     users: "用户总数",
     production: "总产值",
-    companyDetails: "IELP 公司详情",
+    companyDetails: "DIAMANT 公司详情",
     livePrices: "实时价格",
     partners: "合作伙伴",
     share: "分享",
@@ -297,7 +297,7 @@ function HomePage() {
     if (destination) {
       window.open(destination, "_blank", "noopener,noreferrer");
     } else if (navigator.share) {
-      void navigator.share({ title: "IELP", text: copy.sharePrompt, url: shareUrl }).catch(() => undefined);
+      void navigator.share({ title: "DIAMANT", text: copy.sharePrompt, url: shareUrl }).catch(() => undefined);
     } else {
       void copyShareLink();
     }

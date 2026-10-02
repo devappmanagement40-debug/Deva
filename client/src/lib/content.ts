@@ -16,7 +16,7 @@ export function displayCurrencyText(value: string): string {
 }
 
 export function rebrandText(value: string): string {
-  return displayCurrencyText(value.replace(/\bTGOO[DG]\b/gi, "DIAMANT"));
+  return displayCurrencyText(value.replace(/\b(?:TGOOD|TGOOG|IELP)\b/gi, "DIAMANT"));
 }
 
 export function getContent(

@@ -4,7 +4,7 @@ import "../ielp-invest/_group.css";
 import "./Current.css";
 
 const code = "DJ65GM";
-const inviteLink = `https://www.ielp-mining.cc/register?ref=${code}`;
+const inviteLink = `/register?ref=${code}`;
 const levelRates = ["10%", "2%", "1%"];
 
 function Current() {
@@ -30,13 +30,13 @@ function Current() {
       <section className="team-current-body">
         <img
           className="team-current-hero"
-          src="/__mockup/images/tgood-team-hero.jpg"
-          alt="TGOOD electric charging station"
+          src="/__mockup/images/diamant-team-hero.jpg"
+          alt="DIAMANT electric charging station"
         />
 
         <div className="team-current-invite">
           <img
-            src="/__mockup/images/tgood-team-invite.jpg"
+            src="/__mockup/images/diamant-team-invite.jpg"
             alt="Borne de recharge verte"
           />
           <div>
