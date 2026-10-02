@@ -166,7 +166,12 @@ export default function ServicePage() {
           </div>
         </Link>
 
-        <section className="diamant-service-card diamant-service-hours-card">
+        <Link
+          href="/support-chat"
+          className="diamant-service-card diamant-service-hours-card diamant-service-chat-card"
+          aria-label="Ouvrir le chat du service client DIAMANT"
+          data-testid="link-service-chat"
+        >
           <div className="diamant-service-icon diamant-service-icon-hours" aria-hidden="true">
             <img src={customerServiceIcon} alt="" draggable={false} />
           </div>
@@ -185,7 +190,7 @@ export default function ServicePage() {
               {hoursLabel} : <span className="diamant-service-hours-value">{hoursDisplay}</span>
             </p>
           </div>
-        </section>
+        </Link>
 
         <section className="diamant-service-card diamant-service-telegram-card">
           <div className="diamant-service-icon diamant-service-icon-telegram" aria-hidden="true">

@@ -1,5 +1,5 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, decimal, numeric, serial, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal, numeric, serial, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -178,6 +178,25 @@ export const shareReports = pgTable("share_reports", {
   processedAt: timestamp("processed_at"),
   processedBy: integer("processed_by"),
 });
+
+export type SupportChatSenderRole = "user" | "admin";
+export type SupportChatAttachmentType = "image" | "video" | "file";
+
+export const supportChatMessages = pgTable("support_chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  senderId: integer("sender_id").references(() => users.id, { onDelete: "set null" }),
+  senderRole: text("sender_role").$type<SupportChatSenderRole>().notNull(),
+  message: text("message").notNull().default(""),
+  attachmentUrl: text("attachment_url"),
+  attachmentType: text("attachment_type").$type<SupportChatAttachmentType>(),
+  attachmentName: text("attachment_name"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("support_chat_messages_user_created_idx").on(table.userId, table.createdAt),
+  index("support_chat_messages_attachment_url_idx").on(table.attachmentUrl),
+]);
 
 // Withdrawals
 export const withdrawals = pgTable("withdrawals", {
@@ -514,6 +533,12 @@ export type Product = typeof products.$inferSelect;
 export type UserProduct = typeof userProducts.$inferSelect;
 export type Deposit = typeof deposits.$inferSelect;
 export type ShareReport = typeof shareReports.$inferSelect;
+export type SupportChatMessage = typeof supportChatMessages.$inferSelect;
+export type SupportChatConversation = {
+  user: Pick<User, "id" | "fullName" | "phone" | "country">;
+  lastMessage: Pick<SupportChatMessage, "message" | "senderRole" | "attachmentType" | "attachmentName" | "createdAt">;
+  unreadCount: number;
+};
 export type Withdrawal = typeof withdrawals.$inferSelect;
 export type WithdrawalWallet = typeof withdrawalWallets.$inferSelect;
 export type PaymentChannel = typeof paymentChannels.$inferSelect;

@@ -22,6 +22,7 @@ import AdminDepositChannels from "@/components/admin/deposit-channels";
 import AdminSpinWheelConfig from "@/components/admin/spin-wheel-config";
 import AdminBannerConfig from "@/components/admin/banner-config";
 import AdminShareReports from "@/components/admin/share-reports";
+import AdminSupportInbox from "@/components/support-chat/AdminSupportInbox";
 
 export default function AdminPage() {
   const { user } = useAuth();
@@ -46,6 +47,7 @@ export default function AdminPage() {
             <TabsList className="w-max">
               <TabsTrigger value="dashboard" data-testid="tab-dashboard">{t.adminTabDashboard}</TabsTrigger>
               <TabsTrigger value="deposits" data-testid="tab-deposits">{t.adminTabDeposits}</TabsTrigger>
+              <TabsTrigger value="support-chat" data-testid="tab-support-chat">Support client</TabsTrigger>
               <TabsTrigger value="share-reports" data-testid="tab-share-reports">Rapports partagés</TabsTrigger>
               <TabsTrigger value="withdrawals" data-testid="tab-withdrawals">{t.adminTabWithdrawals}</TabsTrigger>
               <TabsTrigger value="users" data-testid="tab-users">{t.adminTabUsers}</TabsTrigger>
@@ -70,6 +72,9 @@ export default function AdminPage() {
 
           <TabsContent value="deposits" className="mt-4">
             <AdminDeposits />
+          </TabsContent>
+          <TabsContent value="support-chat" className="mt-4">
+            <AdminSupportInbox />
           </TabsContent>
           <TabsContent value="share-reports" className="mt-4">
             <AdminShareReports />

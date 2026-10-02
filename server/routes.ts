@@ -1257,6 +1257,32 @@ export async function registerRoutes(
       .max(4_200_000, "L'image de preuve est trop volumineuse"),
   });
 
+  const supportChatMessageSchema = z.object({
+    message: z.string().trim().max(2000, "Le message est trop long").default(""),
+    attachmentUrl: z.string()
+      .trim()
+      .max(300)
+      .regex(/^\/uploads\/[A-Za-z0-9._-]+$/, "Pièce jointe invalide")
+      .optional(),
+    attachmentType: z.enum(["image", "video", "file"]).optional(),
+    attachmentName: z.string().trim().max(180).optional(),
+  }).superRefine((data, ctx) => {
+    if (!data.message && !data.attachmentUrl) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Écrivez un message ou ajoutez une pièce jointe",
+        path: ["message"],
+      });
+    }
+    if (Boolean(data.attachmentUrl) !== Boolean(data.attachmentType)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Les informations de la pièce jointe sont incomplètes",
+        path: ["attachmentType"],
+      });
+    }
+  });
+
   app.post("/api/share-reports", requireAuth, requireSameOrigin, async (req, res) => {
     try {
       const payload = shareReportSchema.parse(req.body);
@@ -1277,6 +1303,46 @@ export async function registerRoutes(
       }
       console.error("Share report submission error:", error);
       return res.status(500).json({ message: "Impossible d'envoyer le rapport de partage pour le moment" });
+    }
+  });
+
+  app.get("/api/support-chat/messages", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+
+      await storage.markSupportChatMessagesRead(userId, "user");
+      return res.json(await storage.getSupportChatMessages(userId));
+    } catch (error) {
+      console.error("Support chat history error:", error);
+      return res.status(500).json({ message: "Impossible de charger la conversation" });
+    }
+  });
+
+  app.post("/api/support-chat/messages", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const payload = supportChatMessageSchema.parse(req.body);
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+
+      const message = await storage.createSupportChatMessage({
+        userId,
+        senderId: userId,
+        senderRole: "user",
+        message: payload.message,
+        attachmentUrl: payload.attachmentUrl ?? null,
+        attachmentType: payload.attachmentType ?? null,
+        attachmentName: payload.attachmentName ?? null,
+      });
+      return res.status(201).json(message);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Message invalide" });
+      }
+      console.error("Support chat send error:", error);
+      return res.status(500).json({ message: "Impossible d'envoyer le message pour le moment" });
     }
   });
 
@@ -2194,6 +2260,63 @@ export async function registerRoutes(
       return res.json(shareReports);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/admin/support-chat/conversations", requireAdmin, async (_req, res) => {
+    try {
+      return res.json(await storage.getSupportChatConversations());
+    } catch (error) {
+      console.error("Admin support chat list error:", error);
+      return res.status(500).json({ message: "Impossible de charger les conversations" });
+    }
+  });
+
+  app.get("/api/admin/support-chat/conversations/:userId/messages", requireAdmin, async (req, res) => {
+    try {
+      const userId = Number.parseInt(String(req.params.userId), 10);
+      if (!Number.isInteger(userId) || userId < 1) {
+        return res.status(400).json({ message: "Identifiant de membre invalide" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Membre introuvable" });
+
+      await storage.markSupportChatMessagesRead(userId, "admin");
+      return res.json(await storage.getSupportChatMessages(userId));
+    } catch (error) {
+      console.error("Admin support chat history error:", error);
+      return res.status(500).json({ message: "Impossible de charger cette conversation" });
+    }
+  });
+
+  app.post("/api/admin/support-chat/conversations/:userId/messages", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const userId = Number.parseInt(String(req.params.userId), 10);
+      if (!Number.isInteger(userId) || userId < 1) {
+        return res.status(400).json({ message: "Identifiant de membre invalide" });
+      }
+
+      const payload = supportChatMessageSchema.parse(req.body);
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Membre introuvable" });
+
+      const message = await storage.createSupportChatMessage({
+        userId,
+        senderId: req.session.userId!,
+        senderRole: "admin",
+        message: payload.message,
+        attachmentUrl: payload.attachmentUrl ?? null,
+        attachmentType: payload.attachmentType ?? null,
+        attachmentName: payload.attachmentName ?? null,
+      });
+      return res.status(201).json(message);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Message invalide" });
+      }
+      console.error("Admin support chat send error:", error);
+      return res.status(500).json({ message: "Impossible d'envoyer la réponse pour le moment" });
     }
   });
 
@@ -3177,6 +3300,8 @@ export async function registerRoutes(
   // ==================== FILE UPLOAD ====================
   const uploadsDir = path.join(process.cwd(), "client", "public", "uploads");
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  const supportChatUploadsDir = path.join(process.cwd(), "uploads", "support-chat");
+  if (!fs.existsSync(supportChatUploadsDir)) fs.mkdirSync(supportChatUploadsDir, { recursive: true });
 
   const upload = multer({
     storage: multer.diskStorage({
@@ -3202,6 +3327,82 @@ export async function registerRoutes(
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
+  });
+
+  const supportChatFileRules: Record<string, { extension: string; type: "image" | "video" | "file" }> = {
+    "image/jpeg": { extension: ".jpg", type: "image" },
+    "image/png": { extension: ".png", type: "image" },
+    "image/webp": { extension: ".webp", type: "image" },
+    "image/gif": { extension: ".gif", type: "image" },
+    "video/mp4": { extension: ".mp4", type: "video" },
+    "video/webm": { extension: ".webm", type: "video" },
+    "application/pdf": { extension: ".pdf", type: "file" },
+  };
+
+  const supportChatUpload = multer({
+    storage: multer.diskStorage({
+      destination: (_req, _file, cb) => cb(null, supportChatUploadsDir),
+      filename: (_req, file, cb) => {
+        const rule = supportChatFileRules[file.mimetype];
+        cb(null, `support-${crypto.randomBytes(16).toString("hex")}${rule?.extension || ".bin"}`);
+      },
+    }),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (supportChatFileRules[file.mimetype]) cb(null, true);
+      else cb(new Error("Formats acceptés : image, vidéo MP4/WebM ou PDF"));
+    },
+  });
+
+  app.get("/api/support-chat/files/:fileName", requireAuth, async (req, res) => {
+    try {
+      const fileName = String(req.params.fileName);
+      if (!/^support-[a-f0-9]{32}\.(?:jpg|png|webp|gif|mp4|webm|pdf)$/i.test(fileName)) {
+        return res.status(404).json({ message: "Fichier introuvable" });
+      }
+
+      const viewer = await storage.getUser(req.session.userId!);
+      if (!viewer) return res.status(401).json({ message: "Non authentifié" });
+
+      const attachmentUrl = `/api/support-chat/files/${fileName}`;
+      const ownerId = await storage.getSupportChatAttachmentUserId(attachmentUrl);
+      if (ownerId === undefined || (!viewer.isAdmin && ownerId !== viewer.id)) {
+        return res.status(404).json({ message: "Fichier introuvable" });
+      }
+
+      const filePath = path.join(supportChatUploadsDir, fileName);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ message: "Fichier introuvable" });
+
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      if (path.extname(fileName).toLowerCase() === ".pdf") {
+        res.setHeader("Content-Disposition", "attachment; filename=\"piece-jointe.pdf\"");
+      }
+      return res.sendFile(filePath);
+    } catch (error) {
+      console.error("Support chat attachment access error:", error);
+      return res.status(500).json({ message: "Impossible d'ouvrir cette pièce jointe" });
+    }
+  });
+
+  app.post("/api/support-chat/upload", requireAuth, requireSameOrigin, (req, res) => {
+    supportChatUpload.single("file")(req, res, (error: any) => {
+      if (error) {
+        const status = error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+        return res.status(status).json({ message: error.message || "Impossible de recevoir le fichier" });
+      }
+      if (!req.file) return res.status(400).json({ message: "Aucun fichier reçu" });
+
+      const rule = supportChatFileRules[req.file.mimetype];
+      if (!rule) return res.status(400).json({ message: "Format de fichier non accepté" });
+
+      const name = path.basename(req.file.originalname).replace(/[\u0000-\u001f\u007f]/g, "").slice(0, 180) || "Fichier";
+      return res.status(201).json({
+        url: `/api/support-chat/files/${req.file.filename}`,
+        type: rule.type,
+        mimeType: req.file.mimetype,
+        name,
+      });
+    });
   });
 
   // ==================== BANKER ROUTES ====================

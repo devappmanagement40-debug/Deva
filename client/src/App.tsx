@@ -65,6 +65,7 @@ import DepositHistoryPage from "@/pages/deposit-history";
 import DepositsHistoryPage from "@/pages/deposit-history-real";
 import HistoryPage from "@/pages/history";
 import ServicePage from "@/pages/service";
+import SupportChatPage from "@/components/support-chat/SupportChatPage";
 import WalletPage from "@/pages/wallet";
 import ChangePasswordPage from "@/pages/change-password";
 import AboutPage from "@/pages/about";
@@ -366,6 +367,11 @@ function RouterComponent() {
       <Route path="/service">
         <ProtectedRoute>
           <ServicePage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/support-chat">
+        <ProtectedRoute>
+          <SupportChatPage />
         </ProtectedRoute>
       </Route>
       <Route path="/wallet">

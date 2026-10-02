@@ -1,14 +1,15 @@
 import { 
   users, products, userProducts, deposits, shareReports, withdrawals, withdrawalWallets,
   paymentChannels, paymentNumbers, depositChannels, stakingProducts, userStakings, referralCommissions, tasks, userTasks, transactions, platformSettings, adminAuditLog,
-  giftCodes, giftCodeClaims, countries,
+  giftCodes, giftCodeClaims, countries, supportChatMessages,
   referralCodeAliases,
   type User, type Product, type UserProduct, type Deposit, type ShareReport, type Withdrawal, type WithdrawalWallet,
   type PaymentChannel, type PaymentNumber, type DepositChannel, type StakingProduct, type UserStaking, type ReferralCommission, type Task, type UserTask, type Transaction, type PlatformSetting,
-  type GiftCode, type GiftCodeClaim, type Country
+  type GiftCode, type GiftCodeClaim, type Country, type SupportChatMessage, type SupportChatSenderRole,
+  type SupportChatAttachmentType, type SupportChatConversation
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, ne } from "drizzle-orm";
+import { db, pool } from "./db";
+import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 
@@ -75,6 +76,21 @@ export interface IStorage {
   createShareReport(data: Partial<ShareReport>): Promise<ShareReport>;
   getShareReports(status?: string): Promise<(ShareReport & { user: ShareReportUser })[]>;
   updateShareReport(id: number, data: Partial<ShareReport>): Promise<ShareReport>;
+
+  // Internal customer support chat
+  getSupportChatMessages(userId: number): Promise<SupportChatMessage[]>;
+  createSupportChatMessage(data: {
+    userId: number;
+    senderId: number;
+    senderRole: SupportChatSenderRole;
+    message: string;
+    attachmentUrl?: string | null;
+    attachmentType?: SupportChatAttachmentType | null;
+    attachmentName?: string | null;
+  }): Promise<SupportChatMessage>;
+  markSupportChatMessagesRead(userId: number, readerRole: SupportChatSenderRole): Promise<void>;
+  getSupportChatConversations(): Promise<SupportChatConversation[]>;
+  getSupportChatAttachmentUserId(attachmentUrl: string): Promise<number | undefined>;
   
   // Withdrawals
   createWithdrawal(data: Partial<Withdrawal>): Promise<Withdrawal>;
@@ -776,6 +792,105 @@ export class DatabaseStorage implements IStorage {
   async updateShareReport(id: number, data: Partial<ShareReport>): Promise<ShareReport> {
     const [shareReport] = await db.update(shareReports).set(data).where(eq(shareReports.id, id)).returning();
     return shareReport;
+  }
+
+  async getSupportChatMessages(userId: number): Promise<SupportChatMessage[]> {
+    return db.select()
+      .from(supportChatMessages)
+      .where(eq(supportChatMessages.userId, userId))
+      .orderBy(asc(supportChatMessages.createdAt), asc(supportChatMessages.id));
+  }
+
+  async createSupportChatMessage(data: {
+    userId: number;
+    senderId: number;
+    senderRole: SupportChatSenderRole;
+    message: string;
+    attachmentUrl?: string | null;
+    attachmentType?: SupportChatAttachmentType | null;
+    attachmentName?: string | null;
+  }): Promise<SupportChatMessage> {
+    const [message] = await db.insert(supportChatMessages).values(data).returning();
+    return message;
+  }
+
+  async markSupportChatMessagesRead(userId: number, readerRole: SupportChatSenderRole): Promise<void> {
+    const senderRole = readerRole === "admin" ? "user" : "admin";
+    await db.update(supportChatMessages)
+      .set({ readAt: new Date() })
+      .where(and(
+        eq(supportChatMessages.userId, userId),
+        eq(supportChatMessages.senderRole, senderRole),
+        isNull(supportChatMessages.readAt),
+      ));
+  }
+
+  async getSupportChatConversations(): Promise<SupportChatConversation[]> {
+    const result = await pool.query<{
+      user_id: number;
+      full_name: string;
+      phone: string;
+      country: string;
+      message: string;
+      sender_role: SupportChatSenderRole;
+      attachment_type: SupportChatAttachmentType | null;
+      attachment_name: string | null;
+      created_at: Date;
+      unread_count: number;
+    }>(`
+      SELECT
+        u.id AS user_id,
+        u.full_name,
+        u.phone,
+        u.country,
+        latest.message,
+        latest.sender_role,
+        latest.attachment_type,
+        latest.attachment_name,
+        latest.created_at,
+        COALESCE(unread.unread_count, 0)::int AS unread_count
+      FROM users u
+      JOIN LATERAL (
+        SELECT message, sender_role, attachment_type, attachment_name, created_at, id
+        FROM support_chat_messages
+        WHERE user_id = u.id
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+      ) latest ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT COUNT(*) AS unread_count
+        FROM support_chat_messages
+        WHERE user_id = u.id
+          AND sender_role = 'user'
+          AND read_at IS NULL
+      ) unread ON TRUE
+      ORDER BY latest.created_at DESC, latest.id DESC
+    `);
+
+    return result.rows.map((row) => ({
+      user: {
+        id: row.user_id,
+        fullName: row.full_name,
+        phone: row.phone,
+        country: row.country,
+      },
+      lastMessage: {
+        message: row.message,
+        senderRole: row.sender_role,
+        attachmentType: row.attachment_type,
+        attachmentName: row.attachment_name,
+        createdAt: row.created_at,
+      },
+      unreadCount: Number(row.unread_count),
+    }));
+  }
+
+  async getSupportChatAttachmentUserId(attachmentUrl: string): Promise<number | undefined> {
+    const [message] = await db.select({ userId: supportChatMessages.userId })
+      .from(supportChatMessages)
+      .where(eq(supportChatMessages.attachmentUrl, attachmentUrl))
+      .limit(1);
+    return message?.userId;
   }
 
   async getDeposit(id: number): Promise<Deposit | undefined> {
