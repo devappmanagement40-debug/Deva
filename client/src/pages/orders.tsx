@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
@@ -33,8 +32,6 @@ export default function OrdersPage() {
   if (!user) return null;
 
   const headerTitle = getContent(settings, "content_orders_headerTitle", t.myProductsTitle);
-  const infoLine1 = getContent(settings, "content_orders_infoLine1", t.myProductsSettledEvery24h);
-  const infoLine2 = getContent(settings, "content_orders_infoLine2", t.purchaseSuccessDescription);
 
   const getProductImage = (index: number) => {
     return productImages[index % productImages.length];
@@ -75,11 +72,6 @@ export default function OrdersPage() {
           <span className={activeTab === "completed" ? "text-white" : "text-white/50"}>&#10003;</span>
           {t.ordersCompleted}
         </button>
-      </div>
-
-      <div className="bg-gray-50 p-3 mx-4 mt-3 rounded-lg">
-        <p className="text-xs text-gray-700 leading-relaxed">{infoLine1}</p>
-        <p className="text-xs text-gray-700 leading-relaxed mt-1">{infoLine2}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20 px-4 pt-4">
@@ -170,7 +162,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-      <img src={landscapeImg} alt="DIAMANT" className="w-full object-cover object-top" style={{ maxHeight: 220 }} />
     </div>
   );
 }
