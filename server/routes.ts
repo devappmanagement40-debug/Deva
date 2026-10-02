@@ -737,6 +737,19 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/user/income-summary", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+
+      return res.json(await storage.getUserIncomeSummary(userId));
+    } catch (error) {
+      console.error("User income summary error:", error);
+      return res.status(500).json({ message: "Impossible de charger le récapitulatif des revenus" });
+    }
+  });
+
   // Payment Channels
   app.get("/api/payment-channels", requireAuth, async (req, res) => {
     try {

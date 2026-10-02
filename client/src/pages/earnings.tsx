@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, CreditCard, Loader2, Wifi } from "lucide-react";
+import { ChevronLeft, CreditCard, Loader2, Package, TrendingUp, UsersRound, Wifi } from "lucide-react";
 import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -11,11 +11,58 @@ import { rebrandText } from "@/lib/content";
 import { DiamantBrand } from "@/components/diamant-brand";
 
 const MEMBER_ACCENT = "#00c83c";
-const BALANCE_COPY: Record<Lang, { title: string; deposits: string; earnings: string }> = {
-  fr: { title: "Mes soldes", deposits: "Solde des dépôts", earnings: "Solde des gains" },
-  en: { title: "My balances", deposits: "Deposit balance", earnings: "Earnings balance" },
-  ar: { title: "أرصدتي", deposits: "رصيد الإيداعات", earnings: "رصيد الأرباح" },
-  zh: { title: "我的余额", deposits: "存款余额", earnings: "收益余额" },
+type IncomeSummary = { productEarnings: number; teamEarnings: number };
+
+const BALANCE_COPY: Record<Lang, {
+  title: string;
+  deposits: string;
+  earnings: string;
+  summaryTitle: string;
+  combinedTotal: string;
+  productIncome: string;
+  teamIncome: string;
+  summaryUnavailable: string;
+}> = {
+  fr: {
+    title: "Mes soldes",
+    deposits: "Solde des dépôts",
+    earnings: "Solde des gains",
+    summaryTitle: "Récapitulatif des revenus et gains",
+    combinedTotal: "Total produits + équipe",
+    productIncome: "Revenus reçus des produits",
+    teamIncome: "Gains générés par l’équipe",
+    summaryUnavailable: "Récapitulatif indisponible pour le moment.",
+  },
+  en: {
+    title: "My balances",
+    deposits: "Deposit balance",
+    earnings: "Earnings balance",
+    summaryTitle: "Income and earnings summary",
+    combinedTotal: "Products + team total",
+    productIncome: "Product earnings received",
+    teamIncome: "Team-generated earnings",
+    summaryUnavailable: "Summary is temporarily unavailable.",
+  },
+  ar: {
+    title: "أرصدتي",
+    deposits: "رصيد الإيداعات",
+    earnings: "رصيد الأرباح",
+    summaryTitle: "ملخص الإيرادات والأرباح",
+    combinedTotal: "إجمالي المنتجات والفريق",
+    productIncome: "إيرادات المنتجات المستلمة",
+    teamIncome: "أرباح الفريق",
+    summaryUnavailable: "الملخص غير متاح مؤقتًا.",
+  },
+  zh: {
+    title: "我的余额",
+    deposits: "存款余额",
+    earnings: "收益余额",
+    summaryTitle: "收入与收益汇总",
+    combinedTotal: "产品与团队总额",
+    productIncome: "已收到的产品收益",
+    teamIncome: "团队产生的收益",
+    summaryUnavailable: "暂时无法获取汇总。",
+  },
 };
 
 function EmptyEarningsIllustration() {
@@ -51,6 +98,7 @@ export default function EarningsPage() {
   const { toast } = useToast();
   const [collectingId, setCollectingId] = useState<number | null>(null);
   const { data: userProducts = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/user/products"] });
+  const incomeSummaryQuery = useQuery<IncomeSummary>({ queryKey: ["/api/user/income-summary"] });
 
   const collectMutation = useMutation({
     mutationFn: async (userProductId: number) => {
@@ -62,6 +110,7 @@ export default function EarningsPage() {
     onMutate: (userProductId) => setCollectingId(userProductId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user/income-summary"] });
       refreshUser();
       toast({
         title: t.rewardsSuccessTitle,
@@ -78,6 +127,17 @@ export default function EarningsPage() {
   const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
   const hasProducts = userProducts.length > 0;
   const pendingTotal = userProducts.reduce((sum: number, item: any) => sum + Number(item.pendingEarnings || 0), 0);
+  const productIncome = Number.isFinite(Number(incomeSummaryQuery.data?.productEarnings))
+    ? Number(incomeSummaryQuery.data?.productEarnings)
+    : 0;
+  const teamIncome = Number.isFinite(Number(incomeSummaryQuery.data?.teamEarnings))
+    ? Number(incomeSummaryQuery.data?.teamEarnings)
+    : 0;
+  const formatSummaryAmount = (amount: number) => {
+    if (incomeSummaryQuery.isLoading) return "…";
+    if (incomeSummaryQuery.isError) return "—";
+    return `XOF ${amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
   const balanceCards = [
     { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
     { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
@@ -130,6 +190,47 @@ export default function EarningsPage() {
               </article>
             ))}
           </div>
+          <article
+            className="mt-4 rounded-[20px] border border-white/10 bg-[#171717] p-4 text-white shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
+            aria-label={balanceCopy.summaryTitle}
+            data-testid="income-summary-card"
+          >
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#00c83c]/15 text-[#00c83c]">
+                <TrendingUp className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h2 className="text-sm font-semibold">{balanceCopy.summaryTitle}</h2>
+            </div>
+            <div className="mt-4 rounded-xl bg-white/[0.055] p-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-white/55">{balanceCopy.combinedTotal}</p>
+              <p className="mt-1 text-xl font-bold text-[#00c83c]" data-testid="income-summary-total">
+                {formatSummaryAmount(productIncome + teamIncome)}
+              </p>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="min-w-0 rounded-xl bg-white/[0.04] p-3">
+                <div className="flex min-h-8 items-start gap-2 text-[11px] leading-4 text-white/65">
+                  <Package className="mt-0.5 h-4 w-4 shrink-0 text-[#00c83c]" aria-hidden="true" />
+                  <span>{balanceCopy.productIncome}</span>
+                </div>
+                <p className="mt-2 break-words text-sm font-semibold" data-testid="income-summary-products">
+                  {formatSummaryAmount(productIncome)}
+                </p>
+              </div>
+              <div className="min-w-0 rounded-xl bg-white/[0.04] p-3">
+                <div className="flex min-h-8 items-start gap-2 text-[11px] leading-4 text-white/65">
+                  <UsersRound className="mt-0.5 h-4 w-4 shrink-0 text-[#00c83c]" aria-hidden="true" />
+                  <span>{balanceCopy.teamIncome}</span>
+                </div>
+                <p className="mt-2 break-words text-sm font-semibold" data-testid="income-summary-team">
+                  {formatSummaryAmount(teamIncome)}
+                </p>
+              </div>
+            </div>
+            {incomeSummaryQuery.isError && (
+              <p className="mt-3 text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>
+            )}
+          </article>
           {pendingTotal > 0 && (
             <p className="mt-3 text-center text-sm text-white/70">
               {t.myProductsPending}: XOF {pendingTotal.toLocaleString(localeForLang(lang))}

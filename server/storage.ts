@@ -164,6 +164,7 @@ export interface IStorage {
   // Transactions
   createTransaction(data: Partial<Transaction>): Promise<Transaction>;
   getUserTransactions(userId: number): Promise<Transaction[]>;
+  getUserIncomeSummary(userId: number): Promise<{ productEarnings: number; teamEarnings: number }>;
   
   // Settings
   getSetting(key: string): Promise<string | null>;
@@ -1530,6 +1531,23 @@ export class DatabaseStorage implements IStorage {
       .from(referralCommissions)
       .where(eq(referralCommissions.userId, userId));
     return parseFloat(result[0]?.total || "0");
+  }
+
+  async getUserIncomeSummary(userId: number): Promise<{ productEarnings: number; teamEarnings: number }> {
+    const [productIncome, teamEarnings] = await Promise.all([
+      db.select({ total: sql<string>`COALESCE(SUM(${transactions.amount}), 0)` })
+        .from(transactions)
+        .where(and(
+          eq(transactions.userId, userId),
+          eq(transactions.type, "earning"),
+        )),
+      this.getUserCommissions(userId),
+    ]);
+
+    return {
+      productEarnings: finiteAmount(productIncome[0]?.total),
+      teamEarnings: finiteAmount(teamEarnings),
+    };
   }
 
   async getTeamStatsSimple(userId: number): Promise<{ level1Count: number; level2Count: number; level3Count: number; totalCommission: number }> {
