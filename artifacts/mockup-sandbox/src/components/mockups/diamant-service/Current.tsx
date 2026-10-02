@@ -199,9 +199,12 @@ export default function ServicePage() {
       {/* ══ SECTION LIENS ══ */}
       <div className="px-3 mt-4">
         {/* Label "Telegram" */}
-        <p
+        <div
           className="ielp-service-label"
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             fontSize: 14,
             fontWeight: 600,
             color: "#f7f8ff",
@@ -209,8 +212,13 @@ export default function ServicePage() {
             marginLeft: 2,
           }}
         >
-           {links.length > 0 ? "Telegram" : "Liens de support non configurés"}
-        </p>
+          <img
+            src="/__mockup/images/telegram-support-icon.png"
+            alt=""
+            style={{ width: 32, height: 32, flex: "none", objectFit: "cover", borderRadius: 8 }}
+          />
+          <span>Telegram</span>
+        </div>
 
         {/* Boutons liens */}
         <div className="space-y-3">

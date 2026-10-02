@@ -217,8 +217,17 @@
 }
 
 .diamant-service-icon-telegram {
-  color: #c8bdff;
-  background: rgba(112, 65, 242, .2);
+  overflow: hidden;
+  background: transparent;
+  border-radius: 17px;
+}
+
+.diamant-service-icon-telegram img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .diamant-service-card-copy {
@@ -321,12 +330,6 @@
 .diamant-service-link:active,
 .diamant-service-text-action:active {
   opacity: .78;
-}
-
-.diamant-service-unconfigured {
-  margin-top: 10px !important;
-  color: #ffb9c2 !important;
-  font-weight: 600;
 }
 
 .diamant-service-security {

@@ -7,7 +7,6 @@ import {
   Clock3,
   Headset,
   MessageCircleMore,
-  Send,
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "wouter";
@@ -200,7 +199,7 @@ export default function ServicePage() {
 
         <section className="diamant-service-card diamant-service-telegram-card">
           <div className="diamant-service-icon diamant-service-icon-telegram" aria-hidden="true">
-            <Send size={34} strokeWidth={2.1} />
+            <img src="/telegram-support-icon.png" alt="" />
           </div>
           <div className="diamant-service-card-copy">
             <h2>Telegram</h2>
@@ -208,7 +207,7 @@ export default function ServicePage() {
               Suivez notre chaîne officielle Telegram pour obtenir les dernières nouvelles
               et recevoir les avantages de DIAMANT.
             </p>
-            {links.length > 0 ? (
+            {links.length > 0 && (
               <div className="diamant-service-links">
                 {links.map((link) => {
                   const label = rebrandText(link.label || "Support DIAMANT");
@@ -227,8 +226,6 @@ export default function ServicePage() {
                   );
                 })}
               </div>
-            ) : (
-              <p className="diamant-service-unconfigured">Liens de support non configurés</p>
             )}
           </div>
         </section>

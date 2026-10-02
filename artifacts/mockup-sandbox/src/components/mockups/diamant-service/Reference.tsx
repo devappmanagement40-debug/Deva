@@ -131,8 +131,8 @@ export default function Reference() {
 
             <article className="diamant-card diamant-telegram-card">
               <div className="diamant-telegram-card__intro">
-                <div className="diamant-card-icon diamant-card-icon--telegram">
-                  <Send size={37} strokeWidth={2.7} />
+                <div className="diamant-card-icon diamant-card-icon--telegram" aria-hidden="true">
+                  <img src="/__mockup/images/telegram-support-icon.png" alt="" />
                 </div>
                 <div className="diamant-card-copy">
                   <h3>Telegram</h3>

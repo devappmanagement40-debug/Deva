@@ -503,13 +503,17 @@
 .diamant-card-icon--telegram {
   flex-basis: 74px;
   margin-top: 0;
-  color: #9cddff;
-  transform: rotate(-12deg);
+  overflow: hidden;
+  border-radius: 18px;
+  background: transparent;
 }
 
-.diamant-card-icon--telegram svg {
-  fill: #078de9;
-  stroke: #203c71;
+.diamant-card-icon--telegram img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .diamant-telegram-card__links {
