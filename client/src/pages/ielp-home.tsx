@@ -33,6 +33,7 @@ type IncomeSummary = {
 
 type HomeCopy = {
   chat: string;
+  bannerLabel: string;
   depositBalance: string;
   withdrawalBalance: string;
   productRevenue: string;
@@ -47,6 +48,7 @@ type HomeCopy = {
   checkinTitle: string;
   checkinDescription: string;
   go: string;
+  loading: string;
   retry: string;
   retryLabel: string;
 };
@@ -54,6 +56,7 @@ type HomeCopy = {
 const COPY: Record<Lang, HomeCopy> = {
   fr: {
     chat: "Service client",
+    bannerLabel: "Bannière d’accueil",
     depositBalance: "Solde de Recharge",
     withdrawalBalance: "Solde de Retrait",
     productRevenue: "Revenu des Produits",
@@ -68,11 +71,13 @@ const COPY: Record<Lang, HomeCopy> = {
     checkinTitle: "Se Connecter",
     checkinDescription: "Récompenses quotidiennes de connexion",
     go: "Aller",
+    loading: "Chargement",
     retry: "Réessayer",
     retryLabel: "Réessayer le chargement des revenus produits",
   },
   en: {
     chat: "Customer service",
+    bannerLabel: "Home banner",
     depositBalance: "Deposit balance",
     withdrawalBalance: "Withdrawal balance",
     productRevenue: "Product revenue",
@@ -87,11 +92,13 @@ const COPY: Record<Lang, HomeCopy> = {
     checkinTitle: "Daily Check-in",
     checkinDescription: "Daily login rewards",
     go: "Go",
+    loading: "Loading",
     retry: "Retry",
     retryLabel: "Retry loading product revenue",
   },
   ar: {
     chat: "خدمة العملاء",
+    bannerLabel: "لافتة الصفحة الرئيسية",
     depositBalance: "رصيد الإيداع",
     withdrawalBalance: "رصيد السحب",
     productRevenue: "أرباح المنتجات",
@@ -106,11 +113,13 @@ const COPY: Record<Lang, HomeCopy> = {
     checkinTitle: "تسجيل الحضور",
     checkinDescription: "مكافآت تسجيل الدخول اليومية",
     go: "اذهب",
+    loading: "جارٍ التحميل",
     retry: "إعادة المحاولة",
     retryLabel: "إعادة تحميل أرباح المنتجات",
   },
   zh: {
     chat: "客户服务",
+    bannerLabel: "首页横幅",
     depositBalance: "充值余额",
     withdrawalBalance: "提现余额",
     productRevenue: "产品收益",
@@ -125,6 +134,7 @@ const COPY: Record<Lang, HomeCopy> = {
     checkinTitle: "每日签到",
     checkinDescription: "每日登录奖励",
     go: "前往",
+    loading: "加载中",
     retry: "重试",
     retryLabel: "重新加载产品收益",
   },
@@ -180,6 +190,16 @@ function getTelegramDestination(settings: Record<string, string>) {
   const enabled = settings.telegramEnabled ?? settings.enableTelegram ?? settings.telegram_enabled;
   if (enabled && /^(false|0|off|disabled|no)$/i.test(enabled.trim())) return undefined;
 
+  const configuredLinks = [
+    { url: settings.groupLink, enabled: settings.groupEnabled },
+    { url: settings.channelLink, enabled: settings.channelEnabled },
+    { url: settings.supportLink, enabled: settings.supportEnabled },
+    { url: settings.support2Link, enabled: settings.support2Enabled },
+  ]
+    .filter(({ url, enabled: linkEnabled }) =>
+      Boolean(url) && !(linkEnabled && /^(false|0|off|disabled|no)$/i.test(linkEnabled.trim()))
+    )
+    .map(({ url }) => url);
   const telegramSupportLinks = [
     settings.telegramLink,
     settings.telegramUrl,
@@ -189,14 +209,8 @@ function getTelegramDestination(settings: Record<string, string>) {
     settings.telegramGroup,
     settings.telegramChannel,
   ];
-  const supportLinks = [
-    { url: settings.supportLink, type: settings.supportType },
-    { url: settings.support2Link, type: settings.support2Type },
-  ]
-    .filter(({ url, type }) => url && (type || "").toLowerCase().includes("telegram"))
-    .map(({ url }) => url);
 
-  return [...telegramSupportLinks, ...supportLinks, settings.supportLink, settings.support2Link]
+  return [...telegramSupportLinks, ...configuredLinks]
     .find((url): url is string => Boolean(url && isTelegramUrl(url.trim())))?.trim();
 }
 
@@ -289,7 +303,7 @@ function HomePage() {
         </header>
 
         <div className="ielp-home-content ielp-home-refresh">
-          <section className="ielp-home-refresh__carousel" aria-label={copy.productRevenue}>
+          <section className="ielp-home-refresh__carousel" aria-label={copy.bannerLabel}>
             <BannerCarousel images={bannerImages} height={238} autoPlayMs={4200} rounded />
           </section>
 
@@ -298,13 +312,13 @@ function HomePage() {
               {balances.map(({ id, label, value }) => (
                 <div className="ielp-home-refresh__balance" key={id}>
                   <span className="ielp-home-refresh__balance-label">{label}</span>
-                  <strong><small>FCFA</small> {formatMoney(value)}</strong>
+                  <strong><small>XOF</small> {formatMoney(value)}</strong>
                 </div>
               ))}
               <div className="ielp-home-refresh__balance">
                 <span className="ielp-home-refresh__balance-label">{copy.productRevenue}</span>
                 {isIncomeLoading ? (
-                  <span className="ielp-home-refresh__amount-skeleton" aria-label="Loading balance" />
+                  <span className="ielp-home-refresh__amount-skeleton" role="status" aria-label={copy.loading} />
                 ) : isIncomeError ? (
                   <button
                     className="ielp-home-refresh__retry"
@@ -315,7 +329,7 @@ function HomePage() {
                     {copy.retry}
                   </button>
                 ) : (
-                  <strong><small>FCFA</small> {formatMoney(incomeSummary?.productEarnings)}</strong>
+                  <strong><small>XOF</small> {formatMoney(incomeSummary?.productEarnings)}</strong>
                 )}
               </div>
             </div>
