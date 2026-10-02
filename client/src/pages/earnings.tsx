@@ -98,7 +98,12 @@ export default function EarningsPage() {
   const { toast } = useToast();
   const [collectingId, setCollectingId] = useState<number | null>(null);
   const { data: userProducts = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/user/products"] });
-  const incomeSummaryQuery = useQuery<IncomeSummary>({ queryKey: ["/api/user/income-summary"] });
+  const incomeSummaryQuery = useQuery<IncomeSummary>({
+    queryKey: ["/api/user/income-summary"],
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
 
   const collectMutation = useMutation({
     mutationFn: async (userProductId: number) => {
