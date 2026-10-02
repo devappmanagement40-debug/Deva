@@ -1794,14 +1794,14 @@ ol[data-radix-toast-viewport] li * {
 
 .ielp-home-product-card {
   display: grid;
-  min-width: min(90%, 330px);
-  max-width: 440px;
-  min-height: 158px;
-  flex: 0 0 90%;
+  min-width: min(95%, 360px);
+  max-width: 460px;
+  min-height: 196px;
+  flex: 0 0 95%;
   grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
   align-items: stretch;
-  gap: 12px;
-  padding: 10px;
+  gap: 14px;
+  padding: 12px;
   overflow: hidden;
   border: 1px solid var(--home-panel-border);
   border-radius: 13px;
@@ -1817,7 +1817,7 @@ ol[data-radix-toast-viewport] li * {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 132px;
+  min-height: 172px;
   flex: 0 0 auto;
   border-radius: 8px;
   background: #182635;
@@ -1858,8 +1858,8 @@ ol[data-radix-toast-viewport] li * {
   flex: 0 0 auto;
   padding: 4px 7px;
   border-radius: 6px;
-  color: #f4fffc;
-  background: #168f86;
+  color: var(--home-metric-violet);
+  background: #30245e;
   font-size: 11px;
   font-weight: 750;
   line-height: 1.1;
@@ -1937,11 +1937,11 @@ ol[data-radix-toast-viewport] li * {
 .ielp-home-info-card {
   display: grid;
   min-width: 0;
-  min-height: 126px;
-  grid-template-columns: minmax(0, 1fr) 34%;
+  min-height: 158px;
+  grid-template-columns: minmax(0, 1fr) 36%;
   align-items: center;
-  gap: 12px;
-  padding: 10px 11px 10px 14px;
+  gap: 14px;
+  padding: 13px 14px 13px 16px;
   border: 1px solid var(--home-panel-border);
   border-radius: 13px;
   color: inherit;
@@ -1985,7 +1985,7 @@ ol[data-radix-toast-viewport] li * {
 .ielp-home-info-card__image {
   display: block;
   width: 100%;
-  height: 96px;
+  height: 120px;
   border-radius: 8px;
   background: #182635;
   object-fit: cover;
@@ -2017,15 +2017,16 @@ ol[data-radix-toast-viewport] li * {
   }
 
   .ielp-home-product-card {
-    min-width: 91%;
-    flex-basis: 91%;
+    min-width: 95%;
+    min-height: 190px;
+    flex-basis: 95%;
     grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
-    gap: 9px;
-    padding: 8px;
+    gap: 10px;
+    padding: 10px;
   }
 
   .ielp-home-product-card__image {
-    min-height: 122px;
+    min-height: 164px;
   }
 
   .ielp-home-product-card__content {
@@ -2033,14 +2034,14 @@ ol[data-radix-toast-viewport] li * {
   }
 
   .ielp-home-info-card {
-    min-height: 116px;
-    grid-template-columns: minmax(0, 1fr) 33%;
-    gap: 9px;
-    padding: 9px;
+    min-height: 148px;
+    grid-template-columns: minmax(0, 1fr) 34%;
+    gap: 10px;
+    padding: 11px;
   }
 
   .ielp-home-info-card__image {
-    height: 88px;
+    height: 110px;
   }
 
   .ielp-home-info-card__title {
