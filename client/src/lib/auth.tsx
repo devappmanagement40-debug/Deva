@@ -57,6 +57,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [refreshUser]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") void refreshUser();
+    }, 60_000);
+
+    return () => window.clearInterval(interval);
+  }, [user?.id, refreshUser]);
+
   const login = async (phone: string, country: string, password: string) => {
     const response = await apiRequest("POST", "/api/auth/login", { phone, country, password });
     const data = await response.json();

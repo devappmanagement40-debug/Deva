@@ -171,11 +171,6 @@ export interface IStorage {
   getSettings(): Promise<Record<string, string>>;
   setSetting(key: string, value: string, modifiedBy?: number): Promise<void>;
   processEarningsForUser(userId: number): Promise<void>;
-  collectPendingEarnings(userId: number, userProductId?: number): Promise<{
-    collected: number;
-    productsCollected: number;
-    productIds: number[];
-  }>;
 
   // Admin
   getStats(): Promise<any>;
@@ -512,20 +507,17 @@ export class DatabaseStorage implements IStorage {
       await this.updateUser(userId, { hasActiveProduct: true });
     }
 
-    // The first daily earning is available immediately after purchase.
-    // It remains pending until the user collects it from the Revenue page;
-    // subsequent earnings are accrued once every 24 hours.
-    const firstEarning = parseFloat(product.dailyEarnings || "0");
-    const remainingDays = Math.max(0, product.cycleDays - 1);
+    // The full cycle runs before any product gains are credited.
     const [userProduct] = await db.insert(userProducts).values({
       userId,
       productId,
-      daysRemaining: remainingDays,
+      daysRemaining: product.cycleDays,
       assignedByAdmin,
       lastEarningDate: new Date(),
-      totalEarned: firstEarning.toFixed(2),
-      pendingEarnings: product.collectAtEnd ? "0" : firstEarning.toFixed(2),
-      isActive: remainingDays > 0,
+      totalEarned: "0",
+      pendingEarnings: "0",
+      earningsPaidAt: null,
+      isActive: product.cycleDays > 0,
     }).returning();
 
     return userProduct;
@@ -628,48 +620,179 @@ export class DatabaseStorage implements IStorage {
   private async accrueProductEarnings(
     productRows: Array<{ userProduct: UserProduct; product: Product }>,
   ): Promise<void> {
-    const now = new Date();
     const dayInMilliseconds = 24 * 60 * 60 * 1000;
 
-    for (const { userProduct, product } of productRows) {
+    for (const { userProduct } of productRows) {
       try {
-        const purchaseDate = userProduct.purchaseDate ? new Date(userProduct.purchaseDate) : null;
-        if (!purchaseDate) continue;
+        await db.transaction(async (tx) => {
+          const [current] = await tx.select()
+            .from(userProducts)
+            .where(eq(userProducts.id, userProduct.id))
+            .for("update");
+          if (
+            !current ||
+            !current.isActive ||
+            current.daysRemaining <= 0 ||
+            current.earningsPaidAt
+          ) return;
 
-        const lastEarning = userProduct.lastEarningDate ? new Date(userProduct.lastEarningDate) : purchaseDate;
+          const [currentProduct] = await tx.select()
+            .from(products)
+            .where(eq(products.id, current.productId));
+          if (!currentProduct) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
 
-        const msSincePurchase = now.getTime() - purchaseDate.getTime();
-        const daysSincePurchase = Math.floor(msSincePurchase / dayInMilliseconds);
-
-        const msSinceLastEarning = now.getTime() - lastEarning.getTime();
-        const cyclesSinceLastEarning = Math.floor(msSinceLastEarning / dayInMilliseconds);
-
-        if (cyclesSinceLastEarning >= 1 && daysSincePurchase >= 1) {
-          const cyclesToCredit = Math.min(cyclesSinceLastEarning, userProduct.daysRemaining);
-          const earningsPerCycle = parseFloat(product.dailyEarnings as string);
-          const totalEarningsForProduct = parseFloat((earningsPerCycle * cyclesToCredit).toFixed(2));
-
-          // Keep the 24-hour cadence so collecting late never removes part
-          // of a user's earned cycle.
-          const newLastEarningDate = new Date(lastEarning.getTime() + cyclesToCredit * dayInMilliseconds);
-          const newDaysRemaining = userProduct.daysRemaining - cyclesToCredit;
-          const updateData: any = {
-            lastEarningDate: newLastEarningDate,
-            daysRemaining: newDaysRemaining,
-            totalEarned: (parseFloat(userProduct.totalEarned || "0") + totalEarningsForProduct).toFixed(2),
-            pendingEarnings: product.collectAtEnd
-              ? parseFloat(userProduct.pendingEarnings || "0").toFixed(2)
-              : (parseFloat(userProduct.pendingEarnings || "0") + totalEarningsForProduct).toFixed(2),
-          };
-
-          if (newDaysRemaining <= 0) {
-            updateData.isActive = false;
+          const purchaseDate = new Date(current.purchaseDate);
+          const lastEarning = current.lastEarningDate
+            ? new Date(current.lastEarningDate)
+            : purchaseDate;
+          const now = new Date();
+          if (!Number.isFinite(purchaseDate.getTime()) || !Number.isFinite(lastEarning.getTime())) {
+            throw new Error(`Date de cycle invalide pour l'achat ${current.id}`);
           }
 
-          await db.update(userProducts).set(updateData).where(eq(userProducts.id, userProduct.id));
-        }
+          const cyclesSinceLastEarning = Math.floor(
+            (now.getTime() - lastEarning.getTime()) / dayInMilliseconds,
+          );
+          const daysSincePurchase = Math.floor(
+            (now.getTime() - purchaseDate.getTime()) / dayInMilliseconds,
+          );
+          if (cyclesSinceLastEarning < 1 || daysSincePurchase < 1) return;
+
+          const cyclesToAccrue = Math.min(cyclesSinceLastEarning, current.daysRemaining);
+          if (cyclesToAccrue < 1) return;
+
+          const earningsPerCycle = Number(currentProduct.dailyEarnings);
+          const previousTotal = Number(current.totalEarned || "0");
+          const previousPending = Number(current.pendingEarnings || "0");
+          if (
+            !Number.isFinite(earningsPerCycle) ||
+            earningsPerCycle < 0 ||
+            !Number.isFinite(previousTotal) ||
+            !Number.isFinite(previousPending)
+          ) {
+            throw new Error(`Montant de gain invalide pour l'achat ${current.id}`);
+          }
+
+          const accrued = Number((earningsPerCycle * cyclesToAccrue).toFixed(2));
+          const newTotal = Number((previousTotal + accrued).toFixed(2));
+          const newPending = currentProduct.collectAtEnd
+            ? previousPending
+            : Number((previousPending + accrued).toFixed(2));
+          const newDaysRemaining = Math.max(0, current.daysRemaining - cyclesToAccrue);
+          const completedAt = newDaysRemaining === 0 ? new Date() : null;
+          const newLastEarningDate = new Date(
+            lastEarning.getTime() + cyclesToAccrue * dayInMilliseconds,
+          );
+          const payout = completedAt
+            ? currentProduct.collectAtEnd ? newTotal : newPending
+            : 0;
+
+          if (payout > 0) {
+            const [user] = await tx.select()
+              .from(users)
+              .where(eq(users.id, current.userId))
+              .for("update");
+            if (!user) throw new Error(`Utilisateur introuvable pour l'achat ${current.id}`);
+
+            const totalEarnings = Number(user.totalEarnings || "0");
+            const todayEarnings = Number(user.todayEarnings || "0");
+            if (!Number.isFinite(totalEarnings) || !Number.isFinite(todayEarnings)) {
+              throw new Error(`Solde de gains invalide pour l'utilisateur ${current.userId}`);
+            }
+
+            await tx.update(users).set({
+              totalEarnings: (totalEarnings + payout).toFixed(2),
+              todayEarnings: (todayEarnings + payout).toFixed(2),
+            }).where(eq(users.id, current.userId));
+            await tx.insert(transactions).values({
+              userId: current.userId,
+              type: "earning",
+              amount: payout.toFixed(2),
+              description: `Crédit automatique — fin du cycle ${currentProduct.name}`,
+            });
+          }
+
+          await tx.update(userProducts).set({
+            lastEarningDate: newLastEarningDate,
+            daysRemaining: newDaysRemaining,
+            totalEarned: newTotal.toFixed(2),
+            pendingEarnings: completedAt ? "0" : newPending.toFixed(2),
+            isActive: !completedAt,
+            earningsPaidAt: completedAt,
+          }).where(eq(userProducts.id, current.id));
+        });
       } catch (productError) {
         console.error(`processEarnings error for product ${userProduct.id}:`, productError);
+      }
+    }
+  }
+
+  private async settleCompletedProductEarnings(userId?: number): Promise<void> {
+    const conditions = [
+      sql`${userProducts.daysRemaining} <= 0`,
+      isNull(userProducts.earningsPaidAt),
+    ];
+    if (userId !== undefined) conditions.push(eq(userProducts.userId, userId));
+
+    const completedProducts = await db.select({ id: userProducts.id })
+      .from(userProducts)
+      .where(and(...conditions));
+
+    for (const { id } of completedProducts) {
+      try {
+        await db.transaction(async (tx) => {
+          const [current] = await tx.select()
+            .from(userProducts)
+            .where(eq(userProducts.id, id))
+            .for("update");
+          if (!current || current.daysRemaining > 0 || current.earningsPaidAt) return;
+
+          const [product] = await tx.select()
+            .from(products)
+            .where(eq(products.id, current.productId));
+          if (!product) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
+
+          const unpaidEarnings = Number(
+            product.collectAtEnd ? current.totalEarned || "0" : current.pendingEarnings || "0",
+          );
+          if (!Number.isFinite(unpaidEarnings) || unpaidEarnings < 0) {
+            throw new Error(`Montant de gain invalide pour l'achat ${current.id}`);
+          }
+
+          const settledAt = new Date();
+          if (unpaidEarnings > 0) {
+            const [user] = await tx.select()
+              .from(users)
+              .where(eq(users.id, current.userId))
+              .for("update");
+            if (!user) throw new Error(`Utilisateur introuvable pour l'achat ${current.id}`);
+
+            const totalEarnings = Number(user.totalEarnings || "0");
+            const todayEarnings = Number(user.todayEarnings || "0");
+            if (!Number.isFinite(totalEarnings) || !Number.isFinite(todayEarnings)) {
+              throw new Error(`Solde de gains invalide pour l'utilisateur ${current.userId}`);
+            }
+
+            await tx.update(users).set({
+              totalEarnings: (totalEarnings + unpaidEarnings).toFixed(2),
+              todayEarnings: (todayEarnings + unpaidEarnings).toFixed(2),
+            }).where(eq(users.id, current.userId));
+            await tx.insert(transactions).values({
+              userId: current.userId,
+              type: "earning",
+              amount: unpaidEarnings.toFixed(2),
+              description: `Crédit automatique — fin du cycle ${product.name}`,
+            });
+          }
+
+          await tx.update(userProducts).set({
+            isActive: false,
+            pendingEarnings: "0",
+            earningsPaidAt: settledAt,
+          }).where(eq(userProducts.id, current.id));
+        });
+      } catch (productError) {
+        console.error(`settleCompletedProductEarnings error for product ${id}:`, productError);
       }
     }
   }
@@ -680,9 +803,14 @@ export class DatabaseStorage implements IStorage {
       product: products,
     }).from(userProducts)
       .innerJoin(products, eq(userProducts.productId, products.id))
-      .where(and(eq(userProducts.isActive, true), sql`${userProducts.daysRemaining} > 0`));
+      .where(and(
+        eq(userProducts.isActive, true),
+        sql`${userProducts.daysRemaining} > 0`,
+        isNull(userProducts.earningsPaidAt),
+      ));
 
     await this.accrueProductEarnings(activeProducts);
+    await this.settleCompletedProductEarnings();
   }
 
   async processEarningsForUser(userId: number): Promise<void> {
@@ -695,73 +823,11 @@ export class DatabaseStorage implements IStorage {
         eq(userProducts.userId, userId),
         eq(userProducts.isActive, true),
         sql`${userProducts.daysRemaining} > 0`,
+        isNull(userProducts.earningsPaidAt),
       ));
 
     await this.accrueProductEarnings(activeProducts);
-  }
-
-  async collectPendingEarnings(userId: number, userProductId?: number): Promise<{
-    collected: number;
-    productsCollected: number;
-    productIds: number[];
-  }> {
-    await this.processEarningsForUser(userId);
-
-    return db.transaction(async (tx) => {
-      const conditions = [eq(userProducts.userId, userId)];
-      if (userProductId !== undefined) {
-        conditions.push(eq(userProducts.id, userProductId));
-      }
-
-      const productRows = await tx.select({
-        userProduct: userProducts,
-        product: products,
-      }).from(userProducts)
-        .innerJoin(products, eq(userProducts.productId, products.id))
-        .where(and(...conditions))
-        .for("update");
-
-      const collectable = productRows.filter(({ userProduct }) =>
-        Number.parseFloat(userProduct.pendingEarnings || "0") > 0,
-      );
-      const totalCollected = collectable.reduce(
-        (sum, { userProduct }) => sum + Number.parseFloat(userProduct.pendingEarnings || "0"),
-        0,
-      );
-
-      if (totalCollected <= 0) {
-        return { collected: 0, productsCollected: 0, productIds: [] };
-      }
-
-      const [user] = await tx.select().from(users).where(eq(users.id, userId)).for("update");
-      if (!user) throw new Error("Utilisateur introuvable");
-
-      const newTotalEarnings = Number.parseFloat(user.totalEarnings || "0") + totalCollected;
-      const newTodayEarnings = Number.parseFloat(user.todayEarnings || "0") + totalCollected;
-      await tx.update(users).set({
-        todayEarnings: newTodayEarnings.toFixed(2),
-        totalEarnings: newTotalEarnings.toFixed(2),
-      }).where(eq(users.id, userId));
-
-      for (const { userProduct, product } of collectable) {
-        const amount = Number.parseFloat(userProduct.pendingEarnings || "0");
-        await tx.update(userProducts)
-          .set({ pendingEarnings: "0" })
-          .where(eq(userProducts.id, userProduct.id));
-        await tx.insert(transactions).values({
-          userId,
-          type: "earning",
-          amount: amount.toFixed(2),
-          description: `Collecte gains ${product.name}`,
-        });
-      }
-
-      return {
-        collected: Number(totalCollected.toFixed(2)),
-        productsCollected: collectable.length,
-        productIds: collectable.map(({ userProduct }) => userProduct.id),
-      };
-    });
+    await this.settleCompletedProductEarnings(userId);
   }
 
   // Deposits

@@ -385,7 +385,7 @@ export async function seed() {
     { key: "popupLine4", value: "✅ Bonus d'inscription : 2 XOF" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
     { key: "popupLine6", value: "🕘 Retraits et support disponibles de 09:00 à 17:00" },
-    { key: "popupLine7", value: "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures" },
+    { key: "popupLine7", value: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit" },
     { key: "popupLine8", value: "📖 Consultez les règles DIAMANT avant toute opération" },
     { key: "floatingSupportTarget", value: "support1" },
     { key: "supportEnabled", value: "true" },
@@ -486,28 +486,47 @@ export async function seed() {
     }
   }
 
-  // Update only known legacy earnings copy. Custom admin content must remain
-  // untouched, but old automatic-credit wording should not remain on the site.
+  // Update only known default earnings copy. Custom admin content remains untouched.
   const earningsCopyUpdates = [
     {
       key: "popupLine7",
       oldValue: "🔥 Les gains sont crédités chaque jour",
-      newValue: "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures",
+      newValue: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit",
+    },
+    {
+      key: "popupLine7",
+      oldValue: "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures",
+      newValue: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit",
     },
     {
       key: "content_orders_infoLine1",
       oldValue: "Les revenus du produit sont crédités automatiquement selon le cycle défini sur sa fiche.",
-      newValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
+      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin du cycle indiqué. Aucune collecte manuelle n'est nécessaire.",
+    },
+    {
+      key: "content_orders_infoLine1",
+      oldValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
+      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin du cycle indiqué. Aucune collecte manuelle n'est nécessaire.",
     },
     {
       key: "content_rules_section3Body",
       oldValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les revenus suivent le cycle défini sur la fiche du produit\n- Consultez les conditions du produit avant de confirmer",
-      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Le premier gain est disponible immédiatement après l'achat\n- Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures",
+      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les gains sont crédités automatiquement sur le solde des gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+    },
+    {
+      key: "content_rules_section3Body",
+      oldValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Le premier gain est disponible immédiatement après l'achat\n- Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures",
+      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les gains sont crédités automatiquement sur le solde des gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
     },
     {
       key: "content_rulespage_s1b2",
       oldValue: "Les revenus sont générés quotidiennement et accrédités sur votre solde de compte toutes les 24 heures.",
-      newValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
+      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
+    },
+    {
+      key: "content_rulespage_s1b2",
+      oldValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
+      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
     },
   ];
 

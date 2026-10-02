@@ -12,10 +12,9 @@ const DEFAULT_LINES = [
   "📅 DIAMANT officially launches on 03/09/2026!",
   "✅ Minimum deposit: 18 XOF",
   "✅ Minimum withdrawal: 1 XOF via USDT BEP20, with no fee",
-  "✅ Registration bonus: 2 XOF",
   "👥 Invite your friends and earn commissions",
   "🕘 Withdrawals and support: 09:00–17:00",
-  "🔥 Your first earning is available after purchase. Collect it in Revenue, then collect new earnings every 24 hours 📈",
+  "🔥 Product earnings are credited automatically to the earnings balance at the end of the cycle 📈",
   "📖 Please review the DIAMANT rules before operating.",
 ];
 

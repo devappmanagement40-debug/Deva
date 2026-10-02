@@ -8,7 +8,6 @@ export default function RulesPage() {
     queryKey: ["/api/settings"],
   });
 
-  const signupBonus = settings?.signupBonusAmount || "2";
   const minDeposit = settings?.minDeposit || "18";
   const minWithdrawal = settings?.minWithdrawal || "1";
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
@@ -21,13 +20,12 @@ export default function RulesPage() {
   const rPageTitle = getContent(settings, "content_rulespage_pageTitle", "Règles de la plateforme DIAMANT");
   const rS1Title = getContent(settings, "content_rulespage_s1Title", "1. Utilisation des produits DIAMANT");
   const rS1b1 = getContent(settings, "content_rulespage_s1b1", "Chaque produit affiche son prix, sa durée et ses conditions avant l'achat.");
-  const rS1b2 = getContent(settings, "content_rulespage_s1b2", "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.");
+  const rS1b2 = getContent(settings, "content_rulespage_s1b2", "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.");
   const rS1b3 = getContent(settings, "content_rulespage_s1b3", "Consultez les informations du produit avant de confirmer.");
   const rS2Title = getContent(settings, "content_rulespage_s2Title", "2. Dépôts et retraits");
   const rS3Title = getContent(settings, "content_rulespage_s3Title", "3. Programme de parrainage");
   const rS3b4 = getContent(settings, "content_rulespage_s3b4", "Toute fraude, tentative de manipulation ou utilisation de comptes multiples peut entraîner la suspension du compte.");
-  const rS4Title = getContent(settings, "content_rulespage_s4Title", "4. Bonus et récompenses");
-  const rS5Title = getContent(settings, "content_rulespage_s5Title", "5. Sécurité");
+  const rS5Title = getContent(settings, "content_rulespage_s5Title", "4. Sécurité");
   const rS5b1 = getContent(settings, "content_rulespage_s5b1", "Chaque membre est responsable de la sécurité de son mot de passe et de ses moyens de paiement.");
   const rS5b2 = getContent(settings, "content_rulespage_s5b2", "Ne partagez jamais vos identifiants, codes de validation ou adresse de portefeuille.");
   const rS5b3 = getContent(settings, "content_rulespage_s5b3", "Le support officiel DIAMANT ne vous demandera jamais votre mot de passe ni vos codes confidentiels.");
@@ -70,13 +68,6 @@ export default function RulesPage() {
             <li>Commission niveau 2 : {lv2}% selon les conditions du programme.</li>
             <li>Commission niveau 3 : {lv3}% selon les conditions du programme.</li>
             <li>{rS3b4}</li>
-          </ul>
-        </section>
-
-        <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
-          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS4Title}</h2>
-          <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
-            <li>Chaque nouveau membre reçoit le bonus d'inscription configuré, actuellement de {parseInt(signupBonus).toLocaleString()} XOF.</li>
           </ul>
         </section>
 

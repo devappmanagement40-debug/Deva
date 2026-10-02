@@ -107,7 +107,7 @@ export const products = pgTable("products", {
   seriesId: integer("series_id").references(() => productSeries.id),
   minInviteCount: integer("min_invite_count").notNull().default(0),   // 0 = aucune condition
   maxOwned: integer("max_owned").notNull().default(0),                // 0 = illimité
-  // Legacy field retained for existing data; all products now use 24-hour manual collection.
+  // Legacy payout mode retained to interpret uncredited earnings on old purchases.
   collectAtEnd: boolean("collect_at_end").notNull().default(false),
   // Stock saturation 0-100 (admin-controlled). At 100 → product is sold out / FAKE
   stockPercentage: integer("stock_percentage").notNull().default(0),
@@ -125,6 +125,7 @@ export const userProducts = pgTable("user_products", {
   daysRemaining: integer("days_remaining").notNull(),
   totalEarned: decimal("total_earned", { precision: 15, scale: 2 }).notNull().default("0"),
   pendingEarnings: decimal("pending_earnings", { precision: 15, scale: 2 }).notNull().default("0"),
+  earningsPaidAt: timestamp("earnings_paid_at"),
   isActive: boolean("is_active").notNull().default(true),
   assignedByAdmin: boolean("assigned_by_admin").notNull().default(false),
 });

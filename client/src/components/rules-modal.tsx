@@ -28,7 +28,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
   const s2Title = getContent(settings, "content_rules_section2Title", "2. Withdrawals");
   const s2Body = getContent(settings, "content_rules_section2Body", `- Minimum amount: ${parseInt(minWithdrawal).toLocaleString()} XOF\n- The requested amount is received in full\n- Hours: ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} withdrawal(s) per day\n- An active product is required to withdraw\n- A withdrawal wallet must be registered`);
   const s3Title = getContent(settings, "content_rules_section3Title", "3. Products");
-  const s3Body = getContent(settings, "content_rules_section3Body", "- Standard cycle: 80 days\n- Your first earning is available immediately after purchase\n- Collect earnings in Revenue, then collect a new earning every 24 hours");
+  const s3Body = getContent(settings, "content_rules_section3Body", "- Standard cycle: 80 days\n- Product earnings are credited automatically to the earnings balance when the cycle ends\n- No manual collection is required");
   const s4Title = getContent(settings, "content_rules_section4Title", "4. Referral");
   const s4Body = getContent(settings, "content_rules_section4Body", `- Level 1: ${lv1}% commission\n- Level 2: ${lv2}% commission\n- Level 3: ${lv3}% commission\n- Commissions on product purchases`);
 

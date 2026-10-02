@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/countries";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type Lang } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
 import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/components/history-receipt";
@@ -25,9 +25,48 @@ function formatDate(date: string) {
   });
 }
 
+function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
+  const patterns = [
+    {
+      pattern: /^Crédit automatique — fin du cycle (.+)$/,
+      labels: {
+        fr: "Crédit automatique — fin du cycle : {name}",
+        en: "Automatic credit — cycle completed: {name}",
+        ar: "إضافة تلقائية — اكتمال دورة المنتج: {name}",
+        zh: "自动入账——产品周期完成：{name}",
+      },
+    },
+    {
+      pattern: /^Collecte gains (.+)$/,
+      labels: {
+        fr: "Collecte gains {name}",
+        en: "Collected earnings — {name}",
+        ar: "تحصيل الأرباح — {name}",
+        zh: "已领取收益 — {name}",
+      },
+    },
+    {
+      pattern: /^Collecte finale — (.+)$/,
+      labels: {
+        fr: "Collecte finale — {name}",
+        en: "Final collection — {name}",
+        ar: "التحصيل النهائي — {name}",
+        zh: "最终领取 — {name}",
+      },
+    },
+  ];
+
+  for (const { pattern, labels } of patterns) {
+    const match = description?.match(pattern);
+    if (match) return rebrandText(labels[lang].replace("{name}", match[1]));
+  }
+
+  return rebrandText(description || "Gain DIAMANT");
+}
+
 export default function TransactionHistoryModal({ open, onClose }: TransactionHistoryModalProps) {
   const { user } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [activeTab, setActiveTab] = useState("deposits");
 
   const { data: deposits, isLoading: depositsLoading } = useQuery<Deposit[]>({
@@ -119,7 +158,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[14px] font-medium text-[#202020]">T{transaction.id}</p>
-                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{rebrandText(transaction.description || "Gain DIAMANT")}</p>
+                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{formatTransactionDescription(transaction.description, lang)}</p>
                         <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
                       </div>
                       <p className="shrink-0 text-[13px] text-[#16803b]">

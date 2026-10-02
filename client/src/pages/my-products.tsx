@@ -1,9 +1,7 @@
 import { useAuth } from "@/lib/auth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, CheckCircle2, Loader2, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { getProductVisual } from "@/lib/product-visuals";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
@@ -70,7 +68,6 @@ function PageHeader() {
         <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#626975] text-[10px] font-bold text-white">i</span>
         <div style={{ fontSize: 12, lineHeight: 1.55 }}>
           <p>{t.myProductsSettledEvery24h}</p>
-          <p>{t.purchaseSuccessDescription}</p>
         </div>
       </div>
     </>
@@ -78,26 +75,11 @@ function PageHeader() {
 }
 
 export default function MyProductsPage() {
-  const { user, refreshUser } = useAuth();
-  const { toast } = useToast();
+  const { user } = useAuth();
   const { t, lang } = useI18n();
-  const { data: userProducts = [], isLoading } = useQuery<any[]>({ queryKey: ["/api/user/products"] });
-
-  const collectFinalMutation = useMutation({
-    mutationFn: async (userProductId: number) => {
-      const response = await apiRequest("POST", `/api/user/collect-final/${userProductId}`, {});
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Erreur");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
-      refreshUser();
-      toast({ title: t.rewardsSuccessTitle, description: `${Number(data.collected).toLocaleString(localeForLang(lang))} XOF ${t.rewardsReceived.toLowerCase()}.` });
-    },
-    onError: (error: Error) => toast({ title: error.message, variant: "destructive" }),
+  const { data: userProducts = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/user/products"],
+    refetchInterval: 60_000,
   });
 
   if (!user) return null;
@@ -130,7 +112,6 @@ export default function MyProductsPage() {
               const completedDays = Math.max(0, cycleDays - daysRemaining);
               const progress = cycleDays > 0 ? Math.min(100, Math.round((completedDays / cycleDays) * 100)) : 0;
               const earned = Number(userProduct.totalEarned || 0);
-              const canCollect = product.collectAtEnd && daysRemaining <= 0 && earned > 0;
               const image = getProductVisual(product.imageUrl, index);
               const displayName = getDisplayName(product.name, index);
 
@@ -160,20 +141,6 @@ export default function MyProductsPage() {
                       <div className="ielp-member-products-progress h-full rounded-full" style={{ width: `${progress}%`, background: MEMBER_ACCENT }} />
                     </div>
                     <p className="mt-1 text-xs text-white/75">{completedDays}/{cycleDays} {t.myProductsProgress}</p>
-                    {canCollect ? (
-                      <button
-                        onClick={() => collectFinalMutation.mutate(userProduct.id)}
-                        disabled={collectFinalMutation.isPending}
-                        className="mt-3 flex h-10 w-[82%] max-w-[350px] items-center justify-center gap-2 font-bold text-black disabled:opacity-60"
-                        style={{ background: MEMBER_ACCENT }}
-                        data-testid="button-collect-final"
-                      >
-                        {collectFinalMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                        {t.rewardsClaim} XOF {earned.toLocaleString(localeForLang(lang))}
-                      </button>
-                    ) : product.collectAtEnd ? (
-                      <p className="mt-3 flex w-[82%] max-w-[350px] items-center justify-center gap-1 text-sm text-white/75"><Lock size={14} /> {t.ordersRemainingLbl}</p>
-                    ) : null}
                   </div>
                 </article>
               );

@@ -70,19 +70,18 @@ export default function EarningsPage() {
   const [, navigate] = useLocation();
   const { t, lang } = useI18n();
   const balanceCopy = BALANCE_COPY[lang];
-  const { data: userProducts = [] } = useQuery<any[]>({ queryKey: ["/api/user/products"] });
   const incomeSummaryQuery = useQuery<IncomeSummary>({
     queryKey: ["/api/user/income-summary"],
     staleTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
   });
 
   if (!user) return null;
 
   const totalEarnings = Number.isFinite(Number(user.totalEarnings)) ? Number(user.totalEarnings) : 0;
   const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
-  const pendingTotal = userProducts.reduce((sum: number, item: any) => sum + Number(item.pendingEarnings || 0), 0);
   const productIncome = Number.isFinite(Number(incomeSummaryQuery.data?.productEarnings))
     ? Number(incomeSummaryQuery.data?.productEarnings)
     : 0;
@@ -198,11 +197,6 @@ export default function EarningsPage() {
           </div>
           {incomeSummaryQuery.isError && (
             <p className="mt-2 text-center text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>
-          )}
-          {pendingTotal > 0 && (
-            <p className="mt-3 text-center text-sm text-white/70">
-              {t.myProductsPending}: XOF {pendingTotal.toLocaleString(localeForLang(lang))}
-            </p>
           )}
         </div>
       </section>

@@ -411,26 +411,6 @@ export async function registerRoutes(
         telegram: data.telegram || undefined,
       });
 
-      // Le bonus d'inscription alimente le solde des dépôts pour permettre
-      // au nouvel utilisateur de commencer un achat.
-      const settings = await storage.getSettings();
-      if (settings.signupBonusEnabled !== "false") {
-        const signupBonus = parseFloat(settings.signupBonusAmount || "2");
-        if (signupBonus > 0) {
-          const freshUser = await storage.getUser(user.id);
-          const currentBalance = Number(freshUser?.balance || "0");
-          await storage.updateUser(user.id, {
-            balance: ((Number.isFinite(currentBalance) ? currentBalance : 0) + signupBonus).toFixed(2),
-          });
-          await storage.createTransaction({
-            userId: user.id,
-            type: "deposit",
-            amount: signupBonus.toFixed(2),
-            description: "Bonus d'inscription",
-          });
-        }
-      }
-
       req.session.userId = user.id;
       const currentUser = await storage.getUser(user.id);
       res.json({ user: { ...(currentUser || user), password: undefined, transactionPassword: undefined } });
@@ -565,60 +545,11 @@ export async function registerRoutes(
     }
   });
 
-  // Product purchased page: preserve the existing final-collection flow for
-  // products explicitly configured to pay at the end of their cycle.
-  app.post("/api/user/collect-final/:userProductId", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId!;
-      const userProductId = parseInt(req.params.userProductId as string);
-      if (!Number.isInteger(userProductId) || userProductId <= 0) {
-        return res.status(400).json({ message: "Produit invalide" });
-      }
-
-      const userProductsList = await storage.getAllUserProducts(userId);
-      const entry = userProductsList.find((item) => item.userProduct.id === userProductId);
-      if (!entry) return res.status(404).json({ message: "Produit introuvable" });
-
-      const { userProduct, product } = entry;
-      if (!product.collectAtEnd) {
-        return res.status(400).json({ message: "Ce produit se collecte dans la section Revenu toutes les 24 heures" });
-      }
-      if (userProduct.daysRemaining > 0) {
-        return res.status(400).json({ message: `Cycle non terminé — encore ${userProduct.daysRemaining} jour(s) restant(s)` });
-      }
-
-      const amount = parseFloat(userProduct.totalEarned || "0");
-      if (amount <= 0) {
-        return res.status(400).json({ message: "Aucun gain à collecter" });
-      }
-
-      const freshUser = await storage.getUser(userId);
-      if (!freshUser) return res.status(401).json({ message: "Utilisateur introuvable" });
-
-      const newTotalEarnings = parseFloat(freshUser.totalEarnings || "0") + amount;
-      const newTodayEarnings = parseFloat(freshUser.todayEarnings || "0") + amount;
-      await storage.updateUser(userId, {
-        todayEarnings: newTodayEarnings.toFixed(2),
-        totalEarnings: newTotalEarnings.toFixed(2),
-      });
-
-      // Keep the purchased-products page behavior: a final collection
-      // consumes the accumulated amount so it cannot be collected twice.
-      await storage.updateUserProduct(userProductId, {
-        totalEarned: "0",
-        pendingEarnings: "0",
-      });
-      await storage.createTransaction({
-        userId,
-        type: "earning",
-        amount: amount.toFixed(2),
-        description: `Collecte finale — ${product.name}`,
-      });
-
-      res.json({ success: true, collected: amount, newBalance: freshUser.balance || "0" });
-    } catch (e: any) {
-      res.status(500).json({ message: e.message });
-    }
+  // Deprecated compatibility route: product gains can no longer be collected manually.
+  app.post("/api/user/collect-final/:userProductId", requireAuth, (_req, res) => {
+    return res.status(410).json({
+      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement à la fin du cycle.",
+    });
   });
 
   app.post("/api/products/:id/purchase", requireAuth, async (req, res) => {
@@ -676,8 +607,7 @@ export async function registerRoutes(
   app.get("/api/user/products", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
-      // Accrue an eligible 24-hour cycle into the product's pending amount.
-      // This never credits the user's withdrawable earnings balance.
+      // Accrue full 24-hour periods and automatically pay out when the cycle ends.
       await storage.processEarningsForUser(userId);
       const userProductsList = await storage.getAllUserProducts(userId);
       
@@ -702,39 +632,11 @@ export async function registerRoutes(
     }
   });
 
-  // Collect earnings for user (manual trigger)
-  app.post("/api/user/collect-earnings", requireAuth, async (req, res) => {
-    try {
-      const userId = req.session.userId!;
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(401).json({ message: "Non authentifie" });
-      }
-
-      const rawProductId = req.body?.userProductId;
-      const userProductId = rawProductId === undefined || rawProductId === null || rawProductId === ""
-        ? undefined
-        : Number(rawProductId);
-      if (userProductId !== undefined && (!Number.isInteger(userProductId) || userProductId <= 0)) {
-        return res.status(400).json({ message: "Produit invalide" });
-      }
-
-      const result = await storage.collectPendingEarnings(userId, userProductId);
-      if (result.collected <= 0) {
-        return res.status(400).json({ message: "Aucun gain disponible à collecter" });
-      }
-
-      await storage.logAdminAction(
-        userId,
-        "collect_product_earnings",
-        null,
-        `Collecte des gains : ${result.collected} XOF`,
-      );
-      res.json({ success: true, ...result });
-    } catch (error: any) {
-      console.error("Collect earnings error:", error);
-      res.status(500).json({ message: error.message });
-    }
+  // Keep the old paths explicit for outdated clients; neither route can pay out manually.
+  app.post("/api/user/collect-earnings", requireAuth, (_req, res) => {
+    return res.status(410).json({
+      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement à la fin du cycle.",
+    });
   });
 
   app.get("/api/user/income-summary", requireAuth, async (req, res) => {
@@ -2808,7 +2710,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
-      const { name, price, dailyEarnings, cycleDays, imageUrl, minInviteCount, maxOwned, collectAtEnd, stockPercentage } = req.body;
+      const { name, price, dailyEarnings, cycleDays, imageUrl, minInviteCount, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType ?? "all";
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
@@ -2819,6 +2721,13 @@ export async function registerRoutes(
       const priceNum = parseFloat(price);
       const dailyNum = parseFloat(dailyEarnings);
       const cycleInt = parseInt(cycleDays);
+      if (
+        !Number.isFinite(priceNum) || priceNum <= 0 ||
+        !Number.isFinite(dailyNum) || dailyNum <= 0 ||
+        !Number.isInteger(cycleInt) || cycleInt <= 0
+      ) {
+        return res.status(400).json({ message: "Prix, gains et durée doivent être des valeurs positives valides" });
+      }
       const product = await storage.createProduct({
         name,
         productType,
@@ -2833,7 +2742,7 @@ export async function registerRoutes(
         seriesId: null,
         minInviteCount: parseInt(minInviteCount) || 0,
         maxOwned: parseInt(maxOwned) || 0,
-        collectAtEnd: !!collectAtEnd,
+        collectAtEnd: false,
         stockPercentage: Math.min(100, Math.max(0, parseInt(stockPercentage) || 0)),
       });
       await storage.logAdminAction(req.session.userId!, "create_product", null, `Produit ${product.name} créé`);
@@ -2846,6 +2755,9 @@ export async function registerRoutes(
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const body = { ...req.body };
+      // This legacy switch no longer controls payout behavior. Preserve stored
+      // values so existing purchases can still be interpreted correctly.
+      delete body.collectAtEnd;
       if (body.productType !== undefined && !PRODUCT_TYPES.includes(body.productType)) {
         return res.status(400).json({ message: "Type de produit invalide" });
       }
