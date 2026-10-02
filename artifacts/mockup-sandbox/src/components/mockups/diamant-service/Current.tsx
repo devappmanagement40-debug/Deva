@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import "./_group.css";
 
-/* ── Palette de la page service ───────────── */
-const GREEN = "#078438";
-
 const t = {
   serviceTitle: "Service client",
   serviceHoursLabel: "Horaires du service client",
@@ -12,11 +9,11 @@ const t = {
   serviceOfflineNow: "Hors ligne actuellement",
 };
 
-const settings = {
-  supportLink: "https://t.me/diamant_support",
-  support2Link: "https://t.me/diamant_assistance",
-  channelLink: "https://t.me/diamant_actualites",
-  groupLink: "https://t.me/diamant_communaute",
+const settings: LinksSettings = {
+  supportLink: "#",
+  support2Link: "#",
+  channelLink: "#",
+  groupLink: "#",
   supportType: "telegram",
   support2Type: "telegram",
   channelType: "telegram",
@@ -118,7 +115,7 @@ export default function ServicePage() {
        {/* ══ HEADER DIAMANT ══ */}
       <div
         className="ielp-service-header flex items-center px-4 py-3"
-        style={{ background: GREEN }}
+        style={{ background: "#078438" }}
       >
         <a href="#" aria-label="Retour au compte">
           <button
@@ -166,7 +163,7 @@ export default function ServicePage() {
       <div className="px-3 mt-3">
         <div
           className="ielp-service-hours rounded-2xl text-center py-5 px-4"
-          style={{ background: GREEN }}
+          style={{ background: "#078438" }}
         >
           <p
             className="font-black tracking-wide"
@@ -205,10 +202,10 @@ export default function ServicePage() {
             <button
               key={link.testId}
               type="button"
-              onClick={() => window.open(link.href, "_blank", "noopener,noreferrer")}
+              onClick={() => link.href !== "#" && window.open(link.href, "_blank", "noopener,noreferrer")}
               className="w-full flex items-center justify-between active:opacity-80 transition-opacity"
               style={{
-                background: GREEN,
+                background: "#078438",
                 borderRadius: 999,
                 padding: "15px 20px",
                 border: "none",

@@ -1,0 +1,429 @@
+.diamant-service-page {
+  --service-green: #078438;
+  --service-green-deep: #05652e;
+  --service-mint: #f1faf3;
+  --service-text: #172920;
+  --service-muted: #68766e;
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  color: var(--service-text);
+  background: var(--service-mint);
+  font-family: Roboto, Arial, sans-serif;
+}
+
+.diamant-service-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 42px;
+  align-items: center;
+  min-height: 58px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--service-green);
+}
+
+.diamant-service-header h1 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diamant-service-back {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  border-radius: 50%;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diamant-service-back:active {
+  background: rgba(255, 255, 255, .14);
+}
+
+.diamant-service-header-spacer {
+  width: 38px;
+}
+
+.diamant-service-hero {
+  position: relative;
+  display: flex;
+  min-height: 278px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 30px 20px 58px 22px;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(160deg, var(--service-green) 0%, var(--service-green-deep) 100%);
+  border-radius: 0 0 42px 42px;
+}
+
+.diamant-service-hero-copy {
+  position: relative;
+  z-index: 1;
+  width: 59%;
+}
+
+.diamant-service-hero-copy h2 {
+  margin: 0 0 11px;
+  font-size: clamp(22px, 6vw, 27px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -.35px;
+}
+
+.diamant-service-hero-copy p {
+  max-width: 260px;
+  margin: 0;
+  color: rgba(255, 255, 255, .94);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.48;
+}
+
+.diamant-service-hero-art {
+  position: absolute;
+  right: 15px;
+  bottom: 44px;
+  width: clamp(128px, 38vw, 158px);
+  height: 184px;
+  overflow: visible;
+}
+
+.diamant-service-hero-art img {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  display: block;
+  width: 126px;
+  height: 126px;
+  object-fit: cover;
+  object-position: center 28%;
+  background: #f2fff5;
+  border: 4px solid rgba(255, 255, 255, .76);
+  border-radius: 50%;
+  box-shadow: 0 8px 22px rgba(0, 55, 25, .2);
+}
+
+.diamant-service-hero-laptop {
+  position: absolute;
+  right: 0;
+  bottom: 18px;
+  width: 104px;
+  height: 50px;
+  border: 5px solid #e9eee9;
+  border-bottom-width: 9px;
+  border-radius: 7px 7px 2px 2px;
+  background: #c9dbd1;
+  transform: skewY(-4deg);
+}
+
+.diamant-service-hero-laptop::after {
+  position: absolute;
+  right: -12px;
+  bottom: -12px;
+  left: -14px;
+  height: 7px;
+  border-radius: 2px 2px 8px 8px;
+  background: #f4f7f4;
+  content: "";
+}
+
+.diamant-service-hero-laptop span {
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  width: 27px;
+  height: 20px;
+  border-radius: 2px;
+  background: rgba(7, 132, 56, .17);
+}
+
+.diamant-service-hero-headset {
+  position: absolute;
+  top: 84px;
+  right: 3px;
+  display: grid;
+  width: 31px;
+  height: 31px;
+  place-items: center;
+  color: #fff;
+  background: var(--service-green-deep);
+  border: 2px solid #d7f4df;
+  border-radius: 50%;
+}
+
+.diamant-service-content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: min(100% - 36px, 480px);
+  gap: 17px;
+  margin: -28px auto 0;
+}
+
+.diamant-service-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+  gap: 15px;
+  padding: 20px 18px;
+  background: #fff;
+  border: 1px solid rgba(5, 93, 42, .035);
+  border-radius: 23px;
+  box-shadow: 0 8px 24px rgba(20, 64, 38, .045);
+}
+
+.diamant-service-icon {
+  display: flex;
+  width: 66px;
+  height: 66px;
+  align-items: center;
+  justify-content: center;
+  color: #098a43;
+  background: #e8f7ed;
+  border-radius: 50%;
+}
+
+.diamant-service-icon-deposit {
+  color: #078438;
+}
+
+.diamant-service-icon-hours {
+  color: #078438;
+  background: #e4f6e9;
+}
+
+.diamant-service-icon-telegram {
+  color: #078438;
+  background: #e4f6e9;
+}
+
+.diamant-service-card-copy {
+  min-width: 0;
+}
+
+.diamant-service-card-copy h2 {
+  margin: 0 0 5px;
+  color: #13271e;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.28;
+}
+
+.diamant-service-card-copy p {
+  margin: 0;
+  color: var(--service-muted);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.diamant-service-text-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding: 0;
+  color: var(--service-green);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diamant-service-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.diamant-service-card-heading h2 {
+  margin: 0;
+}
+
+.diamant-service-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 2px 8px;
+  color: #08763a;
+  background: #eaf8ee;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.diamant-service-status[data-online="false"] {
+  color: #8b5c0b;
+  background: #fff3d7;
+}
+
+.diamant-service-hours-value {
+  color: #53645a;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.diamant-service-links {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.diamant-service-link {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 13px;
+  color: #fff;
+  background: var(--service-green);
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diamant-service-link:active,
+.diamant-service-text-action:active {
+  opacity: .78;
+}
+
+.diamant-service-unconfigured {
+  margin-top: 10px !important;
+  color: #8a534a !important;
+  font-weight: 600;
+}
+
+.diamant-service-security {
+  padding: 18px 20px 19px;
+  color: var(--service-muted);
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(5, 93, 42, .06);
+  border-radius: 22px;
+}
+
+.diamant-service-security-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #137a40;
+}
+
+.diamant-service-security-title h2 {
+  margin: 0;
+  color: #172920;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.diamant-service-security ol {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.diamant-service-fab {
+  position: fixed;
+  z-index: 90;
+  right: max(18px, calc((100vw - 520px) / 2 + 18px));
+  bottom: calc(26px + env(safe-area-inset-bottom));
+  display: flex;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: #16b7c6;
+  border: 3px solid rgba(255, 255, 255, .92);
+  border-radius: 50%;
+  box-shadow: 0 7px 18px rgba(10, 102, 111, .25);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.diamant-service-fab:active {
+  transform: scale(.96);
+}
+
+@media (max-width: 360px) {
+  .diamant-service-hero {
+    padding-right: 14px;
+    padding-left: 18px;
+  }
+
+  .diamant-service-hero-copy {
+    width: 62%;
+  }
+
+  .diamant-service-hero-art {
+    right: 9px;
+    width: 118px;
+    height: 162px;
+  }
+
+  .diamant-service-hero-art img {
+    width: 108px;
+    height: 108px;
+  }
+
+  .diamant-service-hero-laptop {
+    width: 87px;
+    height: 43px;
+  }
+
+  .diamant-service-hero-headset {
+    top: 70px;
+  }
+
+  .diamant-service-content {
+    width: min(100% - 24px, 480px);
+    gap: 13px;
+  }
+
+  .diamant-service-card {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 11px;
+    padding: 16px 14px;
+  }
+
+  .diamant-service-icon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diamant-service-fab {
+    transition: none;
+  }
+}

@@ -212,6 +212,7 @@ function RouterComponent() {
       "/invest",
       "/team",
       "/account",
+      "/service",
     ]).has(path);
     const enabled = !outsideScope && !fullIelpIdentity;
 

@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  Clock3,
+  Headset,
+  MessageCircleMore,
+  Send,
+  ShieldCheck,
+} from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { getContent, rebrandText } from "@/lib/content";
-
-/* ── Palette de la page service ───────────── */
-const GREEN = "#078438";
+import "./service.css";
 
 interface LinksSettings {
   supportLink: string;
@@ -25,16 +32,23 @@ interface LinksSettings {
   support2Enabled: string;
   channelEnabled: string;
   groupEnabled: string;
+  floatingSupportTarget?: string;
   withdrawalStartHour: string;
   withdrawalEndHour: string;
 }
 
-/* Convertit une heure en format AM/PM */
-function toAmPm(h: number): string {
-  if (h === 0)  return "12:00 AM";
-  if (h < 12)   return `${h}:00 AM`;
-  if (h === 12) return "12:00 PM";
-  return `${h - 12}:00 PM`;
+interface SupportLink {
+  label: string;
+  href: string;
+  testId: string;
+}
+
+function formatHour(hour: number): string {
+  return `${String(hour).padStart(2, "0")}:00:00`;
+}
+
+function openSupportLink(href: string) {
+  if (href) window.open(href, "_blank", "noopener,noreferrer");
 }
 
 export default function ServicePage() {
@@ -54,196 +68,196 @@ export default function ServicePage() {
     queryKey: ["/api/settings"],
   });
 
-  const servicePageTitle = getContent(contentSettings, "content_service_pageTitle", t.serviceTitle);
+  const fallbackTitle = t.serviceTitle === "Service client" ? "Centre d'aide" : t.serviceTitle;
+  const servicePageTitle = getContent(
+    contentSettings,
+    "content_service_pageTitle",
+    fallbackTitle,
+  );
 
-  const startHour = parseInt(settings?.withdrawalStartHour || "9", 10);
-  const endHour   = parseInt(settings?.withdrawalEndHour   || "17", 10);
-  const hoursDisplay = `${toAmPm(startHour)}-${toAmPm(endHour)}`;
+  const startHour = Number.parseInt(settings?.withdrawalStartHour || "9", 10);
+  const endHour = Number.parseInt(settings?.withdrawalEndHour || "17", 10);
+  const hoursDisplay = `${formatHour(startHour)} à ${formatHour(endHour)}`;
   const isServiceOnline = startHour < endHour
     ? currentHour >= startHour && currentHour < endHour
     : currentHour >= startHour || currentHour < endHour;
 
-  const allLinks = [
+  const allLinks: (SupportLink & { enabled: boolean })[] = [
     {
-      label:   settings?.supportLabel  || "",
-      href:    settings?.supportLink   || "",
-      testId:  "button-support-link",
-      enabled: settings?.supportEnabled  !== "false" && !!settings?.supportLink,
+      label: settings?.supportLabel || "",
+      href: settings?.supportLink || "",
+      testId: "button-support-link",
+      enabled: settings?.supportEnabled !== "false" && !!settings?.supportLink,
     },
     {
-      label:   settings?.support2Label || "",
-      href:    settings?.support2Link  || "",
-      testId:  "button-support2-link",
+      label: settings?.support2Label || "",
+      href: settings?.support2Link || "",
+      testId: "button-support2-link",
       enabled: settings?.support2Enabled !== "false" && !!settings?.support2Link,
     },
     {
-      label:   settings?.groupLabel    || "",
-      href:    settings?.groupLink     || "",
-      testId:  "button-group-link",
-      enabled: settings?.groupEnabled  !== "false" && !!settings?.groupLink,
+      label: settings?.groupLabel || "",
+      href: settings?.groupLink || "",
+      testId: "button-group-link",
+      enabled: settings?.groupEnabled !== "false" && !!settings?.groupLink,
     },
     {
-      label:   settings?.channelLabel  || "",
-      href:    settings?.channelLink   || "",
-      testId:  "button-channel-link",
+      label: settings?.channelLabel || "",
+      href: settings?.channelLink || "",
+      testId: "button-channel-link",
       enabled: settings?.channelEnabled !== "false" && !!settings?.channelLink,
     },
   ];
-  const links = allLinks.filter(l => l.enabled);
+  const links = allLinks.filter((link) => link.enabled);
+  const primarySupport = links.find((link) => link.testId === "button-support-link");
+  const secondarySupport = links.find((link) => link.testId === "button-support2-link");
+  const depositHelpLink = primarySupport || secondarySupport || links[0];
+  const preferredFloatingLink = settings?.floatingSupportTarget === "support2"
+    ? secondarySupport
+    : primarySupport;
+  const floatingLink = preferredFloatingLink || primarySupport || secondarySupport || links[0];
+  const hoursLabel = getContent(
+    contentSettings,
+    "content_service_withdrawalHoursText",
+    "Horaires d'ouverture",
+  );
 
   return (
-    <div className="ielp-service-page flex flex-col min-h-screen" style={{ background: "#f2f2f2" }}>
-
-       {/* ══ HEADER DIAMANT ══ */}
-      <div
-        className="ielp-service-header flex items-center px-4 py-3"
-        style={{ background: GREEN }}
-      >
-        <Link href="/account">
-          <button
-            className="w-9 h-9 flex items-center justify-center active:opacity-70"
-            data-testid="button-back"
-          >
-            <ChevronLeft className="w-6 h-6 text-white" strokeWidth={2.5} />
-          </button>
+    <div className="diamant-service-page">
+      <header className="diamant-service-header">
+        <Link href="/account" className="diamant-service-back" aria-label="Retour au compte">
+          <ChevronLeft aria-hidden="true" size={25} strokeWidth={2.5} />
         </Link>
-        <h1 className="flex-1 text-center text-white font-semibold text-base mr-9">
-          {servicePageTitle}
-        </h1>
-      </div>
+        <h1>{servicePageTitle}</h1>
+        <span className="diamant-service-header-spacer" aria-hidden="true" />
+      </header>
 
-      {/* ══ HERO — logo + personnages ══ */}
-      <div
-        className="ielp-service-hero"
-        style={{
-          background: "linear-gradient(160deg, #078438 0%, #034c25 100%)",
-          paddingBottom: 30,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        {/* Logo DIAMANT */}
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 10,
-            padding: "8px 20px",
-            marginTop: 16,
-            marginBottom: 10,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-          }}
-        >
-          <img src="/diamant-logo-light.png" alt="DIAMANT" style={{ height: 90, width: 120, objectFit: "contain" }} />
+      <section className="diamant-service-hero" aria-labelledby="service-hero-title">
+        <div className="diamant-service-hero-copy">
+          <h2 id="service-hero-title">Centre de service</h2>
+          <p>Nous vous accompagnons à chaque étape dont vous avez besoin</p>
         </div>
-      </div>
-
-      {/* ══ CARTE HORAIRES ══ */}
-      <div className="px-3 mt-3">
-        <div
-          className="ielp-service-hours rounded-2xl text-center py-5 px-4"
-          style={{ background: GREEN }}
-        >
-          <p
-            className="font-black tracking-wide"
-            style={{ fontSize: 26, color: "#fff", lineHeight: 1.1 }}
-          >
-            {hoursDisplay}
-          </p>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", marginTop: 6 }}>
-            {getContent(contentSettings, "content_service_withdrawalHoursText", t.serviceHoursLabel)}
-            <span className="mt-1 block font-semibold" style={{ color: "#fff" }}>
-              {isServiceOnline ? t.serviceOnlineNow : t.serviceOfflineNow}
-            </span>
-          </p>
+        <div className="diamant-service-hero-art">
+          <img
+            src="/support-avatar.png"
+            alt="Conseillère DIAMANT du service client"
+            draggable={false}
+          />
+          <span className="diamant-service-hero-laptop" aria-hidden="true">
+            <span />
+          </span>
+          <span className="diamant-service-hero-headset" aria-hidden="true">
+            <Headset size={15} />
+          </span>
         </div>
-      </div>
+      </section>
 
-      {/* ══ SECTION LIENS ══ */}
-      <div className="px-3 mt-4">
-        {/* Label "Telegram" */}
-        <p
-          className="ielp-service-label"
-          style={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: "#333",
-            marginBottom: 10,
-            marginLeft: 2,
-          }}
-        >
-           {links.length > 0 ? "Telegram" : "Liens de support non configurés"}
-        </p>
-
-        {/* Boutons liens */}
-        <div className="space-y-3">
-          {links.map((link) => (
-            <button
-              key={link.testId}
-              type="button"
-              onClick={() => window.open(link.href, "_blank", "noopener,noreferrer")}
-              className="w-full flex items-center justify-between active:opacity-80 transition-opacity"
-              style={{
-                background: GREEN,
-                borderRadius: 999,
-                padding: "15px 20px",
-                border: "none",
-                cursor: "pointer",
-              }}
-              data-testid={link.testId}
-            >
-              <span
-                style={{
-                  color: "#fff",
-                  fontSize: 15,
-                  fontWeight: 600,
-                }}
+      <main className="diamant-service-content">
+        <section className="diamant-service-card diamant-service-deposit">
+          <div className="diamant-service-icon diamant-service-icon-deposit" aria-hidden="true">
+            <CircleDollarSign size={36} strokeWidth={2.1} />
+          </div>
+          <div className="diamant-service-card-copy">
+            <h2>Votre dépôt n'a pas encore été reçu&nbsp;?</h2>
+            <p>
+              Après avoir réussi à créditer votre compte, si le solde n'est pas apparu,
+              veuillez le signaler ici et notre service client vous assistera&nbsp;!
+            </p>
+            {depositHelpLink && (
+              <button
+                type="button"
+                className="diamant-service-text-action"
+                onClick={() => openSupportLink(depositHelpLink.href)}
+                data-testid="button-deposit-support"
               >
-                @{rebrandText(link.label)}
+                Signaler mon dépôt
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </section>
+
+        <section className="diamant-service-card diamant-service-hours-card">
+          <div className="diamant-service-icon diamant-service-icon-hours" aria-hidden="true">
+            <Clock3 size={34} strokeWidth={2.1} />
+          </div>
+          <div className="diamant-service-card-copy">
+            <div className="diamant-service-card-heading">
+              <h2>Service en ligne</h2>
+              <span
+                className="diamant-service-status"
+                data-online={isServiceOnline}
+                aria-live="polite"
+              >
+                {isServiceOnline ? t.serviceOnlineNow : t.serviceOfflineNow}
               </span>
-              <ChevronRight
-                style={{ color: "#fff", width: 20, height: 20, flexShrink: 0 }}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
+            </div>
+            <p>
+              {hoursLabel} : <span className="diamant-service-hours-value">{hoursDisplay}</span>
+            </p>
+          </div>
+        </section>
 
-      {/* ══ CONSEILS ══ */}
-      <div className="px-4 mt-6 pb-24">
-        <p
-          className="ielp-service-guidance-title"
-          style={{
-            fontSize: 14,
-            fontWeight: 800,
-            color: "#111",
-            marginBottom: 10,
-            letterSpacing: 0.5,
-          }}
+        <section className="diamant-service-card diamant-service-telegram-card">
+          <div className="diamant-service-icon diamant-service-icon-telegram" aria-hidden="true">
+            <Send size={34} strokeWidth={2.1} />
+          </div>
+          <div className="diamant-service-card-copy">
+            <h2>Telegram</h2>
+            <p>
+              Suivez notre chaîne officielle Telegram pour obtenir les dernières nouvelles
+              et recevoir les avantages de DIAMANT.
+            </p>
+            {links.length > 0 ? (
+              <div className="diamant-service-links">
+                {links.map((link) => {
+                  const label = rebrandText(link.label || "Support DIAMANT");
+                  const handle = label.startsWith("@") ? label : `@${label}`;
+                  return (
+                    <button
+                      key={link.testId}
+                      type="button"
+                      className="diamant-service-link"
+                      onClick={() => openSupportLink(link.href)}
+                      data-testid={link.testId}
+                    >
+                      <span>{handle}</span>
+                      <ChevronRight size={18} aria-hidden="true" />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="diamant-service-unconfigured">Liens de support non configurés</p>
+            )}
+          </div>
+        </section>
+
+        <section className="diamant-service-security" aria-labelledby="service-security-title">
+          <div className="diamant-service-security-title">
+            <ShieldCheck size={20} aria-hidden="true" />
+            <h2 id="service-security-title">Conseils de sécurité</h2>
+          </div>
+          <ol>
+            <li>Pour toute question, utilisez uniquement les liens DIAMANT publiés sur cette page.</li>
+            <li>Ne partagez jamais votre mot de passe, vos codes de validation ou vos informations de portefeuille.</li>
+            <li>Le support officiel DIAMANT ne vous demandera jamais vos codes confidentiels.</li>
+            <li>Méfiez-vous des comptes qui prétendent représenter DIAMANT sans lien publié ici.</li>
+          </ol>
+        </section>
+      </main>
+
+      {floatingLink && (
+        <button
+          type="button"
+          className="diamant-service-fab"
+          aria-label="Contacter le service client DIAMANT"
+          onClick={() => openSupportLink(floatingLink.href)}
+          data-testid="button-floating-support"
         >
-          CONSEILS :
-        </p>
-        <div className="ielp-service-guidance-copy" style={{ color: "#444", fontSize: 13, lineHeight: 1.8 }}>
-           <p>
-             1. Pour toute question concernant la plateforme, utilisez uniquement
-              les liens DIAMANT publiés dans cette page.
-           </p>
-           <p style={{ marginTop: 6 }}>
-             2. Ne partagez jamais votre mot de passe, vos codes de validation ou
-             vos informations de portefeuille.
-           </p>
-           <p style={{ marginTop: 6 }}>
-              3. Le support officiel DIAMANT ne vous demandera jamais vos codes confidentiels.
-           </p>
-           <p style={{ marginTop: 6 }}>
-              4. Méfiez-vous des comptes qui prétendent représenter DIAMANT sans lien publié ici.
-           </p>
-        </div>
-      </div>
-
+          <MessageCircleMore size={26} strokeWidth={2.4} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

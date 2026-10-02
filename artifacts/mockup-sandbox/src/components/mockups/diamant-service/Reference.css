@@ -1,0 +1,738 @@
+.diamant-reference {
+  --diamant-green: #078438;
+  --diamant-green-dark: #046c32;
+  --diamant-mint: #f0f9f2;
+  --diamant-ink: #17302b;
+  --diamant-muted: #737d79;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  background: #e6eee9;
+  color: var(--diamant-ink);
+  font-family: "DM Sans", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.diamant-device {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 512px);
+  height: 100dvh;
+  min-height: 720px;
+  overflow: hidden;
+  background: var(--diamant-mint);
+  box-shadow: 0 16px 60px rgba(25, 59, 40, 0.13);
+}
+
+.diamant-statusbar {
+  z-index: 5;
+  flex: 0 0 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 23px;
+  background: #fff;
+  color: #333b38;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.diamant-statusbar__time {
+  margin-right: 2px;
+}
+
+.diamant-statusbar__notification {
+  width: 8px;
+  height: 8px;
+  margin: 0 3px 0 1px;
+  border-radius: 50%;
+  background: #38433e;
+}
+
+.diamant-statusbar__spacer {
+  flex: 1;
+}
+
+.diamant-statusbar__percent {
+  margin-left: -3px;
+  font-size: 14px;
+}
+
+.diamant-browserbar {
+  z-index: 5;
+  flex: 0 0 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 23px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(24, 42, 34, 0.08);
+  color: #101614;
+}
+
+.diamant-browserbar__close {
+  position: relative;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.diamant-browserbar__close::before,
+.diamant-browserbar__close::after {
+  position: absolute;
+  top: 13px;
+  left: 2px;
+  width: 21px;
+  height: 2.5px;
+  border-radius: 3px;
+  background: #16201c;
+  content: "";
+  transform: rotate(45deg);
+}
+
+.diamant-browserbar__close::after {
+  transform: rotate(-45deg);
+}
+
+.diamant-browserbar__title {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diamant-browserbar__title strong {
+  overflow: hidden;
+  color: #131b18;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diamant-browserbar__title span {
+  color: #747b78;
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.diamant-page-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background: var(--diamant-mint);
+}
+
+.diamant-page-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.diamant-appbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 59px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: var(--diamant-green);
+  color: #fff;
+}
+
+.diamant-appbar h1 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+}
+
+.diamant-appbar__back {
+  display: grid;
+  width: 28px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: white;
+}
+
+.diamant-appbar__balance {
+  width: 28px;
+}
+
+.diamant-hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 291px;
+  overflow: hidden;
+  align-items: flex-start;
+  padding: 49px 26px 76px;
+  border-bottom-left-radius: 34px;
+  background: var(--diamant-green);
+  color: #fff;
+}
+
+.diamant-hero::after {
+  position: absolute;
+  z-index: -1;
+  right: -40px;
+  bottom: -87px;
+  width: 225px;
+  height: 225px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 50%;
+  content: "";
+}
+
+.diamant-hero__copy {
+  position: relative;
+  z-index: 2;
+  width: 67%;
+  max-width: 315px;
+}
+
+.diamant-brandline {
+  display: flex;
+  height: 19px;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 17px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.diamant-brandline img {
+  width: 19px;
+  height: 16px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+}
+
+.diamant-hero__copy h2 {
+  margin: 0 0 12px;
+  font-size: clamp(24px, 5.2vw, 29px);
+  font-weight: 800;
+  letter-spacing: -0.85px;
+  line-height: 1.18;
+}
+
+.diamant-hero__copy p {
+  max-width: 290px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: -0.23px;
+  line-height: 1.5;
+}
+
+.diamant-hero__portrait-wrap {
+  position: absolute;
+  z-index: 1;
+  top: 34px;
+  right: 16px;
+  width: 178px;
+  height: 213px;
+}
+
+.diamant-hero__portrait-halo {
+  position: absolute;
+  top: 18px;
+  right: 5px;
+  width: 156px;
+  height: 156px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.diamant-hero__portrait {
+  position: absolute;
+  top: 14px;
+  right: 8px;
+  width: 151px;
+  height: 151px;
+  border: 4px solid rgba(255, 255, 255, 0.58);
+  border-radius: 50%;
+  background: #f1eadf;
+  object-fit: cover;
+  object-position: center 30%;
+  box-shadow: 0 9px 23px rgba(0, 54, 25, 0.17);
+}
+
+.diamant-hero__laptop {
+  position: absolute;
+  right: 1px;
+  bottom: 26px;
+  width: 108px;
+  height: 55px;
+  border: 5px solid #e9eee9;
+  border-bottom-width: 10px;
+  border-radius: 7px 7px 2px 2px;
+  background: #c9dbd1;
+  transform: skewY(-4deg);
+}
+
+.diamant-hero__laptop::after {
+  position: absolute;
+  right: -13px;
+  bottom: -13px;
+  left: -15px;
+  height: 7px;
+  border-radius: 2px 2px 8px 8px;
+  background: #f4f7f4;
+  content: "";
+}
+
+.diamant-hero__laptop span {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  width: 28px;
+  height: 21px;
+  border-radius: 2px;
+  background: rgba(7, 132, 56, 0.17);
+}
+
+.diamant-hero__headset {
+  position: absolute;
+  top: 101px;
+  right: 10px;
+  display: grid;
+  width: 33px;
+  height: 33px;
+  place-items: center;
+  border: 2px solid #d7f4df;
+  border-radius: 50%;
+  background: var(--diamant-green-dark);
+  color: white;
+}
+
+.diamant-hero__spark {
+  position: absolute;
+  z-index: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(226, 255, 234, 0.8);
+}
+
+.diamant-hero__spark--one {
+  top: 30px;
+  right: 46px;
+}
+
+.diamant-hero__spark--two {
+  top: 212px;
+  right: 179px;
+  width: 5px;
+  height: 5px;
+}
+
+.diamant-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 0 26px 96px;
+  margin-top: -64px;
+}
+
+.diamant-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 17px;
+  padding: 24px 21px;
+  border-radius: 23px;
+  background: #fff;
+  box-shadow: 0 7px 24px rgba(45, 84, 57, 0.035);
+}
+
+.diamant-deposit-card {
+  min-height: 216px;
+}
+
+.diamant-card-icon {
+  position: relative;
+  flex: 0 0 74px;
+  display: grid;
+  width: 74px;
+  height: 74px;
+  place-items: center;
+  border-radius: 50%;
+  background: #effaf3;
+  color: #0b9b56;
+}
+
+.diamant-card-icon--deposit {
+  margin-top: 2px;
+}
+
+.diamant-card-icon--deposit::before,
+.diamant-card-icon--deposit::after {
+  position: absolute;
+  width: 13px;
+  height: 26px;
+  border: 5px solid #0d9b55;
+  content: "";
+}
+
+.diamant-card-icon--deposit::before {
+  top: 6px;
+  left: 5px;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 13px 0 0;
+}
+
+.diamant-card-icon--deposit::after {
+  right: 4px;
+  bottom: 5px;
+  border-top: 0;
+  border-left: 0;
+  border-radius: 0 0 13px;
+}
+
+.diamant-card-icon__dot {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  width: 25px;
+  height: 25px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #0a9b55;
+  box-shadow: 0 1px 4px rgba(15, 112, 59, 0.18);
+}
+
+.diamant-card-copy {
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.diamant-card-copy h3 {
+  margin: 0 0 5px;
+  color: #172d29;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.45px;
+  line-height: 1.22;
+}
+
+.diamant-card-copy p {
+  margin: 0;
+  color: #727a77;
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.16px;
+  line-height: 1.62;
+}
+
+.diamant-hours-card {
+  min-height: 126px;
+  align-items: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.diamant-card-icon--hours {
+  flex-basis: 74px;
+  color: #098a50;
+  transform: rotate(-10deg);
+}
+
+.diamant-online-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 7px;
+  color: #087f45;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.diamant-online-status span,
+.diamant-chat-fab__status {
+  width: 7px;
+  height: 7px;
+  border: 1px solid white;
+  border-radius: 50%;
+  background: #3cc880;
+}
+
+.diamant-telegram-card {
+  display: block;
+  padding: 22px 21px 19px;
+}
+
+.diamant-telegram-card__intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 17px;
+}
+
+.diamant-card-icon--telegram {
+  flex-basis: 74px;
+  margin-top: 0;
+  color: #0a9e5c;
+  transform: rotate(-12deg);
+}
+
+.diamant-card-icon--telegram svg {
+  fill: #0a9e5c;
+  stroke: #effaf3;
+}
+
+.diamant-telegram-card__links {
+  display: grid;
+  gap: 9px;
+  margin: 19px 0 0 91px;
+}
+
+.diamant-telegram-action {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 11px 0 9px;
+  border: 1px solid #e6f1e9;
+  border-radius: 13px;
+  background: #fbfefc;
+  color: #167c4a;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.diamant-telegram-action:hover,
+.diamant-telegram-action:focus-visible {
+  background: #edf8f0;
+  transform: translateX(2px);
+}
+
+.diamant-telegram-action__icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7f6ec;
+}
+
+.diamant-telegram-action__arrow {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: #7caa8c;
+}
+
+.diamant-guidance {
+  padding: 21px 21px 20px;
+  border: 1px solid rgba(14, 127, 67, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.diamant-guidance__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e8f1e9;
+}
+
+.diamant-guidance__shield {
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  border-radius: 12px;
+  background: #e8f6ec;
+  color: #098449;
+}
+
+.diamant-guidance__heading h2 {
+  margin: 2px 0 0;
+  color: #19372b;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.diamant-guidance ol {
+  display: grid;
+  gap: 13px;
+  padding: 16px 0 0 21px;
+  margin: 0;
+  color: #66736c;
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.diamant-guidance li {
+  padding-left: 4px;
+}
+
+.diamant-guidance li::marker {
+  color: #078438;
+  font-weight: 800;
+}
+
+.diamant-chat-fab {
+  position: absolute;
+  z-index: 6;
+  right: 32px;
+  bottom: 64px;
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #18b7c3, #079da9);
+  box-shadow: 0 7px 18px rgba(13, 140, 142, 0.26);
+  color: #fff;
+  text-decoration: none;
+  transition: transform 180ms ease;
+}
+
+.diamant-chat-fab:hover,
+.diamant-chat-fab:focus-visible {
+  transform: translateY(-3px);
+}
+
+.diamant-chat-fab__status {
+  position: absolute;
+  top: 16px;
+  right: 17px;
+  width: 9px;
+  height: 9px;
+}
+
+.diamant-gesture {
+  z-index: 8;
+  display: flex;
+  flex: 0 0 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  background: #f7f7f7;
+}
+
+.diamant-gesture span {
+  width: 108px;
+  height: 4px;
+  border-radius: 8px;
+  background: #575b59;
+}
+
+@media (max-width: 390px) {
+  .diamant-device {
+    min-height: 640px;
+  }
+
+  .diamant-statusbar {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .diamant-browserbar {
+    gap: 14px;
+    padding-right: 19px;
+    padding-left: 19px;
+  }
+
+  .diamant-hero {
+    min-height: 276px;
+    padding: 43px 20px 72px;
+  }
+
+  .diamant-hero__copy {
+    width: 69%;
+  }
+
+  .diamant-hero__copy p {
+    font-size: 17px;
+  }
+
+  .diamant-hero__portrait-wrap {
+    top: 44px;
+    right: -19px;
+    transform: scale(0.88);
+    transform-origin: top right;
+  }
+
+  .diamant-content {
+    gap: 20px;
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .diamant-card {
+    gap: 13px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .diamant-card-icon {
+    flex-basis: 60px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .diamant-card-copy h3 {
+    font-size: 18px;
+  }
+
+  .diamant-card-copy p {
+    font-size: 15px;
+    line-height: 1.56;
+  }
+
+  .diamant-card-icon__dot {
+    top: 20px;
+    left: 20px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .diamant-card-icon--deposit svg {
+    width: 36px;
+  }
+
+  .diamant-telegram-card__links {
+    margin-left: 73px;
+  }
+
+  .diamant-chat-fab {
+    right: 23px;
+    bottom: 58px;
+    width: 66px;
+    height: 66px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diamant-telegram-action,
+  .diamant-chat-fab {
+    transition: none;
+  }
+}
