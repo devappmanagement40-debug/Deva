@@ -27,11 +27,11 @@ Keep the member bottom navigation background at `linear-gradient(110deg, rgba(11
 
 ## Existing home-card colors
 
-Preserve the prior palettes of existing home cards, including the account/balance panel and quick-action strip. The homepage popular-product and Information cards use the same gradient as the horizontal bottom navigation.
+Preserve the prior palettes of existing home cards, including the account/balance panel and quick-action strip. The homepage popular-product and Information cards use the same blue-purple-red gradient as the VIP progression card.
 
-**Why:** The user asked to restore the previous colors of existing cards after a broader home-page recoloring, then specified that the new homepage cards should match the horizontal navigation's blue.
+**Why:** The user asked to restore the previous colors of existing cards after a broader home-page recoloring, then specified the VIP progression card as the color reference for the new homepage cards.
 
-**How to apply:** Keep existing account/action card colors unchanged; use `linear-gradient(110deg, rgba(11, 18, 53, .98), rgba(35, 25, 82, .98))` for the popular-product and Information card backgrounds.
+**How to apply:** Keep existing account/action card colors unchanged; use `linear-gradient(108deg, #16437e 0%, #5e3658 50%, #b92a2e 100%)` for the popular-product and Information card backgrounds.
 
 ## Account-banner photo sourcing
 
