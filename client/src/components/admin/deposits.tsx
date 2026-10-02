@@ -24,7 +24,7 @@ interface DepositWithUser extends Deposit {
 
 export default function AdminDeposits() {
   const { toast } = useToast();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "processing" | "review" | "approved" | "rejected">("pending");
   const [screenshotModal, setScreenshotModal] = useState<string | null>(null);
@@ -121,6 +121,7 @@ export default function AdminDeposits() {
         ) : filteredDeposits.length > 0 ? (
           filteredDeposits.map((deposit) => {
             const isNowPayments = deposit.paymentMethod === "NOWPayments";
+            const isDepositIssue = deposit.paymentMethod === "Deposit issue";
             const isManual = !isNowPayments && (!!(deposit as any).paymentNumberId || !!(deposit as any).channelName);
             return (
               <Card key={deposit.id} className={deposit.status === "pending" ? "border-yellow-400/50" : deposit.status === "processing" ? "border-blue-400/50" : deposit.status === "review" ? "border-amber-500/70" : ""}>
@@ -160,7 +161,11 @@ export default function AdminDeposits() {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-xs">{t.operator}</p>
-                      <p className="font-medium">{deposit.paymentMethod}</p>
+                      <p className="font-medium">
+                        {isDepositIssue
+                          ? lang === "fr" ? "Signalement de dépôt" : "Deposit issue"
+                          : deposit.paymentMethod}
+                      </p>
                     </div>
                     <div className={isNowPayments ? "col-span-2" : ""}>
                       <p className="text-muted-foreground text-xs">{isNowPayments ? "Adresse crypto" : t.payerNumber}</p>
@@ -178,7 +183,11 @@ export default function AdminDeposits() {
                     {/* Payment number (channel) used */}
                     {(deposit as any).channelName && !isNowPayments && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground text-xs">{t.recipientNumber}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {isDepositIssue
+                            ? lang === "fr" ? "Numéro de dépôt destinataire" : "Deposit recipient number"
+                            : t.recipientNumber}
+                        </p>
                         <p className="font-bold text-red-600">{(deposit as any).channelName}</p>
                       </div>
                     )}
@@ -192,7 +201,11 @@ export default function AdminDeposits() {
                     {/* Reference */}
                     {(deposit as any).reference && (
                       <div className="col-span-2">
-                        <p className="text-muted-foreground text-xs">{t.reference}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {isDepositIssue
+                            ? lang === "fr" ? "ID de transaction" : "Transaction ID"
+                            : t.reference}
+                        </p>
                         <p className="font-mono font-medium">{(deposit as any).reference}</p>
                       </div>
                     )}

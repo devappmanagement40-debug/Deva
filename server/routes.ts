@@ -1280,6 +1280,59 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/deposit-issues", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const data = z.object({
+        transactionId: z.string().trim().min(1, "L’identifiant de transaction est requis").max(180),
+        amount: z.number().int().positive().max(2_000_000_000),
+        depositNumber: z.string().trim().min(1, "Le numéro de dépôt est requis").max(100),
+        screenshot: z.string()
+          .max(4_200_000)
+          .regex(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/, "La capture doit être une image JPG, PNG ou WebP valide"),
+      }).parse(req.body);
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
+
+      const settings = await storage.getSettings();
+      const minDeposit = Number.parseInt(settings.minDeposit || "18", 10);
+      if (data.amount < minDeposit) {
+        return res.status(400).json({
+          message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
+        });
+      }
+
+      const existingReference = await storage.getDepositByReference(data.transactionId);
+      if (existingReference) {
+        return res.status(409).json({ message: "Cet identifiant de transaction a déjà été déclaré ou traité." });
+      }
+
+      const deposit = await storage.createDeposit({
+        userId: user.id,
+        amount: data.amount,
+        accountName: user.fullName || user.phone,
+        accountNumber: user.phone,
+        country: user.country,
+        paymentMethod: "Deposit issue",
+        channelName: data.depositNumber,
+        screenshot: data.screenshot,
+        reference: data.transactionId,
+        status: "pending",
+      });
+
+      return res.status(201).json({ deposit });
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Informations de dépôt invalides" });
+      }
+      if (error?.code === "23505" && error?.constraint === "deposits_issue_reference_unique") {
+        return res.status(409).json({ message: "Cet identifiant de transaction a déjà été déclaré." });
+      }
+      console.error("Deposit issue submission error:", error);
+      return res.status(500).json({ message: "Impossible d’envoyer le signalement pour le moment." });
+    }
+  });
+
   app.post("/api/deposits", requireAuth, async (req, res) => {
     try {
       const { amount, accountName, accountNumber, paymentMethod, country, paymentChannelId,
@@ -2189,27 +2242,10 @@ export async function registerRoutes(
       if (!["pending", "processing"].includes(existing.status)) {
         return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
       }
-      const deposit = await storage.updateDeposit(depositId, {
-        status: "approved",
-        processedAt: new Date(),
-        processedBy: req.session.userId,
-      });
-
-      const user = await storage.getUser(deposit.userId);
-      if (user) {
-        const newBalance = parseFloat(user.balance) + deposit.amount;
-        await storage.updateUser(user.id, { 
-          balance: newBalance.toFixed(2),
-          hasDeposited: true,
-        });
-        
-        await storage.createTransaction({
-          userId: user.id,
-          type: "deposit",
-          amount: deposit.amount.toString(),
-          description: "Dépôt validé",
-        });
-      }
+      const approval = await storage.approveManualDepositExactlyOnce(depositId, req.session.userId!);
+      if (!approval.deposit) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
+      const deposit = approval.deposit;
 
       await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé: ${deposit.amount} XOF`);
       res.json(deposit);
@@ -3202,17 +3238,10 @@ export async function registerRoutes(
       if (!["pending", "processing"].includes(existing.status)) {
         return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
       }
-      const deposit = await storage.updateDeposit(depositId, {
-        status: "approved",
-        processedAt: new Date(),
-        processedBy: req.session.userId,
-      });
-      const user = await storage.getUser(deposit.userId);
-      if (user) {
-        const newBalance = parseFloat(user.balance) + deposit.amount;
-        await storage.updateUser(user.id, { balance: newBalance.toFixed(2), hasDeposited: true });
-        await storage.createTransaction({ userId: user.id, type: "deposit", amount: deposit.amount.toString(), description: "Dépôt validé par bankier" });
-      }
+      const approval = await storage.approveManualDepositExactlyOnce(depositId, req.session.userId!);
+      if (!approval.deposit) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
+      const deposit = approval.deposit;
       await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé par bankier: ${deposit.amount} XOF`);
       res.json(deposit);
     } catch (error: any) {

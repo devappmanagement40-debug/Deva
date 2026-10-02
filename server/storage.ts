@@ -8,7 +8,7 @@ import {
   type GiftCode, type GiftCodeClaim, type Country
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull } from "drizzle-orm";
+import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, ne } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 
@@ -59,6 +59,7 @@ export interface IStorage {
   getUserDeposits(userId: number): Promise<Deposit[]>;
   updateDeposit(id: number, data: Partial<Deposit>): Promise<Deposit>;
   getDepositByReference(reference: string): Promise<Deposit | undefined>;
+  approveManualDepositExactlyOnce(id: number, processedBy: number): Promise<{ deposit?: Deposit; credited: boolean }>;
   approveNowPaymentsDeposit(reference: string): Promise<{ deposit?: Deposit; credited: boolean }>;
   processNowPaymentsDeposit(input: {
     reference: string;
@@ -810,6 +811,58 @@ export class DatabaseStorage implements IStorage {
   async updateDeposit(id: number, data: Partial<Deposit>): Promise<Deposit> {
     const [deposit] = await db.update(deposits).set(data).where(eq(deposits.id, id)).returning();
     return deposit;
+  }
+
+  async approveManualDepositExactlyOnce(
+    id: number,
+    processedBy: number,
+  ): Promise<{ deposit?: Deposit; credited: boolean }> {
+    return db.transaction(async (tx) => {
+      const [deposit] = await tx
+        .update(deposits)
+        .set({
+          status: "approved",
+          processedAt: new Date(),
+          processedBy,
+        })
+        .where(
+          and(
+            eq(deposits.id, id),
+            inArray(deposits.status, ["pending", "processing"]),
+            ne(deposits.paymentMethod, "NOWPayments"),
+          ),
+        )
+        .returning();
+
+      if (!deposit) {
+        const [existing] = await tx.select().from(deposits).where(eq(deposits.id, id));
+        return { deposit: existing, credited: false };
+      }
+
+      const [creditedUser] = await tx
+        .update(users)
+        .set({
+          balance: sql`(${users.balance}::numeric + ${deposit.amount})::numeric(15, 2)`,
+          hasDeposited: true,
+        })
+        .where(eq(users.id, deposit.userId))
+        .returning({ id: users.id });
+
+      if (!creditedUser) {
+        throw new Error("Utilisateur du dépôt introuvable");
+      }
+
+      await tx.insert(transactions).values({
+        userId: deposit.userId,
+        type: "deposit",
+        amount: deposit.amount.toString(),
+        description: deposit.paymentMethod === "Deposit issue"
+          ? "Réclamation de dépôt approuvée"
+          : "Dépôt validé",
+      });
+
+      return { deposit, credited: true };
+    });
   }
 
   /**

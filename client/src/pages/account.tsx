@@ -38,6 +38,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
+import customerServiceIcon from "@assets/pngtree-3d-customer-service-png-image_20069079_1790928869350.png";
 import {
   computeVipLevelFromProduct,
   DEFAULT_VIP_CONFIGS,
@@ -612,7 +613,13 @@ export default function AccountPage() {
                 onClick={() => href ? navigate(href) : handleSecurityPin()}
                 data-testid={`account-link-${copyKey}`}
               >
-                {copyKey === "password" ? <PasswordGlyph /> : <Icon size={24} strokeWidth={2.1} aria-hidden="true" />}
+                {copyKey === "password" ? (
+                  <PasswordGlyph />
+                ) : copyKey === "support" ? (
+                  <img src={customerServiceIcon} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
+                )}
                 <span>{copy[copyKey]}</span>
                 {index !== 1 && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
               </button>
@@ -649,7 +656,11 @@ export default function AccountPage() {
                 onClick={() => { setShowAccountMenu(false); navigate(href); }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
-                <Icon size={19} color="#0789e9" />
+                {labelKey === "customerService" ? (
+                  <img src={customerServiceIcon} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" />
+                ) : (
+                  <Icon size={19} color="#0789e9" />
+                )}
                 <span className="text-sm text-[#30363a]">{t[labelKey]}</span>
               </button>
             ))}

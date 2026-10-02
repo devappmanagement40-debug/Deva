@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
-import supportAvatar from "@assets/generated_images/diamant-popup-mascot.png";
+import customerServiceIcon from "@assets/pngtree-3d-customer-service-png-image_20069079_1790928869350.png";
 
 interface SettingsLinks {
   supportLink: string;
@@ -127,14 +127,14 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
       }}
     >
       <img
-        src={placement === "auth" || placement === "home" ? "/support-avatar.png" : supportAvatar}
+        src={customerServiceIcon}
         alt={t.customerService}
         draggable={false}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition: "center top",
+          objectPosition: "center 42%",
           display: "block",
           pointerEvents: "none",
         }}

@@ -161,7 +161,11 @@ export const deposits = pgTable("deposits", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   processedAt: timestamp("processed_at"),
   processedBy: integer("processed_by"),
-});
+}, (table) => ({
+  depositIssueReferenceUnique: uniqueIndex("deposits_issue_reference_unique")
+    .on(table.reference)
+    .where(sql`${table.paymentMethod} = 'Deposit issue' AND ${table.reference} IS NOT NULL`),
+}));
 
 // Share information reports
 export const shareReports = pgTable("share_reports", {

@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, Camera, Check, ChevronRight, Copy, CreditCard, History, Info, Loader2, ShieldCheck, WalletCards } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -102,16 +102,18 @@ function LabelledInput({
   );
 }
 
-export default function DepositPage() {
+export default function DepositPage({ startInIssue = false }: { startInIssue?: boolean }) {
   const { user } = useAuth();
   const { lang } = useI18n();
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const proofInput = useRef<HTMLInputElement>(null);
-  const [view, setView] = useState<DepositView>("main");
+  const [view, setView] = useState<DepositView>(startInIssue ? "issue" : "main");
   const [amount, setAmount] = useState("");
-  const [walletNumber, setWalletNumber] = useState(user?.phone || "");
   const [issueAmount, setIssueAmount] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [depositNumber, setDepositNumber] = useState("");
   const [proof, setProof] = useState<string | null>(null);
   const [proofName, setProofName] = useState("");
   const [cryptoPayment, setCryptoPayment] = useState<CryptoPayment | null>(null);
@@ -125,37 +127,39 @@ export default function DepositPage() {
   const minDeposit = Number.parseInt(settings.minDeposit || "18", 10) || 18;
   const depositPresetAmounts = parseDepositPresetAmounts(settings.depositPresetAmounts);
 
-  const createDeposit = useMutation({
-    mutationFn: async (payload: { amount: number; accountNumber: string; screenshot?: string }) => {
-      const response = await apiRequest("POST", "/api/deposits", {
+  const createDepositIssue = useMutation({
+    mutationFn: async (payload: { amount: number; transactionId: string; depositNumber: string; screenshot: string }) => {
+      const response = await apiRequest("POST", "/api/deposit-issues", {
         amount: payload.amount,
-        accountName: user?.fullName || user?.phone || "Client DIAMANT",
-        accountNumber: payload.accountNumber,
-        paymentMethod: "Deposit bank",
-        channelName: "Deposit bank",
-        country: user?.country || "CD",
-        screenshot: payload.screenshot || null,
-        reference: payload.accountNumber,
+        transactionId: payload.transactionId,
+        depositNumber: payload.depositNumber,
+        screenshot: payload.screenshot,
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "The deposit could not be submitted.");
+        throw new Error(error.message || "Impossible d'envoyer le signalement.");
       }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits/history"] });
       toast({
-        title: "Deposit recorded",
-        description: "Your recharge request is being reviewed.",
+        title: "Signalement envoyé",
+        description: "Votre déclaration de dépôt est en cours de vérification.",
       });
-      setView("main");
+      if (startInIssue) {
+        navigate("/service");
+      } else {
+        setView("main");
+      }
+      setTransactionId("");
+      setDepositNumber("");
       setProof(null);
       setProofName("");
       setIssueAmount("");
     },
     onError: (error: Error) => {
-      toast({ title: "Unable to submit deposit", description: error.message, variant: "destructive" });
+      toast({ title: "Impossible d'envoyer le signalement", description: error.message, variant: "destructive" });
     },
   });
 
@@ -187,12 +191,12 @@ export default function DepositPage() {
   const chooseProof = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Image required", description: "Please select a proof image.", variant: "destructive" });
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast({ title: "Fichier non valide", description: "Choisissez une image JPG, PNG ou WebP.", variant: "destructive" });
       return;
     }
     if (file.size > 3 * 1024 * 1024) {
-      toast({ title: "Image too large", description: "The proof image must not exceed 3 MB.", variant: "destructive" });
+      toast({ title: "Fichier trop volumineux", description: "L'image doit faire moins de 3 Mo.", variant: "destructive" });
       return;
     }
     const reader = new FileReader();
@@ -256,11 +260,13 @@ export default function DepositPage() {
   };
 
   const submitIssue = () => {
-    const parsedAmount = Number(issueAmount.replace(/[^\d]/g, ""));
-    if (!walletNumber.trim() || !parsedAmount || !proof) {
+    const parsedAmount = Number(issueAmount);
+    const cleanTransactionId = transactionId.trim();
+    const cleanDepositNumber = depositNumber.trim();
+    if (!cleanTransactionId || !cleanDepositNumber || !Number.isSafeInteger(parsedAmount) || parsedAmount <= 0 || !proof) {
       toast({
-        title: "Missing information",
-        description: "Add your wallet number, amount, and proof.",
+        title: "Informations manquantes",
+        description: "Renseignez l’identifiant de transaction, le montant et le numéro de dépôt, puis ajoutez la capture.",
         variant: "destructive",
       });
       return;
@@ -268,12 +274,25 @@ export default function DepositPage() {
     if (parsedAmount < minDeposit) {
       toast({
         title: "Montant invalide",
-        description: `The minimum deposit is ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
+        description: `Le montant minimum est de ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
         variant: "destructive",
       });
       return;
     }
-    createDeposit.mutate({ amount: parsedAmount, accountNumber: walletNumber, screenshot: proof });
+    createDepositIssue.mutate({
+      amount: parsedAmount,
+      transactionId: cleanTransactionId,
+      depositNumber: cleanDepositNumber,
+      screenshot: proof,
+    });
+  };
+
+  const leaveIssueForm = () => {
+    if (startInIssue) {
+      navigate("/service");
+      return;
+    }
+    setView("main");
   };
 
   if (!user) return null;
@@ -501,35 +520,41 @@ export default function DepositPage() {
       <main className="ielp-deposit-page min-h-screen bg-[#f5f5f5] pb-10" style={{ color: "#252525" }}>
         <header className="flex h-[116px] items-center gap-3 bg-white px-5">
           <button
-            onClick={() => setView("main")}
+            onClick={leaveIssueForm}
             className="flex h-10 w-8 items-center justify-center active:scale-95"
-            aria-label="Back to deposit"
+            aria-label="Retour"
             data-testid="button-issue-back"
           >
             <ArrowLeft size={31} strokeWidth={1.7} />
           </button>
-          <h1 className="ielp-deposit-issue-title font-normal" style={{ color: "#0bad32", fontSize: 20 }}>Recharge issue</h1>
+          <h1 className="ielp-deposit-issue-title font-normal" style={{ color: "#0bad32", fontSize: 20 }}>Signaler un dépôt non reçu</h1>
         </header>
 
         <section className="mx-5 mt-6 rounded-[10px] bg-white px-5 pb-10 pt-6 shadow-[0_1px_4px_rgba(0,0,0,.03)]">
           <LabelledInput
-            label="Wallet number"
-            value={walletNumber}
-            onChange={setWalletNumber}
-            placeholder="Enter your wallet number"
+            label="ID de transaction"
+            value={transactionId}
+            onChange={setTransactionId}
+            placeholder="Saisissez l’identifiant de transaction"
           />
           <LabelledInput
-            label="Recharge amount"
+            label="Montant du dépôt (XOF)"
             value={issueAmount}
             onChange={setIssueAmount}
-            placeholder="Enter the recharge amount"
+            placeholder="Saisissez le montant envoyé"
             type="number"
+          />
+          <LabelledInput
+            label="Numéro de dépôt destinataire"
+            value={depositNumber}
+            onChange={setDepositNumber}
+            placeholder="Numéro sur lequel vous avez envoyé le paiement"
           />
           <div>
             <p className="ielp-deposit-form-label mb-4 font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
-              <span style={{ color: "#ea4f55" }}>* </span>Recharge proof
+              <span style={{ color: "#ea4f55" }}>* </span>Capture du paiement
             </p>
-            <input ref={proofInput} className="hidden" type="file" accept="image/*" onChange={chooseProof} />
+            <input ref={proofInput} className="hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseProof} />
             <button
               type="button"
               onClick={() => proofInput.current?.click()}
@@ -544,7 +569,7 @@ export default function DepositPage() {
                 </>
               ) : (
                 <span className="flex items-center gap-2" style={{ fontSize: 17 }}>
-                  <Camera size={27} fill="#a1a5ae" strokeWidth={1.6} /> Click to upload
+                  <Camera size={27} fill="#a1a5ae" strokeWidth={1.6} /> Ajouter une capture
                 </span>
               )}
             </button>
@@ -553,27 +578,24 @@ export default function DepositPage() {
 
         <button
           onClick={submitIssue}
-          disabled={createDeposit.isPending}
+          disabled={createDepositIssue.isPending}
           className="mx-auto mt-5 flex h-[44px] w-[66%] items-center justify-center rounded-[8px] font-semibold text-white shadow-sm transition active:scale-[.98] disabled:opacity-70"
           style={{ background: "#00b80f", fontSize: 16 }}
           data-testid="button-submit-deposit-issue"
         >
-          {createDeposit.isPending ? "Submitting…" : "Submit"}
+          {createDepositIssue.isPending ? "Envoi…" : "Envoyer le signalement"}
         </button>
 
         <section className="mx-5 mt-7">
           <h2 className="mb-1 font-bold" style={{ fontSize: 19, lineHeight: 1.55 }}>
-            Please submit a clear USDT deposit proof:
+            Informations nécessaires à la vérification
           </h2>
           <div className="h-[3px] w-full bg-[#d5d5d5]" />
           <div className="bg-[#f8f9fa] px-4 pb-5 pt-4 text-[14px] leading-6 text-[#686868]">
-            Include the wallet address, amount, network, and transaction reference so the team can verify your payment.
+            Indiquez le numéro destinataire, le montant exact et l’identifiant de transaction. La capture doit être lisible.
           </div>
           <div className="mt-8 rounded-[10px] bg-white px-5 py-5 text-[14px] leading-6 text-[#686868]">
-            <p>If you have a recharge order that was not received, please submit the recharge information.</p>
-            <p className="mt-2">1. Your wallet number</p>
-            <p>2. Recharge proof</p>
-            <p>3. The latest recharge order has been processing for more than 20 minutes</p>
+            <p>Votre déclaration sera vérifiée par l’équipe avant tout crédit sur votre solde de dépôt.</p>
           </div>
         </section>
       </main>
@@ -664,12 +686,11 @@ export default function DepositPage() {
 
       <button
         onClick={submitMainDeposit}
-        disabled={createDeposit.isPending}
         className="mx-auto mt-5 flex h-[48px] w-[51%] items-center justify-center rounded-full font-normal text-white shadow-[0_3px_8px_rgba(0,180,15,.18)] transition active:scale-[.98] disabled:opacity-70"
         style={{ background: "#00b80f", fontSize: 19 }}
         data-testid="button-confirm-deposit"
       >
-          {createDeposit.isPending ? "Submitting…" : "Pay"}
+          Pay
       </button>
       <button
         onClick={() => setView("issue")}

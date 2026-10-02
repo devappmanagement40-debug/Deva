@@ -323,6 +323,11 @@ function RouterComponent() {
           <DepositPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/deposit-issue">
+        <ProtectedRoute>
+          <DepositPage startInIssue />
+        </ProtectedRoute>
+      </Route>
       <Route path="/withdrawal">
         <ProtectedRoute>
           <WithdrawalPage />

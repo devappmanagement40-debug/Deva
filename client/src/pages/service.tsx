@@ -5,12 +5,12 @@ import {
   ChevronRight,
   Clock3,
   Headset,
-  MessageCircleMore,
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { getContent, rebrandText } from "@/lib/content";
+import customerServiceIcon from "@assets/pngtree-3d-customer-service-png-image_20069079_1790928869350.png";
 import "./service.css";
 
 interface LinksSettings {
@@ -109,7 +109,6 @@ export default function ServicePage() {
   const links = allLinks.filter((link) => link.enabled);
   const primarySupport = links.find((link) => link.testId === "button-support-link");
   const secondarySupport = links.find((link) => link.testId === "button-support2-link");
-  const depositHelpLink = primarySupport || secondarySupport || links[0];
   const preferredFloatingLink = settings?.floatingSupportTarget === "support2"
     ? secondarySupport
     : primarySupport;
@@ -137,7 +136,7 @@ export default function ServicePage() {
         </div>
         <div className="diamant-service-hero-art">
           <img
-            src="/support-avatar.png"
+            src={customerServiceIcon}
             alt="Conseillère DIAMANT du service client"
             draggable={false}
           />
@@ -161,17 +160,14 @@ export default function ServicePage() {
               Après avoir réussi à créditer votre compte, si le solde n'est pas apparu,
               veuillez le signaler ici et notre service client vous assistera&nbsp;!
             </p>
-            {depositHelpLink && (
-              <button
-                type="button"
-                className="diamant-service-text-action"
-                onClick={() => openSupportLink(depositHelpLink.href)}
-                data-testid="button-deposit-support"
-              >
-                Signaler mon dépôt
-                <ChevronRight size={18} aria-hidden="true" />
-              </button>
-            )}
+            <Link
+              href="/deposit-issue"
+              className="diamant-service-text-action"
+              data-testid="button-deposit-support"
+            >
+              Signaler mon dépôt
+              <ChevronRight size={18} aria-hidden="true" />
+            </Link>
           </div>
         </section>
 
@@ -251,7 +247,7 @@ export default function ServicePage() {
           onClick={() => openSupportLink(floatingLink.href)}
           data-testid="button-floating-support"
         >
-          <MessageCircleMore size={26} strokeWidth={2.4} aria-hidden="true" />
+          <img src={customerServiceIcon} alt="" aria-hidden="true" draggable={false} />
         </button>
       )}
     </div>
