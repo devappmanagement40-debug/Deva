@@ -11,6 +11,11 @@ import { rebrandText } from "@/lib/content";
 import { DiamantBrand } from "@/components/diamant-brand";
 
 const MEMBER_ACCENT = "#00c83c";
+const BALANCE_CARD_CLASS_NAME =
+  "relative block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]";
+const BALANCE_CARD_STYLE = {
+  background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)",
+} as const;
 type IncomeSummary = { productEarnings: number; teamEarnings: number };
 
 const BALANCE_COPY: Record<Lang, {
@@ -173,8 +178,8 @@ export default function EarningsPage() {
               <article
                 key={card.id}
                 aria-label={`${card.label}: ${card.currency} ${card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                className="relative block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]"
-                style={{ background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)" }}
+                className={BALANCE_CARD_CLASS_NAME}
+                style={BALANCE_CARD_STYLE}
                 data-testid={`balance-card-${card.id}`}
               >
                 <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
@@ -198,13 +203,12 @@ export default function EarningsPage() {
                 </div>
               </article>
             ))}
-          </div>
-          <article
-            className="relative mt-4 block h-[256px] w-full overflow-hidden rounded-[20px] text-left text-white shadow-[0_12px_20px_rgba(0,76,43,0.26)]"
-            style={{ background: "linear-gradient(126deg, #063d2b 0%, #087a38 46%, #00b85a 100%)" }}
-            aria-label={balanceCopy.summaryTitle}
-            data-testid="income-summary-card"
-          >
+            <article
+              className={BALANCE_CARD_CLASS_NAME}
+              style={BALANCE_CARD_STYLE}
+              aria-label={balanceCopy.summaryTitle}
+              data-testid="income-summary-card"
+            >
             <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
             <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
             <div className="absolute right-[11%] -top-12 h-80 w-10 rotate-[-18deg] bg-white/[0.09]" />
@@ -244,7 +248,8 @@ export default function EarningsPage() {
               <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
               <span className="truncate">{balanceCopy.combinedTotal}</span>
             </div>
-          </article>
+            </article>
+          </div>
           {incomeSummaryQuery.isError && (
             <p className="mt-2 text-center text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>
           )}
