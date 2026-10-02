@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -276,6 +276,9 @@ function HomePage() {
   const { lang } = useI18n();
   const copy = COPY[lang];
   const popularProductsRef = useRef<HTMLDivElement>(null);
+  const popularProductsPointerInsideRef = useRef(false);
+  const popularProductsFocusInsideRef = useRef(false);
+  const popularProductsManualPauseUntilRef = useRef(0);
 
   const { data: settings = {}, isLoading: isSettingsLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
@@ -318,6 +321,52 @@ function HomePage() {
       .slice(0, 4);
   }, [catalogProducts, selectedPopularIds]);
   const telegramUrl = getTelegramDestination(settings);
+  const isAuthenticated = Boolean(user);
+
+  useEffect(() => {
+    const track = popularProductsRef.current;
+    if (!isAuthenticated || !track || popularProducts.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const intervalId = window.setInterval(() => {
+      if (
+        document.visibilityState !== "visible"
+        || popularProductsPointerInsideRef.current
+        || popularProductsFocusInsideRef.current
+        || Date.now() < popularProductsManualPauseUntilRef.current
+      ) {
+        return;
+      }
+
+      const trackBounds = track.getBoundingClientRect();
+      if (trackBounds.width === 0 || trackBounds.bottom <= 0 || trackBounds.top >= window.innerHeight) return;
+
+      const cards = Array.from(track.querySelectorAll<HTMLButtonElement>(".ielp-home-product-card"));
+      if (cards.length < 2) return;
+
+      const isRtl = lang === "ar";
+      let currentIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+      cards.forEach((card, index) => {
+        const cardBounds = card.getBoundingClientRect();
+        const distance = Math.abs(isRtl
+          ? cardBounds.right - trackBounds.right
+          : cardBounds.left - trackBounds.left);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          currentIndex = index;
+        }
+      });
+
+      cards[(currentIndex + 1) % cards.length].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "start",
+      });
+    }, 4500);
+
+    return () => window.clearInterval(intervalId);
+  }, [isAuthenticated, lang, popularProducts.length]);
 
   if (!user) return null;
 
@@ -336,6 +385,7 @@ function HomePage() {
   function scrollPopularProducts(direction: -1 | 1) {
     const track = popularProductsRef.current;
     if (!track) return;
+    popularProductsManualPauseUntilRef.current = Date.now() + 5000;
     const rtlFactor = lang === "ar" ? -1 : 1;
     track.scrollBy({
       left: direction * rtlFactor * Math.max(220, track.clientWidth * 0.78),
@@ -458,6 +508,17 @@ function HomePage() {
                 role="region"
                 aria-label={copy.popularProducts}
                 tabIndex={0}
+                onPointerDown={() => {
+                  popularProductsManualPauseUntilRef.current = Date.now() + 5000;
+                }}
+                onPointerEnter={() => { popularProductsPointerInsideRef.current = true; }}
+                onPointerLeave={() => { popularProductsPointerInsideRef.current = false; }}
+                onFocusCapture={() => { popularProductsFocusInsideRef.current = true; }}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                    popularProductsFocusInsideRef.current = false;
+                  }
+                }}
               >
                 {popularProducts.map((product, index) => {
                   const name = rebrandText(product.name);
