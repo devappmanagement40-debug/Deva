@@ -29,8 +29,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "Solde des gains",
     summaryTitle: "Récapitulatif des revenus et gains",
     combinedTotal: "Total produits + équipe",
-    productShort: "Produits",
-    teamShort: "Équipe",
+    productShort: "Gains produits",
+    teamShort: "Gains équipe",
     summaryUnavailable: "Récapitulatif indisponible pour le moment.",
   },
   en: {
@@ -39,8 +39,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "Earnings balance",
     summaryTitle: "Income and earnings summary",
     combinedTotal: "Products + team total",
-    productShort: "Products",
-    teamShort: "Team",
+    productShort: "Product earnings",
+    teamShort: "Team earnings",
     summaryUnavailable: "Summary is temporarily unavailable.",
   },
   ar: {
@@ -49,8 +49,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "رصيد الأرباح",
     summaryTitle: "ملخص الإيرادات والأرباح",
     combinedTotal: "إجمالي المنتجات والفريق",
-    productShort: "المنتجات",
-    teamShort: "الفريق",
+    productShort: "أرباح المنتجات",
+    teamShort: "أرباح الفريق",
     summaryUnavailable: "الملخص غير متاح مؤقتًا.",
   },
   zh: {
@@ -59,8 +59,8 @@ const BALANCE_COPY: Record<Lang, {
     earnings: "收益余额",
     summaryTitle: "收入与收益汇总",
     combinedTotal: "产品与团队总额",
-    productShort: "产品",
-    teamShort: "团队",
+    productShort: "产品收益",
+    teamShort: "团队收益",
     summaryUnavailable: "暂时无法获取汇总。",
   },
 };
@@ -215,24 +215,24 @@ export default function EarningsPage() {
             <p className="absolute left-[14px] top-[78px] max-w-[82%] break-all text-[22px] font-semibold leading-[26px] tracking-[.01em]" data-testid="income-summary-total">
               {formatSummaryAmount(productIncome + teamIncome)}
             </p>
-            <div className="absolute left-[14px] top-[138px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
-              <div className="flex h-[27px] items-center justify-between gap-2 rounded-md border border-white/25 bg-white/10 px-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-[10px] text-white/85">
+            <div className="absolute left-[14px] top-[132px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
+              <div className="border-b border-white/25 pb-1">
+                <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
                   <Package className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span className="truncate">{balanceCopy.productShort}</span>
-                </span>
-                <span className="shrink-0 text-right text-[10px] font-semibold tabular-nums" data-testid="income-summary-products">
-                  {formatSummaryValue(productIncome)}
-                </span>
+                </p>
+                <p className="pl-5 text-[12px] font-bold leading-4 tabular-nums" data-testid="income-summary-products">
+                  {formatSummaryAmount(productIncome)}
+                </p>
               </div>
-              <div className="flex h-[27px] items-center justify-between gap-2 rounded-md border border-white/25 bg-white/10 px-2">
-                <span className="flex min-w-0 items-center gap-1.5 text-[10px] text-white/85">
+              <div>
+                <p className="flex items-center gap-1.5 text-[10px] leading-4 text-white/85">
                   <UsersRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span className="truncate">{balanceCopy.teamShort}</span>
-                </span>
-                <span className="shrink-0 text-right text-[10px] font-semibold tabular-nums" data-testid="income-summary-team">
-                  {formatSummaryValue(teamIncome)}
-                </span>
+                </p>
+                <p className="pl-5 text-[12px] font-bold leading-4 tabular-nums" data-testid="income-summary-team">
+                  {formatSummaryAmount(teamIncome)}
+                </p>
               </div>
             </div>
             <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
