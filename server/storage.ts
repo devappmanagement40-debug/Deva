@@ -88,6 +88,12 @@ export interface IStorage {
     attachmentType?: SupportChatAttachmentType | null;
     attachmentName?: string | null;
   }): Promise<SupportChatMessage>;
+  updateOwnAdminSupportChatMessage(
+    userId: number,
+    messageId: number,
+    adminId: number,
+    message: string,
+  ): Promise<SupportChatMessage | undefined>;
   markSupportChatMessagesRead(userId: number, readerRole: SupportChatSenderRole): Promise<void>;
   getSupportChatConversations(): Promise<SupportChatConversation[]>;
   getSupportChatAttachmentUserId(attachmentUrl: string): Promise<number | undefined>;
@@ -812,6 +818,24 @@ export class DatabaseStorage implements IStorage {
   }): Promise<SupportChatMessage> {
     const [message] = await db.insert(supportChatMessages).values(data).returning();
     return message;
+  }
+
+  async updateOwnAdminSupportChatMessage(
+    userId: number,
+    messageId: number,
+    adminId: number,
+    message: string,
+  ): Promise<SupportChatMessage | undefined> {
+    const [updatedMessage] = await db.update(supportChatMessages)
+      .set({ message })
+      .where(and(
+        eq(supportChatMessages.userId, userId),
+        eq(supportChatMessages.id, messageId),
+        eq(supportChatMessages.senderId, adminId),
+        eq(supportChatMessages.senderRole, "admin"),
+      ))
+      .returning();
+    return updatedMessage;
   }
 
   async markSupportChatMessagesRead(userId: number, readerRole: SupportChatSenderRole): Promise<void> {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FileText, Inbox, LoaderCircle, Send } from "lucide-react";
+import { ArrowLeft, Check, FileText, Inbox, LoaderCircle, Pencil, Send, X } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth";
 import type { SupportChatConversation, SupportChatMessage } from "@shared/schema";
 import "./support-chat.css";
 
@@ -27,7 +28,33 @@ function initials(name: string): string {
   return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toLocaleUpperCase("fr-FR");
 }
 
-function ThreadMessage({ item, memberName }: { item: SupportChatMessage; memberName: string }) {
+type ThreadMessageProps = {
+  item: SupportChatMessage;
+  memberName: string;
+  canEdit: boolean;
+  isEditing: boolean;
+  editDraft: string;
+  isSavingEdit: boolean;
+  editError: string;
+  onStartEdit: () => void;
+  onEditDraftChange: (value: string) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (event: FormEvent<HTMLFormElement>) => void;
+};
+
+function ThreadMessage({
+  item,
+  memberName,
+  canEdit,
+  isEditing,
+  editDraft,
+  isSavingEdit,
+  editError,
+  onStartEdit,
+  onEditDraftChange,
+  onCancelEdit,
+  onSaveEdit,
+}: ThreadMessageProps) {
   const own = item.senderRole === "admin";
   return (
     <div className="sc-message-row" data-own={own} data-testid={`admin-message-${item.id}`}>
@@ -50,8 +77,45 @@ function ThreadMessage({ item, memberName }: { item: SupportChatMessage; memberN
               <span className="sc-attachment-file"><FileText size={16} aria-hidden="true" /><span className="sc-attachment-name">{item.attachmentName || "Fichier joint"}</span></span>
             </a>
           )}
-          {item.message && <span>{item.message}</span>}
+          {isEditing ? (
+            <form className="sc-admin-edit-form" onSubmit={onSaveEdit}>
+              <textarea
+                value={editDraft}
+                onChange={(event) => onEditDraftChange(event.target.value)}
+                aria-label="Modifier le message envoyé"
+                maxLength={2000}
+                rows={3}
+                autoFocus
+                data-testid={`input-edit-admin-message-${item.id}`}
+              />
+              <div className="sc-admin-edit-actions">
+                <button type="button" onClick={onCancelEdit} disabled={isSavingEdit} data-testid={`button-cancel-edit-${item.id}`}>
+                  <X size={15} aria-hidden="true" />
+                  <span>Annuler</span>
+                </button>
+                <button type="submit" disabled={!editDraft.trim() || isSavingEdit} data-testid={`button-save-edit-${item.id}`}>
+                  {isSavingEdit ? <LoaderCircle size={15} className="animate-spin" aria-hidden="true" /> : <Check size={15} aria-hidden="true" />}
+                  <span>Enregistrer</span>
+                </button>
+              </div>
+              {editError && <p className="sc-admin-edit-error" role="alert">{editError}</p>}
+            </form>
+          ) : item.message ? (
+            <span>{item.message}</span>
+          ) : null}
         </div>
+        {canEdit && !isEditing && (
+          <button
+            className="sc-admin-edit-trigger"
+            type="button"
+            onClick={onStartEdit}
+            aria-label="Modifier mon message"
+            data-testid={`button-edit-admin-message-${item.id}`}
+          >
+            <Pencil size={13} aria-hidden="true" />
+            <span>Modifier</span>
+          </button>
+        )}
         <time className="sc-message-time" dateTime={new Date(item.createdAt).toISOString()}>{fullTime(item.createdAt)}</time>
       </div>
     </div>
@@ -59,9 +123,14 @@ function ThreadMessage({ item, memberName }: { item: SupportChatMessage; memberN
 }
 
 export default function AdminSupportInbox() {
+  const { user } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [threadView, setThreadView] = useState<"messages" | "images">("messages");
   const [draft, setDraft] = useState("");
   const [sendError, setSendError] = useState("");
+  const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
+  const [editDraft, setEditDraft] = useState("");
+  const [editError, setEditError] = useState("");
   const messageEndRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
 
@@ -114,6 +183,25 @@ export default function AdminSupportInbox() {
     onError: (error: Error) => setSendError(error.message || "La réponse n’a pas pu être envoyée."),
   });
 
+  const editReply = useMutation({
+    mutationFn: async ({ userId, messageId, message }: { userId: number; messageId: number; message: string }) => {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/admin/support-chat/conversations/${userId}/messages/${messageId}`,
+        { message },
+      );
+      return response.json() as Promise<SupportChatMessage>;
+    },
+    onSuccess: (_updatedMessage, variables) => {
+      setEditingMessageId(null);
+      setEditDraft("");
+      setEditError("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support-chat/conversations", variables.userId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support-chat/conversations"] });
+    },
+    onError: (error: Error) => setEditError(error.message || "Le message n’a pas pu être modifié."),
+  });
+
   useEffect(() => {
     lastMessageIdRef.current = null;
   }, [selectedUserId]);
@@ -141,6 +229,27 @@ export default function AdminSupportInbox() {
   };
 
   const unreadTotal = conversations.reduce((total, item) => total + item.unreadCount, 0);
+  const imageMessages = thread.filter((item) => item.attachmentUrl && item.attachmentType === "image");
+
+  const startEditing = (item: SupportChatMessage) => {
+    setEditingMessageId(item.id);
+    setEditDraft(item.message);
+    setEditError("");
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditDraft("");
+    setEditError("");
+  };
+
+  const saveEditedMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const message = editDraft.trim();
+    if (selectedUserId === null || editingMessageId === null || !message || editReply.isPending) return;
+    setEditError("");
+    editReply.mutate({ userId: selectedUserId, messageId: editingMessageId, message });
+  };
 
   return (
     <section className="sc-admin" data-testid="admin-support-inbox">
@@ -187,6 +296,8 @@ export default function AdminSupportInbox() {
                     data-selected={selectedUserId === conversation.user.id}
                     onClick={() => {
                       setSelectedUserId(conversation.user.id);
+                      setThreadView("messages");
+                      cancelEditing();
                       setSendError("");
                     }}
                     aria-current={selectedUserId === conversation.user.id ? "true" : undefined}
@@ -216,7 +327,11 @@ export default function AdminSupportInbox() {
                 <button
                   className="sc-admin-back"
                   type="button"
-                  onClick={() => setSelectedUserId(null)}
+                  onClick={() => {
+                    setSelectedUserId(null);
+                    setThreadView("messages");
+                    cancelEditing();
+                  }}
                   aria-label="Retour à la liste des conversations"
                   data-testid="button-support-inbox-back"
                 >
@@ -229,22 +344,93 @@ export default function AdminSupportInbox() {
                 </div>
               </header>
 
-              <div className="sc-admin-messages" aria-label={`Messages avec ${activeConversation.user.fullName}`} aria-live="polite" data-testid="admin-support-message-list">
-                {threadQuery.isLoading ? (
-                  <div className="sc-thread-state" role="status"><div className="sc-state-card"><div className="sc-skeleton" /><p>Chargement des messages…</p></div></div>
-                ) : threadQuery.isError ? (
-                  <div className="sc-thread-state" role="alert">
-                    <div className="sc-state-card">
-                      <strong>Impossible d’ouvrir cette conversation</strong>
-                      <p>{errorMessage(threadQuery.error)}</p>
-                      <button className="sc-retry" type="button" onClick={() => void threadQuery.refetch()}>Réessayer</button>
-                    </div>
-                  </div>
-                ) : thread.length === 0 ? (
-                  <div className="sc-thread-state"><div className="sc-state-card"><strong>Début de la conversation</strong><p>Envoyez une réponse au membre.</p></div></div>
-                ) : thread.map((item) => <ThreadMessage key={item.id} item={item} memberName={activeConversation.user.fullName} />)}
-                <div ref={messageEndRef} />
+              <div className="sc-admin-thread-tabs" aria-label="Contenu de la conversation">
+                <button
+                  type="button"
+                  aria-pressed={threadView === "messages"}
+                  data-active={threadView === "messages"}
+                  onClick={() => setThreadView("messages")}
+                  data-testid="button-support-view-messages"
+                >
+                  Messages
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={threadView === "images"}
+                  data-active={threadView === "images"}
+                  onClick={() => {
+                    setThreadView("images");
+                    cancelEditing();
+                  }}
+                  data-testid="button-support-view-images"
+                >
+                  Images <span>{imageMessages.length}</span>
+                </button>
               </div>
+
+              {threadView === "images" ? (
+                <div className="sc-admin-gallery" aria-label={`Images échangées avec ${activeConversation.user.fullName}`} data-testid="admin-support-image-gallery">
+                  {threadQuery.isLoading ? (
+                    <div className="sc-thread-state" role="status"><div className="sc-state-card"><div className="sc-skeleton" /><p>Chargement des images…</p></div></div>
+                  ) : threadQuery.isError ? (
+                    <div className="sc-thread-state" role="alert">
+                      <div className="sc-state-card">
+                        <strong>Impossible de charger les images</strong>
+                        <p>{errorMessage(threadQuery.error)}</p>
+                        <button className="sc-retry" type="button" onClick={() => void threadQuery.refetch()}>Réessayer</button>
+                      </div>
+                    </div>
+                  ) : imageMessages.length === 0 ? (
+                    <div className="sc-thread-state"><div className="sc-state-card"><strong>Aucune image partagée</strong><p>Les images envoyées dans cette conversation apparaîtront ici.</p></div></div>
+                  ) : (
+                    <div className="sc-admin-gallery-grid">
+                      {imageMessages.map((item) => (
+                        <figure className="sc-admin-gallery-item" key={item.id}>
+                          <a href={item.attachmentUrl || undefined} target="_blank" rel="noreferrer" aria-label={`Ouvrir ${item.attachmentName || "l’image partagée"}`}>
+                            <img src={item.attachmentUrl || undefined} alt={item.attachmentName || "Image partagée"} loading="lazy" />
+                          </a>
+                          <figcaption>
+                            <span>{item.attachmentName || "Image partagée"}</span>
+                            <time>{shortTime(item.createdAt)}</time>
+                          </figcaption>
+                        </figure>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="sc-admin-messages" aria-label={`Messages avec ${activeConversation.user.fullName}`} aria-live="polite" data-testid="admin-support-message-list">
+                  {threadQuery.isLoading ? (
+                    <div className="sc-thread-state" role="status"><div className="sc-state-card"><div className="sc-skeleton" /><p>Chargement des messages…</p></div></div>
+                  ) : threadQuery.isError ? (
+                    <div className="sc-thread-state" role="alert">
+                      <div className="sc-state-card">
+                        <strong>Impossible d’ouvrir cette conversation</strong>
+                        <p>{errorMessage(threadQuery.error)}</p>
+                        <button className="sc-retry" type="button" onClick={() => void threadQuery.refetch()}>Réessayer</button>
+                      </div>
+                    </div>
+                  ) : thread.length === 0 ? (
+                    <div className="sc-thread-state"><div className="sc-state-card"><strong>Début de la conversation</strong><p>Envoyez une réponse au membre.</p></div></div>
+                  ) : thread.map((item) => (
+                    <ThreadMessage
+                      key={item.id}
+                      item={item}
+                      memberName={activeConversation.user.fullName}
+                      canEdit={item.senderRole === "admin" && item.senderId === user?.id}
+                      isEditing={editingMessageId === item.id}
+                      editDraft={editDraft}
+                      isSavingEdit={editReply.isPending && editingMessageId === item.id}
+                      editError={editingMessageId === item.id ? editError : ""}
+                      onStartEdit={() => startEditing(item)}
+                      onEditDraftChange={setEditDraft}
+                      onCancelEdit={cancelEditing}
+                      onSaveEdit={saveEditedMessage}
+                    />
+                  ))}
+                  <div ref={messageEndRef} />
+                </div>
+              )}
 
               <form className="sc-admin-composer" onSubmit={submitReply}>
                 <textarea

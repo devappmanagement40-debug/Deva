@@ -14,6 +14,7 @@ import path from "path";
 import fs from "fs";
 import crypto from "crypto";
 import { isSecureShareLink } from "./share-report-validation";
+import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
 
 /**
  * Résout les paramètres WestPay.
@@ -1257,32 +1258,6 @@ export async function registerRoutes(
       .max(4_200_000, "L'image de preuve est trop volumineuse"),
   });
 
-  const supportChatMessageSchema = z.object({
-    message: z.string().trim().max(2000, "Le message est trop long").default(""),
-    attachmentUrl: z.string()
-      .trim()
-      .max(300)
-      .regex(/^\/uploads\/[A-Za-z0-9._-]+$/, "Pièce jointe invalide")
-      .optional(),
-    attachmentType: z.enum(["image", "video", "file"]).optional(),
-    attachmentName: z.string().trim().max(180).optional(),
-  }).superRefine((data, ctx) => {
-    if (!data.message && !data.attachmentUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Écrivez un message ou ajoutez une pièce jointe",
-        path: ["message"],
-      });
-    }
-    if (Boolean(data.attachmentUrl) !== Boolean(data.attachmentType)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Les informations de la pièce jointe sont incomplètes",
-        path: ["attachmentType"],
-      });
-    }
-  });
-
   app.post("/api/share-reports", requireAuth, requireSameOrigin, async (req, res) => {
     try {
       const payload = shareReportSchema.parse(req.body);
@@ -2317,6 +2292,38 @@ export async function registerRoutes(
       }
       console.error("Admin support chat send error:", error);
       return res.status(500).json({ message: "Impossible d'envoyer la réponse pour le moment" });
+    }
+  });
+
+  app.patch("/api/admin/support-chat/conversations/:userId/messages/:messageId", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const userId = Number(req.params.userId);
+      const messageId = Number(req.params.messageId);
+      if (!Number.isSafeInteger(userId) || userId < 1 || !Number.isSafeInteger(messageId) || messageId < 1) {
+        return res.status(400).json({ message: "Identifiant de conversation ou de message invalide" });
+      }
+
+      const payload = supportChatEditMessageSchema.parse(req.body);
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "Membre introuvable" });
+
+      const updatedMessage = await storage.updateOwnAdminSupportChatMessage(
+        userId,
+        messageId,
+        req.session.userId!,
+        payload.message,
+      );
+      if (!updatedMessage) {
+        return res.status(404).json({ message: "Message introuvable ou non modifiable" });
+      }
+
+      return res.json(updatedMessage);
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0]?.message || "Message invalide" });
+      }
+      console.error("Admin support chat edit error:", error);
+      return res.status(500).json({ message: "Impossible de modifier le message pour le moment" });
     }
   });
 

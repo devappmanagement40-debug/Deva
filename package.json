@@ -12,6 +12,7 @@
     "start": "npm run db:push && NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
+    "test:support-chat": "tsx --test server/support-chat-validation.test.ts",
     "test:share-reports": "tsx --test server/share-report-validation.test.ts",
     "test:nowpayments": "tsx --test server/nowpayments-policy.test.ts"
   },
