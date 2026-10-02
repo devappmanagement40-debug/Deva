@@ -210,9 +210,18 @@ export async function seed() {
     }
   }
 
-  // Remove free products and obsolete settings from DB if any still exist (migration)
+  // Remove obsolete configuration and content fields from the previous rules page.
+  for (const obsoleteKey of [
+    "signupBonus",
+    "signupBonusEnabled",
+    "signupBonusAmount",
+    "content_rulespage_s4Title",
+  ]) {
+    await db.delete(platformSettings).where(eq(platformSettings.key, obsoleteKey));
+  }
+
+  // Remove free products from DB if any still exist (migration)
   await db.delete(products).where(eq(products.isFree, true));
-  await db.delete(platformSettings).where(eq(platformSettings.key, "signupBonus"));
 
   // Seed products only if table is empty (first install only — never overwrite admin changes)
   const existingProducts = await db.select().from(products);
@@ -382,7 +391,7 @@ export async function seed() {
     { key: "popupLine1", value: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
     { key: "popupLine2", value: "🤝 Dépôt minimum : 18 XOF" },
     { key: "popupLine3", value: "💚 Retrait minimum : 1 XOF — USDT BEP20, sans frais" },
-    { key: "popupLine4", value: "✅ Bonus d'inscription : 2 XOF" },
+    { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
     { key: "popupLine6", value: "🕘 Retraits et support disponibles de 09:00 à 17:00" },
     { key: "popupLine7", value: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit" },
@@ -404,8 +413,6 @@ export async function seed() {
     { key: "level1Commission", value: "10" },
     { key: "level2Commission", value: "2" },
     { key: "level3Commission", value: "1" },
-    { key: "signupBonusEnabled", value: "true" },
-    { key: "signupBonusAmount", value: "2" },
     { key: "soleaspayEnabled", value: "false" },
     { key: "soleaspayCountries", value: "" },
     { key: "soleaspayChannelName", value: "Soleaspay" },
@@ -486,8 +493,8 @@ export async function seed() {
     }
   }
 
-  // Update only known default earnings copy. Custom admin content remains untouched.
-  const earningsCopyUpdates = [
+  // Update only known default copy. Custom admin content remains untouched.
+  const knownDefaultCopyUpdates = [
     {
       key: "popupLine7",
       oldValue: "🔥 Les gains sont crédités chaque jour",
@@ -528,16 +535,42 @@ export async function seed() {
       oldValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
       newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
     },
+    {
+      key: "content_rulespage_s5Title",
+      oldValue: "5. Sécurité",
+      newValue: "4. Sécurité",
+    },
   ];
 
-  for (const update of earningsCopyUpdates) {
+  for (const update of knownDefaultCopyUpdates) {
     const existing = existingSettings.find((setting) => setting.key === update.key);
     if (existing?.value === update.oldValue) {
       await db.update(platformSettings)
         .set({ value: update.newValue })
         .where(eq(platformSettings.key, update.key));
-      console.log(`Earnings copy updated: ${update.key}`);
+      console.log(`Default copy updated: ${update.key}`);
     }
+  }
+
+  const retiredRewardCopyPattern =
+    /(?:\b(?:bonus|prime)\b[\s\S]{0,60}\b(?:inscription|registration|sign[\s-]?up|welcome|bienvenue)\b|\b(?:inscription|registration|sign[\s-]?up|welcome|bienvenue)\b[\s\S]{0,60}\b(?:bonus|prime)\b)/i;
+  const retiredRewardCopyReplacements: Record<string, string> = {
+    popupLine4: "",
+    content_home_popupLine6: "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
+    content_rules_section5Title: "5. Sécurité",
+    content_rules_section5Body: "Protégez votre compte et ne partagez jamais vos identifiants ou codes de validation.",
+  };
+  for (const setting of existingSettings) {
+    if (
+      !(setting.key.startsWith("content_") || setting.key.startsWith("popupLine")) ||
+      !retiredRewardCopyPattern.test(setting.value)
+    ) {
+      continue;
+    }
+    await db.update(platformSettings)
+      .set({ value: retiredRewardCopyReplacements[setting.key] ?? "" })
+      .where(eq(platformSettings.key, setting.key));
+    console.log(`Obsolete announcement copy cleared: ${setting.key}`);
   }
 
   console.log("Settings check complete");

@@ -56,8 +56,6 @@ const settingsSchema = z.object({
   level1Commission: z.string().min(1, "Commission requise"),
   level2Commission: z.string().min(1, "Commission requise"),
   level3Commission: z.string().min(1, "Commission requise"),
-  signupBonusEnabled: z.boolean(),
-  signupBonusAmount: z.string().min(1, "Montant requis"),
   // WestPay
   westpayMerchantSlug: z.string().optional(),
   westpayWebhookSecret: z.string().optional(),
@@ -245,8 +243,6 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       level1Commission: "10",
       level2Commission: "2",
       level3Commission: "1",
-      signupBonusEnabled: true,
-      signupBonusAmount: "2",
       westpayMerchantSlug: "",
       westpayWebhookSecret: "",
       westpayApiKey_CI: "",
@@ -294,15 +290,13 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       level1Commission:       settings.level1Commission       ?? "10",
       level2Commission:       settings.level2Commission       ?? "2",
       level3Commission:       settings.level3Commission       ?? "1",
-      signupBonusEnabled:     settings.signupBonusEnabled     !== "false",
-      signupBonusAmount:      settings.signupBonusAmount      ?? "2",
       popupTitle:             rebrandText(settings.popupTitle ?? ""),
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
        popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 18 XOF"),
        popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 XOF — USDT BEP20, sans frais"),
-       popupLine4:             rebrandText(settings.popupLine4 || "✅ Bonus d'inscription : 2 XOF"),
+        popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
        popupLine7:             rebrandText(settings.popupLine7 || "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit"),
@@ -329,7 +323,6 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
         channelEnabled: String(data.channelEnabled),
         groupEnabled: String(data.groupEnabled),
         withdrawalEnabled: String(data.withdrawalEnabled),
-        signupBonusEnabled: String(data.signupBonusEnabled),
       };
       const response = await apiRequest("POST", "/api/admin/settings", serialized);
       if (!response.ok) {
@@ -899,35 +892,6 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
           </CardContent>
         </Card>
 
-        {/* ── Bonus d'inscription ── */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              🎉 Bonus d'inscription
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField control={form.control} name="signupBonusEnabled" render={({ field }) => (
-              <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <FormLabel className="text-sm font-medium">Activer le bonus d'inscription</FormLabel>
-                  <FormDescription className="text-xs">Crédite automatiquement chaque nouveau compte à l'inscription</FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="signupBonusAmount" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Montant du bonus d'inscription (XOF)</FormLabel>
-                <FormControl><Input {...field} type="number" min="0" /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-          </CardContent>
-        </Card>
-
         {/* ── Popup d'accueil ── */}
         <Card>
           <CardHeader className="pb-2">
@@ -958,7 +922,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
               { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 18 XOF" },
               { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Minimum withdrawal: 1 XOF via USDT BEP20, no fee" },
-              { name: "popupLine4" as const, label: "Ligne 4 — Bonus d'inscription", placeholder: "✅ Registration bonus: 2 XOF" },
+              { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },
               { name: "popupLine7" as const, label: "Ligne 7 — Gains", placeholder: "🔥 Product earnings are automatically credited at the end of the cycle" },
