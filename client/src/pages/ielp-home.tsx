@@ -5,8 +5,8 @@ import {
   ArrowDownToLine,
   ChevronLeft,
   ChevronRight,
+  FileCheck2,
   MessageSquare,
-  Send,
   UsersRound,
   WalletCards,
   type LucideIcon,
@@ -42,7 +42,7 @@ type HomeCopy = {
   recharge: string;
   withdraw: string;
   team: string;
-  telegram: string;
+  proofs: string;
   checkinTitle: string;
   loading: string;
   retry: string;
@@ -72,7 +72,7 @@ const COPY: Record<Lang, HomeCopy> = {
     recharge: "Recharger",
     withdraw: "Retirer",
     team: "Équipe",
-    telegram: "Telegram",
+    proofs: "Preuves",
     checkinTitle: "Pointage",
     loading: "Chargement",
     retry: "Réessayer",
@@ -100,7 +100,7 @@ const COPY: Record<Lang, HomeCopy> = {
     recharge: "Deposit",
     withdraw: "Withdraw",
     team: "Team",
-    telegram: "Telegram",
+    proofs: "Proofs",
     checkinTitle: "Daily Check-in",
     loading: "Loading",
     retry: "Retry",
@@ -128,7 +128,7 @@ const COPY: Record<Lang, HomeCopy> = {
     recharge: "إيداع",
     withdraw: "سحب",
     team: "الفريق",
-    telegram: "تيليجرام",
+    proofs: "إثباتات",
     checkinTitle: "تسجيل الحضور",
     loading: "جارٍ التحميل",
     retry: "إعادة المحاولة",
@@ -156,7 +156,7 @@ const COPY: Record<Lang, HomeCopy> = {
     recharge: "充值",
     withdraw: "提现",
     team: "团队",
-    telegram: "Telegram",
+    proofs: "凭证",
     checkinTitle: "每日签到",
     loading: "加载中",
     retry: "重试",
@@ -184,14 +184,14 @@ const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
 });
 const COUNT_FORMAT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const QUICK_ACTIONS: {
-  id: "recharge" | "withdraw" | "team" | "telegram";
+  id: "recharge" | "withdraw" | "team" | "proofs";
   Icon: LucideIcon;
   href: string;
 }[] = [
   { id: "recharge", Icon: WalletCards, href: "/deposit" },
   { id: "withdraw", Icon: ArrowDownToLine, href: "/withdrawal" },
   { id: "team", Icon: UsersRound, href: "/team" },
-  { id: "telegram", Icon: Send, href: "/service" },
+  { id: "proofs", Icon: FileCheck2, href: "/share-information" },
 ];
 
 function formatMoney(value: unknown) {
@@ -230,44 +230,6 @@ function parseBanners(value?: string) {
     return FALLBACK_BANNERS;
   }
   return FALLBACK_BANNERS;
-}
-
-function isTelegramUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return ["t.me", "www.t.me", "telegram.me", "www.telegram.me", "telegram.org"].includes(url.hostname.toLowerCase())
-      && (url.protocol === "https:" || url.protocol === "http:");
-  } catch {
-    return false;
-  }
-}
-
-function getTelegramDestination(settings: Record<string, string>) {
-  const enabled = settings.telegramEnabled ?? settings.enableTelegram ?? settings.telegram_enabled;
-  if (enabled && /^(false|0|off|disabled|no)$/i.test(enabled.trim())) return undefined;
-
-  const configuredLinks = [
-    { url: settings.groupLink, enabled: settings.groupEnabled },
-    { url: settings.channelLink, enabled: settings.channelEnabled },
-    { url: settings.supportLink, enabled: settings.supportEnabled },
-    { url: settings.support2Link, enabled: settings.support2Enabled },
-  ]
-    .filter(({ url, enabled: linkEnabled }) =>
-      Boolean(url) && !(linkEnabled && /^(false|0|off|disabled|no)$/i.test(linkEnabled.trim()))
-    )
-    .map(({ url }) => url);
-  const telegramSupportLinks = [
-    settings.telegramLink,
-    settings.telegramUrl,
-    settings.telegramGroupUrl,
-    settings.telegramChannelUrl,
-    settings.telegramSupportLink,
-    settings.telegramGroup,
-    settings.telegramChannel,
-  ];
-
-  return [...telegramSupportLinks, ...configuredLinks]
-    .find((url): url is string => Boolean(url && isTelegramUrl(url.trim())))?.trim();
 }
 
 function HomePage() {
@@ -320,7 +282,6 @@ function HomePage() {
       .sort((left, right) => left.sortOrder - right.sortOrder)
       .slice(0, 4);
   }, [catalogProducts, selectedPopularIds]);
-  const telegramUrl = getTelegramDestination(settings);
   const isAuthenticated = Boolean(user);
 
   useEffect(() => {
@@ -369,18 +330,6 @@ function HomePage() {
   }, [isAuthenticated, lang, popularProducts.length]);
 
   if (!user) return null;
-
-  function handleQuickAction(id: (typeof QUICK_ACTIONS)[number]["id"], href: string) {
-    if (id !== "telegram") {
-      navigate(href);
-      return;
-    }
-    if (!telegramUrl) {
-      navigate("/service");
-      return;
-    }
-    window.open(telegramUrl, "_blank", "noopener,noreferrer");
-  }
 
   function scrollPopularProducts(direction: -1 | 1) {
     const track = popularProductsRef.current;
@@ -456,7 +405,7 @@ function HomePage() {
                   className="ielp-home-refresh__action"
                   type="button"
                   key={id}
-                  onClick={() => handleQuickAction(id, href)}
+                  onClick={() => navigate(href)}
                   data-testid={`home-action-${id}`}
                 >
                   <span className="ielp-home-refresh__action-icon"><Icon size={25} strokeWidth={2} aria-hidden="true" /></span>
