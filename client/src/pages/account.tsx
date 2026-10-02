@@ -38,7 +38,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import customerServiceIcon from "@assets/pngtree-3d-customer-service-png-image_20069079_1790928869350.png";
+import customerServiceIcon from "@assets/customer-service-icon-512.png";
 import {
   computeVipLevelFromProduct,
   DEFAULT_VIP_CONFIGS,

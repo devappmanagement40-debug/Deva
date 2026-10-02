@@ -10,7 +10,7 @@ import {
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { getContent, rebrandText } from "@/lib/content";
-import customerServiceIcon from "@assets/pngtree-3d-customer-service-png-image_20069079_1790928869350.png";
+import customerServiceIcon from "@assets/customer-service-icon-512.png";
 import "./service.css";
 
 interface LinksSettings {
