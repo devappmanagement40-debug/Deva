@@ -318,8 +318,8 @@
   align-items: center;
   min-height: 21px;
   padding: 2px 8px;
-  color: #76e0bd;
-  background: rgba(16, 201, 147, .16);
+  color: #000;
+  background: #00ff00;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 700;
@@ -328,8 +328,8 @@
 }
 
 .diamant-service-status[data-online="false"] {
-  color: #ffd78a;
-  background: rgba(207, 143, 27, .18);
+  color: #000;
+  background: #ff0000;
 }
 
 .diamant-service-hours-value {
