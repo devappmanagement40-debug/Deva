@@ -1,307 +1,271 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Bell,
-  Building2,
+  ArrowDownToLine,
+  ArrowRight,
   CalendarDays,
   CircleDollarSign,
-  CircleHelp,
-  CloudDownload,
-  HandCoins,
-  Lightbulb,
-  MessageCircleMore,
+  CircleDot,
+  Gift,
   MessageSquare,
+  Send,
+  Sparkles,
   UsersRound,
+  WalletCards,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
-import { getContent } from "@/lib/content";
-import { useToast } from "@/hooks/use-toast";
 import { LanguagePicker } from "@/components/language-picker";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
+import BannerCarousel from "@/components/banner-carousel";
+import productsHero from "@assets/generated_images/diamant-home-products-hero.jpg";
+import chargingHero from "@assets/generated_images/diamant-charging-station-hero.jpg";
+import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
 
-type HomeStats = {
-  totalUsers: number;
-  totalProduction: number;
+type IncomeSummary = {
+  productEarnings?: number | string;
+  teamEarnings?: number | string;
 };
 
-type TeamStats = {
-  totalCommission?: number;
-};
-
-const COPY: Record<Lang, {
-  notice: string;
-  totalAssets: string;
-  miningWallet: string;
-  earningsWallet: string;
-  commissionWallet: string;
-  deposit: string;
-  withdraw: string;
-  events: string;
-  faq: string;
-  invite: string;
-  about: string;
-  application: string;
-  products: string;
-  earn: string;
-  users: string;
-  production: string;
-  companyDetails: string;
-  livePrices: string;
-  partners: string;
-  share: string;
-  sharePrompt: string;
+type HomeCopy = {
   chat: string;
-  installTitle: string;
-  installHint: string;
-  linkCopied: string;
-  shareFailed: string;
-}> = {
+  depositBalance: string;
+  withdrawalBalance: string;
+  productRevenue: string;
+  recharge: string;
+  withdraw: string;
+  team: string;
+  telegram: string;
+  inviteTitle: string;
+  inviteDescription: string;
+  wheelTitle: string;
+  wheelDescription: string;
+  checkinTitle: string;
+  checkinDescription: string;
+  go: string;
+  retry: string;
+  retryLabel: string;
+};
+
+const COPY: Record<Lang, HomeCopy> = {
   fr: {
-    notice: "Mise en vigueur afin de garantir la sécurité des fonds de nos utilisateurs. Consultez les annonces avant toute opération.",
-    totalAssets: "Actifs totaux",
-    miningWallet: "Portefeuille de minage",
-    earningsWallet: "Gagnez un portefeuille",
-    commissionWallet: "Portefeuille de commission",
-    deposit: "Dépôt",
-    withdraw: "Retirer",
-    events: "Événements",
-    faq: "FAQ",
-    invite: "Inviter",
-    about: "À propos",
-    application: "Application",
-    products: "Produits",
-    earn: "Gagner",
-    users: "Nombre total d'utilisateurs",
-    production: "Production totale",
-    companyDetails: "Détails de l'entreprise DIAMANT",
-    livePrices: "prix en direct",
-    partners: "Partenaires",
-    share: "Partager",
-    sharePrompt: "Partagez votre lien et gagnez",
     chat: "Service client",
-    installTitle: "Installer l’application",
-    installHint: "Ouvrez le menu de votre navigateur pour ajouter cette application à l’écran d’accueil.",
-    linkCopied: "Lien copié",
-    shareFailed: "Le partage n’a pas pu être ouvert.",
+    depositBalance: "Solde de Recharge",
+    withdrawalBalance: "Solde de Retrait",
+    productRevenue: "Revenu des Produits",
+    recharge: "Recharger",
+    withdraw: "Retirer",
+    team: "Équipe",
+    telegram: "Telegram",
+    inviteTitle: "Inviter des Amis",
+    inviteDescription: "Invitez des amis pour gagner des commissions",
+    wheelTitle: "Roue de la Chance",
+    wheelDescription: "Divers Cadeaux, 100% de Gain",
+    checkinTitle: "Se Connecter",
+    checkinDescription: "Récompenses quotidiennes de connexion",
+    go: "Aller",
+    retry: "Réessayer",
+    retryLabel: "Réessayer le chargement des revenus produits",
   },
   en: {
-    notice: "Important notice to help protect the safety of user funds. Check announcements before making a transaction.",
-    totalAssets: "Total assets",
-    miningWallet: "Mining portfolio",
-    earningsWallet: "Earnings portfolio",
-    commissionWallet: "Commission portfolio",
-    deposit: "Deposit",
-    withdraw: "Withdraw",
-    events: "Events",
-    faq: "FAQ",
-    invite: "Invite",
-    about: "About",
-    application: "Application",
-    products: "Products",
-    earn: "Earn",
-    users: "Total users",
-    production: "Total production",
-    companyDetails: "DIAMANT company details",
-    livePrices: "live prices",
-    partners: "Partners",
-    share: "Share",
-    sharePrompt: "Share your link and earn",
     chat: "Customer service",
-    installTitle: "Install the app",
-    installHint: "Open your browser menu to add this app to your home screen.",
-    linkCopied: "Link copied",
-    shareFailed: "Sharing could not be opened.",
+    depositBalance: "Deposit balance",
+    withdrawalBalance: "Withdrawal balance",
+    productRevenue: "Product revenue",
+    recharge: "Deposit",
+    withdraw: "Withdraw",
+    team: "Team",
+    telegram: "Telegram",
+    inviteTitle: "Invite Friends",
+    inviteDescription: "Invite friends and earn commissions",
+    wheelTitle: "Lucky Wheel",
+    wheelDescription: "Many gifts, 100% chance to win",
+    checkinTitle: "Daily Check-in",
+    checkinDescription: "Daily login rewards",
+    go: "Go",
+    retry: "Retry",
+    retryLabel: "Retry loading product revenue",
   },
   ar: {
-    notice: "إشعار مهم للمساعدة في حماية أموال المستخدمين. راجع الإعلانات قبل إجراء أي معاملة.",
-    totalAssets: "إجمالي الأصول",
-    miningWallet: "محفظة التعدين",
-    earningsWallet: "محفظة الأرباح",
-    commissionWallet: "محفظة العمولات",
-    deposit: "إيداع",
-    withdraw: "سحب",
-    events: "الأحداث",
-    faq: "الأسئلة",
-    invite: "دعوة",
-    about: "حول",
-    application: "التطبيق",
-    products: "المنتجات",
-    earn: "اربح",
-    users: "إجمالي المستخدمين",
-    production: "إجمالي الإنتاج",
-    companyDetails: "تفاصيل شركة DIAMANT",
-    livePrices: "الأسعار المباشرة",
-    partners: "الشركاء",
-    share: "مشاركة",
-    sharePrompt: "شارك رابطك واربح",
     chat: "خدمة العملاء",
-    installTitle: "تثبيت التطبيق",
-    installHint: "افتح قائمة المتصفح لإضافة التطبيق إلى الشاشة الرئيسية.",
-    linkCopied: "تم نسخ الرابط",
-    shareFailed: "تعذرت المشاركة.",
+    depositBalance: "رصيد الإيداع",
+    withdrawalBalance: "رصيد السحب",
+    productRevenue: "أرباح المنتجات",
+    recharge: "إيداع",
+    withdraw: "سحب",
+    team: "الفريق",
+    telegram: "تيليجرام",
+    inviteTitle: "ادعُ الأصدقاء",
+    inviteDescription: "ادعُ أصدقاءك واربح العمولات",
+    wheelTitle: "عجلة الحظ",
+    wheelDescription: "هدايا متنوعة وفرصة ربح 100٪",
+    checkinTitle: "تسجيل الحضور",
+    checkinDescription: "مكافآت تسجيل الدخول اليومية",
+    go: "اذهب",
+    retry: "إعادة المحاولة",
+    retryLabel: "إعادة تحميل أرباح المنتجات",
   },
   zh: {
-    notice: "重要提醒：为保障用户资金安全，请在交易前查看平台公告。",
-    totalAssets: "总资产",
-    miningWallet: "矿业钱包",
-    earningsWallet: "收益钱包",
-    commissionWallet: "佣金钱包",
-    deposit: "充值",
-    withdraw: "提现",
-    events: "活动",
-    faq: "常见问题",
-    invite: "邀请",
-    about: "关于",
-    application: "应用",
-    products: "产品",
-    earn: "赚取",
-    users: "用户总数",
-    production: "总产值",
-    companyDetails: "DIAMANT 公司详情",
-    livePrices: "实时价格",
-    partners: "合作伙伴",
-    share: "分享",
-    sharePrompt: "分享链接，赚取奖励",
     chat: "客户服务",
-    installTitle: "安装应用",
-    installHint: "打开浏览器菜单，将此应用添加到主屏幕。",
-    linkCopied: "链接已复制",
-    shareFailed: "无法打开分享。",
+    depositBalance: "充值余额",
+    withdrawalBalance: "提现余额",
+    productRevenue: "产品收益",
+    recharge: "充值",
+    withdraw: "提现",
+    team: "团队",
+    telegram: "Telegram",
+    inviteTitle: "邀请好友",
+    inviteDescription: "邀请好友，赚取佣金",
+    wheelTitle: "幸运转盘",
+    wheelDescription: "多种礼品，赢取机会百分百",
+    checkinTitle: "每日签到",
+    checkinDescription: "每日登录奖励",
+    go: "前往",
+    retry: "重试",
+    retryLabel: "重新加载产品收益",
   },
 };
 
-const SHORTCUTS: {
-  key: keyof Pick<typeof COPY.fr, "deposit" | "withdraw" | "events" | "faq" | "invite" | "about" | "application">;
-  href?: string;
-  Icon: LucideIcon;
-}[] = [
-  { key: "deposit", href: "/deposit", Icon: CircleDollarSign },
-  { key: "withdraw", href: "/withdrawal", Icon: HandCoins },
-  { key: "events", href: "/checkin", Icon: CalendarDays },
-  { key: "faq", href: "/rules", Icon: CircleHelp },
-  { key: "invite", href: "/team", Icon: UsersRound },
-  { key: "about", href: "/about", Icon: Building2 },
-  { key: "application", Icon: CloudDownload },
-];
-
-const MARKET_COINS = [
-  { ticker: "BTC", name: "Bitcoin", mark: "₿", color: "#f7931a", shape: "circle" },
-  { ticker: "ETH", name: "Ethereum", mark: "◆", color: "#dfe7f3", shape: "diamond" },
-  { ticker: "BCH", name: "Bitcoin Cash", mark: "Ƀ", color: "#21b66f", shape: "circle" },
-  { ticker: "BNB", name: "BNB", mark: "◆", color: "#f3ba2f", shape: "square" },
-  { ticker: "DOT", name: "Polkadot", mark: "●", color: "#17191e", shape: "square" },
-  { ticker: "LTC", name: "Litecoin", mark: "Ł", color: "#a6b8d0", shape: "circle" },
-  { ticker: "TRX", name: "TRON", mark: "△", color: "#e61b3c", shape: "square" },
-  { ticker: "SHIB", name: "Shiba Inu", mark: "◉", color: "#f05a24", shape: "square" },
-  { ticker: "AVAX", name: "Avalanche", mark: "▲", color: "#e84142", shape: "circle" },
-];
-
-const PARTNER_NAMES = [
-  "BINANCE",
-  "ethereum",
-  "BITMAIN",
-  "TRON",
-  "tether",
-  "coinbase",
-  "Huobi",
-  "DOGECOIN",
-  "CoinDCX",
-];
-
-const EXCHANGES = ["BINANCE", "OKX", "HUOBI", "COINBASE"];
-
-const numberFormat = new Intl.NumberFormat("en-US", {
+const FALLBACK_BANNERS = [productsHero, chargingHero, scooterHero];
+const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
+const QUICK_ACTIONS: {
+  id: "recharge" | "withdraw" | "team" | "telegram";
+  Icon: LucideIcon;
+  href: string;
+}[] = [
+  { id: "recharge", Icon: WalletCards, href: "/deposit" },
+  { id: "withdraw", Icon: ArrowDownToLine, href: "/withdrawal" },
+  { id: "team", Icon: UsersRound, href: "/team" },
+  { id: "telegram", Icon: Send, href: "/service" },
+];
+
 function formatMoney(value: unknown) {
   const amount = Number(value);
-  return numberFormat.format(Number.isFinite(amount) ? amount : 0);
+  return AMOUNT_FORMAT.format(Number.isFinite(amount) ? amount : 0);
+}
+
+function parseBanners(value?: string) {
+  if (!value) return FALLBACK_BANNERS;
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (Array.isArray(parsed)) {
+      const images = parsed.filter((image): image is string => typeof image === "string" && image.trim().length > 0);
+      if (images.length) return images;
+    }
+  } catch {
+    return FALLBACK_BANNERS;
+  }
+  return FALLBACK_BANNERS;
+}
+
+function isTelegramUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return ["t.me", "www.t.me", "telegram.me", "www.telegram.me", "telegram.org"].includes(url.hostname.toLowerCase())
+      && (url.protocol === "https:" || url.protocol === "http:");
+  } catch {
+    return false;
+  }
+}
+
+function getTelegramDestination(settings: Record<string, string>) {
+  const enabled = settings.telegramEnabled ?? settings.enableTelegram ?? settings.telegram_enabled;
+  if (enabled && /^(false|0|off|disabled|no)$/i.test(enabled.trim())) return undefined;
+
+  const telegramSupportLinks = [
+    settings.telegramLink,
+    settings.telegramUrl,
+    settings.telegramGroupUrl,
+    settings.telegramChannelUrl,
+    settings.telegramSupportLink,
+    settings.telegramGroup,
+    settings.telegramChannel,
+  ];
+  const supportLinks = [
+    { url: settings.supportLink, type: settings.supportType },
+    { url: settings.support2Link, type: settings.support2Type },
+  ]
+    .filter(({ url, type }) => url && (type || "").toLowerCase().includes("telegram"))
+    .map(({ url }) => url);
+
+  return [...telegramSupportLinks, ...supportLinks, settings.supportLink, settings.support2Link]
+    .find((url): url is string => Boolean(url && isTelegramUrl(url.trim())))?.trim();
 }
 
 function HomePage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const { lang } = useI18n();
-  const { toast } = useToast();
   const copy = COPY[lang];
-  const [activeExchange, setActiveExchange] = useState("OKX");
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
 
-  const { data: settings = {} } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
-  const { data: homeStats } = useQuery<HomeStats>({
-    queryKey: ["/api/home/stats"],
-    staleTime: 60_000,
+  const { data: settings = {} } = useQuery<Record<string, string>>({
+    queryKey: ["/api/settings"],
   });
-  const { data: teamStats } = useQuery<TeamStats>({
-    queryKey: ["/api/team/stats"],
-    staleTime: 60_000,
+  const {
+    data: incomeSummary,
+    isLoading: isIncomeLoading,
+    isError: isIncomeError,
+    refetch: refetchIncome,
+  } = useQuery<IncomeSummary>({
+    queryKey: ["/api/user/income-summary"],
   });
 
-  useEffect(() => {
-    const handleInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as any);
-    };
-    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
-  }, []);
-
-  const shareUrl = useMemo(() => {
-    const referralCode = user?.referralCode ? `?ref=${encodeURIComponent(user.referralCode)}` : "";
-    return `${window.location.origin}/#/register${referralCode}`;
-  }, [user?.referralCode]);
+  const bannerImages = useMemo(() => parseBanners(settings.banner1Images), [settings.banner1Images]);
+  const telegramUrl = getTelegramDestination(settings);
 
   if (!user) return null;
 
-  const balance = Number(user.balance || 0);
-  const earnings = Number(user.totalEarnings || 0);
-  const commission = Number(teamStats?.totalCommission || 0);
-  const totalAssets = balance + earnings;
-
-  async function handleApplication() {
-    if (installPrompt) {
-      await installPrompt.prompt();
-      setInstallPrompt(null);
+  function handleQuickAction(id: (typeof QUICK_ACTIONS)[number]["id"], href: string) {
+    if (id !== "telegram") {
+      navigate(href);
       return;
     }
-    toast({ title: copy.installTitle, description: copy.installHint });
+    if (!telegramUrl) {
+      navigate("/service");
+      return;
+    }
+    window.open(telegramUrl, "_blank", "noopener,noreferrer");
   }
 
-  async function copyShareLink() {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({ title: copy.linkCopied });
-    } catch {
-      toast({ title: copy.shareFailed, variant: "destructive" });
-    }
-  }
+  const balances = [
+    { id: "deposit", label: copy.depositBalance, value: user.balance },
+    { id: "withdrawal", label: copy.withdrawalBalance, value: user.totalEarnings },
+  ];
 
-  function shareTo(target: string) {
-    const encodedUrl = encodeURIComponent(shareUrl);
-    const message = encodeURIComponent(copy.sharePrompt);
-    const destinations: Record<string, string> = {
-      x: `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${message}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      telegram: `https://t.me/share/url?url=${encodedUrl}&text=${message}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-      whatsapp: `https://wa.me/?text=${message}%20${encodedUrl}`,
-    };
-    const destination = destinations[target];
-    if (destination) {
-      window.open(destination, "_blank", "noopener,noreferrer");
-    } else if (navigator.share) {
-      void navigator.share({ title: "DIAMANT", text: copy.sharePrompt, url: shareUrl }).catch(() => undefined);
-    } else {
-      void copyShareLink();
-    }
-  }
+  const promotions = [
+    {
+      id: "invite",
+      title: copy.inviteTitle,
+      description: copy.inviteDescription,
+      href: "/team",
+      ArtIcon: UsersRound,
+      AccentIcon: Sparkles,
+    },
+    {
+      id: "wheel",
+      title: copy.wheelTitle,
+      description: copy.wheelDescription,
+      href: "/spin-wheel",
+      ArtIcon: Gift,
+      AccentIcon: CircleDot,
+    },
+    {
+      id: "checkin",
+      title: copy.checkinTitle,
+      description: copy.checkinDescription,
+      href: "/checkin",
+      ArtIcon: CalendarDays,
+      AccentIcon: CircleDollarSign,
+    },
+  ];
 
   return (
     <main className="ielp-home-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
@@ -324,148 +288,78 @@ function HomePage() {
           </div>
         </header>
 
-        <div className="ielp-home-content">
-          <div className="ielp-home-notice" role="status">
-            <Bell size={19} fill="none" strokeWidth={2.2} aria-hidden="true" />
-            <div className="ielp-home-notice__clip">
-              <span>{getContent(settings, "content_home_securityNotice", copy.notice)}</span>
-            </div>
-          </div>
+        <div className="ielp-home-content ielp-home-refresh">
+          <section className="ielp-home-refresh__carousel" aria-label={copy.productRevenue}>
+            <BannerCarousel images={bannerImages} height={238} autoPlayMs={4200} rounded />
+          </section>
 
-          <section className="ielp-home-dashboard" aria-label={copy.totalAssets}>
-            <div className="ielp-home-balance">
-              <div className="ielp-home-total">
-                <span>{copy.totalAssets}</span>
-                <span className="ielp-home-total__divider" />
-                <strong><small>XOF</small> {formatMoney(totalAssets)}</strong>
-              </div>
-              <div className="ielp-home-balances">
-                <div><span>{copy.miningWallet}</span><strong>XOF {formatMoney(balance)}</strong></div>
-                <div><span>{copy.earningsWallet}</span><strong>XOF {formatMoney(earnings)}</strong></div>
-                <div><span>{copy.commissionWallet}</span><strong>XOF {formatMoney(commission)}</strong></div>
+          <section className="ielp-home-refresh__account" aria-label={copy.depositBalance}>
+            <div className="ielp-home-refresh__balances">
+              {balances.map(({ id, label, value }) => (
+                <div className="ielp-home-refresh__balance" key={id}>
+                  <span className="ielp-home-refresh__balance-label">{label}</span>
+                  <strong><small>FCFA</small> {formatMoney(value)}</strong>
+                </div>
+              ))}
+              <div className="ielp-home-refresh__balance">
+                <span className="ielp-home-refresh__balance-label">{copy.productRevenue}</span>
+                {isIncomeLoading ? (
+                  <span className="ielp-home-refresh__amount-skeleton" aria-label="Loading balance" />
+                ) : isIncomeError ? (
+                  <button
+                    className="ielp-home-refresh__retry"
+                    type="button"
+                    onClick={() => void refetchIncome()}
+                    aria-label={copy.retryLabel}
+                  >
+                    {copy.retry}
+                  </button>
+                ) : (
+                  <strong><small>FCFA</small> {formatMoney(incomeSummary?.productEarnings)}</strong>
+                )}
               </div>
             </div>
-
-            <div className="ielp-home-shortcuts">
-              {SHORTCUTS.map(({ key, href, Icon }) => (
+            <div className="ielp-home-refresh__actions">
+              {QUICK_ACTIONS.map(({ id, Icon, href }) => (
                 <button
-                  key={key}
-                  className="ielp-home-shortcut"
+                  className="ielp-home-refresh__action"
                   type="button"
-                  onClick={() => href ? navigate(href) : void handleApplication()}
-                  data-testid={`home-shortcut-${key}`}
+                  key={id}
+                  onClick={() => handleQuickAction(id, href)}
+                  data-testid={`home-action-${id}`}
                 >
-                  <span className="ielp-home-shortcut__icon">
-                    <Icon size={29} strokeWidth={2.5} aria-hidden="true" />
-                  </span>
-                  <span>{copy[key]}</span>
+                  <span className="ielp-home-refresh__action-icon"><Icon size={25} strokeWidth={2} aria-hidden="true" /></span>
+                  <span>{copy[id]}</span>
                 </button>
               ))}
             </div>
           </section>
 
-          <button
-            type="button"
-            className="ielp-home-products-banner"
-            onClick={() => navigate("/invest")}
-            data-testid="home-products-banner"
-          >
-            <span className="ielp-home-products-banner__icon">
-              <Lightbulb size={33} strokeWidth={2.6} aria-hidden="true" />
-              <CircleDollarSign size={17} strokeWidth={2.5} aria-hidden="true" />
-            </span>
-            <span className="ielp-home-products-banner__copy">
-              <strong>{copy.products}</strong>
-              <small>{copy.earn}</small>
-            </span>
-          </button>
-
-          <section className="ielp-home-stats" aria-label={copy.production}>
-            <article className="ielp-home-stat-card">
-              <span className="ielp-home-stat-card__icon"><UsersRound size={29} fill="white" strokeWidth={2.2} aria-hidden="true" /></span>
-              <strong>{numberFormat.format(Number(homeStats?.totalUsers || 0))}</strong>
-              <span>{copy.users}</span>
-            </article>
-            <article className="ielp-home-stat-card">
-              <span className="ielp-home-stat-card__icon"><CircleDollarSign size={30} strokeWidth={2.5} aria-hidden="true" /></span>
-              <strong>XOF {formatMoney(homeStats?.totalProduction || 0)}</strong>
-              <span>{copy.production}</span>
-            </article>
-          </section>
-
-          <button
-            type="button"
-            className="ielp-home-company-link"
-            onClick={() => navigate("/about")}
-          >
-            <span>{copy.companyDetails}</span>
-            <span aria-hidden="true">›</span>
-          </button>
-
-          <section className="ielp-home-market">
-            <h2>{copy.livePrices}</h2>
-            <div className="ielp-home-market-panel">
-              <div className="ielp-home-exchanges" role="tablist" aria-label={copy.livePrices}>
-                {EXCHANGES.map((exchange) => (
-                  <button
-                    key={exchange}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeExchange === exchange}
-                    className={activeExchange === exchange ? "is-active" : ""}
-                    onClick={() => setActiveExchange(exchange)}
-                  >
-                    {exchange}
-                  </button>
-                ))}
-              </div>
-              <div className="ielp-home-market-list">
-                {MARKET_COINS.map((coin) => (
-                  <div className="ielp-home-market-row" key={coin.ticker}>
-                    <span className={`ielp-home-coin ielp-home-coin--${coin.shape}`} style={{ backgroundColor: coin.color }}>
-                      {coin.mark}
-                    </span>
-                    <span className="ielp-home-coin-label">
-                      <strong>{coin.ticker}</strong><small>/USDT</small>
-                    </span>
-                    <span className="ielp-home-market-change">--</span>
-                    <span className="ielp-home-market-value">--%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="ielp-home-partners">
-            <h2>{copy.partners}</h2>
-            <div className="ielp-home-partner-panel">
-              {PARTNER_NAMES.map((partner, index) => (
-                <div className={`ielp-home-partner ielp-home-partner--${index}`} key={partner}>
-                  <span aria-hidden="true">{["◈", "♦", "▰", "△", "T", "C", "火", "Ð", "◉"][index]}</span>
-                  <strong>{partner}</strong>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="ielp-home-share">
-            <h2>{copy.share}</h2>
-            <div className="ielp-home-share-panel">
-              <p>{copy.sharePrompt}</p>
-              <div className="ielp-home-socials">
-                <button type="button" aria-label="X" onClick={() => shareTo("x")}><span className="ielp-social-x">𝕏</span></button>
-                <button type="button" aria-label="Facebook" onClick={() => shareTo("facebook")}><span className="ielp-social-facebook">f</span></button>
-                <button type="button" aria-label="Telegram" onClick={() => shareTo("telegram")}><MessageCircleMore size={22} aria-hidden="true" /></button>
-                <button type="button" aria-label="LinkedIn" onClick={() => shareTo("linkedin")}><span className="ielp-social-linkedin">in</span></button>
-                <button type="button" aria-label="WhatsApp" onClick={() => shareTo("whatsapp")}><span className="ielp-social-whatsapp">☎</span></button>
-                <button type="button" aria-label="Instagram" onClick={() => shareTo("instagram")}><span className="ielp-social-instagram">◎</span></button>
-                <button type="button" aria-label="TikTok" onClick={() => shareTo("tiktok")}><span className="ielp-social-tiktok">♪</span></button>
-                <button type="button" aria-label="Partager le lien" onClick={() => shareTo("native")}><UsersRound size={19} aria-hidden="true" /></button>
-              </div>
-            </div>
+          <section className="ielp-home-refresh__promotions" aria-label={copy.inviteTitle}>
+            {promotions.map(({ id, title, description, href, ArtIcon, AccentIcon }) => (
+              <button
+                className={`ielp-home-refresh__promo ielp-home-refresh__promo--${id}`}
+                type="button"
+                key={id}
+                onClick={() => navigate(href)}
+                data-testid={`home-promo-${id}`}
+              >
+                <span className="ielp-home-refresh__promo-copy">
+                  <strong>{title}</strong>
+                  <span>{description}</span>
+                  <span className="ielp-home-refresh__promo-cta">
+                    {copy.go}<ArrowRight size={14} strokeWidth={2.4} aria-hidden="true" />
+                  </span>
+                </span>
+                <span className="ielp-home-refresh__promo-art" aria-hidden="true">
+                  <span className="ielp-home-refresh__promo-art-orbit" />
+                  <ArtIcon className="ielp-home-refresh__promo-art-main" size={39} strokeWidth={1.8} />
+                  <AccentIcon className="ielp-home-refresh__promo-art-accent" size={20} strokeWidth={2} />
+                </span>
+              </button>
+            ))}
           </section>
         </div>
-
       </div>
 
       <FloatingSupport placement="home" />
