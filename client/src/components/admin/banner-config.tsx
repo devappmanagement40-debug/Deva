@@ -169,7 +169,7 @@ function BannerSlotEditor({
   );
 }
 
-/* ── Produits spéciaux selector ─────────────────────────────────────────── */
+/* ── Homepage popular-products selector ────────────────────────────────── */
 function SpecialProductsConfig() {
   const { toast } = useToast();
   const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
@@ -220,10 +220,10 @@ function SpecialProductsConfig() {
           <div>
             <h3 className="font-bold text-base flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
-              Produits spéciaux (accueil)
+              Produits populaires (carrousel de l’accueil)
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Sélectionnez jusqu'à 4 produits à afficher sur la page d'accueil.
+              Choisissez jusqu’à 4 produits; leur ordre de sélection définit l’ordre du carrousel.
               ({selectedIds.length}/4 sélectionné{selectedIds.length > 1 ? "s" : ""})
             </p>
           </div>
@@ -278,9 +278,9 @@ export default function AdminBannerConfig() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold">Bannières & Produits vedettes</h2>
+        <h2 className="text-lg font-bold">Bannières & Produits populaires</h2>
         <p className="text-sm text-muted-foreground">
-          Gérez la bannière principale et les produits affichés sur la page d'accueil.
+          Gérez la bannière principale et choisissez les produits du carrousel d’accueil.
         </p>
       </div>
       <BannerSlotEditor label="🖼 Bannière du haut (pleine largeur)" settingKey="banner1Images" />

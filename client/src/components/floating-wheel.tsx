@@ -16,21 +16,21 @@ function MiniWheel({ size = 64, segments }: { size?: number; segments: SpinWheel
   const hub = size / 7;
   const n = segments.length;
   const arc = (2 * Math.PI) / n;
-  const fills = ["#f7c5df", "#ffffff", "#efa2cb", "#ffd9eb"];
+  const fills = ["#c9bcff", "#ffffff", "#8f79ff", "#dce7ff"];
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: "block" }}>
       <defs>
         <linearGradient id="miniWheelRim" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fff0f8" />
-          <stop offset="35%" stopColor="#f4b4d3" />
-          <stop offset="70%" stopColor="#e987bb" />
-          <stop offset="100%" stopColor="#fff2f9" />
+          <stop offset="0%" stopColor="#eee9ff" />
+          <stop offset="35%" stopColor="#a693ff" />
+          <stop offset="70%" stopColor="#653de9" />
+          <stop offset="100%" stopColor="#dce7ff" />
         </linearGradient>
       </defs>
 
       <circle cx={cx} cy={cy} r={outer} fill="url(#miniWheelRim)" stroke="#fff" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={outer - 1.5} fill="none" stroke="#e98abd" strokeWidth="0.8" opacity="0.8" />
+      <circle cx={cx} cy={cy} r={outer - 1.5} fill="none" stroke="#653de9" strokeWidth="0.8" opacity="0.8" />
 
       {segments.map((segment, i) => {
         const start = i * arc - Math.PI / 2;
@@ -51,10 +51,10 @@ function MiniWheel({ size = 64, segments }: { size?: number; segments: SpinWheel
         );
       })}
 
-      <circle cx={cx} cy={cy} r={hub + 2} fill="#fff" stroke="#ec8fbd" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={hub} fill="#ffe9f4" stroke="#fff" strokeWidth="0.7" />
-      <circle cx={cx} cy={cy} r={hub / 2} fill="#ed8abb" />
-      <path d={`M ${cx} 1 L ${cx - 3} 7 L ${cx + 3} 7 Z`} fill="#fff" stroke="#ed8abb" strokeWidth="0.8" />
+      <circle cx={cx} cy={cy} r={hub + 2} fill="#fff" stroke="#a693ff" strokeWidth="1" />
+      <circle cx={cx} cy={cy} r={hub} fill="#eee9ff" stroke="#fff" strokeWidth="0.7" />
+      <circle cx={cx} cy={cy} r={hub / 2} fill="#653de9" />
+      <path d={`M ${cx} 1 L ${cx - 3} 7 L ${cx + 3} 7 Z`} fill="#fff" stroke="#653de9" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -78,7 +78,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
 
   useEffect(() => {
     const resetPosition = () => setPos({
-      right: Math.max(2, (window.innerWidth - 480) / 2 + 2),
+      right: Math.max(10, (window.innerWidth - 480) / 2 + 10),
       bottom: bottomOffset + 120,
     });
     resetPosition();
@@ -132,7 +132,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
         style={{
           position:    "fixed",
           right:       pos.right,
-          bottom:      pos.bottom,
+          bottom:      `calc(${pos.bottom}px + env(safe-area-inset-bottom))`,
           zIndex:      200,
           width:       buttonSize,
           height:      buttonSize,
@@ -141,7 +141,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
           padding:     0,
           cursor:      "grab",
           background:  "transparent",
-          boxShadow:   "0 4px 20px rgba(0,0,0,0.30)",
+          boxShadow:   "0 4px 20px rgba(1,7,29,0.42), 0 0 0 1px rgba(166,147,255,.42)",
           overflow:    "hidden",
           touchAction: "none",
           userSelect:  "none",

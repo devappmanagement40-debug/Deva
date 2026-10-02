@@ -1,16 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
   ArrowRight,
-  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   CircleDollarSign,
-  CircleDot,
-  Gift,
   MessageSquare,
   Send,
   Sparkles,
+  UserRound,
   UsersRound,
   WalletCards,
   type LucideIcon,
@@ -20,8 +20,13 @@ import { useI18n, type Lang } from "@/lib/i18n";
 import { LanguagePicker } from "@/components/language-picker";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
+import { FloatingCheckin } from "@/components/floating-checkin";
+import { FloatingWheel } from "@/components/floating-wheel";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
 import BannerCarousel from "@/components/banner-carousel";
+import type { Product } from "@shared/schema";
+import { getProductVisual } from "@/lib/product-visuals";
+import { rebrandText } from "@/lib/content";
 import productsHero from "@assets/generated_images/diamant-home-products-hero.jpg";
 import chargingHero from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
@@ -29,6 +34,18 @@ import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
 type IncomeSummary = {
   productEarnings?: number | string;
   teamEarnings?: number | string;
+};
+
+type HomeStats = {
+  totalUsers: number;
+  totalProduction: number;
+};
+
+type TeamStats = {
+  level1Count: number;
+  level2Count: number;
+  level3Count: number;
+  totalCommission: number;
 };
 
 type HomeCopy = {
@@ -44,13 +61,24 @@ type HomeCopy = {
   inviteTitle: string;
   inviteDescription: string;
   wheelTitle: string;
-  wheelDescription: string;
   checkinTitle: string;
-  checkinDescription: string;
   go: string;
   loading: string;
   retry: string;
   retryLabel: string;
+  popularProducts: string;
+  seeAllProducts: string;
+  previousProduct: string;
+  nextProduct: string;
+  productsEmpty: string;
+  productsError: string;
+  statsTitle: string;
+  totalMembers: string;
+  totalProduction: string;
+  myTeamMembers: string;
+  teamCommissions: string;
+  productPrice: string;
+  dailyIncome: string;
 };
 
 const COPY: Record<Lang, HomeCopy> = {
@@ -67,13 +95,24 @@ const COPY: Record<Lang, HomeCopy> = {
     inviteTitle: "Inviter des Amis",
     inviteDescription: "Invitez des amis pour gagner des commissions",
     wheelTitle: "Roue de la Chance",
-    wheelDescription: "Divers Cadeaux, 100% de Gain",
-    checkinTitle: "Se Connecter",
-    checkinDescription: "Récompenses quotidiennes de connexion",
+    checkinTitle: "Pointage",
     go: "Aller",
     loading: "Chargement",
     retry: "Réessayer",
     retryLabel: "Réessayer le chargement des revenus produits",
+    popularProducts: "Produits populaires",
+    seeAllProducts: "Voir tout",
+    previousProduct: "Produit précédent",
+    nextProduct: "Produit suivant",
+    productsEmpty: "Aucun produit sélectionné pour le carrousel.",
+    productsError: "Impossible de charger les produits.",
+    statsTitle: "DIAMANT en chiffres",
+    totalMembers: "Membres inscrits",
+    totalProduction: "Production totale",
+    myTeamMembers: "Membres de mon équipe",
+    teamCommissions: "Commissions d’équipe",
+    productPrice: "Prix",
+    dailyIncome: "Revenu quotidien",
   },
   en: {
     chat: "Customer service",
@@ -88,13 +127,24 @@ const COPY: Record<Lang, HomeCopy> = {
     inviteTitle: "Invite Friends",
     inviteDescription: "Invite friends and earn commissions",
     wheelTitle: "Lucky Wheel",
-    wheelDescription: "Many gifts, 100% chance to win",
     checkinTitle: "Daily Check-in",
-    checkinDescription: "Daily login rewards",
     go: "Go",
     loading: "Loading",
     retry: "Retry",
     retryLabel: "Retry loading product revenue",
+    popularProducts: "Popular products",
+    seeAllProducts: "View all",
+    previousProduct: "Previous product",
+    nextProduct: "Next product",
+    productsEmpty: "No products have been selected for the carousel.",
+    productsError: "Could not load the products.",
+    statsTitle: "DIAMANT in numbers",
+    totalMembers: "Registered members",
+    totalProduction: "Total production",
+    myTeamMembers: "My team members",
+    teamCommissions: "Team commissions",
+    productPrice: "Price",
+    dailyIncome: "Daily income",
   },
   ar: {
     chat: "خدمة العملاء",
@@ -109,13 +159,24 @@ const COPY: Record<Lang, HomeCopy> = {
     inviteTitle: "ادعُ الأصدقاء",
     inviteDescription: "ادعُ أصدقاءك واربح العمولات",
     wheelTitle: "عجلة الحظ",
-    wheelDescription: "هدايا متنوعة وفرصة ربح 100٪",
     checkinTitle: "تسجيل الحضور",
-    checkinDescription: "مكافآت تسجيل الدخول اليومية",
     go: "اذهب",
     loading: "جارٍ التحميل",
     retry: "إعادة المحاولة",
     retryLabel: "إعادة تحميل أرباح المنتجات",
+    popularProducts: "المنتجات الشائعة",
+    seeAllProducts: "عرض الكل",
+    previousProduct: "المنتج السابق",
+    nextProduct: "المنتج التالي",
+    productsEmpty: "لم يتم اختيار منتجات لشريط العرض بعد.",
+    productsError: "تعذر تحميل المنتجات.",
+    statsTitle: "DIAMANT بالأرقام",
+    totalMembers: "الأعضاء المسجلون",
+    totalProduction: "إجمالي الإنتاج",
+    myTeamMembers: "أعضاء فريقي",
+    teamCommissions: "عمولات الفريق",
+    productPrice: "السعر",
+    dailyIncome: "الدخل اليومي",
   },
   zh: {
     chat: "客户服务",
@@ -130,13 +191,24 @@ const COPY: Record<Lang, HomeCopy> = {
     inviteTitle: "邀请好友",
     inviteDescription: "邀请好友，赚取佣金",
     wheelTitle: "幸运转盘",
-    wheelDescription: "多种礼品，赢取机会百分百",
     checkinTitle: "每日签到",
-    checkinDescription: "每日登录奖励",
     go: "前往",
     loading: "加载中",
     retry: "重试",
     retryLabel: "重新加载产品收益",
+    popularProducts: "热门产品",
+    seeAllProducts: "查看全部",
+    previousProduct: "上一个产品",
+    nextProduct: "下一个产品",
+    productsEmpty: "尚未选择轮播产品。",
+    productsError: "无法加载产品。",
+    statsTitle: "DIAMANT 数据",
+    totalMembers: "注册会员",
+    totalProduction: "总产值",
+    myTeamMembers: "我的团队成员",
+    teamCommissions: "团队佣金",
+    productPrice: "价格",
+    dailyIncome: "每日收入",
   },
 };
 
@@ -145,6 +217,7 @@ const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
+const COUNT_FORMAT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
 const QUICK_ACTIONS: {
   id: "recharge" | "withdraw" | "team" | "telegram";
@@ -160,6 +233,25 @@ const QUICK_ACTIONS: {
 function formatMoney(value: unknown) {
   const amount = Number(value);
   return AMOUNT_FORMAT.format(Number.isFinite(amount) ? amount : 0);
+}
+
+function formatCount(value: unknown) {
+  const count = Number(value);
+  return COUNT_FORMAT.format(Number.isFinite(count) ? count : 0);
+}
+
+function parseProductIds(value?: string) {
+  if (!value) return [];
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    const productIds = parsed
+      .map((id) => Number(id))
+      .filter((id) => Number.isSafeInteger(id) && id > 0);
+    return productIds.filter((id, index) => productIds.indexOf(id) === index);
+  } catch {
+    return [];
+  }
 }
 
 function parseBanners(value?: string) {
@@ -219,9 +311,37 @@ function HomePage() {
   const [, navigate] = useLocation();
   const { lang } = useI18n();
   const copy = COPY[lang];
+  const popularProductsRef = useRef<HTMLDivElement>(null);
 
-  const { data: settings = {} } = useQuery<Record<string, string>>({
+  const { data: settings = {}, isLoading: isSettingsLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
+  });
+  const {
+    data: catalogProducts = [],
+    isLoading: isProductsLoading,
+    isError: isProductsError,
+    refetch: refetchProducts,
+  } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+    staleTime: 60_000,
+  });
+  const {
+    data: homeStats,
+    isLoading: isHomeStatsLoading,
+    isError: isHomeStatsError,
+    refetch: refetchHomeStats,
+  } = useQuery<HomeStats>({
+    queryKey: ["/api/home/stats"],
+    staleTime: 60_000,
+  });
+  const {
+    data: teamStats,
+    isLoading: isTeamStatsLoading,
+    isError: isTeamStatsError,
+    refetch: refetchTeamStats,
+  } = useQuery<TeamStats>({
+    queryKey: ["/api/team/stats"],
+    staleTime: 60_000,
   });
   const {
     data: incomeSummary,
@@ -233,6 +353,16 @@ function HomePage() {
   });
 
   const bannerImages = useMemo(() => parseBanners(settings.banner1Images), [settings.banner1Images]);
+  const selectedPopularIds = useMemo(
+    () => parseProductIds(settings.specialProductIds),
+    [settings.specialProductIds],
+  );
+  const popularProducts = useMemo(() => {
+    const productsById = new Map(catalogProducts.map((product) => [product.id, product]));
+    return selectedPopularIds
+      .map((id) => productsById.get(id))
+      .filter((product): product is Product => Boolean(product && !product.isFree));
+  }, [catalogProducts, selectedPopularIds]);
   const telegramUrl = getTelegramDestination(settings);
 
   if (!user) return null;
@@ -249,6 +379,21 @@ function HomePage() {
     window.open(telegramUrl, "_blank", "noopener,noreferrer");
   }
 
+  function scrollPopularProducts(direction: -1 | 1) {
+    const track = popularProductsRef.current;
+    if (!track) return;
+    const rtlFactor = lang === "ar" ? -1 : 1;
+    track.scrollBy({
+      left: direction * rtlFactor * Math.max(220, track.clientWidth * 0.78),
+      behavior: "smooth",
+    });
+  }
+
+  function retryHomeStats() {
+    if (isHomeStatsError) void refetchHomeStats();
+    if (isTeamStatsError) void refetchTeamStats();
+  }
+
   const balances = [
     { id: "deposit", label: copy.depositBalance, value: user.balance },
     { id: "withdrawal", label: copy.withdrawalBalance, value: user.totalEarnings },
@@ -263,21 +408,45 @@ function HomePage() {
       ArtIcon: UsersRound,
       AccentIcon: Sparkles,
     },
+  ];
+
+  const teamMemberCount = teamStats
+    ? Number(teamStats.level1Count || 0) + Number(teamStats.level2Count || 0) + Number(teamStats.level3Count || 0)
+    : undefined;
+  const infoCards: {
+    id: string;
+    label: string;
+    value?: string;
+    loading: boolean;
+    Icon: LucideIcon;
+  }[] = [
     {
-      id: "wheel",
-      title: copy.wheelTitle,
-      description: copy.wheelDescription,
-      href: "/spin-wheel",
-      ArtIcon: Gift,
-      AccentIcon: CircleDot,
+      id: "members",
+      label: copy.totalMembers,
+      value: homeStats ? formatCount(homeStats.totalUsers) : undefined,
+      loading: isHomeStatsLoading,
+      Icon: UsersRound,
     },
     {
-      id: "checkin",
-      title: copy.checkinTitle,
-      description: copy.checkinDescription,
-      href: "/checkin",
-      ArtIcon: CalendarDays,
-      AccentIcon: CircleDollarSign,
+      id: "production",
+      label: copy.totalProduction,
+      value: homeStats ? `XOF ${formatMoney(homeStats.totalProduction)}` : undefined,
+      loading: isHomeStatsLoading,
+      Icon: CircleDollarSign,
+    },
+    {
+      id: "team-members",
+      label: copy.myTeamMembers,
+      value: teamMemberCount === undefined ? undefined : formatCount(teamMemberCount),
+      loading: isTeamStatsLoading,
+      Icon: UserRound,
+    },
+    {
+      id: "team-commissions",
+      label: copy.teamCommissions,
+      value: teamStats ? `XOF ${formatMoney(teamStats.totalCommission)}` : undefined,
+      loading: isTeamStatsLoading,
+      Icon: WalletCards,
     },
   ];
 
@@ -349,6 +518,114 @@ function HomePage() {
             </div>
           </section>
 
+          <section className="ielp-home-popular" aria-labelledby="ielp-home-popular-title">
+            <div className="ielp-home-section-heading">
+              <h2 id="ielp-home-popular-title">{copy.popularProducts}</h2>
+              <div className="ielp-home-popular__controls">
+                <button
+                  type="button"
+                  aria-label={copy.previousProduct}
+                  title={copy.previousProduct}
+                  onClick={() => scrollPopularProducts(-1)}
+                  disabled={popularProducts.length < 2}
+                >
+                  <ChevronLeft size={18} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={copy.nextProduct}
+                  title={copy.nextProduct}
+                  onClick={() => scrollPopularProducts(1)}
+                  disabled={popularProducts.length < 2}
+                >
+                  <ChevronRight size={18} aria-hidden="true" />
+                </button>
+                <button
+                  className="ielp-home-popular__all"
+                  type="button"
+                  onClick={() => navigate("/products")}
+                >
+                  {copy.seeAllProducts}<ArrowRight size={14} aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            {isSettingsLoading || isProductsLoading ? (
+              <p className="ielp-home-popular__message" role="status">{copy.loading}</p>
+            ) : isProductsError ? (
+              <div className="ielp-home-popular__message">
+                <span>{copy.productsError}</span>
+                <button type="button" onClick={() => void refetchProducts()}>{copy.retry}</button>
+              </div>
+            ) : popularProducts.length === 0 ? (
+              <p className="ielp-home-popular__message">{copy.productsEmpty}</p>
+            ) : (
+              <div
+                className="ielp-home-popular__track"
+                ref={popularProductsRef}
+                dir={lang === "ar" ? "rtl" : "ltr"}
+                role="region"
+                aria-label={copy.popularProducts}
+                tabIndex={0}
+              >
+                {popularProducts.map((product, index) => {
+                  const name = rebrandText(product.name);
+                  return (
+                    <button
+                      className="ielp-home-product-card"
+                      type="button"
+                      key={product.id}
+                      onClick={() => navigate("/products")}
+                      aria-label={`${name} — ${copy.seeAllProducts}`}
+                      data-testid={`home-popular-product-${product.id}`}
+                    >
+                      <img
+                        className="ielp-home-product-card__image"
+                        src={getProductVisual(product.imageUrl, index)}
+                        alt=""
+                        loading="lazy"
+                        draggable={false}
+                      />
+                      <span className="ielp-home-product-card__name">{name}</span>
+                      <span className="ielp-home-product-card__details">
+                        <span>
+                          <small>{copy.productPrice}</small>
+                          <strong><small>XOF</small> {formatMoney(product.price)}</strong>
+                        </span>
+                        <span>
+                          <small>{copy.dailyIncome}</small>
+                          <strong><small>XOF</small> {formatMoney(product.dailyEarnings)}</strong>
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className="ielp-home-info" aria-labelledby="ielp-home-info-title">
+            <h2 id="ielp-home-info-title">{copy.statsTitle}</h2>
+            <div className="ielp-home-info__grid">
+              {infoCards.map(({ id, label, value, loading, Icon }) => (
+                <article className="ielp-home-info-card" key={id}>
+                  <span className="ielp-home-info-card__icon"><Icon size={20} aria-hidden="true" /></span>
+                  <strong className="ielp-home-info-card__value">
+                    {loading ? (
+                      <span className="ielp-home-info-card__skeleton" role="status" aria-label={copy.loading} />
+                    ) : value ?? "—"}
+                  </strong>
+                  <span className="ielp-home-info-card__label">{label}</span>
+                </article>
+              ))}
+            </div>
+            {(isHomeStatsError || isTeamStatsError) && (
+              <button className="ielp-home-info__retry" type="button" onClick={retryHomeStats}>
+                {copy.retry}
+              </button>
+            )}
+          </section>
+
           <section className="ielp-home-refresh__promotions" aria-label={copy.inviteTitle}>
             {promotions.map(({ id, title, description, href, ArtIcon, AccentIcon }) => (
               <button
@@ -377,6 +654,8 @@ function HomePage() {
       </div>
 
       <FloatingSupport placement="home" />
+      <FloatingWheel bottomOffset={76} />
+      <FloatingCheckin label={copy.checkinTitle} bottomOffset={24} />
       <HomeAnnouncementModal />
     </main>
   );
