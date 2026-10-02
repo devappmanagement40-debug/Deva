@@ -1757,7 +1757,7 @@ ol[data-radix-toast-viewport] li * {
   gap: 5px;
 }
 
-.ielp-home-popular__controls > button:not(.ielp-home-popular__all) {
+.ielp-home-popular__controls > button {
   display: flex;
   width: 31px;
   height: 31px;
@@ -1773,21 +1773,6 @@ ol[data-radix-toast-viewport] li * {
 .ielp-home-popular__controls > button:disabled {
   opacity: .44;
   cursor: not-allowed;
-}
-
-.ielp-home-popular__all {
-  display: inline-flex;
-  min-height: 31px;
-  align-items: center;
-  gap: 3px;
-  padding: 0 7px;
-  border: 1px solid rgba(218, 228, 244, .13);
-  border-radius: 10px;
-  color: #d8e0ed;
-  background: rgba(36, 43, 56, .72);
-  font-size: 11px;
-  font-weight: 650;
-  white-space: nowrap;
 }
 
 .ielp-home-popular__track {
@@ -2017,17 +2002,12 @@ ol[data-radix-toast-viewport] li * {
   text-align: center;
 }
 
-.ielp-home-popular__all:focus-visible,
 .ielp-home-popular__controls button:focus-visible,
 .ielp-home-product-card:focus-visible,
 .ielp-home-info-card:focus-visible,
 .ielp-home-info__retry:focus-visible {
   outline: 2px solid #62d3ce;
   outline-offset: 3px;
-}
-
-.ielp-home-page[dir="rtl"] .ielp-home-popular__all svg {
-  transform: scaleX(-1);
 }
 
 @media (max-width: 380px) {

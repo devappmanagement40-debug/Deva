@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownToLine,
-  ArrowRight,
   ChevronLeft,
   ChevronRight,
   MessageSquare,
@@ -49,7 +48,6 @@ type HomeCopy = {
   retry: string;
   retryLabel: string;
   popularProducts: string;
-  seeAllProducts: string;
   previousProduct: string;
   nextProduct: string;
   productsEmpty: string;
@@ -79,7 +77,6 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "Réessayer",
     retryLabel: "Réessayer le chargement des revenus produits",
     popularProducts: "Produits populaires",
-    seeAllProducts: "Voir tout",
     previousProduct: "Produit précédent",
     nextProduct: "Produit suivant",
     productsEmpty: "Aucun produit payant actif n’est disponible.",
@@ -107,7 +104,6 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "Retry",
     retryLabel: "Retry loading product revenue",
     popularProducts: "Popular products",
-    seeAllProducts: "View all",
     previousProduct: "Previous product",
     nextProduct: "Next product",
     productsEmpty: "No active paid products are available.",
@@ -135,7 +131,6 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "إعادة المحاولة",
     retryLabel: "إعادة تحميل أرباح المنتجات",
     popularProducts: "المنتجات الشائعة",
-    seeAllProducts: "عرض الكل",
     previousProduct: "المنتج السابق",
     nextProduct: "المنتج التالي",
     productsEmpty: "لا توجد منتجات مدفوعة نشطة متاحة.",
@@ -163,7 +158,6 @@ const COPY: Record<Lang, HomeCopy> = {
     retry: "重试",
     retryLabel: "重新加载产品收益",
     popularProducts: "热门产品",
-    seeAllProducts: "查看全部",
     previousProduct: "上一个产品",
     nextProduct: "下一个产品",
     productsEmpty: "暂无启用的付费产品。",
@@ -439,13 +433,6 @@ function HomePage() {
                 >
                   <ChevronRight size={18} aria-hidden="true" />
                 </button>
-                <button
-                  className="ielp-home-popular__all"
-                  type="button"
-                  onClick={() => navigate("/products")}
-                >
-                  {copy.seeAllProducts}<ArrowRight size={14} aria-hidden="true" />
-                </button>
               </div>
             </div>
 
@@ -479,8 +466,8 @@ function HomePage() {
                       className="ielp-home-product-card"
                       type="button"
                       key={product.id}
-                      onClick={() => navigate("/products")}
-                      aria-label={`${name} — ${copy.seeAllProducts}`}
+                      onClick={() => navigate("/deposit")}
+                      aria-label={`${name} — ${copy.recharge}`}
                       data-testid={`home-popular-product-${product.id}`}
                     >
                       <img
