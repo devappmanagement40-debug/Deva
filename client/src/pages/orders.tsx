@@ -43,35 +43,37 @@ export default function OrdersPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#0d0d0d" }}>
-      <header className="px-4 py-3 border-b border-white/20">
-        <h1 className="text-lg font-semibold text-white text-center">{headerTitle}</h1>
-      </header>
+      <div className="sticky top-0 z-[80] shrink-0 bg-[#0d0d0d]">
+        <header className="px-4 py-3 border-b border-white/20">
+          <h1 className="text-lg font-semibold text-white text-center">{headerTitle}</h1>
+        </header>
 
-      <div className="flex border-b border-white/20">
-        <button
-          onClick={() => setActiveTab("active")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-            activeTab === "active"
-              ? "text-white border-b-2 border-white"
-              : "text-white/50"
-          }`}
-          data-testid="orders-tab-active"
-        >
-          <span className="w-2 h-2 rounded-full bg-white"></span>
-          {t.ordersOngoing}
-        </button>
-        <button
-          onClick={() => setActiveTab("completed")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-            activeTab === "completed"
-              ? "text-white border-b-2 border-white"
-              : "text-white/50"
-          }`}
-          data-testid="orders-tab-completed"
-        >
-          <span className={activeTab === "completed" ? "text-white" : "text-white/50"}>&#10003;</span>
-          {t.ordersCompleted}
-        </button>
+        <div className="flex border-b border-white/20">
+          <button
+            onClick={() => setActiveTab("active")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              activeTab === "active"
+                ? "text-white border-b-2 border-white"
+                : "text-white/50"
+            }`}
+            data-testid="orders-tab-active"
+          >
+            <span className="w-2 h-2 rounded-full bg-white"></span>
+            {t.ordersOngoing}
+          </button>
+          <button
+            onClick={() => setActiveTab("completed")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+              activeTab === "completed"
+                ? "text-white border-b-2 border-white"
+                : "text-white/50"
+            }`}
+            data-testid="orders-tab-completed"
+          >
+            <span className={activeTab === "completed" ? "text-white" : "text-white/50"}>&#10003;</span>
+            {t.ordersCompleted}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20 px-4 pt-4">
