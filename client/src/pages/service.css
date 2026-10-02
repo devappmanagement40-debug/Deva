@@ -7,7 +7,6 @@
   position: relative;
   min-height: 100vh;
   padding-bottom: calc(104px + env(safe-area-inset-bottom));
-  overflow: hidden;
   color: var(--service-text);
   background-color: #02071d;
   background-image: url("/auth-night-sky.svg");

@@ -125,7 +125,13 @@ export default function ServicePage() {
        {/* ══ HEADER DIAMANT ══ */}
       <div
         className="ielp-service-header flex items-center px-4 py-3"
-         style={{ background: "rgba(4, 8, 29, .96)" }}
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 80,
+          flexShrink: 0,
+          background: "rgba(4, 8, 29, .96)",
+        }}
       >
         <a href="#" aria-label="Retour au compte">
           <button
