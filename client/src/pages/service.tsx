@@ -150,7 +150,11 @@ export default function ServicePage() {
       </section>
 
       <main className="diamant-service-content">
-        <section className="diamant-service-card diamant-service-deposit">
+        <Link
+          href="/deposit-issue"
+          className="diamant-service-card diamant-service-deposit"
+          data-testid="button-deposit-support"
+        >
           <div className="diamant-service-icon diamant-service-icon-deposit" aria-hidden="true">
             <img src="/deposit-cfa-icon.jpg" alt="" />
           </div>
@@ -160,16 +164,12 @@ export default function ServicePage() {
               Après avoir réussi à créditer votre compte, si le solde n'est pas apparu,
               veuillez le signaler ici et notre service client vous assistera&nbsp;!
             </p>
-            <Link
-              href="/deposit-issue"
-              className="diamant-service-text-action"
-              data-testid="button-deposit-support"
-            >
+            <span className="diamant-service-text-action">
               Signaler mon dépôt
               <ChevronRight size={18} aria-hidden="true" />
-            </Link>
+            </span>
           </div>
-        </section>
+        </Link>
 
         <section className="diamant-service-card diamant-service-hours-card">
           <div className="diamant-service-icon diamant-service-icon-hours" aria-hidden="true">

@@ -615,8 +615,6 @@ export default function AccountPage() {
               >
                 {copyKey === "password" ? (
                   <PasswordGlyph />
-                ) : copyKey === "support" ? (
-                  <img src={customerServiceIcon} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
                 ) : (
                   <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
                 )}
