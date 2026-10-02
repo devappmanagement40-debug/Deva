@@ -292,15 +292,6 @@ const ACCOUNT_MENU_ACTIONS: {
   { labelKey: "about", href: "/about", Icon: Info },
 ];
 
-function PasswordGlyph() {
-  return (
-    <span className="ielp-account-password-icon" aria-hidden="true">
-      <span>***</span>
-      <i />
-    </span>
-  );
-}
-
 export default function AccountPage() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
@@ -613,11 +604,7 @@ export default function AccountPage() {
                 onClick={() => href ? navigate(href) : handleSecurityPin()}
                 data-testid={`account-link-${copyKey}`}
               >
-                {copyKey === "password" ? (
-                  <PasswordGlyph />
-                ) : (
-                  <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
-                )}
+                <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
                 <span>{copy[copyKey]}</span>
                 {index !== 1 && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
               </button>
