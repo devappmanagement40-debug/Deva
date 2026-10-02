@@ -4,13 +4,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  Headset,
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { getContent, rebrandText } from "@/lib/content";
 import customerServiceIcon from "@assets/customer-service-icon-512.png";
+import supportAvatar3D from "@assets/generated_images/diamant-support-avatar-3d.png";
 import "./service.css";
 
 interface LinksSettings {
@@ -144,7 +144,7 @@ export default function ServicePage() {
             <span />
           </span>
           <span className="diamant-service-hero-headset" aria-hidden="true">
-            <Headset size={15} />
+            <img src={supportAvatar3D} alt="" draggable={false} />
           </span>
         </div>
       </section>
@@ -164,10 +164,6 @@ export default function ServicePage() {
               Après avoir réussi à créditer votre compte, si le solde n'est pas apparu,
               veuillez le signaler ici et notre service client vous assistera&nbsp;!
             </p>
-            <span className="diamant-service-text-action">
-              Signaler mon dépôt
-              <ChevronRight size={18} aria-hidden="true" />
-            </span>
           </div>
         </Link>
 

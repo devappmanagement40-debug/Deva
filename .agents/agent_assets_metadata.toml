@@ -112,3 +112,17 @@ mtime_ms = 1790873107682
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/ea09d570-22f1-4f37-8519-dac78c6af00e/d1ca55cf-4de0-45e1-9598-671fe47b9834"
 storage_version_token = "1790873249933920"
 content_type = "image/png"
+
+[[outputs]]
+id = "SNIR4kJGE57EkRp5ynmL4"
+uri = "file://attached_assets/generated_images/diamant-support-avatar-3d.png"
+type = "image"
+title = "Avatar 3D du service client"
+description = "Illustration transparente en 3D intégrée dans la pastille de service client du bandeau."
+logical_id = "a945b565-fafe-45eb-8885-fa9f162abd24"
+content_hash = "sha256:2f386700209019c0100e61cae41289d88e53d6c16696c4a24e447f408bb8f90d"
+size = 28302
+mtime_ms = 1790930700333
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/a945b565-fafe-45eb-8885-fa9f162abd24/7265dbfe-33c0-4b7b-81ad-27786139341e"
+storage_version_token = "1790930779021013"
+content_type = "image/png"
