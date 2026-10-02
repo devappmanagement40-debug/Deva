@@ -25,6 +25,14 @@ Keep the member bottom navigation background at `linear-gradient(110deg, rgba(11
 
 **How to apply:** Preserve both gradient stops when updating the member bottom navigation; adjust icons or labels separately without changing its background.
 
+## Existing home-card colors
+
+Preserve the prior palettes of existing home cards, including the account/balance panel, quick-action strip, and invitation card. Do not recolor existing cards just to make them match the navigation; style newly introduced cards separately.
+
+**Why:** The user asked to restore the previous colors of existing cards after a broader home-page recoloring.
+
+**How to apply:** When adjusting the navigation or home theme, check existing card surfaces independently and retain their established palettes unless the user asks to change them.
+
 ## Account-banner photo sourcing
 
 The DIAMANT profile carousel uses the user's real team photos; do not reintroduce the previously generated 3D diamond posters there unless the user asks. Preserve supplied photos as photographs and keep their original files unchanged.
