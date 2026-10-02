@@ -11,7 +11,7 @@
   color: var(--service-text);
   background:
     radial-gradient(ellipse at 78% 4%, rgba(32, 124, 203, .25), transparent 22rem),
-    linear-gradient(180deg, #050923 0%, #07123c 34%, #08265e 69%, #075587 100%);
+    linear-gradient(180deg, #050923 0%, var(--service-deep) 34%, #08265e 69%, #075587 100%);
   font-family: Roboto, Arial, sans-serif;
 }
 
@@ -75,7 +75,7 @@
   color: #fff;
   background:
     radial-gradient(ellipse at 88% 8%, rgba(32, 124, 203, .28), transparent 16rem),
-    linear-gradient(145deg, #050923 0%, #07123c 48%, #075587 100%);
+    linear-gradient(145deg, #050923 0%, var(--service-deep) 48%, #075587 100%);
   border-radius: 0 0 42px 42px;
 }
 
@@ -123,7 +123,7 @@
   background: #dceeff;
   border: 4px solid rgba(205, 226, 255, .76);
   border-radius: 50%;
-  box-shadow: 0 8px 22px rgba(0, 55, 25, .2);
+  box-shadow: 0 8px 22px rgba(0, 8, 35, .38);
 }
 
 .diamant-service-hero-laptop {

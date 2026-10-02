@@ -110,12 +110,18 @@ export default function ServicePage() {
   const links = allLinks.filter(l => l.enabled);
 
   return (
-    <div className="ielp-service-page flex flex-col min-h-screen" style={{ background: "#f2f2f2" }}>
+    <div
+      className="ielp-service-page flex flex-col min-h-screen"
+      style={{
+        color: "#f7f8ff",
+        background: "linear-gradient(180deg, #050923 0%, #07123c 36%, #08265e 69%, #075587 100%)",
+      }}
+    >
 
        {/* ══ HEADER DIAMANT ══ */}
       <div
         className="ielp-service-header flex items-center px-4 py-3"
-        style={{ background: "#078438" }}
+         style={{ background: "rgba(4, 8, 29, .96)" }}
       >
         <a href="#" aria-label="Retour au compte">
           <button
@@ -134,7 +140,7 @@ export default function ServicePage() {
       <div
         className="ielp-service-hero"
         style={{
-          background: "linear-gradient(160deg, #078438 0%, #034c25 100%)",
+          background: "linear-gradient(145deg, #050923 0%, #07123c 48%, #075587 100%)",
           paddingBottom: 30,
           display: "flex",
           flexDirection: "column",
@@ -163,7 +169,7 @@ export default function ServicePage() {
       <div className="px-3 mt-3">
         <div
           className="ielp-service-hours rounded-2xl text-center py-5 px-4"
-          style={{ background: "#078438" }}
+          style={{ background: "linear-gradient(100deg, #078be4, #704cff)" }}
         >
           <p
             className="font-black tracking-wide"
@@ -188,7 +194,7 @@ export default function ServicePage() {
           style={{
             fontSize: 14,
             fontWeight: 600,
-            color: "#333",
+            color: "#f7f8ff",
             marginBottom: 10,
             marginLeft: 2,
           }}
@@ -205,7 +211,7 @@ export default function ServicePage() {
               onClick={() => link.href !== "#" && window.open(link.href, "_blank", "noopener,noreferrer")}
               className="w-full flex items-center justify-between active:opacity-80 transition-opacity"
               style={{
-                background: "#078438",
+                background: "linear-gradient(100deg, #078be4, #704cff)",
                 borderRadius: 999,
                 padding: "15px 20px",
                 border: "none",
@@ -237,14 +243,14 @@ export default function ServicePage() {
           style={{
             fontSize: 14,
             fontWeight: 800,
-            color: "#111",
+            color: "#f7f8ff",
             marginBottom: 10,
             letterSpacing: 0.5,
           }}
         >
           CONSEILS :
         </p>
-        <div className="ielp-service-guidance-copy" style={{ color: "#444", fontSize: 13, lineHeight: 1.8 }}>
+        <div className="ielp-service-guidance-copy" style={{ color: "#c4cde2", fontSize: 13, lineHeight: 1.8 }}>
            <p>
              1. Pour toute question concernant la plateforme, utilisez uniquement
               les liens DIAMANT publiés dans cette page.

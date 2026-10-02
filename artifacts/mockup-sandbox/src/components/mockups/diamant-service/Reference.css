@@ -1,14 +1,16 @@
 .diamant-reference {
-  --diamant-green: #078438;
-  --diamant-green-dark: #046c32;
-  --diamant-mint: #f0f9f2;
-  --diamant-ink: #17302b;
-  --diamant-muted: #737d79;
+  --diamant-navy: #050923;
+  --diamant-deep-blue: #07123c;
+  --diamant-blue: #075587;
+  --diamant-sky: #078de9;
+  --diamant-violet: #704cff;
+  --diamant-ink: #f7f8ff;
+  --diamant-muted: #c4cde2;
   min-height: 100dvh;
   width: 100%;
   display: flex;
   justify-content: center;
-  background: #e6eee9;
+  background: #020720;
   color: var(--diamant-ink);
   font-family: "DM Sans", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -22,8 +24,8 @@
   height: 100dvh;
   min-height: 720px;
   overflow: hidden;
-  background: var(--diamant-mint);
-  box-shadow: 0 16px 60px rgba(25, 59, 40, 0.13);
+  background: linear-gradient(180deg, #050923 0%, #07123c 36%, #08265e 69%, #075587 100%);
+  box-shadow: 0 16px 60px rgba(0, 0, 0, .42);
 }
 
 .diamant-statusbar {
@@ -133,7 +135,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  background: var(--diamant-mint);
+  background: linear-gradient(180deg, #050923 0%, #07123c 36%, #08265e 69%, #075587 100%);
 }
 
 .diamant-page-scroll::-webkit-scrollbar {
@@ -148,7 +150,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: var(--diamant-green);
+  background: rgba(4, 8, 29, .96);
   color: #fff;
 }
 
@@ -183,7 +185,9 @@
   align-items: flex-start;
   padding: 49px 26px 76px;
   border-bottom-left-radius: 34px;
-  background: var(--diamant-green);
+  background:
+    radial-gradient(ellipse at 88% 8%, rgba(32, 124, 203, .3), transparent 16rem),
+    linear-gradient(145deg, var(--diamant-navy) 0%, var(--diamant-deep-blue) 48%, var(--diamant-blue) 100%);
   color: #fff;
 }
 
@@ -260,7 +264,7 @@
   width: 156px;
   height: 156px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.17);
+  background: rgba(7, 141, 233, 0.2);
 }
 
 .diamant-hero__portrait {
@@ -271,10 +275,10 @@
   height: 151px;
   border: 4px solid rgba(255, 255, 255, 0.58);
   border-radius: 50%;
-  background: #f1eadf;
+  background: #dceeff;
   object-fit: cover;
   object-position: center 30%;
-  box-shadow: 0 9px 23px rgba(0, 54, 25, 0.17);
+  box-shadow: 0 9px 23px rgba(0, 8, 35, 0.4);
 }
 
 .diamant-hero__laptop {
@@ -283,10 +287,10 @@
   bottom: 26px;
   width: 108px;
   height: 55px;
-  border: 5px solid #e9eee9;
+  border: 5px solid #e4efff;
   border-bottom-width: 10px;
   border-radius: 7px 7px 2px 2px;
-  background: #c9dbd1;
+  background: #bfd5f5;
   transform: skewY(-4deg);
 }
 
@@ -297,7 +301,7 @@
   left: -15px;
   height: 7px;
   border-radius: 2px 2px 8px 8px;
-  background: #f4f7f4;
+  background: #eaf2ff;
   content: "";
 }
 
@@ -308,7 +312,7 @@
   width: 28px;
   height: 21px;
   border-radius: 2px;
-  background: rgba(7, 132, 56, 0.17);
+  background: rgba(7, 141, 233, 0.24);
 }
 
 .diamant-hero__headset {
@@ -319,9 +323,9 @@
   width: 33px;
   height: 33px;
   place-items: center;
-  border: 2px solid #d7f4df;
+  border: 2px solid #c6d7ff;
   border-radius: 50%;
-  background: var(--diamant-green-dark);
+  background: var(--diamant-violet);
   color: white;
 }
 
@@ -331,7 +335,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(226, 255, 234, 0.8);
+  background: rgba(156, 221, 255, 0.85);
 }
 
 .diamant-hero__spark--one {
@@ -361,9 +365,10 @@
   align-items: flex-start;
   gap: 17px;
   padding: 24px 21px;
+  border: 1px solid rgba(155, 193, 255, .09);
   border-radius: 23px;
-  background: #fff;
-  box-shadow: 0 7px 24px rgba(45, 84, 57, 0.035);
+  background: linear-gradient(145deg, rgba(32, 47, 99, .96), rgba(31, 60, 113, .92));
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
 }
 
 .diamant-deposit-card {
@@ -378,8 +383,8 @@
   height: 74px;
   place-items: center;
   border-radius: 50%;
-  background: #effaf3;
-  color: #0b9b56;
+  background: rgba(8, 141, 233, .16);
+  color: #56b9ff;
 }
 
 .diamant-card-icon--deposit {
@@ -391,7 +396,7 @@
   position: absolute;
   width: 13px;
   height: 26px;
-  border: 5px solid #0d9b55;
+  border: 5px solid #078de9;
   content: "";
 }
 
@@ -417,10 +422,10 @@
   left: 25px;
   width: 25px;
   height: 25px;
-  border: 4px solid #fff;
+  border: 4px solid #203c71;
   border-radius: 50%;
-  background: #0a9b55;
-  box-shadow: 0 1px 4px rgba(15, 112, 59, 0.18);
+  background: #078de9;
+  box-shadow: 0 1px 4px rgba(7, 56, 120, 0.35);
 }
 
 .diamant-card-copy {
@@ -430,7 +435,7 @@
 
 .diamant-card-copy h3 {
   margin: 0 0 5px;
-  color: #172d29;
+  color: #f7f8ff;
   font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.45px;
@@ -439,7 +444,7 @@
 
 .diamant-card-copy p {
   margin: 0;
-  color: #727a77;
+  color: var(--diamant-muted);
   font-size: 17px;
   font-weight: 400;
   letter-spacing: -0.16px;
@@ -455,7 +460,7 @@
 
 .diamant-card-icon--hours {
   flex-basis: 74px;
-  color: #098a50;
+  color: #9cddff;
   transform: rotate(-10deg);
 }
 
@@ -464,7 +469,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 7px;
-  color: #087f45;
+  color: #76e0bd;
   font-size: 12px;
   font-weight: 700;
 }
@@ -475,7 +480,7 @@
   height: 7px;
   border: 1px solid white;
   border-radius: 50%;
-  background: #3cc880;
+  background: #10c993;
 }
 
 .diamant-telegram-card {
@@ -492,13 +497,13 @@
 .diamant-card-icon--telegram {
   flex-basis: 74px;
   margin-top: 0;
-  color: #0a9e5c;
+  color: #9cddff;
   transform: rotate(-12deg);
 }
 
 .diamant-card-icon--telegram svg {
-  fill: #0a9e5c;
-  stroke: #effaf3;
+  fill: #078de9;
+  stroke: #203c71;
 }
 
 .diamant-telegram-card__links {
@@ -513,10 +518,10 @@
   align-items: center;
   gap: 10px;
   padding: 0 11px 0 9px;
-  border: 1px solid #e6f1e9;
+  border: 1px solid rgba(156, 221, 255, .16);
   border-radius: 13px;
-  background: #fbfefc;
-  color: #167c4a;
+  background: rgba(16, 35, 82, .9);
+  color: #f5f7ff;
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -525,7 +530,7 @@
 
 .diamant-telegram-action:hover,
 .diamant-telegram-action:focus-visible {
-  background: #edf8f0;
+  background: rgba(7, 141, 233, .16);
   transform: translateX(2px);
 }
 
@@ -535,20 +540,20 @@
   height: 28px;
   place-items: center;
   border-radius: 50%;
-  background: #e7f6ec;
+  background: rgba(7, 141, 233, .18);
 }
 
 .diamant-telegram-action__arrow {
   flex: 0 0 auto;
   margin-left: auto;
-  color: #7caa8c;
+  color: #9cddff;
 }
 
 .diamant-guidance {
   padding: 21px 21px 20px;
-  border: 1px solid rgba(14, 127, 67, 0.1);
+  border: 1px solid rgba(156, 221, 255, .16);
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(31, 39, 78, .84);
 }
 
 .diamant-guidance__heading {
@@ -556,7 +561,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #e8f1e9;
+  border-bottom: 1px solid rgba(226, 235, 255, .12);
 }
 
 .diamant-guidance__shield {
@@ -565,13 +570,13 @@
   height: 39px;
   place-items: center;
   border-radius: 12px;
-  background: #e8f6ec;
-  color: #098449;
+  background: rgba(7, 141, 233, .16);
+  color: #78baff;
 }
 
 .diamant-guidance__heading h2 {
   margin: 2px 0 0;
-  color: #19372b;
+  color: #f7f8ff;
   font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.3px;
@@ -582,7 +587,7 @@
   gap: 13px;
   padding: 16px 0 0 21px;
   margin: 0;
-  color: #66736c;
+  color: var(--diamant-muted);
   font-size: 14px;
   line-height: 1.62;
 }
@@ -592,7 +597,7 @@
 }
 
 .diamant-guidance li::marker {
-  color: #078438;
+  color: #078de9;
   font-weight: 800;
 }
 
@@ -607,8 +612,8 @@
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 50%;
-  background: linear-gradient(145deg, #18b7c3, #079da9);
-  box-shadow: 0 7px 18px rgba(13, 140, 142, 0.26);
+  background: linear-gradient(145deg, #704cff, #078be4);
+  box-shadow: 0 7px 20px rgba(6, 29, 89, .42);
   color: #fff;
   text-decoration: none;
   transition: transform 180ms ease;

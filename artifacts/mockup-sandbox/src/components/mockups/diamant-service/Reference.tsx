@@ -58,7 +58,7 @@ export default function Reference() {
           </span>
           <div className="diamant-browserbar__title">
             <strong>Centre d’aide</strong>
-            <span>elsewedyfonds.cc/help</span>
+            <span>Assistance DIAMANT</span>
           </div>
           <ChevronDown size={23} strokeWidth={2.5} />
           <EllipsisVertical size={22} strokeWidth={2.5} />
