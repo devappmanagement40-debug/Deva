@@ -45,7 +45,12 @@ export default function WheelRankingModal({
   const topEntries = [...entries]
     .filter((entry) => Number.parseFloat(entry.amount) > 0)
     .sort((a, b) => Number.parseFloat(b.amount) - Number.parseFloat(a.amount))
-    .slice(0, 5);
+    .slice(0, 30);
+  const rowHeight = 53;
+  const viewportHeight = rowHeight * 5;
+  const scrollDistance = Math.max(0, topEntries.length * rowHeight - viewportHeight);
+  const shouldAutoScroll = scrollDistance > 0;
+  const scrollDuration = Math.max(7, scrollDistance / 35);
 
   return (
     <WheelBoardModal
@@ -55,6 +60,28 @@ export default function WheelRankingModal({
       ariaLabel="Classement des gagnants"
       showTrophy
     >
+      {shouldAutoScroll && (
+        <style>{`
+          @keyframes wheel-ranking-ticker {
+            to { transform: translateY(var(--wheel-ranking-distance)); }
+          }
+          .wheel-ranking-ticker-track {
+            animation: wheel-ranking-ticker var(--wheel-ranking-duration) linear infinite alternate;
+            will-change: transform;
+          }
+          .wheel-ranking-ticker-window:hover .wheel-ranking-ticker-track,
+          .wheel-ranking-ticker-window:focus-within .wheel-ranking-ticker-track {
+            animation-play-state: paused;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .wheel-ranking-ticker-window { overflow-y: auto !important; }
+            .wheel-ranking-ticker-track {
+              animation: none;
+              will-change: auto;
+            }
+          }
+        `}</style>
+      )}
       <div
         style={{
           display: "grid",
@@ -83,43 +110,68 @@ export default function WheelRankingModal({
           Aucun gain enregistré pour le moment.
         </p>
       )}
-      {topEntries.map((entry, index) => (
+      {topEntries.length > 0 && (
         <div
-          key={`${entry.phone}-${entry.amount}-${index}`}
+          className="wheel-ranking-ticker-window"
+          data-testid="wheel-ranking-scroll-window"
+          role="region"
+          aria-label="Classement des gains enregistrés"
+          tabIndex={shouldAutoScroll ? 0 : undefined}
           style={{
-            display: "grid",
-            gridTemplateColumns: "78px minmax(0, 1fr) 91px",
-            alignItems: "center",
-            gap: 7,
-            minHeight: 53,
-            padding: "5px 3px",
-            borderBottom: index === topEntries.length - 1 ? "none" : "1px solid rgba(217, 133, 119, .09)",
-            color: "#201c1b",
-            fontSize: "clamp(13px, 3.6vw, 15px)",
+            maxHeight: viewportHeight,
+            overflow: "hidden",
           }}
         >
-          <span style={{ display: "flex", justifyContent: "center" }}>
-            {index < 3 ? (
-              <span style={medalStyle(index + 1)}>{index + 1}</span>
-            ) : (
-              <span style={{ fontWeight: 500 }}>{index + 1}</span>
-            )}
-          </span>
-          <span
-            style={{
-              minWidth: 0,
-              textAlign: "center",
-              fontWeight: 700,
-              overflowWrap: "anywhere",
-            }}
+          <div
+            className={shouldAutoScroll ? "wheel-ranking-ticker-track" : undefined}
+            data-testid="wheel-ranking-scroll-track"
+            style={shouldAutoScroll
+              ? {
+                  "--wheel-ranking-distance": `-${scrollDistance}px`,
+                  "--wheel-ranking-duration": `${scrollDuration}s`,
+                } as React.CSSProperties
+              : undefined}
           >
-            {entry.phone}
-          </span>
-          <span style={{ textAlign: "center", fontWeight: 700 }}>
-            {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 0 })}
-          </span>
+            {topEntries.map((entry, index) => (
+              <div
+                key={`${entry.phone}-${entry.amount}-${index}`}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "78px minmax(0, 1fr) 91px",
+                  alignItems: "center",
+                  gap: 7,
+                  minHeight: rowHeight,
+                  padding: "5px 3px",
+                  borderBottom: index === topEntries.length - 1 ? "none" : "1px solid rgba(217, 133, 119, .09)",
+                  color: "#201c1b",
+                  fontSize: "clamp(13px, 3.6vw, 15px)",
+                }}
+              >
+                <span style={{ display: "flex", justifyContent: "center" }}>
+                  {index < 3 ? (
+                    <span style={medalStyle(index + 1)}>{index + 1}</span>
+                  ) : (
+                    <span style={{ fontWeight: 500 }}>{index + 1}</span>
+                  )}
+                </span>
+                <span
+                  style={{
+                    minWidth: 0,
+                    textAlign: "center",
+                    fontWeight: 700,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {entry.phone}
+                </span>
+                <span style={{ textAlign: "center", fontWeight: 700 }}>
+                  {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 0 })}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
     </WheelBoardModal>
   );
 }
