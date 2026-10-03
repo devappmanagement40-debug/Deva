@@ -1,62 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
-import { DEFAULT_SPIN_WHEEL_SEGMENTS, type SpinWheelSegment } from "@shared/spin-wheel";
+import wheelIcon from "@assets/stickers-roue-de-la-fortune.jpg_1791017541674.jpg";
 
 interface FloatingWheelProps {
   bottomOffset?: number;
-}
-
-function MiniWheel({ size = 64, segments }: { size?: number; segments: SpinWheelSegment[] }) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const outer = size / 2 - 1;
-  const inner = outer - 2;
-  const hub = size / 7;
-  const n = segments.length;
-  const arc = (2 * Math.PI) / n;
-  const fills = ["#c9bcff", "#ffffff", "#8f79ff", "#dce7ff"];
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: "block" }}>
-      <defs>
-        <linearGradient id="miniWheelRim" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#eee9ff" />
-          <stop offset="35%" stopColor="#a693ff" />
-          <stop offset="70%" stopColor="#653de9" />
-          <stop offset="100%" stopColor="#dce7ff" />
-        </linearGradient>
-      </defs>
-
-      <circle cx={cx} cy={cy} r={outer} fill="url(#miniWheelRim)" stroke="#fff" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={outer - 1.5} fill="none" stroke="#653de9" strokeWidth="0.8" opacity="0.8" />
-
-      {segments.map((segment, i) => {
-        const start = i * arc - Math.PI / 2;
-        const end = start + arc;
-        const x1 = cx + Math.cos(start) * inner;
-        const y1 = cy + Math.sin(start) * inner;
-        const x2 = cx + Math.cos(end) * inner;
-        const y2 = cy + Math.sin(end) * inner;
-        return (
-          <g key={segment.id}>
-            <path
-              d={`M ${cx} ${cy} L ${x1} ${y1} A ${inner} ${inner} 0 0 1 ${x2} ${y2} Z`}
-              fill={fills[i % fills.length]}
-              stroke="#fff7fb"
-              strokeWidth="1.3"
-            />
-          </g>
-        );
-      })}
-
-      <circle cx={cx} cy={cy} r={hub + 2} fill="#fff" stroke="#a693ff" strokeWidth="1" />
-      <circle cx={cx} cy={cy} r={hub} fill="#eee9ff" stroke="#fff" strokeWidth="0.7" />
-      <circle cx={cx} cy={cy} r={hub / 2} fill="#653de9" />
-      <path d={`M ${cx} 1 L ${cx - 3} 7 L ${cx + 3} 7 Z`} fill="#fff" stroke="#653de9" strokeWidth="0.8" />
-    </svg>
-  );
 }
 
 export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
@@ -70,11 +18,6 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
 
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
   const buttonSize = 52;
-
-  const { data: configuredSegments } = useQuery<SpinWheelSegment[]>({
-    queryKey: ["/api/spin-wheel/config"],
-  });
-  const segments = configuredSegments?.length ? configuredSegments : DEFAULT_SPIN_WHEEL_SEGMENTS;
 
   useEffect(() => {
     const resetPosition = () => setPos({
@@ -150,15 +93,18 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
           justifyContent: "center",
         }}
       >
-        <div style={{
-          display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "center",
-          width:           "100%",
-          height:          "100%",
-        }}>
-          <MiniWheel size={buttonSize} segments={segments} />
-        </div>
+        <img
+          src={wheelIcon}
+          alt=""
+          draggable={false}
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            pointerEvents: "none",
+          }}
+        />
       </button>
     </>
   );
