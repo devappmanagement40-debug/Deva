@@ -9,6 +9,37 @@ export interface SpinWheelSegment {
   weight?: number;    // relative probability weight (default 1)
 }
 
+export const SPIN_WHEEL_SELF_REWARD_TOKEN = "{{selfPurchaseReward}}";
+export const SPIN_WHEEL_REFERRAL_REWARD_TOKEN = "{{referralPurchaseReward}}";
+
+export const DEFAULT_SPIN_WHEEL_INVITE_TEXT =
+  `Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit ${SPIN_WHEEL_SELF_REWARD_TOKEN} et vous recevez ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.`;
+
+export const DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT = SPIN_WHEEL_REFERRAL_REWARD_TOKEN;
+
+export const DEFAULT_SPIN_WHEEL_RULES_TEXT =
+  `Chaque achat payant que vous effectuez vous accorde automatiquement ${SPIN_WHEEL_SELF_REWARD_TOKEN}. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, vous recevez ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN}. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.`;
+
+function spinRewardPhrase(value: number | string, fallback: number): string {
+  const count = Number(value);
+  const normalizedCount = Number.isSafeInteger(count) && count >= 0 && count <= 10_000
+    ? count
+    : fallback;
+  return `${normalizedCount} ${normalizedCount === 1 ? "tour" : "tours"}`;
+}
+
+export function interpolateSpinWheelRewards(
+  text: string,
+  selfPurchaseSpins: number | string,
+  referralPurchaseSpins: number | string,
+): string {
+  return text
+    .split(SPIN_WHEEL_SELF_REWARD_TOKEN)
+    .join(spinRewardPhrase(selfPurchaseSpins, 3))
+    .split(SPIN_WHEEL_REFERRAL_REWARD_TOKEN)
+    .join(spinRewardPhrase(referralPurchaseSpins, 2));
+}
+
 export const DEFAULT_SPIN_WHEEL_SEGMENTS: SpinWheelSegment[] = [
   { id: 1, label: "10 XOF",     amount: 10,    color: "#F5C518", dark: "#5C3D00", canWin: true,  weight: 40 },
   { id: 2, label: "200 XOF",    amount: 200,   color: "#FFFDE7", dark: "#7C5200", canWin: true,  weight: 35 },
