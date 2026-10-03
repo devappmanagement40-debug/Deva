@@ -2005,8 +2005,6 @@ STATIC_UI_TRANSLATIONS.forEach((row) => row.forEach((value) => STATIC_UI_LOOKUP.
 const WITHDRAWAL_PROOF_STATIC_TRANSLATIONS: StaticTranslationRow[] = [
   ["DIAMANT · COMMUNAUTÉ", "DIAMANT · COMMUNITY", "DIAMANT · المجتمع", "DIAMANT · 社区"],
   ["Preuves de retrait", "Withdrawal proofs", "إثباتات السحب", "提现证明"],
-  ["Des retraits confirmés, partagés par les membres.", "Confirmed withdrawals shared by members.", "عمليات سحب مؤكدة يشاركها الأعضاء.", "成员分享的已确认提现。"],
-  ["Chaque preuve publiée a été vérifiée par notre équipe.", "Every published proof has been verified by our team.", "تحقق فريقنا من كل إثبات منشور.", "每份已发布的凭证均已由团队核实。"],
   ["Partager une preuve", "Share a proof", "شارك إثباتًا", "分享凭证"],
   ["Montrez votre retrait à la communauté", "Show your withdrawal to the community", "اعرض عملية السحب على المجتمع", "向社区展示您的提现"],
   ["VOTRE CONTRIBUTION", "YOUR CONTRIBUTION", "مساهمتك", "您的分享"],

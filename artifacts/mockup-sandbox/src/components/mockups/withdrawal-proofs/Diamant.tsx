@@ -138,8 +138,6 @@ export default function Diamant() {
 
           <section className="diamant-intro">
             <div className="diamant-intro__kicker"><span className="diamant-live-dot" /> DES MEMBRES, POUR LES MEMBRES</div>
-            <p>Des retraits confirmés,<br />partagés par les membres.</p>
-            <span>Chaque preuve publiée a été vérifiée par notre équipe.</span>
             <div className="diamant-intro__seal"><ShieldCheck size={17} /><span>La confiance se construit ensemble</span></div>
           </section>
 

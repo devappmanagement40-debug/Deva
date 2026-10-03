@@ -156,11 +156,6 @@ export default function WithdrawalProofsPage() {
           <span className="withdrawal-proofs-header__mark" aria-hidden="true"><ShieldCheck size={21} strokeWidth={2.8} /></span>
         </header>
 
-        <section className="withdrawal-proofs-intro">
-          <p>Des retraits confirmés, partagés par les membres.</p>
-          <span>Chaque preuve publiée a été vérifiée par notre équipe.</span>
-        </section>
-
         <div className="withdrawal-proofs-feed">
           <section className={`withdrawal-proof-submit ${formOpen ? "is-open" : ""}`}>
             {!formOpen ? (
