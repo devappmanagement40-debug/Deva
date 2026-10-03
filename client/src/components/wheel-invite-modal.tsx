@@ -1,3 +1,6 @@
+import { Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import WheelBoardModal from "./wheel-board-modal";
 
 /**
@@ -9,6 +12,7 @@ interface WheelInviteModalProps {
   onClose: () => void;
   text: string;
   highlight?: string; // highlighted portion (bold red)
+  referralCode?: string;
 }
 
 export default function WheelInviteModal({
@@ -16,7 +20,24 @@ export default function WheelInviteModal({
   onClose,
   text,
   highlight,
+  referralCode,
 }: WheelInviteModalProps) {
+  const { toast } = useToast();
+  const { t } = useI18n();
+  const referralLink = referralCode
+    ? `${window.location.origin}/#/register?invite_code=${encodeURIComponent(referralCode)}`
+    : "";
+
+  const copyReferralLink = async () => {
+    if (!referralLink) return;
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast({ title: t.wheelLinkCopied });
+    } catch {
+      toast({ title: t.wheelLinkCopyError, variant: "destructive" });
+    }
+  };
+
   if (!open) return null;
 
   // Split text around the highlight so we can style it
@@ -55,6 +76,24 @@ export default function WheelInviteModal({
           text
         )}
       </p>
+      <button
+        type="button"
+        onClick={copyReferralLink}
+        disabled={!referralLink}
+        aria-label={t.wheelCopyMyLink}
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-full border-2 px-4 py-3 shadow-sm transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          borderColor: "#ed9c68",
+          color: "#713823",
+          background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
+          fontFamily: "Roboto, Arial, sans-serif",
+          fontSize: 14,
+          fontWeight: 800,
+        }}
+      >
+        <Copy aria-hidden="true" className="h-4 w-4" />
+        {t.wheelCopyMyLink}
+      </button>
     </WheelBoardModal>
   );
 }

@@ -465,10 +465,12 @@ export async function seed() {
     { key: "vip5Reward", value: "3500" },
     { key: "vip6Reward", value: "5000" },
     { key: "vip7Reward", value: "7500" },
-    // Spin wheel popup texts (insert only — admin can override)
-    { key: "spinWheelInviteText", value: "Invitez vos amis à s'inscrire et vous aurez plus de chances de gagner des prix, jusqu'à 50 fois par jour." },
-    { key: "spinWheelInviteHighlight", value: "50" },
-    { key: "spinWheelRulesText", value: "Achetez un produit pour obtenir des tours gratuits. Chaque tour vous donne une chance de remporter un gain en XOF crédité directement sur votre solde." },
+    // Spin wheel settings (insert only — admin can override)
+    { key: "spinWheelSelfPurchaseSpins", value: "3" },
+    { key: "spinWheelReferralPurchaseSpins", value: "2" },
+    { key: "spinWheelInviteText", value: "Partagez votre lien de parrainage. Lorsqu’un ami inscrit avec votre lien achète un produit payant, vous gagnez 2 tours." },
+    { key: "spinWheelInviteHighlight", value: "2 tours" },
+    { key: "spinWheelRulesText", value: "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde." },
     { key: "spinWheelRulesHighlight", value: "" },
     { key: "banner1Images", value: "[]" },
     { key: "banner2Images", value: "[]" },
@@ -495,6 +497,26 @@ export async function seed() {
 
   // Update only known default copy. Custom admin content remains untouched.
   const knownDefaultCopyUpdates = [
+    {
+      key: "spinWheelInviteText",
+      oldValue: "Invitez vos amis à s'inscrire et vous aurez plus de chances de gagner des prix, jusqu'à 50 fois par jour.",
+      newValue: "Partagez votre lien de parrainage. Lorsqu’un ami inscrit avec votre lien achète un produit payant, vous gagnez 2 tours.",
+    },
+    {
+      key: "spinWheelInviteHighlight",
+      oldValue: "50",
+      newValue: "2 tours",
+    },
+    {
+      key: "spinWheelRulesText",
+      oldValue: "Achetez un produit pour obtenir des tours gratuits. Chaque tour vous donne une chance de remporter un gain en XOF crédité directement sur votre solde.",
+      newValue: "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde.",
+    },
+    {
+      key: "spinWheelRulesText",
+      oldValue: "Achetez un produit pour obtenir des tours gratuits. Chaque tour vous donne une chance de remporter un gain en USDT crédité directement sur votre solde.",
+      newValue: "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde.",
+    },
     {
       key: "popupLine7",
       oldValue: "🔥 Les gains sont crédités chaque jour",

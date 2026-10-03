@@ -337,10 +337,10 @@ export default function SpinWheelPage() {
     queryKey: ["/api/settings"],
   });
   const inviteText = displayCurrencyText(platformSettings?.spinWheelInviteText
-    ?? "Invitez vos amis à s’inscrire pour recevoir des tours gratuits et gagner des récompenses.");
-  const inviteHighlight = displayCurrencyText(platformSettings?.spinWheelInviteHighlight ?? "50");
+    ?? "Partagez votre lien de parrainage. Lorsqu’un ami inscrit avec votre lien achète un produit payant, vous gagnez 2 tours.");
+  const inviteHighlight = displayCurrencyText(platformSettings?.spinWheelInviteHighlight ?? "2 tours");
   const rulesText = displayCurrencyText(platformSettings?.spinWheelRulesText
-    ?? "Achetez un produit pour obtenir des tours gratuits. Chaque tour peut créditer un gain en XOF sur votre solde.");
+    ?? "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde.");
   const rulesHighlight = displayCurrencyText(platformSettings?.spinWheelRulesHighlight ?? "");
   const { data: recentSpins = [], isLoading: recentSpinsLoading } = useQuery<RecentSpin[]>({
     queryKey: ["/api/spin-wheel/recent"],
@@ -769,6 +769,7 @@ export default function SpinWheelPage() {
         onClose={() => setShowInvite(false)}
         text={inviteText}
         highlight={inviteHighlight}
+        referralCode={user?.referralCode ?? ""}
       />
       <WheelResultModal
         open={spinResult !== null}

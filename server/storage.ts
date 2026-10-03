@@ -30,6 +30,18 @@ function finiteAmount(value: unknown): number {
   return Number.isFinite(amount) ? amount : 0;
 }
 
+const MAX_WHEEL_PURCHASE_SPINS = 10_000;
+
+function parseWheelPurchaseSpins(value: string | null, fallback: number): number {
+  if (value === null || value.trim() === "") return fallback;
+
+  const spins = Number(value);
+  if (!Number.isSafeInteger(spins) || spins < 0 || spins > MAX_WHEEL_PURCHASE_SPINS) {
+    throw new Error("La configuration des tours de la roue doit être un entier entre 0 et 10 000");
+  }
+  return spins;
+}
+
 type ShareReportUser = Pick<User, "id" | "fullName" | "phone" | "country">;
 type WithdrawalProofUser = Pick<User, "id" | "fullName" | "phone" | "country">;
 type SpinWheelRequestRow = {
@@ -495,6 +507,18 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error("Utilisateur non trouvé");
 
+    const isPaidUserPurchase = !product.isFree && !assignedByAdmin;
+    let buyerSpinReward = 0;
+    let referralSpinReward = 0;
+    if (isPaidUserPurchase) {
+      const [buyerRewardSetting, referralRewardSetting] = await Promise.all([
+        this.getSetting("spinWheelSelfPurchaseSpins"),
+        this.getSetting("spinWheelReferralPurchaseSpins"),
+      ]);
+      buyerSpinReward = parseWheelPurchaseSpins(buyerRewardSetting, 3);
+      referralSpinReward = parseWheelPurchaseSpins(referralRewardSetting, 2);
+    }
+
     if (!product.isFree && !assignedByAdmin) {
       const parsedDepositBalance = Number.parseFloat(user.balance || "0");
       const parsedEarningsBalance = Number.parseFloat(user.totalEarnings || "0");
@@ -541,18 +565,20 @@ export class DatabaseStorage implements IStorage {
         await this.processReferralCommissions(userId, productPrice, productId);
       }
 
-      // Grant spin token to buyer for every paid purchase
-      await this.updateUser(userId, {
-        spinTokens: (user.spinTokens || 0) + 1,
-      });
+      // Add spin rewards atomically so concurrent paid purchases cannot overwrite each other.
+      if (buyerSpinReward > 0) {
+        await db.update(users)
+          .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${buyerSpinReward}` })
+          .where(eq(users.id, userId));
+      }
 
-      // Grant spin token to level-1 sponsor on every referral investment
-      if (user.referredBy) {
+      // Reward the level-1 sponsor for every paid purchase made by their referral.
+      if (user.referredBy && referralSpinReward > 0) {
         const sponsor = await this.getUserByReferralCode(user.referredBy);
         if (sponsor) {
-          await this.updateUser(sponsor.id, {
-            spinTokens: (sponsor.spinTokens || 0) + 1,
-          });
+          await db.update(users)
+            .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${referralSpinReward}` })
+            .where(eq(users.id, sponsor.id));
         }
       }
     } else {

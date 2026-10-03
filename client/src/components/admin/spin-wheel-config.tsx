@@ -169,6 +169,8 @@ function SegmentCard({
 /* ══════════════════════════════════════════════════════════════════
    POPUP TEXT EDITOR SECTION
 ══════════════════════════════════════════════════════════════════ */
+const MAX_WHEEL_SPIN_REWARD = 10_000;
+
 function PopupTextsEditor() {
   const { toast } = useToast();
   const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
@@ -177,6 +179,8 @@ function PopupTextsEditor() {
   const [inviteHighlight, setInviteHighlight] = useState("");
   const [rulesText,       setRulesText]       = useState("");
   const [rulesHighlight,  setRulesHighlight]  = useState("");
+  const [selfPurchaseSpins, setSelfPurchaseSpins] = useState("3");
+  const [referralPurchaseSpins, setReferralPurchaseSpins] = useState("2");
   const [textDirty, setTextDirty] = useState(false);
 
   // Charge les valeurs depuis le serveur uniquement si l'admin n'a pas
@@ -187,6 +191,8 @@ function PopupTextsEditor() {
     setInviteHighlight(settings.spinWheelInviteHighlight ?? "");
     setRulesText(settings.spinWheelRulesText ?? "");
     setRulesHighlight(settings.spinWheelRulesHighlight ?? "");
+    setSelfPurchaseSpins(settings.spinWheelSelfPurchaseSpins ?? "3");
+    setReferralPurchaseSpins(settings.spinWheelReferralPurchaseSpins ?? "2");
   // "textDirty" est intentionnellement absent : on veut relire le serveur
   // seulement quand settings change, pas quand l'admin tape.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,20 +200,33 @@ function PopupTextsEditor() {
 
   const saveTexts = useMutation({
     mutationFn: async () => {
-      const keys = [
-        { key: "spinWheelInviteText",      value: inviteText },
-        { key: "spinWheelInviteHighlight", value: inviteHighlight },
-        { key: "spinWheelRulesText",       value: rulesText },
-        { key: "spinWheelRulesHighlight",  value: rulesHighlight },
-      ];
-      for (const kv of keys) {
-        await apiRequest("POST", "/api/admin/settings", kv);
+      const buyerSpins = Number(selfPurchaseSpins);
+      const referredSpins = Number(referralPurchaseSpins);
+      if (
+        selfPurchaseSpins.trim() === "" ||
+        referralPurchaseSpins.trim() === "" ||
+        !Number.isSafeInteger(buyerSpins) ||
+        !Number.isSafeInteger(referredSpins) ||
+        buyerSpins < 0 ||
+        referredSpins < 0 ||
+        buyerSpins > MAX_WHEEL_SPIN_REWARD ||
+        referredSpins > MAX_WHEEL_SPIN_REWARD
+      ) {
+        throw new Error("Les tours doivent être des nombres entiers entre 0 et 10 000.");
       }
+      await apiRequest("POST", "/api/admin/settings", {
+        spinWheelInviteText: inviteText,
+        spinWheelInviteHighlight: inviteHighlight,
+        spinWheelRulesText: rulesText,
+        spinWheelRulesHighlight: rulesHighlight,
+        spinWheelSelfPurchaseSpins: String(buyerSpins),
+        spinWheelReferralPurchaseSpins: String(referredSpins),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
       setTextDirty(false);
-      toast({ title: "✅ Textes des popups sauvegardés" });
+      toast({ title: "✅ Paramètres de la roue sauvegardés" });
     },
     onError: (e: Error) => toast({ title: "Erreur", description: e.message, variant: "destructive" }),
   });
@@ -227,6 +246,40 @@ function PopupTextsEditor() {
         <p className="text-xs text-muted-foreground -mt-2">
           Ces textes s'affichent lorsque l'utilisateur clique sur "?" (règles) ou "+" (invitation).
         </p>
+
+        {/* Purchase reward controls */}
+        <div className="space-y-3 rounded-xl border p-3 bg-muted/20">
+          <p className="text-sm font-semibold">Tours accordés à chaque achat payant</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Achat effectué par l'utilisateur</label>
+              <Input
+                type="number"
+                min={0}
+                max={MAX_WHEEL_SPIN_REWARD}
+                step={1}
+                required
+                value={selfPurchaseSpins}
+                onChange={change(setSelfPurchaseSpins)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Achat effectué par son filleul direct</label>
+              <Input
+                type="number"
+                min={0}
+                max={MAX_WHEEL_SPIN_REWARD}
+                step={1}
+                required
+                value={referralPurchaseSpins}
+                onChange={change(setReferralPurchaseSpins)}
+              />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ces valeurs s'appliquent aux prochains achats. Vous pouvez adapter les textes des deux popups ci-dessous.
+          </p>
+        </div>
 
         {/* Invite popup */}
         <div className="space-y-2 rounded-xl border p-3 bg-muted/20">
@@ -296,7 +349,7 @@ function PopupTextsEditor() {
           className="gap-1 w-full"
         >
           {saveTexts.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Sauvegarder les textes
+          Sauvegarder les règles et les textes
         </Button>
       </CardContent>
     </Card>

@@ -3324,7 +3324,41 @@ export async function registerRoutes(
 
   app.post("/api/admin/settings", requireAdmin, requireSameOrigin, async (req, res) => {
     try {
-      const entries = Object.entries(req.body);
+      const body = req.body;
+      if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return res.status(400).json({ message: "Paramètres invalides" });
+      }
+
+      // Existing admin editors submit one setting as { key, value }; newer
+      // editors may submit a whole key/value map in one request.
+      const isSingleSettingPayload =
+        typeof body.key === "string" &&
+        Object.prototype.hasOwnProperty.call(body, "value") &&
+        Object.keys(body).length === 2;
+      const entries: [string, unknown][] = isSingleSettingPayload
+        ? [[body.key, body.value]]
+        : Object.entries(body);
+      const spinRewardSettingKeys = new Set([
+        "spinWheelSelfPurchaseSpins",
+        "spinWheelReferralPurchaseSpins",
+      ]);
+
+      // Validate all configurable spin rewards before saving any part of a
+      // bulk update, so malformed values cannot leave the panel half-saved.
+      for (const [key, value] of entries) {
+        if (!spinRewardSettingKeys.has(key)) continue;
+        const spins = typeof value === "number"
+          ? value
+          : typeof value === "string" && value.trim() !== ""
+            ? Number(value.trim())
+            : Number.NaN;
+        if (!Number.isSafeInteger(spins) || spins < 0 || spins > 10_000) {
+          return res.status(400).json({
+            message: "Le nombre de tours doit être un entier entre 0 et 10 000",
+          });
+        }
+      }
+
       for (const [key, value] of entries) {
         if (key === "withdrawalMode") {
           const mode = normalizeWithdrawalMode(typeof value === "string" ? value : undefined);
@@ -3335,6 +3369,9 @@ export async function registerRoutes(
             return res.status(400).json({ message: "Mode de retrait invalide" });
           }
           await storage.setSetting(key, mode, req.session.userId);
+        } else if (spinRewardSettingKeys.has(key)) {
+          const spins = typeof value === "number" ? value : Number(String(value).trim());
+          await storage.setSetting(key, String(spins), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [
             "supportLink",

@@ -409,6 +409,9 @@ export type Translations = {
   wheelTickerWonGrandPrize: string;
   wheelTickerWonSpecialBonus: string;
   wheelSegmentUnavailable: string;
+  wheelCopyMyLink: string;
+  wheelLinkCopied: string;
+  wheelLinkCopyError: string;
   // wheel rules modal
   wheelRulesTitle: string;
   wheelRulesHowToGet: string;
@@ -1020,10 +1023,13 @@ const fr: Translations = {
     wheelTickerWonGrandPrize:   "{0} a gagné le grand prix",
     wheelTickerWonSpecialBonus: "{0} a gagné un bonus spécial",
     wheelSegmentUnavailable:    "indisponible",
+    wheelCopyMyLink:            "Copier mon lien",
+    wheelLinkCopied:            "Lien de parrainage copié.",
+    wheelLinkCopyError:         "Impossible de copier le lien. Veuillez réessayer.",
     wheelRulesTitle:    "Règles du Tirage",
     wheelRulesHowToGet: "Comment obtenir des tours",
-    wheelRulesBuyGet:   "Achetez un produit payant → 1 tour crédité immédiatement",
-    wheelRulesReferralGet: "Un filleul direct investit → 1 tour crédité sur votre compte",
+    wheelRulesBuyGet:   "Achetez un produit payant → 3 tours crédités immédiatement",
+    wheelRulesReferralGet: "Un filleul achète un produit payant → 2 tours crédités sur votre compte",
     wheelRulesHowToPlay:"Comment jouer",
     wheelRulesHowToPlayDesc: "Appuyez sur la roue pour lancer le tirage",
     wheelRulesSpinOnce: "1 tour consommé par tirage",
