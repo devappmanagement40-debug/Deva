@@ -9,7 +9,14 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { displayCurrencyText } from "@/lib/content";
 import { Loader2, Save, RotateCcw, Image as ImageIcon, Trophy, AlertCircle, MessageSquare } from "lucide-react";
-import { DEFAULT_SPIN_WHEEL_SEGMENTS, type SpinWheelSegment } from "@shared/spin-wheel";
+import {
+  DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
+  DEFAULT_SPIN_WHEEL_INVITE_TEXT,
+  DEFAULT_SPIN_WHEEL_RULES_TEXT,
+  DEFAULT_SPIN_WHEEL_SEGMENTS,
+  interpolateSpinWheelRewards,
+  type SpinWheelSegment,
+} from "@shared/spin-wheel";
 import AdminSpinWheelRanking from "@/components/admin/spin-wheel-ranking";
 
 const SEGMENT_NAMES = ["Case 1", "Case 2", "Case 3", "Case 4", "Case 5", "Case 6", "Case 7", "Case 8"];
@@ -185,9 +192,9 @@ function PopupTextsEditor() {
   // de modifications en cours (évite d'écraser un texte en cours de saisie).
   useEffect(() => {
     if (!settings || textDirty) return;
-    setInviteText(settings.spinWheelInviteText ?? "");
-    setInviteHighlight(settings.spinWheelInviteHighlight ?? "");
-    setRulesText(settings.spinWheelRulesText ?? "");
+    setInviteText(settings.spinWheelInviteText ?? DEFAULT_SPIN_WHEEL_INVITE_TEXT);
+    setInviteHighlight(settings.spinWheelInviteHighlight ?? DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT);
+    setRulesText(settings.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT);
     setRulesHighlight(settings.spinWheelRulesHighlight ?? "");
     setSelfPurchaseSpins(settings.spinWheelSelfPurchaseSpins ?? "3");
     setReferralPurchaseSpins(settings.spinWheelReferralPurchaseSpins ?? "2");
@@ -234,6 +241,11 @@ function PopupTextsEditor() {
     setTextDirty(true);
   };
 
+  const previewInviteText = interpolateSpinWheelRewards(inviteText, selfPurchaseSpins, referralPurchaseSpins);
+  const previewInviteHighlight = interpolateSpinWheelRewards(inviteHighlight, selfPurchaseSpins, referralPurchaseSpins);
+  const previewRulesText = interpolateSpinWheelRewards(rulesText, selfPurchaseSpins, referralPurchaseSpins);
+  const previewRulesHighlight = interpolateSpinWheelRewards(rulesHighlight, selfPurchaseSpins, referralPurchaseSpins);
+
   return (
     <Card className="border-2 border-primary/20">
       <CardContent className="p-4 space-y-4">
@@ -275,7 +287,7 @@ function PopupTextsEditor() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Ces valeurs s'appliquent aux prochains achats. Vous pouvez adapter les textes des deux popups ci-dessous.
+            Ces valeurs s'appliquent aux prochains achats. Les balises {"{{selfPurchaseReward}}"} et {"{{referralPurchaseReward}}"} se mettent à jour automatiquement dans les aperçus et sur la roue. Conservez-les dans vos textes personnalisés pour qu'ils restent synchronisés.
           </p>
         </div>
 
@@ -297,15 +309,15 @@ function PopupTextsEditor() {
             <Input value={inviteHighlight} onChange={change(setInviteHighlight)} placeholder="50" />
           </div>
           {/* Preview */}
-          {inviteText && (
+          {previewInviteText && (
             <div className="rounded-xl border bg-white p-4 text-sm leading-relaxed text-gray-800">
-              {inviteHighlight && inviteText.includes(inviteHighlight) ? (
+              {previewInviteHighlight && previewInviteText.includes(previewInviteHighlight) ? (
                 <>
-                  {inviteText.slice(0, inviteText.indexOf(inviteHighlight))}
-                  <span className="font-extrabold text-red-500">{inviteHighlight}</span>
-                  {inviteText.slice(inviteText.indexOf(inviteHighlight) + inviteHighlight.length)}
+                  {previewInviteText.slice(0, previewInviteText.indexOf(previewInviteHighlight))}
+                  <span className="font-extrabold text-red-500">{previewInviteHighlight}</span>
+                  {previewInviteText.slice(previewInviteText.indexOf(previewInviteHighlight) + previewInviteHighlight.length)}
                 </>
-              ) : inviteText}
+              ) : previewInviteText}
             </div>
           )}
         </div>
@@ -328,15 +340,15 @@ function PopupTextsEditor() {
             <Input value={rulesHighlight} onChange={change(setRulesHighlight)} placeholder="" />
           </div>
           {/* Preview */}
-          {rulesText && (
+          {previewRulesText && (
             <div className="rounded-xl border bg-white p-4 text-sm leading-relaxed text-gray-800">
-              {rulesHighlight && rulesText.includes(rulesHighlight) ? (
+              {previewRulesHighlight && previewRulesText.includes(previewRulesHighlight) ? (
                 <>
-                  {rulesText.slice(0, rulesText.indexOf(rulesHighlight))}
-                  <span className="font-extrabold text-red-500">{rulesHighlight}</span>
-                  {rulesText.slice(rulesText.indexOf(rulesHighlight) + rulesHighlight.length)}
+                  {previewRulesText.slice(0, previewRulesText.indexOf(previewRulesHighlight))}
+                  <span className="font-extrabold text-red-500">{previewRulesHighlight}</span>
+                  {previewRulesText.slice(previewRulesText.indexOf(previewRulesHighlight) + previewRulesHighlight.length)}
                 </>
-              ) : rulesText}
+              ) : previewRulesText}
             </div>
           )}
         </div>
@@ -419,7 +431,7 @@ export default function AdminSpinWheelConfig() {
         <div>
           <h2 className="text-lg font-bold">Configuration de la roue</h2>
           <p className="text-sm text-muted-foreground">
-            Modifiez le montant et le texte de chaque case, puis cochez « Gagnable » pour choisir les prix qui peuvent sortir.
+            Modifiez le montant, le texte et la probabilité de chaque case, puis cochez « Gagnable » pour choisir les prix possibles. Les montants restent modifiables même pour une case décochée.
           </p>
         </div>
         <div className="flex gap-2">

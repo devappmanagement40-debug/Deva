@@ -3,6 +3,11 @@ import { users, referralCodeAliases, products, tasks, paymentChannels, paymentNu
 import bcrypt from "bcryptjs";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { REFERRAL_CODE_PATTERN, generateReferralCode } from "./referral-codes";
+import {
+  DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
+  DEFAULT_SPIN_WHEEL_INVITE_TEXT,
+  DEFAULT_SPIN_WHEEL_RULES_TEXT,
+} from "@shared/spin-wheel";
 
 async function migrateReferralCodes(): Promise<number> {
   return db.transaction(async (tx) => {
@@ -468,9 +473,9 @@ export async function seed() {
     // Spin wheel settings (insert only — admin can override)
     { key: "spinWheelSelfPurchaseSpins", value: "3" },
     { key: "spinWheelReferralPurchaseSpins", value: "2" },
-    { key: "spinWheelInviteText", value: "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation." },
-    { key: "spinWheelInviteHighlight", value: "2 tours" },
-    { key: "spinWheelRulesText", value: "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde." },
+    { key: "spinWheelInviteText", value: DEFAULT_SPIN_WHEEL_INVITE_TEXT },
+    { key: "spinWheelInviteHighlight", value: DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT },
+    { key: "spinWheelRulesText", value: DEFAULT_SPIN_WHEEL_RULES_TEXT },
     { key: "spinWheelRulesHighlight", value: "" },
     { key: "banner1Images", value: "[]" },
     { key: "banner2Images", value: "[]" },
@@ -500,32 +505,47 @@ export async function seed() {
     {
       key: "spinWheelInviteText",
       oldValue: "Invitez vos amis à s'inscrire et vous aurez plus de chances de gagner des prix, jusqu'à 50 fois par jour.",
-      newValue: "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.",
+      newValue: DEFAULT_SPIN_WHEEL_INVITE_TEXT,
     },
     {
       key: "spinWheelInviteText",
       oldValue: "Partagez votre lien de parrainage. Lorsqu’un ami inscrit avec votre lien achète un produit payant, vous gagnez 2 tours.",
-      newValue: "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.",
+      newValue: DEFAULT_SPIN_WHEEL_INVITE_TEXT,
+    },
+    {
+      key: "spinWheelInviteText",
+      oldValue: "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.",
+      newValue: DEFAULT_SPIN_WHEEL_INVITE_TEXT,
     },
     {
       key: "spinWheelInviteHighlight",
       oldValue: "50",
-      newValue: "2 tours",
+      newValue: DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
+    },
+    {
+      key: "spinWheelInviteHighlight",
+      oldValue: "2 tours",
+      newValue: DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
     },
     {
       key: "spinWheelRulesText",
       oldValue: "Achetez un produit pour obtenir des tours gratuits. Chaque tour vous donne une chance de remporter un gain en XOF crédité directement sur votre solde.",
-      newValue: "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.",
+      newValue: DEFAULT_SPIN_WHEEL_RULES_TEXT,
     },
     {
       key: "spinWheelRulesText",
       oldValue: "Achetez un produit pour obtenir des tours gratuits. Chaque tour vous donne une chance de remporter un gain en USDT crédité directement sur votre solde.",
-      newValue: "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.",
+      newValue: DEFAULT_SPIN_WHEEL_RULES_TEXT,
     },
     {
       key: "spinWheelRulesText",
       oldValue: "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde.",
-      newValue: "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.",
+      newValue: DEFAULT_SPIN_WHEEL_RULES_TEXT,
+    },
+    {
+      key: "spinWheelRulesText",
+      oldValue: "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.",
+      newValue: DEFAULT_SPIN_WHEEL_RULES_TEXT,
     },
     {
       key: "popupLine7",

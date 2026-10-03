@@ -14,7 +14,11 @@ import { BarChart3, ChevronLeft, FileText, Share2 } from "lucide-react";
 import { displayCurrencyText } from "@/lib/content";
 import wheelBackground from "@assets/generated_images/spin-wheel-palace-bg-optimized.jpg";
 import {
+  DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
+  DEFAULT_SPIN_WHEEL_INVITE_TEXT,
+  DEFAULT_SPIN_WHEEL_RULES_TEXT,
   DEFAULT_SPIN_WHEEL_SEGMENTS,
+  interpolateSpinWheelRewards,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
 
@@ -336,12 +340,28 @@ export default function SpinWheelPage() {
   const { data: platformSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
-  const inviteText = displayCurrencyText(platformSettings?.spinWheelInviteText
-    ?? "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.");
-  const inviteHighlight = displayCurrencyText(platformSettings?.spinWheelInviteHighlight ?? "2 tours");
-  const rulesText = displayCurrencyText(platformSettings?.spinWheelRulesText
-    ?? "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.");
-  const rulesHighlight = displayCurrencyText(platformSettings?.spinWheelRulesHighlight ?? "");
+  const selfPurchaseSpins = platformSettings?.spinWheelSelfPurchaseSpins ?? "3";
+  const referralPurchaseSpins = platformSettings?.spinWheelReferralPurchaseSpins ?? "2";
+  const inviteText = displayCurrencyText(interpolateSpinWheelRewards(
+    platformSettings?.spinWheelInviteText ?? DEFAULT_SPIN_WHEEL_INVITE_TEXT,
+    selfPurchaseSpins,
+    referralPurchaseSpins,
+  ));
+  const inviteHighlight = displayCurrencyText(interpolateSpinWheelRewards(
+    platformSettings?.spinWheelInviteHighlight ?? DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
+    selfPurchaseSpins,
+    referralPurchaseSpins,
+  ));
+  const rulesText = displayCurrencyText(interpolateSpinWheelRewards(
+    platformSettings?.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT,
+    selfPurchaseSpins,
+    referralPurchaseSpins,
+  ));
+  const rulesHighlight = displayCurrencyText(interpolateSpinWheelRewards(
+    platformSettings?.spinWheelRulesHighlight ?? "",
+    selfPurchaseSpins,
+    referralPurchaseSpins,
+  ));
   const { data: recentSpins = [], isLoading: recentSpinsLoading } = useQuery<RecentSpin[]>({
     queryKey: ["/api/spin-wheel/recent"],
     refetchInterval: 15000,
