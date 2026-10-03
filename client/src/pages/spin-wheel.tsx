@@ -37,6 +37,10 @@ interface SpinResult {
   segments: SpinWheelSegment[];
 }
 
+type SpinResultDialogState =
+  | { kind: "win" | "loss"; amount: number; label: string }
+  | { kind: "no-spins" };
+
 function createSpinRequestId(): string {
   if (typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
 
@@ -334,7 +338,7 @@ export default function SpinWheelPage() {
   const [showRanking, setShowRanking] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showInvite,  setShowInvite] = useState(false);
-  const [spinResult,  setSpinResult]  = useState<{ won: boolean; amount: number; label: string } | null>(null);
+  const [spinResult,  setSpinResult]  = useState<SpinResultDialogState | null>(null);
 
   /* Platform settings — for popup texts */
   const { data: platformSettings } = useQuery<Record<string, string>>({
@@ -462,12 +466,9 @@ export default function SpinWheelPage() {
       ? spinRequestIdRef.current.requestId
       : loadPendingSpinRequestId(user.id);
 
-    /* No tours available → toast only */
+    /* No turns available → explain it in the result dialog. */
     if (spinTokens <= 0 && !pendingRequestId) {
-      toast({
-        title: "Vous n'avez pas de tour disponible",
-        variant: "destructive",
-      });
+      setSpinResult({ kind: "no-spins" });
       return;
     }
 
@@ -531,8 +532,8 @@ export default function SpinWheelPage() {
             setSpinTokens(result.spinTokens);
             refreshUser();
             /* Show result popup (win / loss) */
-            const won = result.amount > 0;
-            setSpinResult({ won, amount: result.amount, label: result.label });
+            const kind = result.amount > 0 ? "win" : "loss";
+            setSpinResult({ kind, amount: result.amount, label: result.label });
           }
         }
         animRef.current = requestAnimationFrame(tick);
@@ -541,6 +542,10 @@ export default function SpinWheelPage() {
         spinning.current = false;
         setSpinning2(false);
         refreshUser();
+        if (/aucun tour disponible/i.test(error.message)) {
+          setSpinResult({ kind: "no-spins" });
+          return;
+        }
         toast({ title: error.message || t.wheelErrUnavailable, variant: "destructive" });
       },
     });
@@ -794,9 +799,9 @@ export default function SpinWheelPage() {
       <WheelResultModal
         open={spinResult !== null}
         onClose={() => setSpinResult(null)}
-        won={spinResult?.won ?? false}
-        amount={spinResult?.amount}
-        label={spinResult?.label}
+        kind={spinResult?.kind ?? "loss"}
+        amount={spinResult && spinResult.kind !== "no-spins" ? spinResult.amount : undefined}
+        label={spinResult && spinResult.kind !== "no-spins" ? spinResult.label : undefined}
       />
     </>
   );

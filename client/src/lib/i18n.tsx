@@ -406,6 +406,8 @@ export type Translations = {
   wheelResultWinMessage: string;
   wheelResultLossTitle: string;
   wheelResultLossMessage: string;
+  wheelResultNoSpinsTitle: string;
+  wheelResultNoSpinsMessage: string;
   wheelResultConfirm: string;
   wheelErrUnavailable: string;
   wheelRulesBtn: string;
@@ -1025,6 +1027,8 @@ const fr: Translations = {
     wheelResultWinMessage: "Vous avez remporté {0}. Le gain a été crédité automatiquement sur votre solde des gains.",
     wheelResultLossTitle:  "Pas de gain cette fois",
     wheelResultLossMessage:"Votre tour a été utilisé, mais vous n'avez remporté aucun gain. Vous pourrez rejouer avec un prochain tour.",
+    wheelResultNoSpinsTitle:   "Aucun tour disponible",
+    wheelResultNoSpinsMessage: "Vous n'avez aucun tour à jouer. Achetez un produit payant ou faites acheter un produit par un filleul pour recevoir de nouveaux tours.",
     wheelResultConfirm:    "OK",
     wheelErrUnavailable:"Le tirage est indisponible",
     wheelRulesBtn:      "Règles",

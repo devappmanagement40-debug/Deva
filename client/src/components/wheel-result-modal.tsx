@@ -8,12 +8,12 @@ import { displayCurrencyText } from "@/lib/content";
 interface Props {
   open: boolean;
   onClose: () => void;
-  won: boolean;
+  kind: "win" | "loss" | "no-spins";
   amount?: number;
   label?: string;
 }
 
-export default function WheelResultModal({ open, onClose, won, amount, label }: Props) {
+export default function WheelResultModal({ open, onClose, kind, amount, label }: Props) {
   const { t } = useI18n();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const onCloseRef = useRef(onClose);
@@ -51,10 +51,16 @@ export default function WheelResultModal({ open, onClose, won, amount, label }: 
       ? `${amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} XOF`
       : label ?? "0 XOF",
   );
-  const title = won ? t.wheelResultWinTitle : t.wheelResultLossTitle;
-  const message = won
+  const title = kind === "win"
+    ? t.wheelResultWinTitle
+    : kind === "loss"
+      ? t.wheelResultLossTitle
+      : t.wheelResultNoSpinsTitle;
+  const message = kind === "win"
     ? t.wheelResultWinMessage.replace("{0}", displayAmount)
-    : t.wheelResultLossMessage;
+    : kind === "loss"
+      ? t.wheelResultLossMessage
+      : t.wheelResultNoSpinsMessage;
 
   return (
     <div

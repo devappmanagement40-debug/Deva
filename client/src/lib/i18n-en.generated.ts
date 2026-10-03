@@ -355,6 +355,8 @@ export const ENGLISH_TRANSLATIONS = {
     wheelResultWinMessage: "You won {0}. The reward has been added automatically to your earnings balance.",
     wheelResultLossTitle:  "No prize this time",
     wheelResultLossMessage:"Your spin was used, but you did not win a prize. You can try again with a future spin.",
+    wheelResultNoSpinsTitle:   "No spins available",
+    wheelResultNoSpinsMessage: "You have no spins to play. Buy a paid product or have a direct referral purchase one to receive more spins.",
     wheelResultConfirm:    "OK",
     wheelErrUnavailable:"The draw is unavailable",
     wheelRulesBtn:      "Rules",
