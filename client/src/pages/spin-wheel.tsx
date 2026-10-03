@@ -337,10 +337,10 @@ export default function SpinWheelPage() {
     queryKey: ["/api/settings"],
   });
   const inviteText = displayCurrencyText(platformSettings?.spinWheelInviteText
-    ?? "Partagez votre lien de parrainage. Lorsqu’un ami inscrit avec votre lien achète un produit payant, vous gagnez 2 tours.");
+    ?? "Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit 3 tours et vous recevez 2 tours en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.");
   const inviteHighlight = displayCurrencyText(platformSettings?.spinWheelInviteHighlight ?? "2 tours");
   const rulesText = displayCurrencyText(platformSettings?.spinWheelRulesText
-    ?? "Vous gagnez 3 tours à chaque achat payant de produit effectué par vous-même, et 2 tours lorsqu’un ami inscrit avec votre lien achète un produit payant. Chaque tour peut vous faire gagner une somme en XOF créditée sur votre solde.");
+    ?? "Chaque achat payant que vous effectuez vous accorde automatiquement 3 tours. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, 2 tours sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.");
   const rulesHighlight = displayCurrencyText(platformSettings?.spinWheelRulesHighlight ?? "");
   const { data: recentSpins = [], isLoading: recentSpinsLoading } = useQuery<RecentSpin[]>({
     queryKey: ["/api/spin-wheel/recent"],
