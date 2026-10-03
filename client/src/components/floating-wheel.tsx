@@ -69,7 +69,7 @@ export function FloatingWheel({ bottomOffset = 24 }: FloatingWheelProps) {
   const startOffset  = useRef({ x: 0, y: 0 });
 
   const [pos, setPos] = useState<{ right: number; bottom: number } | null>(null);
-  const buttonSize = 44;
+  const buttonSize = 52;
 
   const { data: configuredSegments } = useQuery<SpinWheelSegment[]>({
     queryKey: ["/api/spin-wheel/config"],

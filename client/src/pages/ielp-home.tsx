@@ -564,7 +564,7 @@ function HomePage() {
       </div>
 
       <FloatingSupport placement="home" />
-      <FloatingWheel bottomOffset={76} />
+      <FloatingWheel bottomOffset={84} />
       <FloatingCheckin label={copy.checkinTitle} bottomOffset={24} />
       <HomeAnnouncementModal />
     </main>

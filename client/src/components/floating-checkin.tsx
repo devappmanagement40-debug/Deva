@@ -22,8 +22,8 @@ export function FloatingCheckin({ label, bottomOffset = 24 }: FloatingCheckinPro
         bottom: `calc(${bottomOffset + 120}px + env(safe-area-inset-bottom))`,
         zIndex: 200,
         display: "flex",
-        width: 44,
-        height: 44,
+        width: 52,
+        height: 52,
         alignItems: "center",
         justifyContent: "center",
         padding: 0,
@@ -35,7 +35,7 @@ export function FloatingCheckin({ label, bottomOffset = 24 }: FloatingCheckinPro
         cursor: "pointer",
       }}
     >
-      <CalendarDays size={21} strokeWidth={2} aria-hidden="true" />
+      <CalendarDays size={28} strokeWidth={2} aria-hidden="true" />
     </button>
   );
 }
