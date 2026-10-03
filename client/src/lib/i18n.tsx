@@ -402,6 +402,11 @@ export type Translations = {
   wheelNoSpins: string;
   wheelCongrats: string;
   wheelWonDesc: string;
+  wheelResultWinTitle: string;
+  wheelResultWinMessage: string;
+  wheelResultLossTitle: string;
+  wheelResultLossMessage: string;
+  wheelResultConfirm: string;
   wheelErrUnavailable: string;
   wheelRulesBtn: string;
   wheelSaveBtn: string;
@@ -1016,6 +1021,11 @@ const fr: Translations = {
     wheelNoSpins:       "Aucun tour disponible",
     wheelCongrats:      "🎉 Félicitations !",
     wheelWonDesc:       "Vous avez gagné : {0} XOF",
+    wheelResultWinTitle:   "Félicitations, vous avez gagné !",
+    wheelResultWinMessage: "Vous avez remporté {0}. Le gain a été crédité automatiquement sur votre solde des gains.",
+    wheelResultLossTitle:  "Pas de gain cette fois",
+    wheelResultLossMessage:"Votre tour a été utilisé, mais vous n'avez remporté aucun gain. Vous pourrez rejouer avec un prochain tour.",
+    wheelResultConfirm:    "OK",
     wheelErrUnavailable:"Le tirage est indisponible",
     wheelRulesBtn:      "Règles",
     wheelSaveBtn:       "Historique",
