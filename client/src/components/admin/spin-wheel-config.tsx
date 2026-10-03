@@ -67,14 +67,13 @@ function SegmentCard({
           {/* Amount */}
           <div>
             <label className="text-xs font-medium text-muted-foreground">
-              Montant gagné (XOF)
+              Montant crédité si gagné (XOF)
             </label>
             <Input
               type="number"
               min={0}
               value={seg.amount}
               onChange={e => onChange(index, "amount", parseFloat(e.target.value) || 0)}
-              disabled={!seg.canWin}
             />
           </div>
 
@@ -89,7 +88,6 @@ function SegmentCard({
               max={1000}
               value={seg.weight ?? 1}
               onChange={e => onChange(index, "weight", parseFloat(e.target.value) || 1)}
-              disabled={!seg.canWin}
             />
           </div>
 
@@ -421,7 +419,7 @@ export default function AdminSpinWheelConfig() {
         <div>
           <h2 className="text-lg font-bold">Configuration de la roue</h2>
           <p className="text-sm text-muted-foreground">
-            8 cases configurables — couleurs, prix, images, probabilités.
+            Modifiez le montant et le texte de chaque case, puis cochez « Gagnable » pour choisir les prix qui peuvent sortir.
           </p>
         </div>
         <div className="flex gap-2">
