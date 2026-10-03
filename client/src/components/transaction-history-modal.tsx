@@ -54,6 +54,15 @@ function formatTransactionDescription(description: string | null | undefined, la
         zh: "最终领取 — {name}",
       },
     },
+    {
+      pattern: /^Prime de partage de preuve de retrait #(\d+)$/,
+      labels: {
+        fr: "Prime de partage — preuve de retrait #{name}",
+        en: "Sharing bonus — withdrawal proof #{name}",
+        ar: "مكافأة مشاركة — إثبات سحب رقم {name}",
+        zh: "分享奖励 — 提现凭证 #{name}",
+      },
+    },
   ];
 
   for (const { pattern, labels } of patterns) {

@@ -80,6 +80,10 @@ export interface IStorage {
   createWithdrawalProof(data: { userId: number; proofImage: string; message: string }): Promise<WithdrawalProof>;
   getWithdrawalProofs(status?: WithdrawalProofStatus | "all", limit?: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser })[]>;
   getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined>;
+  approvePendingWithdrawalProof(
+    id: number,
+    data: { shareBonusXof: number; processedAt: Date; processedBy: number },
+  ): Promise<WithdrawalProof | undefined>;
   reviewPendingWithdrawalProof(
     id: number,
     data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "processedAt" | "processedBy">,
@@ -921,6 +925,50 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return result ? { ...result.proof, user: result.user } : undefined;
+  }
+
+  async approvePendingWithdrawalProof(
+    id: number,
+    data: { shareBonusXof: number; processedAt: Date; processedBy: number },
+  ): Promise<WithdrawalProof | undefined> {
+    return db.transaction(async (tx) => {
+      const [proof] = await tx.update(withdrawalProofs)
+        .set({ ...data, status: "approved" })
+        .where(and(eq(withdrawalProofs.id, id), eq(withdrawalProofs.status, "pending")))
+        .returning();
+      if (!proof) return undefined;
+
+      if (proof.shareBonusXof > 0) {
+        const [creditedUser] = await tx.update(users)
+          .set({
+            totalEarnings: sql`${users.totalEarnings} + ${proof.shareBonusXof}`,
+          })
+          .where(eq(users.id, proof.userId))
+          .returning({ id: users.id });
+        if (!creditedUser) {
+          throw new Error("Impossible de créditer la prime de partage au compte du membre");
+        }
+
+        await tx.insert(transactions).values({
+          userId: proof.userId,
+          type: "withdrawal_proof_bonus",
+          amount: proof.shareBonusXof.toString(),
+          description: `Prime de partage de preuve de retrait #${proof.id}`,
+        });
+      }
+
+      const bonusDetails = proof.shareBonusXof > 0
+        ? `prime de partage ${proof.shareBonusXof} XOF créditée au solde des gains`
+        : "aucune prime de partage";
+      await tx.insert(adminAuditLog).values({
+        adminId: data.processedBy,
+        action: "approve_withdrawal_proof",
+        targetUserId: proof.userId,
+        details: `Preuve de retrait ${proof.id} approuvée; ${bonusDetails}`,
+      });
+
+      return proof;
+    });
   }
 
   async reviewPendingWithdrawalProof(

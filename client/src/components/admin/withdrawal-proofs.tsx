@@ -92,8 +92,8 @@ export default function AdminWithdrawalProofs() {
         </div>
       </div>
       <aside className="admin-proof-review__note">
-        <strong>Note sur la prime affichée</strong>
-        <span>Le montant est une information affichée avec la preuve uniquement. Il ne crédite aucun portefeuille et ne crée aucune transaction.</span>
+        <strong>Note sur la prime de partage</strong>
+        <span>La prime est créditée au solde des gains du membre lors de l’approbation, puis affichée avec la preuve. Un montant de 0 XOF ne crée aucun crédit.</span>
       </aside>
 
       <div className="admin-proof-review__filters" role="group" aria-label="Filtrer les preuves">
@@ -165,7 +165,7 @@ export default function AdminWithdrawalProofs() {
               {proof.status === "pending" ? (
                 <div className="admin-proof-card__actions">
                   <label className="admin-proof-card__amount">
-                    <span>Prime affichée (XOF)</span>
+                    <span>Prime à créditer (XOF)</span>
                     <input
                       type="number"
                       min="0"
@@ -174,7 +174,7 @@ export default function AdminWithdrawalProofs() {
                       inputMode="numeric"
                       value={bonusAmounts[proof.id] ?? String(proof.shareBonusXof ?? 0)}
                       onChange={(event) => setBonusAmounts((current) => ({ ...current, [proof.id]: event.target.value }))}
-                      aria-label="Prime affichée (XOF)"
+                      aria-label="Prime à créditer (XOF)"
                       data-testid={`input-withdrawal-proof-bonus-${proof.id}`}
                     />
                   </label>

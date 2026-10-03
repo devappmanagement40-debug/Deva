@@ -2270,21 +2270,30 @@ export async function registerRoutes(
       }
 
       const action = payload.action;
+      const processedAt = new Date();
+      const processedBy = req.session.userId!;
+      if (action === "approve") {
+        const updated = await storage.approvePendingWithdrawalProof(id, {
+          shareBonusXof: payload.shareBonusXof,
+          processedAt,
+          processedBy,
+        });
+        if (!updated) return res.status(409).json({ message: "Cette preuve a déjà été traitée" });
+        return res.json(updated);
+      }
+
       const updated = await storage.reviewPendingWithdrawalProof(id, {
-        status: action === "approve" ? "approved" : "rejected",
-        shareBonusXof: action === "approve" ? payload.shareBonusXof : 0,
-        processedAt: new Date(),
-        processedBy: req.session.userId!,
+        status: "rejected",
+        shareBonusXof: 0,
+        processedAt,
+        processedBy,
       });
       if (!updated) return res.status(409).json({ message: "Cette preuve a déjà été traitée" });
-
       await storage.logAdminAction(
-        req.session.userId!,
-        `${action}_withdrawal_proof`,
+        processedBy,
+        "reject_withdrawal_proof",
         current.userId,
-        action === "approve"
-          ? `Preuve de retrait ${id} approuvée; prime affichée: ${payload.shareBonusXof} XOF, sans crédit`
-          : `Preuve de retrait ${id} rejetée`,
+        `Preuve de retrait ${id} rejetée`,
       );
       return res.json(updated);
     } catch (error: any) {
