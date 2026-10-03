@@ -1,12 +1,8 @@
-import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { ArrowLeft, Camera, CheckCircle2, Clock3, Expand, ImagePlus, Plus, ShieldCheck, Upload, X } from "lucide-react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { ArrowLeft, Camera, CheckCircle2, Clock3, House, ImagePlus, Plus, ShieldCheck, Upload, UserRound, UsersRound, WalletCards, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { localeForLang, useI18n } from "@/lib/i18n";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import "./withdrawal-proofs.css";
+import "./_group.css";
+import "./Current.css";
 
 type ProofFeedItem = {
   id: number;
@@ -18,6 +14,13 @@ type ProofFeedItem = {
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const MOCK_PROOFS: ProofFeedItem[] = [{
+  id: 2,
+  message: "Retrait reçu",
+  shareBonusXof: 200,
+  createdAt: "2026-10-03T07:17:34.505Z",
+  maskedPhone: "05446••058",
+}];
 
 function formatDate(value: string, locale: string) {
   const date = new Date(value);
@@ -41,54 +44,19 @@ function readImage(file: File) {
   });
 }
 
-export default function WithdrawalProofsPage() {
-  const [, navigate] = useLocation();
-  const { lang } = useI18n();
-  const { toast } = useToast();
-  const locale = localeForLang(lang);
+export default function Current() {
+  const navigate = (_path: string) => {};
+  const toast = (_options: unknown) => {};
+  const locale = "fr-FR";
   const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const imageInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [proof, setProof] = useState<string | null>(null);
   const [proofName, setProofName] = useState("");
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedProof, setSelectedProof] = useState<ProofFeedItem | null>(null);
-  const proofDialogRef = useRef<HTMLDialogElement>(null);
 
-  const feed = useQuery<ProofFeedItem[]>({
-    queryKey: ["/api/withdrawal-proofs"],
-  });
-
-  useEffect(() => {
-    const dialog = proofDialogRef.current;
-    if (!dialog) return;
-
-    if (selectedProof && !dialog.open) dialog.showModal();
-    if (!selectedProof && dialog.open) dialog.close();
-  }, [selectedProof]);
-
-  const submitProof = useMutation({
-    mutationFn: async (payload: { message: string; proof: string }) => {
-      const response = await apiRequest("POST", "/api/withdrawal-proofs", payload);
-      return response.json() as Promise<{ id: number; status: "pending" }>;
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["/api/withdrawal-proofs"] });
-      toast({
-        title: "Preuve envoyée",
-        description: "Elle sera visible par les autres membres après validation par l’administration.",
-      });
-      setMessage("");
-      setProof(null);
-      setProofName("");
-      setFormOpen(false);
-    },
-    onError: () => toast({
-      title: "Envoi impossible",
-      description: "L’envoi a échoué. Vérifiez votre connexion puis réessayez.",
-      variant: "destructive",
-    }),
-  });
+  const feed = { data: MOCK_PROOFS, isLoading: false, isError: false, refetch: () => {} };
+  const submitProof = { isPending: false, mutate: (_payload: { message: string; proof: string }) => {} };
 
   const chooseImage = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -137,6 +105,7 @@ export default function WithdrawalProofsPage() {
   };
 
   return (
+    <div className="withdrawal-proofs-preview-shell">
     <main className="withdrawal-proofs-page" data-testid="page-withdrawal-proofs">
       <div className="withdrawal-proofs-shell">
         <header className="withdrawal-proofs-header">
@@ -283,34 +252,25 @@ export default function WithdrawalProofsPage() {
                 <article className="withdrawal-proof-card" key={item.id} data-testid={`withdrawal-proof-${item.id}`}>
                   <div className="withdrawal-proof-card__top">
                     <div className="withdrawal-proof-card__member">
-                       <span className="withdrawal-proof-card__avatar" aria-hidden="true">
-                         <img src="/diamant-mark.svg" alt="" />
-                       </span>
-                       <span><strong data-no-static-translation>{item.maskedPhone}</strong><small data-no-static-translation><Clock3 size={13} strokeWidth={2.6} /> {formatDate(item.createdAt, locale)}</small></span>
+                  <span className="withdrawal-proof-card__avatar" aria-hidden="true" data-no-static-translation>{item.maskedPhone.slice(-2)}</span>
+                  <span><strong data-no-static-translation>{item.maskedPhone}</strong><small data-no-static-translation><Clock3 size={13} strokeWidth={2.6} /> {formatDate(item.createdAt, locale)}</small></span>
                     </div>
                     <span className="withdrawal-proof-card__verified"><ShieldCheck size={15} strokeWidth={2.8} /> Vérifié</span>
                   </div>
                   <div className="withdrawal-proof-card__content">
                     <p data-no-static-translation>{item.message}</p>
-                     <button
-                       type="button"
-                       className="withdrawal-proof-card__image-button"
-                       onClick={() => setSelectedProof(item)}
-                       aria-label="Agrandir la capture"
-                       data-testid={`button-view-withdrawal-proof-${item.id}`}
-                     >
+                    <figure className="withdrawal-proof-card__image">
                       <img
-                        src={`/api/withdrawal-proofs/${item.id}/image`}
+                         src="/__mockup/images/withdrawal-proof-sample.png"
                         alt="Capture de retrait partagée"
                         loading={index > 1 ? "lazy" : "eager"}
                       />
-                       <span className="withdrawal-proof-card__image-action"><Expand size={13} strokeWidth={2.6} /> Agrandir</span>
-                       <span className="withdrawal-proof-card__image-caption">Capture de retrait</span>
-                     </button>
+                      <figcaption>Capture de retrait</figcaption>
+                    </figure>
                   </div>
                   {Number(item.shareBonusXof) > 0 && (
                     <div className="withdrawal-proof-card__bonus">
-                       <span>Prime de partage créditée</span>
+                      <span>Prime de partage affichée</span>
                       <strong data-no-static-translation>{numberFormat.format(Number(item.shareBonusXof))} <small>XOF</small></strong>
                     </div>
                   )}
@@ -319,45 +279,16 @@ export default function WithdrawalProofsPage() {
             </div>
           )}
         </div>
-         <dialog
-           ref={proofDialogRef}
-           className="withdrawal-proof-lightbox"
-           aria-labelledby="withdrawal-proof-lightbox-title"
-           onCancel={(event) => {
-             event.preventDefault();
-             setSelectedProof(null);
-           }}
-           onClick={(event) => {
-             if (event.target === proofDialogRef.current) setSelectedProof(null);
-           }}
-           data-testid="dialog-withdrawal-proof-image"
-         >
-           {selectedProof && (
-             <>
-               <div className="withdrawal-proof-lightbox__header">
-                 <div>
-                   <h2 id="withdrawal-proof-lightbox-title">Capture de retrait</h2>
-                   <span data-no-static-translation>{selectedProof.maskedPhone}</span>
-                 </div>
-                 <button
-                   type="button"
-                   className="withdrawal-proof-lightbox__close"
-                   onClick={() => setSelectedProof(null)}
-                   aria-label="Fermer la capture"
-                   autoFocus
-                 >
-                   <X size={20} strokeWidth={2.6} />
-                 </button>
-               </div>
-               <img
-                 src={`/api/withdrawal-proofs/${selectedProof.id}/image`}
-                 alt="Capture de retrait partagée"
-               />
-               <p>Appuyez sur Échap ou sur le fond sombre pour fermer.</p>
-             </>
-           )}
-         </dialog>
       </div>
     </main>
+    <nav className="withdrawal-proofs-preview-nav" aria-label="Navigation principale">
+      <div>
+        <button type="button"><House size={25} strokeWidth={1.9} /><span>Accueil</span></button>
+        <button type="button"><WalletCards size={25} strokeWidth={1.9} /><span>Investir</span></button>
+        <button type="button"><UsersRound size={25} strokeWidth={1.9} /><span>Équipe</span></button>
+        <button type="button"><UserRound size={25} strokeWidth={1.9} /><span>Moi</span></button>
+      </div>
+    </nav>
+    </div>
   );
 }
