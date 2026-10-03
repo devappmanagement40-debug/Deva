@@ -7,6 +7,8 @@ import WheelInviteModal from "@/components/wheel-invite-modal";
 import WheelHistoryModal from "@/components/wheel-history-modal";
 import WheelRankingModal from "@/components/wheel-ranking-modal";
 import WheelResultModal from "@/components/wheel-result-modal";
+import { FloatingCheckin } from "@/components/floating-checkin";
+import { FloatingSupport } from "@/components/floating-support";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
@@ -29,7 +31,7 @@ const N   = DEFAULT_SPIN_WHEEL_SEGMENTS.length;
 const ARC = (2 * Math.PI) / N;
 const SEGMENT_FILLS = ["#fff5d9", "#fff1ca", "#fff8e3", "#ffedc0"];
 
-/* ── Coin stack helper (draws 3 stacked coin circles) ─────── */
+/* ── Gold coin medallion used in each prize segment ────────── */
 function drawCoinStack(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -55,20 +57,15 @@ function drawCoinStack(
   ctx.lineWidth = Math.max(1, r * 0.12);
   ctx.stroke();
   ctx.beginPath();
-  for (let point = 0; point < 10; point++) {
-    const angle = -Math.PI / 2 + (point * Math.PI) / 5;
-    const radius = point % 2 === 0 ? r * 0.48 : r * 0.21;
-    const px = x + Math.cos(angle) * radius;
-    const py = y + Math.sin(angle) * radius;
-    if (point === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
-  ctx.closePath();
-  ctx.fillStyle = "#ed9a12";
-  ctx.fill();
-  ctx.strokeStyle = "rgba(255, 248, 188, .8)";
+  ctx.arc(x, y, r * 0.57, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255, 248, 188, .92)";
   ctx.lineWidth = Math.max(0.8, r * 0.07);
   ctx.stroke();
+  ctx.fillStyle = "#bd650d";
+  ctx.font = `bold ${Math.max(8, r * 0.88)}px serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("₣", x, y + r * 0.03);
   ctx.restore();
 }
 
@@ -227,22 +224,6 @@ function drawWheel(
     ctx.fill();
     ctx.shadowBlur = 0;
   }
-
-  /* ── Fixed pointer marks the winning segment at the top ── */
-  ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(cx, cy - segR + 8);
-  ctx.lineTo(cx - 10, cy - outerR + 5);
-  ctx.lineTo(cx + 10, cy - outerR + 5);
-  ctx.closePath();
-  ctx.fillStyle = "#d91c22";
-  ctx.strokeStyle = "#fff4d5";
-  ctx.lineWidth = 2;
-  ctx.shadowColor = "rgba(93, 34, 18, .48)";
-  ctx.shadowBlur = 5;
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 
   /* ── Gold halo and center GO button ── */
   ctx.beginPath();
@@ -441,11 +422,11 @@ export default function SpinWheelPage() {
   return (
     <>
       <main
-        className="relative min-h-[100dvh] overflow-x-clip pb-10"
+        className="spin-wheel-page relative min-h-[100dvh] overflow-x-clip pb-10"
         style={{
-          paddingTop: "calc(38px + env(safe-area-inset-top))",
+          paddingTop: "calc(45px + env(safe-area-inset-top))",
           backgroundColor: "#ff745d",
-          backgroundImage: `linear-gradient(180deg, rgba(255, 65, 43, .44) 0%, rgba(255, 104, 59, .20) 44%, rgba(255, 91, 72, .28) 100%), url("${wheelBackground}")`,
+          backgroundImage: `linear-gradient(180deg, rgba(255, 59, 43, .72) 0%, rgba(255, 112, 83, .34) 34%, rgba(255, 211, 173, .16) 52%, rgba(255, 83, 67, .50) 100%), url("${wheelBackground}")`,
           backgroundSize: "100% max(760px, 82dvh)",
           backgroundPosition: "center top",
           backgroundRepeat: "no-repeat",
@@ -479,10 +460,10 @@ export default function SpinWheelPage() {
           </p>
 
           <h1
-            className="mt-5 text-center font-extrabold leading-none"
+            className="mt-7 text-center font-extrabold leading-none"
             style={{
               color: "#fff",
-              fontSize: "clamp(30px, 8.3vw, 42px)",
+              fontSize: "clamp(38px, 10vw, 46px)",
               letterSpacing: "-.5px",
               textShadow: "0 3px 0 rgba(142, 59, 29, .5), 0 6px 10px rgba(89, 34, 17, .35)",
             }}
@@ -491,7 +472,7 @@ export default function SpinWheelPage() {
           </h1>
 
           <div
-            className="mx-auto mt-7 flex min-h-11 w-[calc(100%-40px)] max-w-[400px] items-center justify-center rounded-full px-4 text-center"
+            className="mx-auto mt-6 flex min-h-11 w-[calc(100%-40px)] max-w-[412px] items-center justify-center rounded-full px-4 text-center"
             style={{
               border: "1px solid rgba(255,255,255,.85)",
               background: "linear-gradient(180deg, #fff8e4 0%, #ffeab5 100%)",
@@ -507,7 +488,7 @@ export default function SpinWheelPage() {
 
           <div
             className="mx-auto flex justify-center"
-            style={{ marginTop: "clamp(27px, 5.5vh, 42px)" }}
+            style={{ marginTop: "clamp(26px, 2.6vh, 28px)" }}
           >
             <canvas
               ref={canvasRef}
@@ -549,10 +530,11 @@ export default function SpinWheelPage() {
           </div>
 
           <div
-            className="mx-auto grid w-[calc(100%-32px)] max-w-[430px] items-start gap-2"
+            className="mx-auto grid w-[calc(100%-36px)] max-w-[430px] items-start"
             style={{
-              marginTop: "clamp(92px, 12vh, 120px)",
-              gridTemplateColumns: "minmax(56px, 1fr) minmax(0, 240px) minmax(56px, 1fr)",
+              marginTop: "clamp(92px, 12.1vh, 128px)",
+              gridTemplateColumns: "60px minmax(0, 244px) 60px",
+              columnGap: 30,
             }}
           >
             <button
@@ -619,7 +601,7 @@ export default function SpinWheelPage() {
           </div>
 
           <section
-            className="mx-auto mt-8 w-[calc(100%-44px)] max-w-[430px] pb-8"
+            className="mx-auto mt-10 w-[calc(100%-44px)] max-w-[430px] pb-8"
             style={{
               color: "#54251c",
               fontSize: 15,
@@ -630,12 +612,15 @@ export default function SpinWheelPage() {
             <p className="mb-4 font-medium">Notre programme de parrainage est désormais disponible !</p>
             <p className="mb-5">
               Pour chaque utilisateur qui s'inscrit via votre lien, vous recevrez un tour de roulette gratuit
-              avec 100 % de chance de gagner. Vous pourrez retirer jusqu'à 5 000 francs CFA immédiatement.
+              avec 100 % de chance de gagner. Vous pourrez retirer jusqu'à 5 000 francs{" "}
+              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span> immédiatement.
             </p>
             <p>
               De plus, vous recevrez 20 % de leur investissement en commission. Par exemple, s'ils investissent
-              100 000 francs CFA, vous recevrez 20 000 francs CFA de commission. Les commissions sont retirables
-              instantanément.
+              100 000 francs{" "}
+              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span>, vous recevrez 20 000 francs{" "}
+              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span> de commission. Les commissions
+              sont retirables instantanément.
             </p>
             <button
               type="button"
@@ -649,6 +634,20 @@ export default function SpinWheelPage() {
           </section>
         </div>
       </main>
+
+      <FloatingCheckin
+        label="Bonus quotidien"
+        appearance="wheel"
+        bottomOffset={80}
+        zIndex={320}
+      />
+      <FloatingSupport
+        appearance="wheel"
+        placement="bottom"
+        bottomOffset={52}
+        rightOffset={2}
+        zIndex={321}
+      />
 
       <WheelRulesModal
         open={showRules}

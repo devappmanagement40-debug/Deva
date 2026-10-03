@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import customerServiceIcon from "@assets/customer-service-icon-512.png";
+import supportAvatar from "@assets/generated_images/diamant-support-avatar-3d.png";
+import telegramIcon from "@/assets/images/telegram-icon.png";
 
 interface SettingsLinks {
   supportLink: string;
@@ -15,10 +17,19 @@ interface SettingsLinks {
 
 interface FloatingSupportProps {
   bottomOffset?: number;
+  appearance?: "default" | "wheel";
   placement?: "bottom" | "auth" | "home";
+  rightOffset?: number;
+  zIndex?: number;
 }
 
-export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: FloatingSupportProps) {
+export function FloatingSupport({
+  bottomOffset = 24,
+  appearance = "default",
+  placement = "bottom",
+  rightOffset = 18,
+  zIndex = 200,
+}: FloatingSupportProps) {
   const { t } = useI18n();
   const { data } = useQuery<SettingsLinks>({
     queryKey: ["/api/settings/links"],
@@ -45,7 +56,7 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
   useEffect(() => {
     if (placement !== "home") {
       setPos({
-        right: placement === "auth" ? 10 : 18,
+        right: placement === "auth" ? 10 : rightOffset,
         bottom: placement === "auth"
           ? Math.max(0, window.innerHeight / 2 - buttonSize)
           : bottomOffset + 40,
@@ -61,7 +72,7 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
     resetPosition();
     window.addEventListener("resize", resetPosition);
     return () => window.removeEventListener("resize", resetPosition);
-  }, [bottomOffset, buttonSize, placement]);
+  }, [bottomOffset, buttonSize, placement, rightOffset]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!btnRef.current || pos === null) return;
@@ -112,33 +123,98 @@ export function FloatingSupport({ bottomOffset = 24, placement = "bottom" }: Flo
         position: "fixed",
         right: pos.right,
         bottom: pos.bottom,
-        zIndex: 200,
-      width: buttonSize,
-      height: buttonSize,
+        zIndex,
+        width: buttonSize,
+        height: buttonSize,
         borderRadius: "50%",
-      border: placement === "auth" || placement === "home" ? "2px solid rgba(255,255,255,.95)" : "none",
-      padding: 0,
+        border: appearance === "wheel" || placement === "auth" || placement === "home"
+          ? "2px solid rgba(255,255,255,.95)"
+          : "none",
+        padding: 0,
         cursor: "grab",
-      background: "#fff",
-        boxShadow: "0 4px 16px rgba(0,0,0,0.25), 0 0 10px rgba(0,0,0,0.25)",
-        overflow: "hidden",
+        background: appearance === "wheel" ? "#10182b" : "#fff",
+        boxShadow: appearance === "wheel"
+          ? "0 4px 12px rgba(49,30,31,.35)"
+          : "0 4px 16px rgba(0,0,0,0.25), 0 0 10px rgba(0,0,0,0.25)",
+        overflow: appearance === "wheel" ? "visible" : "hidden",
         touchAction: "none",
         userSelect: "none",
       }}
     >
-      <img
-        src={customerServiceIcon}
-        alt={t.customerService}
-        draggable={false}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center 42%",
-          display: "block",
-          pointerEvents: "none",
-        }}
-      />
+      {appearance === "wheel" ? (
+        <>
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              overflow: "hidden",
+              border: "2px solid #fff",
+              borderRadius: "50%",
+              background: "radial-gradient(circle at 50% 38%, #33344c, #080c19 76%)",
+            }}
+          >
+            <img
+              src={supportAvatar}
+              alt=""
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center 28%",
+                display: "block",
+                pointerEvents: "none",
+              }}
+            />
+          </span>
+          <img
+            src={telegramIcon}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            style={{
+              position: "absolute",
+              left: -5,
+              bottom: -3,
+              width: 26,
+              height: 26,
+              border: "2px solid #fff",
+              borderRadius: "50%",
+              objectFit: "cover",
+              boxShadow: "0 2px 5px rgba(7,15,39,.3)",
+              pointerEvents: "none",
+            }}
+          />
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: 2,
+              top: 2,
+              width: 13,
+              height: 13,
+              border: "2px solid #fff",
+              borderRadius: "50%",
+              background: "#45b8ff",
+            }}
+          />
+        </>
+      ) : (
+        <img
+          src={customerServiceIcon}
+          alt={t.customerService}
+          draggable={false}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center 42%",
+            display: "block",
+            pointerEvents: "none",
+          }}
+        />
+      )}
     </button>
   );
 }

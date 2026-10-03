@@ -55,6 +55,10 @@ body.ielp-route-theme main {
   background-color: #07113a !important;
 }
 
+body.ielp-route-theme main.spin-wheel-page {
+  background-color: #ff745d !important;
+}
+
 body.ielp-route-theme [class*="min-h-screen"] {
   color: #edf3ff !important;
   background-color: #050923 !important;

@@ -78,11 +78,7 @@ export default function WheelHistoryModal({
             </div>
           );
         })
-      ) : (
-        <p className="pt-10 text-center text-sm text-[#713823]" role="status">
-          Aucun tirage enregistré pour le moment.
-        </p>
-      )}
+      ) : null}
     </WheelBoardModal>
   );
 }

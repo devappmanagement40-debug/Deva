@@ -191,6 +191,27 @@ export default function WheelBoardModal({
               {children}
             </div>
           </div>
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 400 28"
+            preserveAspectRatio="none"
+            style={{
+              position: "absolute",
+              zIndex: 6,
+              left: 10,
+              bottom: -9,
+              width: "calc(100% - 20px)",
+              height: 24,
+              overflow: "visible",
+              pointerEvents: "none",
+              filter: "drop-shadow(0 3px 1px rgba(105, 48, 29, .12))",
+            }}
+          >
+            <path
+              fill="#fff"
+              d="M0 0H400V6C380 6 380 21 360 21C340 21 340 8 320 8C300 8 300 22 280 22C260 22 260 10 240 10C220 10 220 26 200 26C180 26 180 10 160 10C140 10 140 22 120 22C100 22 100 8 80 8C60 8 60 21 40 21C20 21 20 6 0 6Z"
+            />
+          </svg>
         </div>
 
         <button

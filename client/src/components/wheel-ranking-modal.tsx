@@ -51,7 +51,7 @@ export default function WheelRankingModal({
     <WheelBoardModal
       open={open}
       onClose={onClose}
-      closeLabel="Fermer"
+      closeLabel="Close"
       ariaLabel="Classement des gagnants"
       showTrophy
     >
