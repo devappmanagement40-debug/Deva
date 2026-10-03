@@ -21,6 +21,7 @@ import {
 } from "@shared/spin-wheel";
 
 interface RecentSpin {
+  id: number;
   phone: string;
   amount: string;
   description: string;

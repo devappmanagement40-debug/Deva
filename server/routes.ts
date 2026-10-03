@@ -55,12 +55,62 @@ function normalizeTelegramLink(value: string | undefined): string {
     .replace(/^(https?:\/\/(?:www\.)?(?:t\.me|telegram\.me)\/)@/i, "$1");
 }
 
+const SPIN_WHEEL_RANKING_SETTING_KEY = "spinWheelRankingConfig";
+
 function normalizePublicSettings(settings: Record<string, string>): Record<string, string> {
   const normalized = { ...settings };
+  delete normalized[SPIN_WHEEL_RANKING_SETTING_KEY];
   for (const key of ["supportLink", "support2Link", "channelLink", "groupLink"]) {
     normalized[key] = normalizeTelegramLink(normalized[key]);
   }
   return normalized;
+}
+
+const spinWheelRankingConfigSchema = z.object({
+  pinnedTransactionIds: z.array(z.number().int().positive()).max(30),
+  hiddenTransactionIds: z.array(z.number().int().positive()).max(500),
+}).strict().refine((config) =>
+  new Set(config.pinnedTransactionIds).size === config.pinnedTransactionIds.length &&
+  new Set(config.hiddenTransactionIds).size === config.hiddenTransactionIds.length,
+);
+
+type SpinWheelRankingConfig = z.infer<typeof spinWheelRankingConfigSchema>;
+type SpinWheelRewardRow = {
+  id: number;
+  phone: string | null;
+  amount: string;
+  description: string;
+  created_at: Date | string;
+};
+
+function parseSpinWheelRankingConfig(value: string | null): SpinWheelRankingConfig {
+  if (!value) return { pinnedTransactionIds: [], hiddenTransactionIds: [] };
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error("La configuration du classement de la roue est invalide.");
+  }
+
+  const result = spinWheelRankingConfigSchema.safeParse(parsed);
+  if (!result.success) {
+    throw new Error("La configuration du classement de la roue est invalide.");
+  }
+  return result.data;
+}
+
+function maskSpinWheelPhone(phone: string | null | undefined): string {
+  const value = (phone ?? "").replace(/\D/g, "");
+  return value.length >= 6 ? `+${value.slice(0, 2)}****${value.slice(-6)}` : `+${value}`;
+}
+
+function spinWheelTimestamp(value: Date | string): number {
+  return value instanceof Date ? value.getTime() : new Date(value).getTime();
+}
+
+function spinWheelTimestampIso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
 import {
@@ -2164,24 +2214,59 @@ export async function registerRoutes(
     }
   });
 
-  // Recent global spin activity (all users, masked phones) – for social-proof list on the wheel page
+  // Recent real spin activity, with masked phones and admin-configured ranking order.
   app.get("/api/spin-wheel/recent", requireAuth, async (_req, res) => {
     try {
-      const rows = await pool.query<{ phone: string; amount: string; description: string; created_at: string }>(
-        `SELECT u.phone, t.amount, t.description, t.created_at
+      const config = parseSpinWheelRankingConfig(
+        await storage.getSetting(SPIN_WHEEL_RANKING_SETTING_KEY),
+      );
+      const rows = await pool.query<SpinWheelRewardRow>(
+        `SELECT t.id, u.phone, t.amount, t.description, t.created_at
            FROM transactions t
            JOIN users u ON u.id = t.user_id
           WHERE t.type = 'spin_reward'
+            AND t.amount > 0
           ORDER BY t.created_at DESC
           LIMIT 30`,
       );
-      const result = rows.rows.map((r) => {
-        const p = r.phone ?? "";
-        const masked = p.length >= 6
-          ? `+${p.slice(0, 2)}****${p.slice(-6)}`
-          : `+${p}`;
-        return { phone: masked, amount: r.amount, description: r.description };
-      });
+      const pinnedRows = config.pinnedTransactionIds.length
+        ? await pool.query<SpinWheelRewardRow>(
+            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+               FROM transactions t
+               JOIN users u ON u.id = t.user_id
+              WHERE t.type = 'spin_reward'
+                AND t.amount > 0
+                AND t.id = ANY($1::int[])`,
+            [config.pinnedTransactionIds],
+          )
+        : { rows: [] };
+
+      const rowsById = new Map<number, SpinWheelRewardRow>();
+      for (const row of pinnedRows.rows) rowsById.set(Number(row.id), row);
+      for (const row of rows.rows) rowsById.set(Number(row.id), row);
+
+      const pinnedOrder = new Map(config.pinnedTransactionIds.map((id, index) => [id, index]));
+      const hiddenIds = new Set(config.hiddenTransactionIds);
+      const result = Array.from(rowsById.values())
+        .filter((row) => !hiddenIds.has(Number(row.id)))
+        .sort((a, b) => {
+          const aPinned = pinnedOrder.get(Number(a.id));
+          const bPinned = pinnedOrder.get(Number(b.id));
+          if (aPinned !== undefined || bPinned !== undefined) {
+            if (aPinned === undefined) return 1;
+            if (bPinned === undefined) return -1;
+            return aPinned - bPinned;
+          }
+          const amountOrder = Number(b.amount) - Number(a.amount);
+          if (amountOrder !== 0) return amountOrder;
+          return spinWheelTimestamp(b.created_at) - spinWheelTimestamp(a.created_at);
+        })
+        .map((row) => ({
+          id: Number(row.id),
+          phone: maskSpinWheelPhone(row.phone),
+          amount: row.amount,
+          description: row.description,
+        }));
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3044,6 +3129,150 @@ export async function registerRoutes(
       res.json(normalizePublicSettings(settings));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/admin/spin-wheel/ranking", requireAdmin, async (req, res) => {
+    try {
+      const config = parseSpinWheelRankingConfig(
+        await storage.getSetting(SPIN_WHEEL_RANKING_SETTING_KEY),
+      );
+      const phoneTerm = typeof req.query.phone === "string" ? req.query.phone.trim() : "";
+      const phoneDigits = phoneTerm.replace(/\D/g, "");
+      if (phoneTerm && phoneDigits.length < 4) {
+        return res.status(400).json({ message: "Saisis au moins 4 chiffres pour rechercher un numéro." });
+      }
+
+      const configuredIds = Array.from(new Set([
+        ...config.pinnedTransactionIds,
+        ...config.hiddenTransactionIds,
+      ]));
+      const validConfiguredRows = configuredIds.length
+        ? await pool.query<{ id: number }>(
+            `SELECT id
+               FROM transactions
+              WHERE type = 'spin_reward'
+                AND amount > 0
+                AND id = ANY($1::int[])`,
+            [configuredIds],
+          )
+        : { rows: [] };
+      const validConfiguredIds = new Set(validConfiguredRows.rows.map((row) => Number(row.id)));
+      const pinnedTransactionIds = config.pinnedTransactionIds.filter((id) => validConfiguredIds.has(id));
+      const hiddenTransactionIds = config.hiddenTransactionIds.filter((id) => validConfiguredIds.has(id));
+
+      let pinnedRows: SpinWheelRewardRow[] = [];
+      if (pinnedTransactionIds.length > 0) {
+        pinnedRows = (await pool.query<SpinWheelRewardRow>(
+          `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+             FROM transactions t
+             JOIN users u ON u.id = t.user_id
+            WHERE t.type = 'spin_reward'
+              AND t.amount > 0
+              AND t.id = ANY($1::int[])`,
+          [pinnedTransactionIds],
+        )).rows;
+      }
+
+      const candidates = phoneDigits
+        ? await pool.query<SpinWheelRewardRow>(
+            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+               FROM transactions t
+               JOIN users u ON u.id = t.user_id
+              WHERE t.type = 'spin_reward'
+                AND t.amount > 0
+                AND regexp_replace(COALESCE(u.phone, ''), '[^0-9]', '', 'g') LIKE $1
+              ORDER BY t.created_at DESC
+              LIMIT 30`,
+            [`%${phoneDigits}%`],
+          )
+        : await pool.query<SpinWheelRewardRow>(
+            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+               FROM transactions t
+               JOIN users u ON u.id = t.user_id
+              WHERE t.type = 'spin_reward'
+                AND t.amount > 0
+              ORDER BY t.created_at DESC
+              LIMIT 30`,
+          );
+
+      const rowsById = new Map<number, SpinWheelRewardRow>();
+      for (const row of pinnedRows) rowsById.set(Number(row.id), row);
+      for (const row of candidates.rows) rowsById.set(Number(row.id), row);
+
+      const pinnedOrder = new Map(pinnedTransactionIds.map((id, index) => [id, index]));
+      const hiddenIds = new Set(hiddenTransactionIds);
+      const entries = Array.from(rowsById.values())
+        .sort((a, b) => {
+          const aPinned = pinnedOrder.get(Number(a.id));
+          const bPinned = pinnedOrder.get(Number(b.id));
+          if (aPinned !== undefined || bPinned !== undefined) {
+            if (aPinned === undefined) return 1;
+            if (bPinned === undefined) return -1;
+            return aPinned - bPinned;
+          }
+          return spinWheelTimestamp(b.created_at) - spinWheelTimestamp(a.created_at);
+        })
+        .map((row) => ({
+          id: Number(row.id),
+          phone: maskSpinWheelPhone(row.phone),
+          amount: row.amount,
+          description: row.description,
+          createdAt: spinWheelTimestampIso(row.created_at),
+          isVisible: !hiddenIds.has(Number(row.id)),
+        }));
+
+      res.json({ entries, pinnedTransactionIds, hiddenTransactionIds });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/admin/spin-wheel/ranking", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const parsed = spinWheelRankingConfigSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "La liste des gains épinglés ou masqués est invalide.",
+        });
+      }
+
+      const config = parsed.data;
+      const configuredIds = Array.from(new Set([
+        ...config.pinnedTransactionIds,
+        ...config.hiddenTransactionIds,
+      ]));
+      if (configuredIds.length > 0) {
+        const validRows = await pool.query<{ id: number }>(
+          `SELECT id
+             FROM transactions
+            WHERE type = 'spin_reward'
+              AND amount > 0
+              AND id = ANY($1::int[])`,
+          [configuredIds],
+        );
+        const validIds = new Set(validRows.rows.map((row) => Number(row.id)));
+        if (configuredIds.some((id) => !validIds.has(id))) {
+          return res.status(400).json({
+            message: "Seuls les gains de roue réellement enregistrés peuvent être ajoutés au classement.",
+          });
+        }
+      }
+
+      await storage.setSetting(
+        SPIN_WHEEL_RANKING_SETTING_KEY,
+        JSON.stringify(config),
+        req.session.userId,
+      );
+      await storage.logAdminAction(
+        req.session.userId!,
+        "update_spin_wheel_ranking",
+        null,
+        `${config.pinnedTransactionIds.length} gain(s) épinglé(s), ${config.hiddenTransactionIds.length} gain(s) masqué(s)`,
+      );
+      res.json(config);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 

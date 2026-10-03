@@ -2,6 +2,7 @@ import WheelBoardModal from "@/components/wheel-board-modal";
 import { Loader2 } from "lucide-react";
 
 interface RankingEntry {
+  id: number;
   phone: string;
   amount: string;
   description: string;
@@ -42,9 +43,8 @@ export default function WheelRankingModal({
   entries: RankingEntry[];
   isLoading: boolean;
 }) {
-  const topEntries = [...entries]
+  const topEntries = entries
     .filter((entry) => Number.parseFloat(entry.amount) > 0)
-    .sort((a, b) => Number.parseFloat(b.amount) - Number.parseFloat(a.amount))
     .slice(0, 30);
   const rowHeight = 53;
   const viewportHeight = rowHeight * 5;
@@ -134,7 +134,7 @@ export default function WheelRankingModal({
           >
             {topEntries.map((entry, index) => (
               <div
-                key={`${entry.phone}-${entry.amount}-${index}`}
+                key={entry.id}
                 style={{
                   display: "grid",
                   gridTemplateColumns: "78px minmax(0, 1fr) 91px",

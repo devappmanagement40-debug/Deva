@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { displayCurrencyText } from "@/lib/content";
 import { Loader2, Save, RotateCcw, Image as ImageIcon, Trophy, AlertCircle, MessageSquare } from "lucide-react";
 import { DEFAULT_SPIN_WHEEL_SEGMENTS, type SpinWheelSegment } from "@shared/spin-wheel";
+import AdminSpinWheelRanking from "@/components/admin/spin-wheel-ranking";
 
 const SEGMENT_NAMES = ["Case 1", "Case 2", "Case 3", "Case 4", "Case 5", "Case 6", "Case 7", "Case 8"];
 
@@ -425,6 +426,9 @@ export default function AdminSpinWheelConfig() {
 
       {/* Popup texts editor */}
       <PopupTextsEditor />
+
+      {/* Real winnings ranking controls */}
+      <AdminSpinWheelRanking />
 
       {/* Segment cards */}
       {!isLoading && (
