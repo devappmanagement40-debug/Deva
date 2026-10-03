@@ -39,7 +39,7 @@ export function parseSpinWheelSegments(value: string | null | undefined): SpinWh
         ? segment.label.trim()
         : DEFAULT_SPIN_WHEEL_SEGMENTS[index].label,
       amount: Number.isFinite(Number(segment.amount)) && Number(segment.amount) >= 0
-        ? Number(segment.amount)
+        ? Number(Number(segment.amount).toFixed(2))
         : DEFAULT_SPIN_WHEEL_SEGMENTS[index].amount,
       canWin: Boolean(segment.canWin),
       color: typeof segment.color === "string" && /^#[0-9a-f]{6}$/i.test(segment.color)

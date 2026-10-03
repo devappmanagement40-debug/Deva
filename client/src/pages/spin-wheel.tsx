@@ -7,10 +7,8 @@ import WheelInviteModal from "@/components/wheel-invite-modal";
 import WheelHistoryModal from "@/components/wheel-history-modal";
 import WheelRankingModal from "@/components/wheel-ranking-modal";
 import WheelResultModal from "@/components/wheel-result-modal";
-import { FloatingCheckin } from "@/components/floating-checkin";
-import { FloatingSupport } from "@/components/floating-support";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
 import { BarChart3, ChevronLeft, FileText, Share2 } from "lucide-react";
 import { displayCurrencyText } from "@/lib/content";
@@ -25,6 +23,58 @@ interface RecentSpin {
   phone: string;
   amount: string;
   description: string;
+}
+
+interface SpinResult {
+  segmentId: number;
+  amount: number;
+  label: string;
+  spinTokens: number;
+  segments: SpinWheelSegment[];
+}
+
+function createSpinRequestId(): string {
+  if (typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+
+  const bytes = window.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function pendingSpinStorageKey(userId: number): string {
+  return `spin-wheel-pending-request:${userId}`;
+}
+
+function loadPendingSpinRequestId(userId: number): string | null {
+  try {
+    const key = pendingSpinStorageKey(userId);
+    const requestId = window.localStorage.getItem(key);
+    if (requestId && /^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(requestId)) {
+      return requestId;
+    }
+    if (requestId) window.localStorage.removeItem(key);
+  } catch {
+    // The in-memory ref still protects retries when browser storage is unavailable.
+  }
+  return null;
+}
+
+function savePendingSpinRequestId(userId: number, requestId: string): void {
+  try {
+    window.localStorage.setItem(pendingSpinStorageKey(userId), requestId);
+  } catch {
+    // Keep the request id in memory if browser storage is unavailable.
+  }
+}
+
+function clearPendingSpinRequestId(userId: number): void {
+  try {
+    window.localStorage.removeItem(pendingSpinStorageKey(userId));
+  } catch {
+    // A stale id can only replay the same request; it cannot credit the prize twice.
+  }
 }
 
 /* ── Segments ──────────────────────────────────────────────── */
@@ -271,6 +321,7 @@ export default function SpinWheelPage() {
   const animRef    = useRef<number | null>(null);
   const rafRef     = useRef<number | null>(null);
   const spinning   = useRef(false);
+  const spinRequestIdRef = useRef<{ userId: number; requestId: string } | null>(null);
 
   const [rotation,    setRotation]   = useState(0);
   const [spinning2,   setSpinning2]  = useState(false);
@@ -347,17 +398,52 @@ export default function SpinWheelPage() {
 
   /* Spin mutation */
   const spinMutation = useMutation({
-    mutationFn: async () => {
-      const r = await apiRequest("POST", "/api/spin-wheel/spin", {});
-      return r.json() as Promise<{ segmentId: number; amount: number; label: string }>;
+    mutationFn: async ({ requestId }: { requestId: string }) => {
+      const response = await apiRequest("POST", "/api/spin-wheel/spin", { requestId });
+      const payload: unknown = await response.json();
+      if (!payload || typeof payload !== "object") {
+        throw new Error("Réponse de tirage invalide. Réessayez sans fermer la page.");
+      }
+
+      const result = payload as Partial<SpinResult>;
+      const winningSegment = Array.isArray(result.segments)
+        ? result.segments.find((segment) => segment.id === result.segmentId)
+        : undefined;
+      if (
+        !Number.isInteger(result.segmentId) ||
+        !Number.isFinite(result.amount) ||
+        (result.amount as number) < 0 ||
+        typeof result.label !== "string" ||
+        !Number.isInteger(result.spinTokens) ||
+        (result.spinTokens as number) < 0 ||
+        !Array.isArray(result.segments) ||
+        result.segments.length !== N ||
+        !winningSegment ||
+        !winningSegment.canWin ||
+        !Number.isFinite(winningSegment.amount) ||
+        winningSegment.amount < 0 ||
+        winningSegment.amount !== result.amount ||
+        winningSegment.label !== result.label
+      ) {
+        throw new Error("Réponse de tirage invalide. Réessayez sans fermer la page.");
+      }
+      return result as SpinResult;
     },
   });
 
   const handleSpin = useCallback(() => {
     if (spinning.current || spinMutation.isPending) return;
 
+    if (!user?.id) {
+      toast({ title: "Votre session a expiré. Reconnectez-vous.", variant: "destructive" });
+      return;
+    }
+    const pendingRequestId = spinRequestIdRef.current?.userId === user.id
+      ? spinRequestIdRef.current.requestId
+      : loadPendingSpinRequestId(user.id);
+
     /* No tours available → toast only */
-    if (spinTokens <= 0) {
+    if (spinTokens <= 0 && !pendingRequestId) {
       toast({
         title: "Vous n'avez pas de tour disponible",
         variant: "destructive",
@@ -365,12 +451,37 @@ export default function SpinWheelPage() {
       return;
     }
 
+    let requestId: string;
+    try {
+      requestId = pendingRequestId ?? createSpinRequestId();
+    } catch {
+      toast({
+        title: "Impossible de préparer le tirage",
+        description: "Votre navigateur ne permet pas de sécuriser cette demande.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     spinning.current = true;
     setSpinning2(true);
+    spinRequestIdRef.current = { userId: user.id, requestId };
+    savePendingSpinRequestId(user.id, requestId);
 
-    spinMutation.mutate(undefined, {
+    spinMutation.mutate({ requestId }, {
       onSuccess: (result) => {
-        const winIdx   = Math.max(0, segments.findIndex((s) => s.id === result.segmentId));
+        if (spinRequestIdRef.current?.requestId === requestId) {
+          spinRequestIdRef.current = null;
+        }
+        clearPendingSpinRequestId(user.id);
+        setSegments(result.segments);
+        segDrawRef.current = result.segments;
+        queryClient.setQueryData(["/api/spin-wheel/config"], result.segments);
+        void queryClient.invalidateQueries({ queryKey: ["/api/spin-wheel/recent"] });
+        void queryClient.invalidateQueries({ queryKey: ["/api/spin-wheel/history"] });
+        refreshUser();
+
+        const winIdx   = Math.max(0, result.segments.findIndex((s) => s.id === result.segmentId));
         const extra    = Math.PI * 2 * (6 + Math.random() * 4);
         // Align center of winIdx segment with the 12-o'clock pointer.
         // Segment i's midpoint = rotation + (i+0.5)*ARC - π/2.
@@ -397,7 +508,7 @@ export default function SpinWheelPage() {
           } else {
             spinning.current = false;
             setSpinning2(false);
-            setSpinTokens((prev) => Math.max(0, prev - 1));
+            setSpinTokens(result.spinTokens);
             refreshUser();
             /* Show result popup (win / loss) */
             const won = result.amount > 0;
@@ -409,10 +520,11 @@ export default function SpinWheelPage() {
       onError: (error: Error) => {
         spinning.current = false;
         setSpinning2(false);
+        refreshUser();
         toast({ title: error.message || t.wheelErrUnavailable, variant: "destructive" });
       },
     });
-  }, [spinTokens, segments, spinMutation, toast, t, refreshUser]);
+  }, [spinTokens, spinMutation, toast, t, refreshUser, user?.id]);
 
   /* Cleanup */
   useEffect(() => () => {
@@ -635,20 +747,6 @@ export default function SpinWheelPage() {
           </section>
         </div>
       </main>
-
-      <FloatingCheckin
-        label="Bonus quotidien"
-        appearance="wheel"
-        bottomOffset={80}
-        zIndex={320}
-      />
-      <FloatingSupport
-        appearance="wheel"
-        placement="bottom"
-        bottomOffset={52}
-        rightOffset={2}
-        zIndex={321}
-      />
 
       <WheelRulesModal
         open={showRules}

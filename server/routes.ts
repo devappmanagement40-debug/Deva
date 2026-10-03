@@ -132,7 +132,6 @@ import {
 import {
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   parseSpinWheelSegments,
-  pickWinningSegment,
   SPIN_WHEEL_SETTING_KEY,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
@@ -2169,35 +2168,26 @@ export async function registerRoutes(
 
   app.post("/api/spin-wheel/spin", requireAuth, async (req, res) => {
     try {
-      const user = await storage.getUser(req.session.userId!);
-      if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
-
-      if ((user.spinTokens || 0) <= 0) {
-        return res.status(400).json({ message: "Aucun tour disponible. Achetez un produit pour obtenir des tours." });
+      const input = z.object({ requestId: z.string().uuid() }).strict().safeParse(req.body);
+      if (!input.success) {
+        return res.status(400).json({ message: "Identifiant de tirage invalide." });
       }
+      const requestId = input.data.requestId;
 
-      const value = await storage.getSetting(SPIN_WHEEL_SETTING_KEY);
-      const segments = parseSpinWheelSegments(value);
-
-      if (!segments.some((s) => s.canWin)) {
+      const result = await storage.executeSpinWheel(req.session.userId!, requestId);
+      if (result.status === "user_missing") {
+        return res.status(401).json({ message: "Utilisateur introuvable" });
+      }
+      if (result.status === "no_tokens") {
+        return res.status(400).json({
+          message: "Aucun tour disponible. Achetez un produit pour obtenir des tours.",
+        });
+      }
+      if (result.status === "no_winnable_segments") {
         return res.status(400).json({ message: "Aucun gain n'est actuellement disponible." });
       }
 
-      const winner = pickWinningSegment(segments);
-      const newTokens = Math.max(0, (user.spinTokens || 0) - 1);
-      const newEarnings = (parseFloat(user.totalEarnings) + winner.amount).toFixed(2);
-      await storage.updateUser(req.session.userId!, {
-        totalEarnings: newEarnings,
-        spinTokens: newTokens,
-      });
-      await storage.createTransaction({
-        userId: req.session.userId!,
-        type: "spin_reward",
-        amount: winner.amount.toFixed(2),
-        description: `Gain roue : ${winner.label}`,
-      });
-
-      res.json({ segmentId: winner.id, amount: winner.amount, label: winner.label, spinTokens: newTokens });
+      res.json(result.result);
     } catch (error: any) {
       console.error("Spin wheel error:", error);
       res.status(500).json({ message: error.message });
@@ -2206,8 +2196,7 @@ export async function registerRoutes(
 
   app.get("/api/spin-wheel/history", requireAuth, async (req, res) => {
     try {
-      const all = await storage.getUserTransactions(req.session.userId!);
-      const history = all.filter((tx) => tx.type === "spin_reward");
+      const history = await storage.getUserTransactionsByType(req.session.userId!, "spin_reward");
       res.json(history);
     } catch (error: any) {
       res.status(500).json({ message: error.message });

@@ -1,7 +1,7 @@
 import { 
   users, products, userProducts, deposits, shareReports, withdrawalProofs, withdrawals, withdrawalWallets,
   paymentChannels, paymentNumbers, depositChannels, stakingProducts, userStakings, referralCommissions, tasks, userTasks, transactions, platformSettings, adminAuditLog,
-  giftCodes, giftCodeClaims, countries, supportChatMessages,
+  giftCodes, giftCodeClaims, countries, supportChatMessages, spinWheelRequests,
   referralCodeAliases,
   type User, type Product, type UserProduct, type Deposit, type ShareReport, type WithdrawalProof, type WithdrawalProofStatus, type Withdrawal, type WithdrawalWallet,
   type PaymentChannel, type PaymentNumber, type DepositChannel, type StakingProduct, type UserStaking, type ReferralCommission, type Task, type UserTask, type Transaction, type PlatformSetting,
@@ -12,6 +12,12 @@ import { db, pool } from "./db";
 import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
+import {
+  parseSpinWheelSegments,
+  SPIN_WHEEL_SETTING_KEY,
+  type SpinWheelSegment,
+} from "@shared/spin-wheel";
+import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
 
 // Compares phone numbers regardless of local vs international MSISDN format
 // (e.g. "0150839909" vs "+22990150839909") by matching on the last 8 digits.
@@ -26,6 +32,38 @@ function finiteAmount(value: unknown): number {
 
 type ShareReportUser = Pick<User, "id" | "fullName" | "phone" | "country">;
 type WithdrawalProofUser = Pick<User, "id" | "fullName" | "phone" | "country">;
+type SpinWheelRequestRow = {
+  segment_id: number;
+  amount: string;
+  label: string;
+  spin_tokens_after: number;
+  segments_snapshot: SpinWheelSegment[];
+};
+
+export interface SpinWheelResult {
+  segmentId: number;
+  amount: number;
+  label: string;
+  spinTokens: number;
+  segments: SpinWheelSegment[];
+}
+
+export type SpinWheelExecutionResult =
+  | { status: "completed"; result: SpinWheelResult }
+  | { status: "replayed"; result: SpinWheelResult }
+  | { status: "user_missing" }
+  | { status: "no_tokens" }
+  | { status: "no_winnable_segments" };
+
+function spinWheelResultFromRow(row: SpinWheelRequestRow): SpinWheelResult {
+  return {
+    segmentId: Number(row.segment_id),
+    amount: Number(row.amount),
+    label: row.label,
+    spinTokens: Number(row.spin_tokens_after),
+    segments: row.segments_snapshot,
+  };
+}
 
 export interface IStorage {
   // Users
@@ -176,6 +214,8 @@ export interface IStorage {
   // Transactions
   createTransaction(data: Partial<Transaction>): Promise<Transaction>;
   getUserTransactions(userId: number): Promise<Transaction[]>;
+  getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]>;
+  executeSpinWheel(userId: number, requestKey: string): Promise<SpinWheelExecutionResult>;
   getUserIncomeSummary(userId: number): Promise<{ productEarnings: number; teamEarnings: number }>;
   
   // Settings
@@ -2076,6 +2116,141 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(transactions)
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
+  }
+
+  async getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]> {
+    return await db.select().from(transactions)
+      .where(and(eq(transactions.userId, userId), eq(transactions.type, type)))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async executeSpinWheel(userId: number, requestKey: string): Promise<SpinWheelExecutionResult> {
+    const client = await pool.connect();
+    let transactionOpen = false;
+
+    try {
+      await client.query("BEGIN");
+      transactionOpen = true;
+
+      const userResult = await client.query<{ spin_tokens: number }>(
+        `SELECT spin_tokens
+           FROM users
+          WHERE id = $1
+          FOR UPDATE`,
+        [userId],
+      );
+      const user = userResult.rows[0];
+      if (!user) {
+        await client.query("ROLLBACK");
+        transactionOpen = false;
+        return { status: "user_missing" };
+      }
+
+      const previousResult = await client.query<SpinWheelRequestRow>(
+        `SELECT segment_id, amount, label, spin_tokens_after, segments_snapshot
+           FROM spin_wheel_requests
+          WHERE user_id = $1 AND request_key = $2
+          LIMIT 1`,
+        [userId, requestKey],
+      );
+      if (previousResult.rows[0]) {
+        await client.query("COMMIT");
+        transactionOpen = false;
+        return { status: "replayed", result: spinWheelResultFromRow(previousResult.rows[0]) };
+      }
+
+      if (!Number.isInteger(user.spin_tokens) || user.spin_tokens <= 0) {
+        await client.query("ROLLBACK");
+        transactionOpen = false;
+        return { status: "no_tokens" };
+      }
+
+      const settingResult = await client.query<{ value: string }>(
+        `SELECT value
+           FROM platform_settings
+          WHERE key = $1
+          LIMIT 1`,
+        [SPIN_WHEEL_SETTING_KEY],
+      );
+      const segments = parseSpinWheelSegments(settingResult.rows[0]?.value);
+      if (!segments.some((segment) => segment.canWin)) {
+        await client.query("ROLLBACK");
+        transactionOpen = false;
+        return { status: "no_winnable_segments" };
+      }
+      const winner = pickWinningSpinWheelSegment(segments);
+      const selectedSegment = segments.find((segment) => segment.id === winner.id);
+      if (
+        !selectedSegment ||
+        !selectedSegment.canWin ||
+        !Number.isFinite(selectedSegment.amount) ||
+        selectedSegment.amount < 0 ||
+        typeof selectedSegment.label !== "string" ||
+        !selectedSegment.label.trim()
+      ) {
+        throw new Error("Le gain sélectionné pour la roue est invalide.");
+      }
+
+      const amount = selectedSegment.amount.toFixed(2);
+      const updateResult = await client.query<{ spin_tokens: number }>(
+        `UPDATE users
+            SET total_earnings = total_earnings + $1::numeric,
+                spin_tokens = spin_tokens - 1
+          WHERE id = $2 AND spin_tokens > 0
+          RETURNING spin_tokens`,
+        [amount, userId],
+      );
+      const updatedUser = updateResult.rows[0];
+      if (!updatedUser) {
+        await client.query("ROLLBACK");
+        transactionOpen = false;
+        return { status: "no_tokens" };
+      }
+
+      await client.query(
+        `INSERT INTO transactions (user_id, type, amount, description)
+         VALUES ($1, 'spin_reward', $2, $3)`,
+        [userId, amount, `Gain roue : ${selectedSegment.label}`],
+      );
+      await client.query(
+        `INSERT INTO spin_wheel_requests
+          (user_id, request_key, segment_id, amount, label, spin_tokens_after, segments_snapshot)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
+        [
+          userId,
+          requestKey,
+          selectedSegment.id,
+          amount,
+          selectedSegment.label,
+          updatedUser.spin_tokens,
+          JSON.stringify(segments),
+        ],
+      );
+
+      await client.query("COMMIT");
+      transactionOpen = false;
+      return {
+        status: "completed",
+        result: {
+          segmentId: selectedSegment.id,
+          amount: Number(amount),
+          label: selectedSegment.label,
+          spinTokens: updatedUser.spin_tokens,
+          segments,
+        },
+      };
+    } catch (error) {
+      if (transactionOpen) {
+        try {
+          await client.query("ROLLBACK");
+        } catch (rollbackError) {
+          console.error("Spin wheel rollback failed:", rollbackError);
+        }
+      }
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   // Settings

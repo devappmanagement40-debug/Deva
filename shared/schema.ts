@@ -1,7 +1,8 @@
 import { sql, relations } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, decimal, numeric, serial, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, decimal, numeric, serial, uniqueIndex, index, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import type { SpinWheelSegment } from "./spin-wheel";
 
 // Countries table (admin-managed)
 export const countries = pgTable("countries", {
@@ -355,7 +356,27 @@ export const transactions = pgTable("transactions", {
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => [
+  index("transactions_type_created_at_idx").on(table.type, table.createdAt),
+  index("transactions_user_type_created_at_idx").on(table.userId, table.type, table.createdAt),
+]);
+
+// A successful wheel request and its exact prize display are stored together
+// so a retried request can return the original result without a second credit.
+export const spinWheelRequests = pgTable("spin_wheel_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  requestKey: text("request_key").notNull(),
+  segmentId: integer("segment_id").notNull(),
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  label: text("label").notNull(),
+  spinTokensAfter: integer("spin_tokens_after").notNull(),
+  segmentsSnapshot: jsonb("segments_snapshot").$type<SpinWheelSegment[]>().notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  userRequestUnique: uniqueIndex("spin_wheel_requests_user_request_unique")
+    .on(table.userId, table.requestKey),
+}));
 
 // Platform settings
 export const platformSettings = pgTable("platform_settings", {
