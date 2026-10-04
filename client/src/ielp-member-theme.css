@@ -491,238 +491,161 @@ body.ielp-route-theme :focus-visible {
   outline-color: #a994ff !important;
 }
 
-/* Deposit channel picker: retain the light reference page styling inside the
-   otherwise dark member route theme. */
-body.ielp-route-theme main.ielp-deposit-main {
-  display: flex;
-  min-height: 100dvh;
-  flex-direction: column;
-  color: #4e4e4e !important;
-  background: #f5f5f5 !important;
-  color-scheme: light;
+body.ielp-route-theme .ielp-deposit-main {
+  color: #edf3ff !important;
+  background: linear-gradient(180deg, #07113a 0%, #050923 100%) !important;
 }
 
-body.ielp-route-theme .ielp-deposit-main__content {
-  width: 100%;
-  max-width: 520px;
-  flex: 1 0 auto;
-  margin: 0 auto;
-  padding: 14px 9px 20px;
+body.ielp-route-theme .ielp-deposit-main__header {
+  background: rgba(5, 9, 35, .98);
+  border-bottom: 1px solid rgba(178, 202, 255, .16);
+  box-shadow: 0 6px 18px rgba(1, 5, 25, .2);
 }
 
-body.ielp-route-theme .ielp-deposit-main__amount-section,
-body.ielp-route-theme .ielp-deposit-main__channels,
-body.ielp-route-theme .ielp-deposit-main__guidance {
-  margin-bottom: 16px;
-  padding: 13px 11px;
-  color: #4e4e4e !important;
-  border: 1px solid #e4e4e4;
-  border-radius: 7px;
-  background: #fff !important;
-  box-shadow: none;
+body.ielp-route-theme .ielp-deposit-main__header-button {
+  color: #dce8ff;
+  border: 1px solid rgba(178, 202, 255, .2);
+  background: #101c49;
 }
 
-body.ielp-route-theme .ielp-deposit-main__section-title {
-  margin: 0 0 10px;
-  color: #444 !important;
-  font-size: 15px;
+body.ielp-route-theme .ielp-deposit-main__brand {
+  color: #b9a8ff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__title {
+  color: #fff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__card {
+  border-color: rgba(178, 202, 255, .18);
+  background: linear-gradient(165deg, #101c49 0%, #0c173d 100%);
+  box-shadow: 0 10px 24px rgba(1, 5, 25, .2);
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-deposit-section-title {
+  margin-bottom: 14px;
+  color: #edf3ff !important;
+  font-size: 15px !important;
   font-weight: 600;
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-brand-marker {
+  background: linear-gradient(180deg, #8c6bff, #7041f2) !important;
 }
 
 body.ielp-route-theme .ielp-deposit-main__amount {
-  display: flex;
-  min-height: 42px;
-  align-items: center;
-  gap: 9px;
-  padding: 0 10px;
-  border: 1px solid #dedede;
-  border-radius: 5px;
-  background: #fff !important;
-}
-
-body.ielp-route-theme .ielp-deposit-main__amount input {
-  width: 100%;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  color: #414141 !important;
-  background: transparent !important;
-  font-size: 16px;
+  border-color: rgba(178, 202, 255, .22);
+  background: #08112f;
 }
 
 body.ielp-route-theme .ielp-deposit-main__amount > span {
-  flex: 0 0 auto;
-  color: #656565 !important;
-  font-size: 12px;
+  color: #c4d5f4;
+}
+
+body.ielp-route-theme .ielp-deposit-main__amount input {
+  color: #fff;
+  caret-color: #a994ff !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-deposit-preset {
+  min-height: 48px;
+  border-radius: 12px !important;
   font-weight: 600;
-}
-
-body.ielp-route-theme .ielp-deposit-main__subheading {
-  margin: 13px 0 9px;
-  color: #5a5a5a !important;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-body.ielp-route-theme .ielp-deposit-main__presets {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  justify-items: center;
-  gap: 8px 5px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__preset {
-  display: flex;
-  width: min(100%, 68px);
-  aspect-ratio: 1;
-  align-items: center;
-  justify-content: center;
-  padding: 3px;
-  color: #585858 !important;
-  border: 1px solid #d8d8d8;
-  border-radius: 999px;
-  background: #fff !important;
-  font-size: clamp(10px, 3vw, 13px);
-  font-weight: 500;
-  line-height: 1.2;
   box-shadow: none !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main__guidance {
+  border-color: rgba(178, 202, 255, .18);
+  color: #c4d5f4;
+  background: rgba(16, 28, 73, .72);
+}
+
+body.ielp-route-theme .ielp-deposit-main__guidance-title {
+  color: #edf3ff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-hint {
+  margin: -4px 0 12px;
+  color: #c4d5f4;
+  font-size: 13px;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-options {
+  display: grid;
+  gap: 8px;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-option {
+  display: flex;
+  min-height: 52px;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  color: #dce8ff;
+  border: 1px solid rgba(178, 202, 255, .2);
+  border-radius: 12px;
+  background: #08112f;
+  text-align: left;
   transition: border-color .15s ease, background-color .15s ease;
 }
 
-body.ielp-route-theme .ielp-deposit-main__preset[data-selected="true"] {
-  color: #2675b8 !important;
-  border-color: #2675b8;
-  background: #f5faff !important;
+body.ielp-route-theme .ielp-deposit-main__channel-option:hover {
+  background: #172b5b;
 }
 
-body.ielp-route-theme .ielp-deposit-main__hint {
-  margin: -3px 0 10px;
-  color: #777 !important;
-  font-size: 12px;
+body.ielp-route-theme .ielp-deposit-main__channel-option[data-selected="true"] {
+  border-color: #a994ff;
+  background: rgba(112, 65, 242, .2);
 }
 
-body.ielp-route-theme .ielp-deposit-main__channel-list {
+body.ielp-route-theme .ielp-deposit-main__channel-icon {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__channel-row {
-  display: flex;
-  min-height: 47px;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 3px;
-  color: #535353 !important;
-  border: 0;
-  border-bottom: 1px solid #ededed;
-  border-radius: 0;
-  background: #fff !important;
-  text-align: left;
-}
-
-body.ielp-route-theme .ielp-deposit-main__country-tag {
-  display: inline-flex;
-  min-width: 86px;
-  min-height: 34px;
-  align-items: center;
-  padding: 0 9px;
-  color: #565656 !important;
-  border: 1px solid #ad6570;
-  border-radius: 5px;
-  background: #fff !important;
-  font-size: 13px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__usdt-name {
-  color: #484848 !important;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-body.ielp-route-theme .ielp-deposit-main__usdt-network {
-  color: #777 !important;
-  font-size: 11px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__radio {
-  display: flex;
-  width: 19px;
-  height: 19px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  margin-left: auto;
-  border: 1.5px solid #aaa;
-  border-radius: 50%;
-  background: #fff;
+  color: #b9a8ff;
+  border-radius: 9px;
+  background: rgba(169, 148, 255, .12);
 }
 
-body.ielp-route-theme .ielp-deposit-main__radio > span {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #2785c2;
-}
-
-body.ielp-route-theme .ielp-deposit-main__status,
-body.ielp-route-theme .ielp-deposit-main__empty {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 4px;
-  color: #707070 !important;
-  font-size: 12px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__error {
-  padding: 8px 4px;
-  color: #a32934 !important;
-  font-size: 12px;
-}
-
-body.ielp-route-theme .ielp-deposit-main__guidance-copy {
-  display: grid;
-  gap: 8px;
-  color: #626262 !important;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-body.ielp-route-theme .ielp-deposit-main__issue-link {
-  margin-top: 11px;
-  padding: 4px 0;
-  color: #2675b8 !important;
-  font-size: 12px;
-  text-decoration: underline;
-}
-
-body.ielp-route-theme .ielp-deposit-main__footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  width: 100%;
-  padding: 9px 8px calc(9px + env(safe-area-inset-bottom));
-  border-top: 1px solid #e7e7e7;
-  background: rgba(255, 255, 255, .97);
-}
-
-body.ielp-route-theme .ielp-deposit-main__submit {
-  display: flex;
-  width: 100%;
-  min-height: 41px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #fff !important;
-  border: 0;
-  border-radius: 24px;
-  background: linear-gradient(105deg, #19aaa6, #325b9c) !important;
-  box-shadow: none !important;
+body.ielp-route-theme .ielp-deposit-main__channel-name {
+  min-width: 0;
+  flex: 1;
   font-size: 14px;
   font-weight: 600;
 }
 
-body.ielp-route-theme .ielp-deposit-main__submit:disabled {
-  opacity: .65;
+body.ielp-route-theme .ielp-deposit-main__channel-radio {
+  display: flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid rgba(196, 213, 244, .6);
+  border-radius: 50%;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-radio > span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a994ff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-status,
+body.ielp-route-theme .ielp-deposit-main__channel-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+  color: #c4d5f4;
+  font-size: 13px;
+}
+
+body.ielp-route-theme .ielp-deposit-main__channel-error {
+  color: #ff9ba5;
 }

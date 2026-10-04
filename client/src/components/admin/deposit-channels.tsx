@@ -259,7 +259,7 @@ export default function AdminDepositChannels() {
         <div>
           <h2 className="text-lg font-bold">Canaux de dépôt</h2>
           <p className="text-sm text-muted-foreground">
-            Chaque canal regroupe les opérateurs par pays. Un pays apparaît sur la page de dépôt lorsqu’il a un canal actif et au moins un numéro actif.
+            Chaque canal regroupe les opérateurs (MTN, Orange, Wave…) par pays.
           </p>
         </div>
         <Button onClick={() => { setEditTarget(null); setForm(emptyCh); setShowForm(true); }} className="gap-1">
@@ -354,7 +354,7 @@ export default function AdminDepositChannels() {
           <div className="space-y-3 mt-2">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Nom du canal *</label>
-              <Input placeholder="Mobile Money CI, Mobile Money Togo…" value={form.name}
+              <Input placeholder="Canal 1, Canal Mobile…" value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
             </div>
             <div>
