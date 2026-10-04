@@ -24,3 +24,11 @@ Keep the member's phone masked throughout the profile view, showing only the fir
 **Why:** The user asked for the profile to match a reference that masks the phone number and displays DIAMANT in place of the heading text.
 
 **How to apply:** Treat this as presentation-only: never alter the stored phone or user name to achieve the profile design.
+
+## Deposit page presentation
+
+Preserve the deposit page's existing layout and colors when changing payment options. Channel work should add or remove configured choices without redesigning the page.
+
+**Why:** The user explicitly asked that adding Mobile Money country channels and USDT must not alter the deposit page design or colors.
+
+**How to apply:** Keep visual changes limited to the existing channel list and its selection states unless the user explicitly requests a redesign.

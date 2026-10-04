@@ -986,6 +986,52 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/deposit-countries", requireAuth, async (_req, res) => {
+    try {
+      const [countries, channels, paymentNumbers] = await Promise.all([
+        storage.getActiveCountries(),
+        storage.getDepositChannels(),
+        storage.getPaymentNumbers(),
+      ]);
+      const manualCountries = new Map(
+        countries
+          .filter((country) => !country.autoPaymentEnabled)
+          .map((country) => [country.code.trim().toUpperCase(), country]),
+      );
+      const activeChannelsById = new Map(
+        channels.filter((channel) => channel.isActive).map((channel) => [channel.id, channel]),
+      );
+      const availableCountryCodes = new Set<string>();
+
+      for (const number of paymentNumbers) {
+        if (!number.isActive) continue;
+        const countryCode = number.country.trim().toUpperCase();
+        if (!manualCountries.has(countryCode)) continue;
+
+        if (!number.channelId) {
+          availableCountryCodes.add(countryCode);
+          continue;
+        }
+
+        const channel = activeChannelsById.get(number.channelId);
+        if (channel?.country.trim().toUpperCase() === countryCode) {
+          availableCountryCodes.add(countryCode);
+        }
+      }
+
+      res.json(
+        countries
+          .filter((country) =>
+            !country.autoPaymentEnabled
+            && availableCountryCodes.has(country.code.trim().toUpperCase()),
+          )
+          .map(({ code, name }) => ({ code, name })),
+      );
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get("/api/deposit-channels/:id/operators", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string);
@@ -1046,15 +1092,20 @@ export async function registerRoutes(
     try {
       const user = await storage.getUser(req.session.userId!);
       if (!user) return res.status(401).json({ message: "Non authentifié" });
-      const requestedCountry = req.query.country as string | undefined;
-      if (requestedCountry && requestedCountry.toUpperCase() !== user.country.toUpperCase()) {
-        return res.status(403).json({ message: "Les opérateurs d’un autre pays ne sont pas accessibles." });
+      const requestedCountry = typeof req.query.country === "string"
+        ? req.query.country.trim().toUpperCase()
+        : user.country.trim().toUpperCase();
+      const paymentCountry = (await storage.getActiveCountries()).find(
+        (country) => country.code.trim().toUpperCase() === requestedCountry,
+      );
+      if (!paymentCountry || paymentCountry.autoPaymentEnabled) {
+        return res.json([]);
       }
-      const configuredOperators = await storage.getPaymentNumbersByCountry(user.country);
+      const configuredOperators = await storage.getPaymentNumbersByCountry(paymentCountry.code);
       const operatorsWithActiveChannels = await Promise.all(configuredOperators.map(async (operator) => {
         if (!operator.channelId) return operator;
         const channel = await storage.getDepositChannel(operator.channelId);
-        return channel?.isActive && channel.country.toUpperCase() === user.country.toUpperCase()
+        return channel?.isActive && channel.country.toUpperCase() === paymentCountry.code.toUpperCase()
           ? operator
           : null;
       }));
@@ -1582,8 +1633,12 @@ export async function registerRoutes(
       if (!cleanAccountName || !cleanAccountNumber || !requestedPaymentMethod || !country || !depositReference) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
-      if (String(country).toUpperCase() !== user.country.toUpperCase()) {
-        return res.status(400).json({ message: "Le pays du dépôt ne correspond pas à votre compte." });
+      const requestedDepositCountry = typeof country === "string" ? country.trim().toUpperCase() : "";
+      const depositCountry = (await storage.getActiveCountries()).find(
+        (availableCountry) => availableCountry.code.trim().toUpperCase() === requestedDepositCountry,
+      );
+      if (!depositCountry || depositCountry.autoPaymentEnabled) {
+        return res.status(400).json({ message: "Ce canal Mobile Money n’est plus disponible." });
       }
 
       let resolvedChannelName: string | null = null;
@@ -1598,7 +1653,7 @@ export async function registerRoutes(
       if (parsedPaymentNumberId === null || !Number.isSafeInteger(parsedPaymentNumberId) || parsedPaymentNumberId <= 0) {
         return res.status(400).json({ message: "Choisissez un opérateur Mobile Money actif." });
       }
-      const operators = await storage.getPaymentNumbersByCountry(user.country);
+      const operators = await storage.getPaymentNumbersByCountry(depositCountry.code);
       const selectedOperator = operators.find((operator) => operator.id === parsedPaymentNumberId);
       if (!selectedOperator) {
         return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
@@ -1611,7 +1666,7 @@ export async function registerRoutes(
         if (
           !selectedChannel ||
           !selectedChannel.isActive ||
-          selectedChannel.country.toUpperCase() !== user.country.toUpperCase() ||
+          selectedChannel.country.toUpperCase() !== depositCountry.code.toUpperCase() ||
           (parsedDepositChannelId !== null && parsedDepositChannelId !== selectedOperator.channelId)
         ) {
           return res.status(400).json({ message: "Le canal Mobile Money n’est plus disponible." });
@@ -1629,7 +1684,7 @@ export async function registerRoutes(
         amount: amountValue,
         accountName: cleanAccountName,
         accountNumber: cleanAccountNumber,
-        country: user.country,
+        country: depositCountry.code,
         paymentMethod: resolvedPaymentMethod,
         paymentChannelId: paymentChannelId && Number(paymentChannelId) > 0 ? Number(paymentChannelId) : null,
         paymentNumberId: parsedPaymentNumberId,

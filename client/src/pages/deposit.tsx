@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { localeForLang, useI18n } from "@/lib/i18n";
-import type { PaymentNumber } from "@shared/schema";
+import type { Country, PaymentNumber } from "@shared/schema";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
 
@@ -24,6 +24,12 @@ function parseDepositPresetAmounts(value: string | undefined): number[] {
 }
 
 type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "issue";
+
+type DepositMethodSelection =
+  | { type: "mobile-money"; countryCode: string }
+  | { type: "crypto"; currencyCode: string };
+
+type DepositCountryOption = Pick<Country, "code" | "name">;
 
 type CryptoCurrency = {
   code: string;
@@ -103,6 +109,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [cryptoPayment, setCryptoPayment] = useState<CryptoPayment | null>(null);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState<CryptoCurrency | null>(null);
   const [pendingCurrencyCode, setPendingCurrencyCode] = useState<string | null>(null);
+  const [selectedDepositMethod, setSelectedDepositMethod] = useState<DepositMethodSelection | null>(null);
+  const [mobileMoneyCountryCode, setMobileMoneyCountryCode] = useState<string | null>(null);
   const [selectedOperator, setSelectedOperator] = useState<PaymentNumber | null>(null);
   const [payerName, setPayerName] = useState(user?.fullName || "");
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
@@ -115,18 +123,28 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const minDeposit = Number.parseInt(settings.minDeposit || "18", 10) || 18;
   const depositPresetAmounts = parseDepositPresetAmounts(settings.depositPresetAmounts);
 
+  const { data: mobileDepositCountries = [], isLoading: countriesLoading, isError: countriesError } = useQuery<DepositCountryOption[]>({
+    queryKey: ["/api/deposit-countries"],
+    staleTime: 0,
+  });
+
+  const mobileMoneyCountry = mobileDepositCountries.find(
+    (country) => country.code.toUpperCase() === mobileMoneyCountryCode?.toUpperCase(),
+  );
+
   const { data: mobileMoneyOperators = [], isLoading: operatorsLoading, isError: operatorsError } = useQuery<PaymentNumber[]>({
-    queryKey: ["/api/payment-numbers", user?.country],
+    queryKey: ["/api/payment-numbers", mobileMoneyCountryCode],
     queryFn: async () => {
-      if (!user?.country) return [];
-      const response = await fetch(`/api/payment-numbers?country=${encodeURIComponent(user.country)}`, {
+      if (!mobileMoneyCountryCode) return [];
+      const response = await fetch(`/api/payment-numbers?country=${encodeURIComponent(mobileMoneyCountryCode)}`, {
         credentials: "include",
         cache: "no-store",
       });
       if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
       return response.json();
     },
-    enabled: Boolean(user?.country),
+    enabled: view === "mobile-money" && Boolean(mobileMoneyCountryCode),
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -197,12 +215,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
   const createMobileMoneyDeposit = useMutation({
     mutationFn: async () => {
-      if (!user || !selectedOperator) throw new Error("Choisissez un opérateur Mobile Money.");
+      if (!user || !selectedOperator || !mobileMoneyCountryCode) {
+        throw new Error("Choisissez un pays et un opérateur Mobile Money.");
+      }
       const response = await apiRequest("POST", "/api/deposits", {
         amount: Number(amount),
         accountName: payerName.trim(),
         accountNumber: payerPhone.trim(),
-        country: user.country,
+        country: mobileMoneyCountryCode,
         paymentMethod: selectedOperator.operatorName,
         depositChannelId: selectedOperator.channelId,
         paymentNumberId: selectedOperator.id,
@@ -224,6 +244,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       });
       setView("main");
       setSelectedOperator(null);
+      setSelectedDepositMethod(null);
+      setMobileMoneyCountryCode(null);
       setMobileTransactionId("");
       setProof(null);
       setProofName("");
@@ -273,7 +295,36 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       });
       return;
     }
-    setView("currency");
+    if (!selectedDepositMethod) {
+      toast({
+        title: "Choisissez un canal de dépôt",
+        description: "Sélectionnez un pays Mobile Money ou USDT avant de continuer.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedDepositMethod.type === "crypto") {
+      const currency = CRYPTO_CURRENCIES.find((item) => item.code === selectedDepositMethod.currencyCode);
+      if (!currency) {
+        toast({ title: "Moyen de dépôt indisponible", variant: "destructive" });
+        return;
+      }
+      setSelectedCryptoCurrency(currency);
+      setPendingCurrencyCode(currency.code);
+      createCryptoDeposit.mutate(currency);
+      return;
+    }
+
+    const country = mobileDepositCountries.find(
+      (item) => item.code.toUpperCase() === selectedDepositMethod.countryCode.toUpperCase(),
+    );
+    if (!country) {
+      setSelectedDepositMethod(null);
+      toast({ title: "Ce canal Mobile Money n’est plus disponible.", variant: "destructive" });
+      return;
+    }
+    openMobileMoney(country.code);
   };
 
   useEffect(() => {
@@ -315,7 +366,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     void copyText(cryptoPayment.payinExtraId, "memo", "Memo / tag");
   };
 
-  const openMobileMoney = () => {
+  const openMobileMoney = (countryCode?: string) => {
+    if (!countryCode) return;
+    setMobileMoneyCountryCode(countryCode);
     setSelectedOperator(null);
     setPayerName(user?.fullName || "");
     setPayerPhone(user?.phone || "");
@@ -555,7 +608,12 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             <div className="grid min-h-0 flex-1 content-start grid-cols-1 gap-3 overflow-y-auto p-4">
               <button
                 type="button"
-                onClick={openMobileMoney}
+                onClick={() => {
+                  const countryCode = selectedDepositMethod?.type === "mobile-money"
+                    ? selectedDepositMethod.countryCode
+                    : mobileDepositCountries[0]?.code;
+                  openMobileMoney(countryCode);
+                }}
                 className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee]"
                 data-testid="button-deposit-mobile-money"
               >
@@ -620,7 +678,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             type="button"
             onClick={() => {
               setSelectedOperator(null);
-              setView("currency");
+              setView("main");
             }}
             className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
             aria-label="Back to deposit methods"
@@ -630,7 +688,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           </button>
           <div className="flex-1 pr-11 text-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
-            <h1 className="mt-0.5 text-[19px] font-semibold">Mobile Money</h1>
+            <h1 className="mt-0.5 text-[19px] font-semibold">
+              Mobile Money{mobileMoneyCountry ? ` — ${mobileMoneyCountry.name}` : ""}
+            </h1>
           </div>
         </header>
 
@@ -645,7 +705,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           {!selectedOperator ? (
             <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
               <h2 className="text-[16px] font-semibold text-[#173f26]">Choose a mobile operator</h2>
-              <p className="mt-1 text-[13px] text-[#6b7d70]">Available operators are configured for your country.</p>
+              <p className="mt-1 text-[13px] text-[#6b7d70]">
+                Available operators are configured for {mobileMoneyCountry?.name || "the selected country"}.
+              </p>
               {operatorsLoading ? (
                 <div role="status" className="mt-4 flex items-center gap-2 text-sm text-[#6b7d70]">
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading operators…
@@ -654,7 +716,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Could not load the available operators. Please try again.</p>
               ) : mobileMoneyOperators.length === 0 ? (
                 <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-                  No Mobile Money operator is configured for your country yet.
+                  No active Mobile Money number is configured for {mobileMoneyCountry?.name || "this country"} yet.
                 </p>
               ) : (
                 <div className="mt-4 space-y-2">
@@ -864,51 +926,64 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     );
   }
 
-  return (
-    <main className="ielp-deposit-page ielp-deposit-main min-h-screen pb-24">
-      <header className="ielp-deposit-main__header flex h-[76px] items-center gap-3 px-4">
-        <Link href="/">
-          <button
-            type="button"
-            className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
-            aria-label="Back to home"
-            data-testid="button-deposit-back"
-          >
-            <ArrowLeft size={23} strokeWidth={1.9} />
-          </button>
-        </Link>
-        <div className="min-w-0 flex-1 text-center">
-          <p className="ielp-deposit-main__brand text-[10px] font-semibold uppercase tracking-[0.18em]">DIAMANT</p>
-          <h1 className="ielp-deposit-main__title mt-0.5 text-[18px] font-semibold">RECHARGE</h1>
-        </div>
-        <Link href="/deposit-history">
-          <button
-            type="button"
-            className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
-            aria-label="Deposit history"
-            data-testid="button-deposit-history"
-          >
-            <History size={21} strokeWidth={1.8} />
-          </button>
-        </Link>
-      </header>
+  const mainCopy = lang === "en"
+    ? {
+        amount: "Deposit amount",
+        quickAmount: "Quick amount",
+        channel: "Deposit channel",
+        explanation: "Explanation",
+        submit: "Deposit now",
+        chooseChannel: "Choose a Mobile Money country or USDT.",
+        loadingCountries: "Loading available Mobile Money countries…",
+        channelLoadError: "Could not load deposit channels. Please try again.",
+        noCountries: "No Mobile Money country is configured yet.",
+        mobileMoney: "Mobile Money",
+        delayed: "Deposit delayed? Report it here.",
+        guidance: [
+          `1. The minimum deposit is ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
+          "2. Select the Mobile Money country or USDT channel you will use.",
+          "3. For Mobile Money, send the exact amount to the active number shown for that country.",
+          "4. Keep the payment reference until your deposit is credited.",
+        ],
+      }
+    : {
+        amount: "Montant du dépôt",
+        quickAmount: "Montant rapide",
+        channel: "Canal de dépôt",
+        explanation: "Explication",
+        submit: "Déposer maintenant",
+        chooseChannel: "Choisissez un pays Mobile Money ou USDT.",
+        loadingCountries: "Chargement des pays Mobile Money disponibles…",
+        channelLoadError: "Impossible de charger les canaux de dépôt. Réessayez.",
+        noCountries: "Aucun pays Mobile Money n’est encore configuré.",
+        mobileMoney: "Mobile Money",
+        delayed: "Dépôt non crédité ? Signalez-le ici.",
+        guidance: [
+          `1. Le dépôt minimum est de ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
+          "2. Sélectionnez le pays Mobile Money ou le canal USDT que vous allez utiliser.",
+          "3. Pour Mobile Money, envoyez le montant exact au numéro actif affiché pour ce pays.",
+          "4. Conservez la référence du paiement jusqu’au crédit de votre dépôt.",
+        ],
+      };
 
-      <div className="ielp-deposit-main__content mx-auto w-full max-w-xl space-y-4 px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-4">
-        <section className="ielp-deposit-main__card rounded-[20px] border px-4 pb-4 pt-4">
-          <SectionTitle>Recharge amount</SectionTitle>
-          <label className="ielp-deposit-main__amount flex h-[54px] items-center gap-3 rounded-[13px] border px-4">
-            <span className="text-[15px] font-semibold">{CURRENCY}</span>
+  return (
+    <main className="ielp-deposit-page ielp-deposit-main">
+      <div className="ielp-deposit-main__content">
+        <section className="ielp-deposit-main__amount-section">
+          <h1 className="ielp-deposit-main__section-title">{mainCopy.amount}</h1>
+          <label className="ielp-deposit-main__amount">
             <input
               type="number"
               value={amount}
               min={minDeposit}
               onChange={(event) => setAmount(event.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-[18px] font-semibold outline-none"
-              aria-label="Recharge amount"
+              aria-label={mainCopy.amount}
               data-testid="input-deposit-amount"
             />
+            <span>{CURRENCY}</span>
           </label>
-          <div className="mt-4 grid grid-cols-4 gap-2">
+          <h2 className="ielp-deposit-main__subheading">{mainCopy.quickAmount}</h2>
+          <div className="ielp-deposit-main__presets">
             {depositPresetAmounts.map((preset) => {
               const selected = amount !== "" && Number(amount) === preset;
               return (
@@ -916,7 +991,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   key={preset}
                   type="button"
                   onClick={() => setAmount(String(preset))}
-                  className="ielp-deposit-preset ielp-deposit-main__preset min-h-12 rounded-xl border px-1 text-[clamp(12px,3.8vw,16px)] font-semibold transition active:scale-[.97]"
+                  className="ielp-deposit-main__preset"
                   data-selected={selected ? "true" : "false"}
                   data-testid={`button-preset-amount-${preset}`}
                 >
@@ -927,50 +1002,90 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           </div>
         </section>
 
-        <section className="ielp-deposit-main__card rounded-[20px] border p-4">
-          <SectionTitle>Recharge method</SectionTitle>
-          <button
-            type="button"
-            onClick={submitMainDeposit}
-            className="flex min-h-[58px] w-full items-center gap-3 rounded-[14px] px-4 text-left text-white shadow-[0_8px_20px_rgba(83,54,198,.24)] transition active:scale-[.985]"
-            data-testid="button-deposit-method"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15">
-              <CreditCard size={21} strokeWidth={1.8} />
-            </span>
-            <span className="min-w-0 flex-1 text-[14px] font-semibold sm:text-[16px]">Mobile Money or USDT BEP20</span>
-            <ChevronRight size={20} strokeWidth={2} />
-          </button>
+        <section className="ielp-deposit-main__channels" aria-labelledby="deposit-channel-heading">
+          <h2 id="deposit-channel-heading" className="ielp-deposit-main__section-title">{mainCopy.channel}</h2>
+          <p className="ielp-deposit-main__hint">{mainCopy.chooseChannel}</p>
+          <div className="ielp-deposit-main__channel-list" role="radiogroup" aria-label={mainCopy.channel}>
+            {countriesLoading && (
+              <div className="ielp-deposit-main__status" role="status">
+                <Loader2 size={16} className="animate-spin" />
+                <span>{mainCopy.loadingCountries}</span>
+              </div>
+            )}
+            {countriesError && (
+              <p className="ielp-deposit-main__error" role="alert">{mainCopy.channelLoadError}</p>
+            )}
+            {!countriesLoading && !countriesError && mobileDepositCountries.length === 0 && (
+              <p className="ielp-deposit-main__empty">{mainCopy.noCountries}</p>
+            )}
+            {mobileDepositCountries.map((country) => {
+              const selected = selectedDepositMethod?.type === "mobile-money"
+                && selectedDepositMethod.countryCode.toUpperCase() === country.code.toUpperCase();
+              return (
+                <button
+                  key={country.code}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={`${mainCopy.mobileMoney} ${country.name}`}
+                  onClick={() => setSelectedDepositMethod({ type: "mobile-money", countryCode: country.code })}
+                  className="ielp-deposit-main__channel-row"
+                  data-testid={`button-deposit-country-${country.code.toLowerCase()}`}
+                >
+                  <span className="ielp-deposit-main__country-tag">{country.name}</span>
+                  <span className="ielp-deposit-main__radio" aria-hidden="true">
+                    {selected && <span />}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={selectedDepositMethod?.type === "crypto"}
+              aria-label="USDT BEP20"
+              onClick={() => setSelectedDepositMethod({ type: "crypto", currencyCode: CRYPTO_CURRENCIES[0].code })}
+              className="ielp-deposit-main__channel-row ielp-deposit-main__channel-row--usdt"
+              data-testid="button-deposit-usdt"
+            >
+              <span className="ielp-deposit-main__usdt-name">USDT</span>
+              <span className="ielp-deposit-main__usdt-network">BEP20</span>
+              <span className="ielp-deposit-main__radio" aria-hidden="true">
+                {selectedDepositMethod?.type === "crypto" && <span />}
+              </span>
+            </button>
+          </div>
         </section>
 
+        <section className="ielp-deposit-main__guidance">
+          <h2 className="ielp-deposit-main__section-title">{mainCopy.explanation}</h2>
+          <div className="ielp-deposit-main__guidance-copy">
+            {mainCopy.guidance.map((instruction) => <p key={instruction}>{instruction}</p>)}
+          </div>
+          <button
+            type="button"
+            onClick={() => setView("issue")}
+            className="ielp-deposit-main__issue-link"
+            data-testid="button-deposit-issue"
+          >
+            {mainCopy.delayed}
+          </button>
+        </section>
+      </div>
+
+      <footer className="ielp-deposit-main__footer">
         <button
           type="button"
           onClick={submitMainDeposit}
-          className="flex h-[52px] w-full items-center justify-center rounded-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(83,54,198,.24)] transition active:scale-[.98] disabled:opacity-70"
+          disabled={createCryptoDeposit.isPending}
+          className="ielp-deposit-main__submit"
           data-testid="button-confirm-deposit"
         >
-          Pay
+          {createCryptoDeposit.isPending
+            ? <><Loader2 size={17} className="animate-spin" /> {lang === "en" ? "Preparing payment…" : "Préparation du paiement…"}</>
+            : mainCopy.submit}
         </button>
-        <button
-          type="button"
-          onClick={() => setView("issue")}
-          className="mx-auto block min-h-10 px-3 text-center text-[14px] font-medium active:opacity-70"
-          data-testid="button-deposit-issue"
-        >
-          Payment delayed? Click here
-        </button>
-
-        <section className="ielp-deposit-main__guidance rounded-[18px] border px-4 py-4">
-          <h2 className="ielp-deposit-main__guidance-title text-[14px] font-semibold">Deposit information</h2>
-          <div className="mt-3 space-y-3 text-[13px] leading-5">
-            <p>1. The minimum deposit is {minDeposit.toLocaleString(localeForLang(lang))} {CURRENCY}. Deposits below this amount will not be credited.</p>
-            <p>2. The wallet number entered on the deposit page must be the same one used for payment.</p>
-            <p>3. Always use the most recent account number for payments and avoid using expired account information.</p>
-            <p>4. Read the payment platform instructions carefully and follow them exactly.</p>
-            <p>5. If your deposit is not credited immediately after the transfer, upload your payment information on the deposit page or contact customer service.</p>
-          </div>
-        </section>
-      </div>
+      </footer>
     </main>
   );
 }
