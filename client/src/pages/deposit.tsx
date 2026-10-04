@@ -128,7 +128,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [payerName, setPayerName] = useState(user?.fullName || "");
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
   const [mobileTransactionId, setMobileTransactionId] = useState("");
-  const [copiedField, setCopiedField] = useState<"address" | "memo" | null>(null);
+  const [copiedField, setCopiedField] = useState<"address" | "memo" | "memberId" | null>(null);
 
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
@@ -209,7 +209,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "The crypto payment could not be created.");
+        throw new Error(error.message || "Impossible de créer le paiement crypto.");
       }
       return response.json() as Promise<CryptoPayment>;
     },
@@ -219,7 +219,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       setView("crypto-payment");
     },
     onError: (error: Error) => {
-      toast({ title: "Payment unavailable", description: error.message, variant: "destructive" });
+      toast({ title: "Paiement indisponible", description: error.message, variant: "destructive" });
     },
     onSettled: () => {
       setPendingCurrencyCode(null);
@@ -346,7 +346,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     return () => window.clearTimeout(timeout);
   }, [copiedField]);
 
-  const copyText = async (value: string, field: "address" | "memo", label: string) => {
+  const copyText = async (value: string, field: "address" | "memo" | "memberId") => {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -363,20 +363,31 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         if (!copied) throw new Error("Clipboard unavailable");
       }
       setCopiedField(field);
-      toast({ title: `${label} copied` });
+      toast({
+        title: field === "address"
+          ? t.depositCopiedToast
+          : field === "memo"
+            ? "Mémo copié"
+            : "ID membre copié",
+      });
     } catch {
-      toast({ title: `Unable to copy ${label.toLowerCase()}`, variant: "destructive" });
+      toast({ title: t.depositCopyFail, variant: "destructive" });
     }
   };
 
   const copyPaymentAddress = () => {
     if (!cryptoPayment?.payAddress) return;
-    void copyText(cryptoPayment.payAddress, "address", "Address");
+    void copyText(cryptoPayment.payAddress, "address");
   };
 
   const copyPaymentMemo = () => {
     if (!cryptoPayment?.payinExtraId) return;
-    void copyText(cryptoPayment.payinExtraId, "memo", "Memo / tag");
+    void copyText(cryptoPayment.payinExtraId, "memo");
+  };
+
+  const copyMemberId = () => {
+    if (!user) return;
+    void copyText(String(user.referralCode || user.id), "memberId");
   };
 
   const openMobileMoney = (countryCode?: string) => {
@@ -454,14 +465,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             type="button"
             onClick={() => setView("main")}
             className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
-            aria-label="Back to currency selection"
+            aria-label="Retour à la sélection des moyens de paiement"
             data-testid="button-crypto-payment-back"
           >
             <ArrowLeft size={24} strokeWidth={2} />
           </button>
           <div className="flex-1 pr-11 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
-            <h1 className="mt-0.5 text-[19px] font-semibold">Send payment</h1>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT · DÉPÔT</p>
+            <h1 className="mt-0.5 text-[19px] font-semibold">Envoyer le paiement</h1>
           </div>
         </header>
 
@@ -470,19 +481,20 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             <div className="border-b border-[#e5efe7] bg-[#f8fcf9] px-5 py-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[#698173]">Amount to send</p>
+                  <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[#698173]">{t.depositExactAmount}</p>
                   <p className="mt-1 text-[26px] font-bold tracking-tight text-[#087a38]">
-                    {Number(cryptoPayment.payAmount).toLocaleString(undefined, { maximumFractionDigits: 8 })} <span className="text-[16px]">{cryptoPayment.payCurrency.toUpperCase()}</span>
+                    {Number(cryptoPayment.payAmount).toLocaleString(undefined, { maximumFractionDigits: 8 })} <span className="text-[16px]">{selectedCurrencyLabel}</span>
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#e4f6e9] px-3 py-1.5 text-[12px] font-semibold text-[#087a38]">
                   <ShieldCheck size={15} />
-                  Secure payment
+                  Paiement sécurisé
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-2 text-[13px] text-[#53705d]">
                 <span className="h-2 w-2 rounded-full bg-[#20b957]" />
-                Send on <span className="font-semibold text-[#173f26]">{selectedCurrencyLabel}</span> network only
+                <span>Envoyez uniquement sur le réseau </span>
+                <span className="font-semibold text-[#173f26]">{selectedCurrencyLabel}</span>
               </div>
             </div>
 
@@ -490,25 +502,32 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               <div className="rounded-[16px] border border-[#e1eee4] bg-white p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Scan to pay</p>
-                    <p className="mt-1 text-[13px] text-[#66746b]">Use your wallet app to scan this QR code.</p>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Scannez pour payer</p>
+                    <p className="mt-1 text-[13px] text-[#66746b]">Scannez ce code QR avec votre portefeuille.</p>
                   </div>
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eaf7ee] text-[#087a38]">
-                    <WalletCards size={18} />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={copyMemberId}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eaf7ee] text-[#087a38] transition hover:bg-[#d9f0df] active:scale-95"
+                    aria-label="Copier mon ID membre"
+                    title="Copier mon ID membre"
+                    data-testid="button-copy-member-id-deposit"
+                  >
+                    {copiedField === "memberId" ? <Check size={17} /> : <Copy size={17} />}
+                  </button>
                 </div>
                 <div className="ielp-qr-code-surface mx-auto mt-4 flex h-[190px] w-[190px] items-center justify-center rounded-[18px] border border-[#e0ebe2] bg-white p-3 shadow-[0_4px_14px_rgba(0,70,30,.06)]">
-                  <img src={cryptoPayment.qrCode} alt={`QR code for ${selectedCurrencyLabel} payment`} className="h-full w-full rounded-[8px]" />
+                  <img src={cryptoPayment.qrCode} alt="Code QR de paiement" className="h-full w-full rounded-[8px]" />
                 </div>
               </div>
 
               <div className="mt-4 rounded-[16px] border border-[#cfe5d5] bg-[#f7fcf8] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#53705d]">Payment address</p>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#53705d]">{t.depositAddressTitle}</p>
                     <p className="mt-1 text-[12px] text-[#789082]">{selectedCurrencyLabel}</p>
                   </div>
-                  <span className="rounded-full bg-[#e2f4e7] px-2.5 py-1 text-[11px] font-semibold text-[#087a38]">Required</span>
+                  <span className="rounded-full bg-[#e2f4e7] px-2.5 py-1 text-[11px] font-semibold text-[#087a38]">Obligatoire</span>
                 </div>
                 <p className="mt-3 break-all rounded-[10px] border border-[#dcebe0] bg-white px-3 py-3 font-mono text-[13px] leading-5 text-[#173f26]">
                   {cryptoPayment.payAddress}
@@ -516,11 +535,11 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <button
                   type="button"
                   onClick={copyPaymentAddress}
-                   className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#ff0000] text-[15px] font-semibold text-white shadow-[0_4px_10px_rgba(255,0,0,.18)] transition hover:brightness-105 active:scale-[.98]"
+                  className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#ff0000] text-[15px] font-semibold text-white shadow-[0_4px_10px_rgba(255,0,0,.18)] transition hover:brightness-105 active:scale-[.98]"
                   data-testid="button-copy-crypto-address"
                 >
                   {copiedField === "address" ? <Check size={18} /> : <Copy size={18} />}
-                  {copiedField === "address" ? "Address copied" : "Copy address"}
+                  {copiedField === "address" ? t.depositCopiedToast : "Copier l’adresse"}
                 </button>
               </div>
 
@@ -528,23 +547,23 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <div className="mt-3 grid gap-3 rounded-[16px] border border-[#e1eee4] bg-[#fbfdfb] p-4 text-[13px]">
                   {cryptoPayment.network && (
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-[#698173]">Network</span>
+                          <span className="text-[#698173]">Réseau</span>
                       <span className="font-semibold uppercase text-[#173f26]">{cryptoPayment.network}</span>
                     </div>
                   )}
                   {cryptoPayment.payinExtraId && (
                     <div>
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-[#698173]">Memo / tag</span>
+                        <span className="text-[#698173]">Mémo / tag</span>
                         <button
                           type="button"
                           onClick={copyPaymentMemo}
                           className="flex items-center gap-1.5 rounded-lg px-2 py-1 font-semibold text-[#087a38] transition hover:bg-[#eaf7ee] active:scale-95"
-                          aria-label="Copy memo or tag"
+                          aria-label="Copier le mémo ou le tag"
                           data-testid="button-copy-crypto-memo"
                         >
                           {copiedField === "memo" ? <Check size={15} /> : <Copy size={15} />}
-                          {copiedField === "memo" ? "Copied" : "Copy"}
+                          {copiedField === "memo" ? t.depositCopied : t.depositCopy}
                         </button>
                       </div>
                       <p className="mt-1 break-all rounded-lg bg-[#f1f7f2] px-3 py-2 font-mono font-semibold text-[#173f26]">{cryptoPayment.payinExtraId}</p>
@@ -558,14 +577,18 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <div className="mt-4 flex gap-3 rounded-[16px] border border-[#ff0000] bg-[#fff5f5] px-4 py-3.5 text-[#ff0000]">
             <AlertTriangle size={19} className="mt-0.5 shrink-0 text-[#ff0000]" />
             <div className="text-[13px] leading-5">
-              <p className="font-semibold">Double-check before sending</p>
-              <p className="mt-0.5">Only send <strong>{selectedCurrencyLabel}</strong> through the matching network. Another network can permanently lose your funds.</p>
+              <p className="font-semibold">Vérifiez avant d’envoyer</p>
+              <p className="mt-0.5">
+                <span>N’envoyez que </span>
+                <strong>{selectedCurrencyLabel}</strong>
+                <span> sur le réseau correspondant. Un autre réseau peut entraîner la perte définitive de vos fonds.</span>
+              </p>
             </div>
           </div>
 
           <div className="mt-3 flex items-start gap-2 px-1 text-[12px] leading-5 text-[#718177]">
             <Info size={16} className="mt-0.5 shrink-0 text-[#087a38]" />
-            <p>Your deposit will be credited automatically after the network confirms the transaction. Keep this page until the payment is complete.</p>
+            <p>Votre dépôt sera crédité automatiquement après confirmation de la transaction par le réseau. Gardez cette page ouverte jusqu’à la fin du paiement.</p>
           </div>
         </div>
       </main>
@@ -580,14 +603,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             type="button"
             onClick={() => setView("main")}
             className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
-            aria-label="Back to deposit amount"
+            aria-label="Retour à la saisie du montant"
             data-testid="button-currency-back"
           >
             <ArrowLeft size={24} strokeWidth={2} />
           </button>
           <div className="flex-1 pr-11 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
-          <h1 className="mt-0.5 text-[19px] font-semibold">Choose a deposit method</h1>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT · DÉPÔT</p>
+          <h1 className="mt-0.5 text-[19px] font-semibold">Choisissez un moyen de dépôt</h1>
           </div>
         </header>
 
@@ -598,16 +621,16 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <WalletCards size={19} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Deposit amount</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#698173]">{t.depositAmount}</p>
                 <p className="mt-0.5 truncate text-[19px] font-bold text-[#087a38]">{Number(amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} XOF</p>
               </div>
-              <span className="shrink-0 rounded-full bg-[#e4f6e9] px-2 py-1 text-[10px] font-semibold text-[#087a38]">Step 2 of 2</span>
+              <span className="shrink-0 rounded-full bg-[#e4f6e9] px-2 py-1 text-[10px] font-semibold text-[#087a38]">Étape 2 sur 2</span>
             </div>
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e5eee7] px-4 py-3">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <h2 className="text-[17px] font-semibold text-[#173f26]">Select how to deposit</h2>
-                  <p className="mt-0.5 text-[12px] text-[#6b7d70]">Choose Mobile Money or USDT on the BEP20 network.</p>
+                  <h2 className="text-[17px] font-semibold text-[#173f26]">Choisissez comment effectuer votre recharge</h2>
+                  <p className="mt-0.5 text-[12px] text-[#6b7d70]">Choisissez Mobile Money ou USDT sur le réseau BEP20.</p>
                 </div>
               </div>
               <ShieldCheck size={21} className="shrink-0 text-[#20a554]" />
@@ -615,7 +638,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             {createCryptoDeposit.isPending && selectedCryptoCurrency && (
               <div role="status" className="flex shrink-0 items-center gap-3 border-b border-[#cfe5d5] bg-[#eef9f1] px-4 py-2.5 text-[12px] font-medium text-[#087a38]">
                 <Loader2 size={17} className="animate-spin" />
-                <span>Preparing your {selectedCryptoCurrency.label} payment…</span>
+                <span>{t.depositGenerating}</span>
               </div>
             )}
             <div className="grid min-h-0 flex-1 content-start grid-cols-1 gap-3 overflow-y-auto p-4">
@@ -636,7 +659,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-semibold text-[#183c25]">Mobile Money</span>
                   <span className="mt-1 block text-[12px] leading-5 text-[#789082]">
-                    Pay using an available mobile operator in your country.
+                    Payez avec un opérateur Mobile Money disponible dans votre pays.
                   </span>
                 </span>
                 <ChevronRight size={19} className="shrink-0 text-[#789b83]" />
@@ -653,7 +676,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   }}
                   disabled={createCryptoDeposit.isPending}
                   aria-busy={pendingCurrencyCode === currency.code}
-                  aria-label={`Pay with ${currency.label}`}
+                  aria-label={`Payer avec ${currency.label}`}
                   className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee] disabled:cursor-wait disabled:opacity-60"
                   data-testid={`button-currency-${currency.code}`}
                 >
@@ -667,7 +690,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-semibold text-[#183c25]">{currency.label}</span>
-                    <span className="mt-1 block text-[12px] text-[#789082]">Generate a deposit address for the BEP20 network.</span>
+                    <span className="mt-1 block text-[12px] text-[#789082]">Générez une adresse de dépôt sur le réseau BEP20.</span>
                   </span>
                   {pendingCurrencyCode === currency.code ? (
                     <Loader2 size={17} className="shrink-0 animate-spin text-[#087a38]" aria-hidden="true" />
@@ -694,13 +717,13 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               setView("main");
             }}
             className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
-            aria-label="Back to deposit methods"
+            aria-label="Retour aux moyens de dépôt"
             data-testid="button-mobile-money-back"
           >
             <ArrowLeft size={24} strokeWidth={2} />
           </button>
           <div className="flex-1 pr-11 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT · DÉPÔT</p>
             <h1 className="mt-0.5 text-[19px] font-semibold">
               Mobile Money{mobileMoneyCountry ? ` — ${mobileMoneyCountry.name}` : ""}
             </h1>
@@ -709,7 +732,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
         <div className="mx-auto w-full max-w-xl px-4">
           <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
-            <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-[#698173]">Deposit amount</p>
+            <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-[#698173]">{t.depositAmount}</p>
             <p className="mt-1 text-[24px] font-bold text-[#087a38]">
               {Number(amount).toLocaleString(localeForLang(lang))} {CURRENCY}
             </p>
@@ -717,19 +740,21 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
           {!selectedOperator ? (
             <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
-              <h2 className="text-[16px] font-semibold text-[#173f26]">Choose a mobile operator</h2>
+              <h2 className="text-[16px] font-semibold text-[#173f26]">Choisissez un opérateur Mobile Money</h2>
               <p className="mt-1 text-[13px] text-[#6b7d70]">
-                Available operators are configured for {mobileMoneyCountry?.name || "the selected country"}.
+                <span>Les opérateurs disponibles sont configurés pour </span>
+                {mobileMoneyCountry?.name || "le pays sélectionné"}.
               </p>
               {operatorsLoading ? (
                 <div role="status" className="mt-4 flex items-center gap-2 text-sm text-[#6b7d70]">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading operators…
+                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des opérateurs…
                 </div>
               ) : operatorsError ? (
-                <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Could not load the available operators. Please try again.</p>
+                <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Impossible de charger les opérateurs disponibles. Réessayez.</p>
               ) : mobileMoneyOperators.length === 0 ? (
                 <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-                  No active Mobile Money number is configured for {mobileMoneyCountry?.name || "this country"} yet.
+                  <span>Aucun numéro Mobile Money actif n’est configuré pour </span>
+                  {mobileMoneyCountry?.name || "ce pays"} <span>pour le moment.</span>
                 </p>
               ) : (
                 <div className="mt-4 space-y-2">
@@ -761,7 +786,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               <section className="mt-4 rounded-2xl border border-[#cfe5d5] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Send payment to</p>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Envoyer le paiement à</p>
                     <h2 className="mt-1 text-[17px] font-bold text-[#173f26]">{selectedOperator.operatorName}</h2>
                   </div>
                   <button
@@ -770,23 +795,25 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                     className="text-[12px] font-semibold text-[#087a38] underline"
                     data-testid="button-change-mobile-operator"
                   >
-                    Change
+                    {t.depositModify}
                   </button>
                 </div>
                 <p className="mt-4 break-all rounded-xl bg-[#f7fcf8] px-3 py-3 font-mono text-[16px] font-semibold text-[#173f26]">
                   {selectedOperator.phone}
                 </p>
                 <p className="mt-2 text-[13px] text-[#6b7d70]">
-                  Account holder: <span className="font-semibold text-[#173f26]">{selectedOperator.ownerName}</span>
+                  Titulaire du compte : <span className="font-semibold text-[#173f26]">{selectedOperator.ownerName}</span>
                 </p>
                 <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-800">
-                  Send exactly {Number(amount).toLocaleString(localeForLang(lang))} {CURRENCY}, then submit the transaction reference below.
+                  <span>Envoyez exactement </span>
+                  {Number(amount).toLocaleString(localeForLang(lang))} {CURRENCY}
+                  <span>, puis indiquez la référence de transaction ci-dessous.</span>
                 </p>
               </section>
 
               <section className="mt-4 space-y-3 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
                 <label className="block">
-                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Name used for payment</span>
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Nom utilisé pour le paiement</span>
                   <input
                     value={payerName}
                     onChange={(event) => setPayerName(event.target.value)}
@@ -796,7 +823,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Your payment phone number</span>
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Votre numéro de téléphone de paiement</span>
                   <input
                     type="tel"
                     value={payerPhone}
@@ -807,12 +834,12 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   />
                 </label>
                 <label className="block">
-                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Transaction reference</span>
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Référence de transaction</span>
                   <input
                     value={mobileTransactionId}
                     onChange={(event) => setMobileTransactionId(event.target.value)}
                     className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-sm outline-none focus:border-[#32c95b]"
-                    placeholder="Reference from your payment receipt"
+                    placeholder="Référence indiquée sur votre reçu de paiement"
                     data-testid="input-mobile-transaction-reference"
                   />
                 </label>
@@ -832,7 +859,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                     data-testid="button-upload-mobile-proof"
                   >
                     <Camera size={17} />
-                    {proof ? proofName : "Add payment screenshot (optional)"}
+                    {proof ? proofName : "Ajouter une capture du paiement (facultative)"}
                   </button>
                 </div>
                 <button
@@ -842,7 +869,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#087a38] px-4 text-[15px] font-semibold text-white shadow-sm transition active:scale-[.99] disabled:opacity-60"
                   data-testid="button-submit-mobile-deposit"
                 >
-                  {createMobileMoneyDeposit.isPending ? <Loader2 size={18} className="animate-spin" /> : "I have paid — submit for review"}
+                  {createMobileMoneyDeposit.isPending ? <Loader2 size={18} className="animate-spin" /> : "J’ai payé — envoyer pour vérification"}
                 </button>
               </section>
             </>
@@ -901,7 +928,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             >
               {proof ? (
                 <>
-                  <img src={proof} alt="Selected proof" className="mb-2 h-[74px] max-w-[180px] rounded object-cover" />
+                   <img src={proof} alt="Capture de paiement sélectionnée" className="mb-2 h-[74px] max-w-[180px] rounded object-cover" />
                   <span className="max-w-[85%] truncate text-sm">{proofName}</span>
                 </>
               ) : (
@@ -1005,7 +1032,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <button
             type="button"
             className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
-            aria-label="Back to home"
+            aria-label="Retour à l’accueil"
             data-testid="button-deposit-back"
           >
             <ArrowLeft size={23} strokeWidth={1.9} />
@@ -1019,7 +1046,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <button
             type="button"
             className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
-            aria-label="Deposit history"
+            aria-label={t.depositHistory}
             data-testid="button-deposit-history"
           >
             <History size={21} strokeWidth={1.8} />
@@ -1029,7 +1056,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
       <div className="ielp-deposit-main__content mx-auto w-full max-w-xl space-y-4 px-4 pb-[calc(8px+env(safe-area-inset-bottom))] pt-4">
         <section className="ielp-deposit-main__card rounded-[20px] border px-4 pb-4 pt-4">
-          <SectionTitle>Recharge amount</SectionTitle>
+          <SectionTitle>{t.depositAmount}</SectionTitle>
           <label className="ielp-deposit-main__amount flex h-[54px] items-center gap-3 rounded-[13px] border px-4">
             <span className="text-[15px] font-semibold">{CURRENCY}</span>
             <input
@@ -1038,7 +1065,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               min={minDeposit}
               onChange={(event) => setAmount(event.target.value)}
               className="min-w-0 flex-1 bg-transparent text-[18px] font-semibold outline-none"
-              aria-label="Recharge amount"
+               aria-label={t.depositAmount}
               data-testid="input-deposit-amount"
             />
           </label>
@@ -1062,7 +1089,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         </section>
 
         <section className="ielp-deposit-main__card rounded-[20px] border p-4">
-          <SectionTitle>Recharge method</SectionTitle>
+          <SectionTitle>Moyen de recharge</SectionTitle>
           <p className="ielp-deposit-main__channel-hint">{channelCopy.chooseChannel}</p>
           <div className="ielp-deposit-main__channel-options" role="radiogroup" aria-label={channelCopy.chooseChannel}>
             {countriesLoading && (
@@ -1134,8 +1161,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           data-testid="button-confirm-deposit"
         >
           {createCryptoDeposit.isPending
-            ? <><Loader2 size={17} className="animate-spin" /> {lang === "en" ? "Preparing payment…" : "Préparation du paiement…"}</>
-            : "Pay"}
+            ? <><Loader2 size={17} className="animate-spin" /> {t.depositGenerating}</>
+            : "Payer"}
         </button>
         <button
           type="button"
