@@ -9,7 +9,7 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import WheelResultModal from "@/components/wheel-result-modal";
 import checkinHeroArt from "@assets/generated_images/diamant-checkin-wheel-hero-visible-512.png";
-import checkinHeroBanner from "@assets/file_00000000feb08210a3d5f9f7e15417b6_1791113696843.png";
+import checkinHeroBanner from "@assets/file_00000000ae808210815c1f6039a5245a_1791116645553.png";
 import checkinCoin from "@assets/generated_images/diamant-checkin-wheel-coin-128.png";
 import wheelBackground from "@assets/generated_images/spin-wheel-palace-bg-optimized.jpg";
 
@@ -146,10 +146,10 @@ export default function CheckinPage() {
       <header
         className="ielp-checkin-hero relative w-full overflow-hidden"
         style={{
-          aspectRatio: isFrench ? "2.14 / 1" : "576 / 310",
-          border: "5px solid #ffd2a5",
-          borderBottom: "7px solid #ffe3c8",
-          borderRadius: "0 0 34px 34px",
+          aspectRatio: isFrench ? "2081 / 755" : "576 / 310",
+          border: isFrench ? 0 : "5px solid #ffd2a5",
+          borderBottom: isFrench ? 0 : "7px solid #ffe3c8",
+          borderRadius: isFrench ? 0 : "0 0 34px 34px",
           background: "radial-gradient(circle at 78% 25%, rgba(255,237,196,.28), transparent 35%), linear-gradient(180deg, #ff533d 0%, #f33328 78%, #ed271f 100%)",
           boxShadow: "0 5px 14px rgba(66,29,17,.24)",
         }}
