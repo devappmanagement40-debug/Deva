@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 
-const ACCENT_GREEN = "#00C853";
+const ACCENT_VIOLET = "#653de9";
 
 export default function ChangeWithdrawalPinPage() {
   const { user } = useAuth();
@@ -102,16 +102,16 @@ export default function ChangeWithdrawalPinPage() {
     <main className="flex min-h-screen flex-col bg-[#efefef]">
       <header
         className="flex items-center px-4 py-4"
-        style={{ background: ACCENT_GREEN }}
+        style={{ background: ACCENT_VIOLET }}
       >
         <button
           type="button"
           onClick={() => navigate("/account")}
-          className="flex h-9 w-9 items-center justify-center active:opacity-70"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white/90 active:opacity-70"
           aria-label={t.back}
           data-testid="button-back-change-withdrawal-pin"
         >
-          <ChevronLeft className="h-6 w-6 text-white" strokeWidth={2.5} />
+          <ChevronLeft className="h-6 w-6 text-[#653de9]" strokeWidth={2.5} />
         </button>
         <h1 className="flex-1 pr-9 text-center text-base font-semibold text-white">
           {t.changeWithdrawalPin}
@@ -128,7 +128,7 @@ export default function ChangeWithdrawalPinPage() {
           <button
             type="button"
             onClick={() => void pinStatusQuery.refetch()}
-            className="mt-4 font-semibold text-[#078b3c]"
+            className="mt-4 font-semibold text-[#653de9]"
             data-testid="button-retry-withdrawal-pin-status"
           >
             {t.retry}
@@ -143,7 +143,7 @@ export default function ChangeWithdrawalPinPage() {
             type="button"
             onClick={() => navigate("/withdrawal")}
             className="mt-5 h-12 w-full rounded-full font-semibold text-white"
-            style={{ background: ACCENT_GREEN }}
+            style={{ background: ACCENT_VIOLET }}
             data-testid="button-open-withdrawal-pin-reset"
           >
             {t.withdrawalPinResetOpenWithdrawal}
@@ -166,7 +166,7 @@ export default function ChangeWithdrawalPinPage() {
               value={currentPin}
               onChange={(event) => setCurrentPin(event.target.value)}
               maxLength={72}
-              className="mb-5 h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              className="mb-5 h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-current-withdrawal-pin"
             />
 
@@ -180,7 +180,7 @@ export default function ChangeWithdrawalPinPage() {
               value={newPin}
               onChange={(event) => setNewPin(event.target.value)}
               maxLength={72}
-              className="mb-5 h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              className="mb-5 h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-new-withdrawal-pin"
             />
 
@@ -194,7 +194,7 @@ export default function ChangeWithdrawalPinPage() {
               value={confirmPin}
               onChange={(event) => setConfirmPin(event.target.value)}
               maxLength={72}
-              className="h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              className="h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-confirm-withdrawal-pin"
             />
           </div>
@@ -204,7 +204,7 @@ export default function ChangeWithdrawalPinPage() {
               type="submit"
               disabled={changePinMutation.isPending || pinStatusQuery.isLoading}
               className="h-14 w-full rounded-full text-lg font-bold text-white transition-transform active:scale-95 disabled:opacity-50"
-              style={{ background: ACCENT_GREEN, boxShadow: "0 4px 14px rgba(0,200,83,0.35)" }}
+              style={{ background: ACCENT_VIOLET, boxShadow: "0 4px 14px rgba(101,61,233,0.35)" }}
               data-testid="button-change-withdrawal-pin-submit"
             >
               {changePinMutation.isPending ? (

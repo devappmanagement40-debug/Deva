@@ -348,7 +348,7 @@ export default function WithdrawalPage() {
               value={resetAccountPassword}
               onChange={(event) => setResetAccountPassword(event.target.value)}
               placeholder={t.passwordPlaceholder}
-              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+             className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-pin-reset-account-password"
             />
 
@@ -363,7 +363,7 @@ export default function WithdrawalPage() {
               onChange={(event) => setNewTransactionPin(event.target.value)}
               placeholder={t.authPinLabel}
               maxLength={72}
-              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-pin-reset-new"
             />
 
@@ -378,7 +378,7 @@ export default function WithdrawalPage() {
               onChange={(event) => setConfirmTransactionPin(event.target.value)}
               placeholder={t.withdrawalPinResetConfirm}
               maxLength={72}
-              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
               data-testid="input-pin-reset-confirm"
             />
 
@@ -390,7 +390,7 @@ export default function WithdrawalPage() {
                 !newTransactionPin ||
                 !confirmTransactionPin
               }
-              className="mt-5 h-[51px] w-full rounded-full bg-[#00bd08] px-4 font-semibold text-white disabled:opacity-50"
+              className="mt-5 h-[51px] w-full rounded-full bg-[#653de9] px-4 font-semibold text-white shadow-[0_4px_14px_rgba(101,61,233,0.35)] disabled:opacity-50"
               data-testid="button-save-withdrawal-pin"
             >
               {transactionPinResetMutation.isPending ? t.saving : t.withdrawalPinResetButton}
