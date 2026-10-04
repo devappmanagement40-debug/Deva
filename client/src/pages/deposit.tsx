@@ -5,6 +5,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import type { Country, PaymentNumber } from "@shared/schema";
 import tetherIcon from "@/assets/crypto/tether.png";
@@ -21,6 +22,16 @@ function parseDepositPresetAmounts(value: string | undefined): number[] {
     .filter((entry) => Number.isSafeInteger(entry) && entry > 0);
 
   return amounts.length > 0 ? amounts : DEFAULT_DEPOSIT_AMOUNTS;
+}
+
+function formatDepositGuidanceContent(value: string, minDeposit: number, lang: string): string {
+  const formattedMinimum = minDeposit.toLocaleString(localeForLang(lang as "fr" | "en" | "ar" | "zh"));
+  return value
+    .replace(/\{\{?\s*minDeposit\s*\}?\}/gi, formattedMinimum)
+    .replace(
+      /((?:minimum\s+(?:de\s+)?(?:dépôt|recharge|deposit)|(?:dépôt|recharge|deposit)\s+minimum)[^.\n]*?)\d[\d\s.,\u00a0\u202f]*\s*(?:XOF|FCFA)/gi,
+      (_match, prefix: string) => `${prefix}${formattedMinimum} XOF`,
+    );
 }
 
 function getCountryFlagEmoji(countryCode: string): string | null {
@@ -103,7 +114,7 @@ function LabelledInput({
 
 export default function DepositPage({ startInIssue = false }: { startInIssue?: boolean }) {
   const { user } = useAuth();
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -953,6 +964,44 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         delayed: "Paiement non reçu ? Cliquez ici",
       };
 
+  const depositGuidance = [
+    {
+      key: "content_deposit_infoText",
+      fallback: "Sur DIAMANT, les dépôts sont possibles par Mobile Money via les pays et opérateurs disponibles, ou par USDT BEP20. Le crédit intervient après validation du paiement.",
+    },
+    {
+      key: "content_deposit_instruction1",
+      fallback: "1. Le minimum de dépôt affiché sur cette page est actualisé depuis les paramètres de la plateforme.",
+    },
+    {
+      key: "content_deposit_instruction2",
+      fallback: "2. Suivez les consignes du moyen choisi : Mobile Money ou USDT BEP20. Le solde est crédité après validation du paiement.",
+    },
+    {
+      key: "content_deposit_warning1",
+      fallback: "Avant de payer, vérifiez le montant, le pays, l’opérateur et les coordonnées affichés. Pour USDT, utilisez uniquement le réseau BEP20.",
+    },
+    {
+      key: "content_deposit_warning2",
+      fallback: "Ne payez qu’avec les coordonnées affichées pour votre dépôt. Si le crédit est retardé, signalez l’opération depuis cette page ou contactez le support.",
+    },
+  ].map(({ key, fallback }) =>
+    formatDepositGuidanceContent(getContent(settings, key, fallback), minDeposit, lang),
+  );
+
+  const availableMethodLabels = [
+    ...(mobileDepositCountries.length > 0 ? [channelCopy.mobileMoney] : []),
+    ...CRYPTO_CURRENCIES.map((currency) => currency.label),
+  ];
+  const guidanceLabels = lang === "fr"
+    ? { methods: "Moyens de recharge disponibles", minimum: "Minimum de recharge" }
+    : lang === "en"
+      ? { methods: "Available deposit methods", minimum: "Minimum deposit" }
+      : lang === "ar"
+        ? { methods: "وسائل الإيداع المتاحة", minimum: "الحد الأدنى للإيداع" }
+        : { methods: "可用充值方式", minimum: "最低充值金额" };
+  const methodSeparator = lang === "fr" ? " ou " : lang === "en" ? " or " : lang === "ar" ? " أو " : " 或 ";
+
   return (
     <main className="ielp-deposit-page ielp-deposit-main min-h-screen pb-16">
       <header className="ielp-deposit-main__header flex h-[76px] items-center gap-3 px-4">
@@ -1102,13 +1151,19 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         </button>
 
         <section className="ielp-deposit-main__guidance rounded-[18px] border px-4 py-4">
-          <h2 className="ielp-deposit-main__guidance-title text-[14px] font-semibold">Deposit information</h2>
+          <h2 className="ielp-deposit-main__guidance-title text-[14px] font-semibold">{t.depositPaymentInfo}</h2>
           <div className="mt-3 space-y-3 text-[13px] leading-5">
-            <p>1. The minimum deposit is {minDeposit.toLocaleString(localeForLang(lang))} {CURRENCY}. Deposits below this amount will not be credited.</p>
-            <p>2. The wallet number entered on the deposit page must be the same one used for payment.</p>
-            <p>3. Always use the most recent account number for payments and avoid using expired account information.</p>
-            <p>4. Read the payment platform instructions carefully and follow them exactly.</p>
-            <p>5. If your deposit is not credited immediately after the transfer, upload your payment information on the deposit page or contact customer service.</p>
+            {!countriesLoading && !countriesError && (
+              <p>
+                {guidanceLabels.methods} : {availableMethodLabels.join(methodSeparator)}.
+              </p>
+            )}
+            <p className="font-semibold">
+              {guidanceLabels.minimum} : {minDeposit.toLocaleString(localeForLang(lang))} {CURRENCY}
+            </p>
+            {depositGuidance.map((text, index) => (
+              <p key={`${index}-${text}`}>{text}</p>
+            ))}
           </div>
         </section>
       </div>

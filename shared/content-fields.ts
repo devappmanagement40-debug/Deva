@@ -139,11 +139,11 @@ export const CONTENT_GROUPS: ContentGroup[] = [
     id: "deposit",
     title: "Page Dépôt / Recharge",
     fields: [
-      { key: "content_deposit_infoText", label: "Texte d'information principal", defaultValue: "Le dépôt minimum est de 18 XOF. Le crédit intervient après confirmation du paiement.", multiline: true },
-      { key: "content_deposit_warning1", label: "Avertissement 1 (captures d'écran)", defaultValue: "Remarque importante : Ne divulguez à personne les captures d'écran de vos dépôts ni vos identifiants de transaction, car cela pourrait entraîner le vol de vos fonds.", multiline: true },
-      { key: "content_deposit_warning2", label: "Avertissement 2 (problèmes dépôt)", defaultValue: "Pour tout problème lié à vos dépôts, veuillez contacter immédiatement le service client de la plateforme.", multiline: true },
-      { key: "content_deposit_instruction1", label: "Instruction 1", defaultValue: "1. Le dépôt minimum est défini dans les paramètres de la plateforme.", multiline: true },
-      { key: "content_deposit_instruction2", label: "Instruction 2", defaultValue: "2. Veuillez vérifier attentivement les informations de votre compte avant d'effectuer un transfert afin d'éviter toute erreur de paiement.", multiline: true },
+      { key: "content_deposit_infoText", label: "Texte d'information principal", defaultValue: "Sur DIAMANT, les dépôts sont possibles par Mobile Money via les pays et opérateurs disponibles, ou par USDT BEP20. Le crédit intervient après validation du paiement.", multiline: true },
+      { key: "content_deposit_warning1", label: "Avertissement 1 (coordonnées de paiement)", defaultValue: "Avant de payer, vérifiez le montant, le pays, l’opérateur et les coordonnées affichés. Pour USDT, utilisez uniquement le réseau BEP20.", multiline: true },
+      { key: "content_deposit_warning2", label: "Avertissement 2 (problèmes de dépôt)", defaultValue: "Ne payez qu’avec les coordonnées affichées pour votre dépôt. Si le crédit est retardé, signalez l’opération depuis cette page ou contactez le support.", multiline: true },
+      { key: "content_deposit_instruction1", label: "Instruction 1", defaultValue: "1. Le minimum de dépôt affiché sur cette page est actualisé depuis les paramètres de la plateforme.", multiline: true },
+      { key: "content_deposit_instruction2", label: "Instruction 2", defaultValue: "2. Suivez les consignes du moyen choisi : Mobile Money ou USDT BEP20. Le solde est crédité après validation du paiement.", multiline: true },
     ],
   },
   {
