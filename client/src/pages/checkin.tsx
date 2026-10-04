@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2, RefreshCw } from "lucide-react";
 import { Link } from "wouter";
 import WheelResultModal from "@/components/wheel-result-modal";
 import checkinHeroArt from "@assets/generated_images/diamant-checkin-wheel-hero-visible-512.png";
@@ -47,7 +47,13 @@ export default function CheckinPage() {
   const isFrench = lang.toLowerCase().startsWith("fr");
   const [claimedAmount, setClaimedAmount] = useState<number | null>(null);
 
-  const { data: bonusStatus, isLoading: bonusStatusLoading } = useQuery<BonusStatus>({
+  const {
+    data: bonusStatus,
+    isLoading: bonusStatusLoading,
+    isError: bonusStatusError,
+    isFetching: bonusStatusFetching,
+    refetch: refetchBonusStatus,
+  } = useQuery<BonusStatus>({
     queryKey: ["/api/daily-bonus-status"],
     refetchInterval: 60000,
   });
@@ -59,11 +65,13 @@ export default function CheckinPage() {
   const claimMutation = useMutation<DailyBonusClaimResponse>({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/claim-daily-bonus", {});
+      const data: unknown = await res.json().catch(() => null);
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || t.errorOccurred);
+        const message = data && typeof data === "object" && "message" in data && typeof data.message === "string"
+          ? data.message
+          : t.errorOccurred;
+        throw new Error(message);
       }
-      const data: unknown = await res.json();
       if (!data || typeof data !== "object" || !("amount" in data)) {
         throw new Error(t.errorOccurred);
       }
@@ -73,12 +81,13 @@ export default function CheckinPage() {
       }
       return { amount };
     },
-    onSuccess: async (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/daily-bonus-status"] });
-      await refreshUser();
+    onSuccess: (data) => {
       setClaimedAmount(data.amount);
+      void queryClient.invalidateQueries({ queryKey: ["/api/daily-bonus-status"] });
+      void refreshUser();
     },
     onError: (error: Error) => {
+      void queryClient.invalidateQueries({ queryKey: ["/api/daily-bonus-status"] });
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
     },
   });
@@ -112,6 +121,13 @@ export default function CheckinPage() {
   const calendarWeeks = Array.from({ length: calendarCellCount / 7 }, (_, index) =>
     calendarDays.slice(index * 7, (index + 1) * 7),
   );
+  const retryLabel = language.startsWith("en")
+    ? "Try again"
+    : language.startsWith("ar")
+      ? "إعادة المحاولة"
+      : language.startsWith("zh")
+        ? "重试"
+        : "Réessayer";
   const weekdayLabels = Array.from({ length: 7 }, (_, index) => {
     const weekdayIndex = (firstDayOfWeek + index) % 7;
     return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(2024, 0, 7 + weekdayIndex));
@@ -289,7 +305,7 @@ export default function CheckinPage() {
           </p>
         </div>
 
-        {!bonusStatus || bonusStatusLoading ? (
+        {bonusStatusLoading ? (
           <button
             type="button"
             disabled
@@ -304,6 +320,46 @@ export default function CheckinPage() {
           >
             <Loader2 size={17} className="animate-spin" />
           </button>
+        ) : bonusStatusError || !bonusStatus ? (
+          <div
+            style={{
+              gridColumn: "1 / -1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 6,
+              padding: "2px 4px",
+            }}
+          >
+            <p
+              role="alert"
+              className="m-0 text-center"
+              style={{ color: "#913b32", fontSize: 12, lineHeight: 1.25 }}
+            >
+              {t.errorOccurred}
+            </p>
+            <button
+              type="button"
+              onClick={() => void refetchBonusStatus()}
+              disabled={bonusStatusFetching}
+              className="flex min-h-9 items-center justify-center gap-2 rounded-full px-4 font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{
+                border: "2px solid #ff8e85",
+                background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
+                color: "#713823",
+                fontSize: 13,
+                boxShadow: "0 3px 8px rgba(112,41,26,.16), inset 0 1px 0 rgba(255,255,255,.95)",
+              }}
+              data-testid="button-checkin-status-retry"
+            >
+              {bonusStatusFetching ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <RefreshCw size={14} />
+              )}
+              {retryLabel}
+            </button>
+          </div>
         ) : bonusStatus.canClaim ? (
           <button
             type="button"

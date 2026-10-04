@@ -10,6 +10,7 @@ import {
 } from "@shared/schema";
 import { db, pool } from "./db";
 import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, isNull, ne } from "drizzle-orm";
+import { DAILY_BONUS_COOLDOWN_MS, getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 import {
@@ -67,6 +68,11 @@ export type SpinWheelExecutionResult =
   | { status: "user_missing" }
   | { status: "no_tokens" }
   | { status: "no_winnable_segments" };
+
+export type DailyBonusClaimResult =
+  | { status: "claimed"; amount: number }
+  | { status: "cooldown"; hoursRemaining: number }
+  | { status: "user_missing" };
 
 function spinWheelResultFromRow(row: SpinWheelRequestRow): SpinWheelResult {
   return {
@@ -226,8 +232,10 @@ export interface IStorage {
   
   // Transactions
   createTransaction(data: Partial<Transaction>): Promise<Transaction>;
+  claimDailyBonus(userId: number, amount: number): Promise<DailyBonusClaimResult>;
   getUserTransactions(userId: number): Promise<Transaction[]>;
   getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]>;
+  getDailyBonusTransactions(userId: number): Promise<Pick<Transaction, "amount" | "createdAt">[]>;
   executeSpinWheel(userId: number, requestKey: string): Promise<SpinWheelExecutionResult>;
   getUserIncomeSummary(userId: number): Promise<{ productEarnings: number; teamEarnings: number }>;
   
@@ -2154,6 +2162,59 @@ export class DatabaseStorage implements IStorage {
   async getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]> {
     return await db.select().from(transactions)
       .where(and(eq(transactions.userId, userId), eq(transactions.type, type)))
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async claimDailyBonus(userId: number, amount: number): Promise<DailyBonusClaimResult> {
+    if (!Number.isInteger(amount) || amount < 50 || amount > 100) {
+      throw new Error("La récompense de pointage doit être un entier entre 50 et 100 XOF");
+    }
+
+    return db.transaction(async (tx) => {
+      const [user] = await tx
+        .select({ lastDailyBonusClaim: users.lastDailyBonusClaim })
+        .from(users)
+        .where(eq(users.id, userId))
+        .for("update");
+
+      if (!user) return { status: "user_missing" };
+
+      const now = new Date();
+      const hoursRemaining = getDailyBonusHoursRemaining(user.lastDailyBonusClaim, now);
+      if (hoursRemaining > 0) {
+        return { status: "cooldown", hoursRemaining };
+      }
+
+      await tx.update(users).set({
+        totalEarnings: sql`${users.totalEarnings} + ${amount}`,
+        lastDailyBonusClaim: now,
+      }).where(eq(users.id, userId));
+
+      await tx.insert(transactions).values({
+        userId,
+        type: "bonus",
+        amount: String(amount),
+        description: `Pointage quotidien : +${amount} XOF`,
+        createdAt: now,
+      });
+
+      return { status: "claimed", amount };
+    });
+  }
+
+  async getDailyBonusTransactions(
+    userId: number,
+  ): Promise<Pick<Transaction, "amount" | "createdAt">[]> {
+    return db.select({
+      amount: transactions.amount,
+      createdAt: transactions.createdAt,
+    })
+      .from(transactions)
+      .where(and(
+        eq(transactions.userId, userId),
+        eq(transactions.type, "bonus"),
+        sql`LOWER(BTRIM(${transactions.description})) LIKE 'pointage quotidien%'`,
+      ))
       .orderBy(desc(transactions.createdAt));
   }
 

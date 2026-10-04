@@ -31,11 +31,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-      } else {
+      } else if (response.status === 401) {
         setUser(null);
       }
     } catch {
-      setUser(null);
+      // Keep the last known user during a transient network failure.
     } finally {
       setIsLoading(false);
     }
