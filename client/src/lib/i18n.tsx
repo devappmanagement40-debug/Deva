@@ -93,6 +93,7 @@ export type Translations = {
   informationCenter: string;
   previous: string;
   next: string;
+  retry: string;
   notification: string;
   loading: string;
   noProducts: string;
@@ -772,6 +773,7 @@ const fr: Translations = {
     informationCenter:  "Centre d'information",
     previous:           "Précédent",
     next:               "Suivant",
+    retry:              "Réessayer",
     notification:       "Notification",
     loading:            "Chargement...",
     noProducts:         "Aucun produit disponible",
@@ -1354,6 +1356,7 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     informationCenter: "Information center",
     previous: "Previous",
     next: "Next",
+    retry: "Retry",
     notification: "Notification",
     loading: "Loading...",
     price: "Price",
@@ -1444,6 +1447,7 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     informationCenter: "مركز المعلومات",
     previous: "السابق",
     next: "التالي",
+    retry: "إعادة المحاولة",
     notification: "الإشعارات",
     loading: "جارٍ التحميل...",
     price: "السعر",
@@ -1543,6 +1547,7 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     informationCenter: "信息中心",
     previous: "上一页",
     next: "下一页",
+    retry: "重试",
     notification: "通知",
     loading: "加载中...",
     price: "价格",
