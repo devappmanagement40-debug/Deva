@@ -80,7 +80,7 @@ export default function InformationArticlesAdmin({ settings }: InformationArticl
   function updateCopy(
     articleId: string,
     lang: Lang,
-    field: "title" | "summary" | "body",
+    field: "title" | "summary" | "body" | "date" | "imageNotice",
     value: string,
   ) {
     setArticles((current) => current.map((article) =>
@@ -148,6 +148,15 @@ export default function InformationArticlesAdmin({ settings }: InformationArticl
                   return (
                     <TabsContent key={lang} value={lang} className="space-y-4 pt-3">
                       <div className="space-y-1.5">
+                        <Label htmlFor={`info-${article.id}-${lang}-date`}>Étiquette de l’article</Label>
+                        <Input
+                          id={`info-${article.id}-${lang}-date`}
+                          value={copy.date}
+                          disabled={saveMutation.isPending}
+                          onChange={(event) => updateCopy(article.id, lang, "date", event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
                         <Label htmlFor={`info-${article.id}-${lang}-title`}>Titre</Label>
                         <Input
                           id={`info-${article.id}-${lang}-title`}
@@ -164,6 +173,16 @@ export default function InformationArticlesAdmin({ settings }: InformationArticl
                           rows={2}
                           disabled={saveMutation.isPending}
                           onChange={(event) => updateCopy(article.id, lang, "summary", event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor={`info-${article.id}-${lang}-image-notice`}>Texte d’avertissement de l’image</Label>
+                        <Textarea
+                          id={`info-${article.id}-${lang}-image-notice`}
+                          value={copy.imageNotice}
+                          rows={2}
+                          disabled={saveMutation.isPending}
+                          onChange={(event) => updateCopy(article.id, lang, "imageNotice", event.target.value)}
                         />
                       </div>
                       <div className="space-y-1.5">

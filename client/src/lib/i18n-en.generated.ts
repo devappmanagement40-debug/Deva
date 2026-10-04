@@ -444,7 +444,7 @@ export const ENGLISH_TRANSLATIONS = {
     adminTabSettings:       "Settings",
     adminTabTasks:          "Tasks",
     adminTabWheel:          "Wheel",
-    adminTabContent:        "Content",
+    adminTabContent:        "Home",
     teamRegisteredOn: "Registration date",
     teamActiveProduct: "Active product",
     teamDeposited: "Deposited",

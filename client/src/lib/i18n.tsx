@@ -1128,7 +1128,7 @@ const fr: Translations = {
     adminTabSettings:       "Paramètres",
     adminTabTasks:          "Tâches",
     adminTabWheel:          "Roue",
-    adminTabContent:        "Contenu",
+    adminTabContent:        "Accueil",
     teamRegisteredOn: "Date d'inscription",
     teamActiveProduct: "Produit actif",
     teamDeposited: "Déposé",

@@ -21,4 +21,4 @@
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
 - [DIAMANT referral commissions](diamant-referral-commissions.md) — default rates are 30/3/2% for levels 1/2/3 and remain editable in the admin panel.
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
-- [DIAMANT mining articles](diamant-mining-articles.md) — cover gold, diamonds and copper as an ambition for African and international investors; do not invent operating facts.
+- [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.

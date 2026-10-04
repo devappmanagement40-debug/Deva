@@ -47,6 +47,7 @@ export default function AdminPage() {
           <div className="overflow-x-auto -mx-4 px-4">
             <TabsList className="w-max">
               <TabsTrigger value="dashboard" data-testid="tab-dashboard">{t.adminTabDashboard}</TabsTrigger>
+              <TabsTrigger value="content" data-testid="tab-content">{t.adminTabContent}</TabsTrigger>
               <TabsTrigger value="deposits" data-testid="tab-deposits">{t.adminTabDeposits}</TabsTrigger>
               <TabsTrigger value="support-chat" data-testid="tab-support-chat">Support client</TabsTrigger>
               <TabsTrigger value="share-reports" data-testid="tab-share-reports">Rapports partagés</TabsTrigger>
@@ -62,7 +63,6 @@ export default function AdminPage() {
               <TabsTrigger value="giftcodes" data-testid="tab-giftcodes">{t.adminTabGiftCodes}</TabsTrigger>
               <TabsTrigger value="settings" data-testid="tab-settings">{t.adminTabSettings}</TabsTrigger>
               <TabsTrigger value="wheel" data-testid="tab-wheel">{t.adminTabWheel}</TabsTrigger>
-              <TabsTrigger value="content" data-testid="tab-content">{t.adminTabContent}</TabsTrigger>
               <TabsTrigger value="banners" data-testid="tab-banners">🖼 Bannières</TabsTrigger>
               <TabsTrigger value="vip" data-testid="tab-vip">⭐ VIP</TabsTrigger>
             </TabsList>
