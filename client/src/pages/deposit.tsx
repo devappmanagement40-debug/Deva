@@ -23,6 +23,15 @@ function parseDepositPresetAmounts(value: string | undefined): number[] {
   return amounts.length > 0 ? amounts : DEFAULT_DEPOSIT_AMOUNTS;
 }
 
+function getCountryFlagEmoji(countryCode: string): string | null {
+  const normalized = countryCode.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(normalized)) return null;
+
+  return Array.from(normalized, (letter) =>
+    String.fromCodePoint(letter.charCodeAt(0) + 127397),
+  ).join("");
+}
+
 type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "issue";
 
 type DepositMethodSelection =
@@ -1026,6 +1035,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             {mobileDepositCountries.map((country) => {
               const selected = selectedDepositMethod?.type === "mobile-money"
                 && selectedDepositMethod.countryCode.toUpperCase() === country.code.toUpperCase();
+              const countryFlag = getCountryFlagEmoji(country.code);
               return (
                 <button
                   key={country.code}
@@ -1038,7 +1048,11 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   data-selected={selected ? "true" : "false"}
                   data-testid={`button-deposit-country-${country.code.toLowerCase()}`}
                 >
-                  <span className="ielp-deposit-main__channel-icon"><Phone size={18} /></span>
+                  <span className="ielp-deposit-main__channel-icon" aria-hidden="true">
+                    {countryFlag
+                      ? <span className="text-[20px] leading-none">{countryFlag}</span>
+                      : <Phone size={18} />}
+                  </span>
                   <span className="ielp-deposit-main__channel-name">{channelCopy.mobileMoney} — {country.name}</span>
                   <span className="ielp-deposit-main__channel-radio" aria-hidden="true">
                     {selected && <span />}
