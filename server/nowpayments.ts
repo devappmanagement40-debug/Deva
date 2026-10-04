@@ -16,6 +16,13 @@ import {
   type Payment as NowPaymentsPayment,
 } from "@nowpaymentsio/nowpayments-sdk-nodejs";
 
+export const SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY = "usdtbsc";
+
+export function isSupportedNowPaymentsDepositCurrency(value: unknown): value is string {
+  return typeof value === "string"
+    && value.trim().toLowerCase() === SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY;
+}
+
 // ---------------------------------------------------------------------------
 // Singleton SDK instance
 // ---------------------------------------------------------------------------

@@ -1,19 +1,15 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, Camera, Check, ChevronRight, Copy, CreditCard, History, Info, Loader2, ShieldCheck, WalletCards } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Camera, Check, ChevronRight, Copy, CreditCard, History, Info, Loader2, Phone, ShieldCheck, WalletCards } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { localeForLang, useI18n } from "@/lib/i18n";
+import type { PaymentNumber } from "@shared/schema";
 import depositHero from "@assets/generated_images/diamant-deposit-hero.jpg";
 import tetherIcon from "@/assets/crypto/tether.png";
-import usdCoinIcon from "@/assets/crypto/usd-coin.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
-import ethereumIcon from "@/assets/crypto/ethereum.png";
-import polygonIcon from "@/assets/crypto/polygon.png";
-import paypalUsdIcon from "@/assets/crypto/paypal-usd.png";
-import tronIcon from "@/assets/crypto/tron.png";
 
 const CURRENCY = "XOF";
 const ACCENT_GREEN = "#32c95b";
@@ -28,7 +24,7 @@ function parseDepositPresetAmounts(value: string | undefined): number[] {
   return amounts.length > 0 ? amounts : DEFAULT_DEPOSIT_AMOUNTS;
 }
 
-type DepositView = "main" | "currency" | "crypto-payment" | "issue";
+type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "issue";
 
 type CryptoCurrency = {
   code: string;
@@ -49,18 +45,7 @@ type CryptoPayment = {
 };
 
 const CRYPTO_CURRENCIES: CryptoCurrency[] = [
-  { code: "usdtbsc", label: "BEP20-USDT", icon: tetherIcon, networkIcon: bnbIcon },
-  { code: "usdtmatic", label: "POLYGON-USDT", icon: tetherIcon, networkIcon: polygonIcon },
-  { code: "matic", label: "POLYGON", icon: polygonIcon },
-  { code: "usdc", label: "POLYGON-USDC", icon: usdCoinIcon, networkIcon: polygonIcon },
-  { code: "usdcbsc", label: "BEP20-USDC", icon: usdCoinIcon, networkIcon: bnbIcon },
-  { code: "bnbbsc", label: "BNB", icon: bnbIcon },
-  { code: "usdterc20", label: "ETH-USDT", icon: tetherIcon, networkIcon: ethereumIcon },
-  { code: "usdcerc20", label: "ETH-USDC", icon: usdCoinIcon, networkIcon: ethereumIcon },
-  { code: "pyusd", label: "ETH-PYUSD", icon: paypalUsdIcon, networkIcon: ethereumIcon },
-  { code: "eth", label: "ETH", icon: ethereumIcon },
-  { code: "usdttrc20", label: "TRC20-USDT", icon: tetherIcon, networkIcon: tronIcon },
-  { code: "trx", label: "TRX", icon: tronIcon },
+  { code: "usdtbsc", label: "USDT BEP20", icon: tetherIcon, networkIcon: bnbIcon },
 ];
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -119,6 +104,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [cryptoPayment, setCryptoPayment] = useState<CryptoPayment | null>(null);
   const [selectedCryptoCurrency, setSelectedCryptoCurrency] = useState<CryptoCurrency | null>(null);
   const [pendingCurrencyCode, setPendingCurrencyCode] = useState<string | null>(null);
+  const [selectedOperator, setSelectedOperator] = useState<PaymentNumber | null>(null);
+  const [payerName, setPayerName] = useState(user?.fullName || "");
+  const [payerPhone, setPayerPhone] = useState(user?.phone || "");
+  const [mobileTransactionId, setMobileTransactionId] = useState("");
   const [copiedField, setCopiedField] = useState<"address" | "memo" | null>(null);
 
   const { data: settings = {} } = useQuery<Record<string, string>>({
@@ -126,6 +115,25 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   });
   const minDeposit = Number.parseInt(settings.minDeposit || "18", 10) || 18;
   const depositPresetAmounts = parseDepositPresetAmounts(settings.depositPresetAmounts);
+
+  const { data: mobileMoneyOperators = [], isLoading: operatorsLoading, isError: operatorsError } = useQuery<PaymentNumber[]>({
+    queryKey: ["/api/payment-numbers", user?.country],
+    queryFn: async () => {
+      if (!user?.country) return [];
+      const response = await fetch(`/api/payment-numbers?country=${encodeURIComponent(user.country)}`, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
+      return response.json();
+    },
+    enabled: Boolean(user?.country),
+  });
+
+  useEffect(() => {
+    if (user?.fullName) setPayerName((current) => current || user.fullName);
+    if (user?.phone) setPayerPhone((current) => current || user.phone);
+  }, [user?.fullName, user?.phone]);
 
   const createDepositIssue = useMutation({
     mutationFn: async (payload: { amount: number; transactionId: string; depositNumber: string; screenshot: string }) => {
@@ -188,6 +196,44 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     },
   });
 
+  const createMobileMoneyDeposit = useMutation({
+    mutationFn: async () => {
+      if (!user || !selectedOperator) throw new Error("Choisissez un opérateur Mobile Money.");
+      const response = await apiRequest("POST", "/api/deposits", {
+        amount: Number(amount),
+        accountName: payerName.trim(),
+        accountNumber: payerPhone.trim(),
+        country: user.country,
+        paymentMethod: selectedOperator.operatorName,
+        depositChannelId: selectedOperator.channelId,
+        paymentNumberId: selectedOperator.id,
+        reference: mobileTransactionId.trim(),
+        screenshot: proof,
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Impossible d’envoyer la demande de dépôt.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits/history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      toast({
+        title: "Demande de dépôt envoyée",
+        description: "Le paiement Mobile Money sera vérifié par l’administration.",
+      });
+      setView("main");
+      setSelectedOperator(null);
+      setMobileTransactionId("");
+      setProof(null);
+      setProofName("");
+    },
+    onError: (error: Error) => {
+      toast({ title: "Dépôt Mobile Money impossible", description: error.message, variant: "destructive" });
+    },
+  });
+
   const chooseProof = (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const file = input.files?.[0];
@@ -220,10 +266,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
   const submitMainDeposit = () => {
     const parsedAmount = Number(amount);
-    if (!amount.trim() || !Number.isFinite(parsedAmount) || parsedAmount < minDeposit) {
+    if (!amount.trim() || !Number.isSafeInteger(parsedAmount) || parsedAmount < minDeposit) {
       toast({
         title: "Montant invalide",
-        description: `The minimum deposit is ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
+        description: `Saisissez un montant entier d’au moins ${minDeposit.toLocaleString(localeForLang(lang))} ${CURRENCY}.`,
         variant: "destructive",
       });
       return;
@@ -268,6 +314,32 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const copyPaymentMemo = () => {
     if (!cryptoPayment?.payinExtraId) return;
     void copyText(cryptoPayment.payinExtraId, "memo", "Memo / tag");
+  };
+
+  const openMobileMoney = () => {
+    setSelectedOperator(null);
+    setPayerName(user?.fullName || "");
+    setPayerPhone(user?.phone || "");
+    setMobileTransactionId("");
+    setProof(null);
+    setProofName("");
+    setView("mobile-money");
+  };
+
+  const submitMobileMoneyDeposit = () => {
+    if (!selectedOperator) {
+      toast({ title: "Choisissez un opérateur Mobile Money", variant: "destructive" });
+      return;
+    }
+    if (!payerName.trim() || !payerPhone.trim() || !mobileTransactionId.trim()) {
+      toast({
+        title: "Informations manquantes",
+        description: "Renseignez le nom, le numéro utilisé pour payer et la référence de transaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createMobileMoneyDeposit.mutate();
   };
 
   const submitIssue = () => {
@@ -315,7 +387,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         <header className="flex h-[78px] items-center gap-3 bg-[#087a38] px-4 text-white shadow-[0_2px_8px_rgba(0,75,35,.2)]">
           <button
             type="button"
-            onClick={() => setView("currency")}
+            onClick={() => setView("main")}
             className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
             aria-label="Back to currency selection"
             data-testid="button-crypto-payment-back"
@@ -450,7 +522,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           </button>
           <div className="flex-1 pr-11 text-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
-            <h1 className="mt-0.5 text-[19px] font-semibold">Choose a currency</h1>
+          <h1 className="mt-0.5 text-[19px] font-semibold">Choose a deposit method</h1>
           </div>
         </header>
 
@@ -469,8 +541,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e5eee7] px-4 py-3">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <h2 className="text-[17px] font-semibold text-[#173f26]">Select payment network</h2>
-                  <p className="mt-0.5 text-[12px] text-[#6b7d70]">Choose the exact network used by your wallet.</p>
+                  <h2 className="text-[17px] font-semibold text-[#173f26]">Select how to deposit</h2>
+                  <p className="mt-0.5 text-[12px] text-[#6b7d70]">Choose Mobile Money or USDT on the BEP20 network.</p>
                 </div>
               </div>
               <ShieldCheck size={21} className="shrink-0 text-[#20a554]" />
@@ -481,7 +553,25 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                 <span>Preparing your {selectedCryptoCurrency.label} payment…</span>
               </div>
             )}
-            <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-6">
+            <div className="grid min-h-0 flex-1 content-start grid-cols-1 gap-3 overflow-y-auto p-4">
+              <button
+                type="button"
+                onClick={openMobileMoney}
+                className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee]"
+                data-testid="button-deposit-mobile-money"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#e4f6e9] text-[#087a38]">
+                  <Phone size={24} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-semibold text-[#183c25]">Mobile Money</span>
+                  <span className="mt-1 block text-[12px] leading-5 text-[#789082]">
+                    Pay using an available mobile operator in your country.
+                  </span>
+                </span>
+                <ChevronRight size={19} className="shrink-0 text-[#789b83]" />
+              </button>
+
               {CRYPTO_CURRENCIES.map((currency) => (
                 <button
                   key={currency.code}
@@ -494,23 +584,20 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   disabled={createCryptoDeposit.isPending}
                   aria-busy={pendingCurrencyCode === currency.code}
                   aria-label={`Pay with ${currency.label}`}
-                  className="group flex min-h-0 w-full items-center gap-2 border-b border-r border-[#e5eee7] px-3 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee] disabled:cursor-wait disabled:opacity-60"
+                  className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee] disabled:cursor-wait disabled:opacity-60"
                   data-testid={`button-currency-${currency.code}`}
                 >
-                  <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#e2ece4] bg-white shadow-[0_2px_7px_rgba(0,0,0,.06)]">
-                    <img src={currency.icon} alt="" className="h-7 w-7 object-contain" aria-hidden="true" />
+                  <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#e2ece4] bg-white shadow-[0_2px_7px_rgba(0,0,0,.06)]">
+                    <img src={currency.icon} alt="" className="h-9 w-9 object-contain" aria-hidden="true" />
                     {currency.networkIcon && (
-                      <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
-                        <img src={currency.networkIcon} alt="" className="h-[10px] w-[10px] object-contain" aria-hidden="true" />
+                      <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-white shadow-sm">
+                        <img src={currency.networkIcon} alt="" className="h-3 w-3 object-contain" aria-hidden="true" />
                       </span>
                     )}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      <span className="truncate text-[13px] font-semibold text-[#183c25]">{currency.label}</span>
-                      {currency.networkIcon && <span className="shrink-0 rounded-full bg-[#f0f7f1] px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-[#6a8270]">Network</span>}
-                    </span>
-                    <span className="mt-0.5 block truncate text-[10px] text-[#789082]">Compatible wallet network required</span>
+                    <span className="block truncate text-[15px] font-semibold text-[#183c25]">{currency.label}</span>
+                    <span className="mt-1 block text-[12px] text-[#789082]">Generate a deposit address for the BEP20 network.</span>
                   </span>
                   {pendingCurrencyCode === currency.code ? (
                     <Loader2 size={17} className="shrink-0 animate-spin text-[#087a38]" aria-hidden="true" />
@@ -521,6 +608,171 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               ))}
             </div>
           </section>
+        </div>
+      </main>
+    );
+  }
+
+  if (view === "mobile-money") {
+    return (
+      <main className="ielp-deposit-page min-h-screen bg-[#f3f8f4] pb-8" style={{ color: "#173f26" }}>
+        <header className="flex h-[76px] items-center gap-3 bg-[#087a38] px-4 text-white shadow-[0_2px_8px_rgba(0,75,35,.2)]">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedOperator(null);
+              setView("currency");
+            }}
+            className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
+            aria-label="Back to deposit methods"
+            data-testid="button-mobile-money-back"
+          >
+            <ArrowLeft size={24} strokeWidth={2} />
+          </button>
+          <div className="flex-1 pr-11 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/70">DIAMANT deposit</p>
+            <h1 className="mt-0.5 text-[19px] font-semibold">Mobile Money</h1>
+          </div>
+        </header>
+
+        <div className="mx-auto w-full max-w-xl px-4">
+          <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
+            <p className="text-[12px] font-medium uppercase tracking-[0.1em] text-[#698173]">Deposit amount</p>
+            <p className="mt-1 text-[24px] font-bold text-[#087a38]">
+              {Number(amount).toLocaleString(localeForLang(lang))} {CURRENCY}
+            </p>
+          </section>
+
+          {!selectedOperator ? (
+            <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
+              <h2 className="text-[16px] font-semibold text-[#173f26]">Choose a mobile operator</h2>
+              <p className="mt-1 text-[13px] text-[#6b7d70]">Available operators are configured for your country.</p>
+              {operatorsLoading ? (
+                <div role="status" className="mt-4 flex items-center gap-2 text-sm text-[#6b7d70]">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading operators…
+                </div>
+              ) : operatorsError ? (
+                <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Could not load the available operators. Please try again.</p>
+              ) : mobileMoneyOperators.length === 0 ? (
+                <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+                  No Mobile Money operator is configured for your country yet.
+                </p>
+              ) : (
+                <div className="mt-4 space-y-2">
+                  {mobileMoneyOperators.map((operator) => (
+                    <button
+                      key={operator.id}
+                      type="button"
+                      onClick={() => setSelectedOperator(operator)}
+                      className="flex w-full items-center gap-3 rounded-xl border border-[#e1eee4] p-3 text-left transition hover:bg-[#f7fcf8] active:scale-[.99]"
+                      data-testid={`button-mobile-operator-${operator.id}`}
+                    >
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e4f6e9] text-[#087a38]">
+                        {operator.logoUrl
+                          ? <img src={operator.logoUrl} alt="" className="h-full w-full object-contain" />
+                          : <Phone size={19} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-semibold text-[#183c25]">{operator.operatorName}</span>
+                        <span className="mt-0.5 block truncate text-[12px] text-[#789082]">{operator.phone}</span>
+                      </span>
+                      <ChevronRight size={18} className="shrink-0 text-[#789b83]" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </section>
+          ) : (
+            <>
+              <section className="mt-4 rounded-2xl border border-[#cfe5d5] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Send payment to</p>
+                    <h2 className="mt-1 text-[17px] font-bold text-[#173f26]">{selectedOperator.operatorName}</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOperator(null)}
+                    className="text-[12px] font-semibold text-[#087a38] underline"
+                    data-testid="button-change-mobile-operator"
+                  >
+                    Change
+                  </button>
+                </div>
+                <p className="mt-4 break-all rounded-xl bg-[#f7fcf8] px-3 py-3 font-mono text-[16px] font-semibold text-[#173f26]">
+                  {selectedOperator.phone}
+                </p>
+                <p className="mt-2 text-[13px] text-[#6b7d70]">
+                  Account holder: <span className="font-semibold text-[#173f26]">{selectedOperator.ownerName}</span>
+                </p>
+                <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[12px] leading-5 text-amber-800">
+                  Send exactly {Number(amount).toLocaleString(localeForLang(lang))} {CURRENCY}, then submit the transaction reference below.
+                </p>
+              </section>
+
+              <section className="mt-4 space-y-3 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
+                <label className="block">
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Name used for payment</span>
+                  <input
+                    value={payerName}
+                    onChange={(event) => setPayerName(event.target.value)}
+                    autoComplete="name"
+                    className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-sm outline-none focus:border-[#32c95b]"
+                    data-testid="input-mobile-payer-name"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Your payment phone number</span>
+                  <input
+                    type="tel"
+                    value={payerPhone}
+                    onChange={(event) => setPayerPhone(event.target.value)}
+                    autoComplete="tel"
+                    className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-sm outline-none focus:border-[#32c95b]"
+                    data-testid="input-mobile-payer-phone"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1.5 block text-[13px] font-medium text-[#294434]">Transaction reference</span>
+                  <input
+                    value={mobileTransactionId}
+                    onChange={(event) => setMobileTransactionId(event.target.value)}
+                    className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-sm outline-none focus:border-[#32c95b]"
+                    placeholder="Reference from your payment receipt"
+                    data-testid="input-mobile-transaction-reference"
+                  />
+                </label>
+                <div>
+                  <input
+                    ref={proofInput}
+                    className="sr-only"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={chooseProof}
+                    tabIndex={-1}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => proofInput.current?.click()}
+                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#9acba7] px-3 py-2 text-sm font-medium text-[#087a38]"
+                    data-testid="button-upload-mobile-proof"
+                  >
+                    <Camera size={17} />
+                    {proof ? proofName : "Add payment screenshot (optional)"}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={submitMobileMoneyDeposit}
+                  disabled={createMobileMoneyDeposit.isPending}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#087a38] px-4 text-[15px] font-semibold text-white shadow-sm transition active:scale-[.99] disabled:opacity-60"
+                  data-testid="button-submit-mobile-deposit"
+                >
+                  {createMobileMoneyDeposit.isPending ? <Loader2 size={18} className="animate-spin" /> : "I have paid — submit for review"}
+                </button>
+              </section>
+            </>
+          )}
         </div>
       </main>
     );
@@ -683,6 +935,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       <section className="mx-1.5 mt-[18px] min-h-[150px] rounded-[5px] bg-white px-[14px] pt-[14px]">
         <SectionTitle>Recharge method</SectionTitle>
         <button
+          onClick={submitMainDeposit}
           className="flex h-[56px] w-full items-center rounded-[10px] px-5 text-left text-white shadow-[0_3px_7px_rgba(44,185,86,.2)] transition active:scale-[.985]"
           style={{ background: ACCENT_GREEN }}
           data-testid="button-deposit-method"
@@ -690,8 +943,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <span className="mr-4 flex h-7 w-7 items-center justify-center rounded bg-white/20">
             <CreditCard size={25} fill="white" strokeWidth={1.6} />
           </span>
-          <span className="flex-1" style={{ fontSize: 20 }}>Deposit bank</span>
-          <Check size={24} strokeWidth={2.7} />
+          <span className="flex-1" style={{ fontSize: 17 }}>Mobile Money or USDT BEP20</span>
+          <ChevronRight size={22} strokeWidth={2.3} />
         </button>
       </section>
 

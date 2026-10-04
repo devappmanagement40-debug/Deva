@@ -122,6 +122,7 @@ import {
   getConfiguredAppUrlInfo,
   getNowPaymentsCallbackUrl,
   getSDK,
+  isSupportedNowPaymentsDepositCurrency,
   isNowPaymentsPayoutConfigured,
   isNowPaymentsVerificationCode,
   nextWithdrawalStatusFromPayoutIpn,
@@ -1032,13 +1033,21 @@ export async function registerRoutes(
   // Payment Numbers (public — filtered by country)
   app.get("/api/payment-numbers", requireAuth, async (req, res) => {
     try {
-      const country = req.query.country as string;
-      if (country) {
-        const nums = await storage.getPaymentNumbersByCountry(country);
-        return res.json(nums);
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      const requestedCountry = req.query.country as string | undefined;
+      if (requestedCountry && requestedCountry.toUpperCase() !== user.country.toUpperCase()) {
+        return res.status(403).json({ message: "Les opérateurs d’un autre pays ne sont pas accessibles." });
       }
-      const nums = await storage.getPaymentNumbers();
-      res.json(nums.filter(n => n.isActive));
+      const configuredOperators = await storage.getPaymentNumbersByCountry(user.country);
+      const operatorsWithActiveChannels = await Promise.all(configuredOperators.map(async (operator) => {
+        if (!operator.channelId) return operator;
+        const channel = await storage.getDepositChannel(operator.channelId);
+        return channel?.isActive && channel.country.toUpperCase() === user.country.toUpperCase()
+          ? operator
+          : null;
+      }));
+      res.json(operatorsWithActiveChannels.filter((operator) => operator !== null));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -1107,12 +1116,6 @@ export async function registerRoutes(
       const user = await storage.getUser(req.session.userId!);
       const amountValue = Number(amount);
 
-      const allowedCurrencies = new Set([
-        "usdtbsc", "usdtmatic", "usdttrc20", "usdterc20",
-        "usdc", "usdcbsc", "usdcerc20", "usdcsol",
-        "trx", "bnbbsc", "eth", "matic", "pyusd",
-      ]);
-
       if (!user) return res.status(401).json({ message: "Non authentifié" });
       if (!process.env.NOWPAYMENTS_API_KEY || !process.env.NOWPAYMENTS_IPN_SECRET) {
         return res.status(503).json({ message: "Le service de paiement crypto n'est pas encore configuré" });
@@ -1125,8 +1128,8 @@ export async function registerRoutes(
       if (!Number.isFinite(amountValue) || !Number.isInteger(amountValue) || amountValue <= 0) {
         return res.status(400).json({ message: "Montant invalide" });
       }
-      if (!payCurrency || !allowedCurrencies.has(payCurrency.toLowerCase())) {
-        return res.status(400).json({ message: "Réseau de paiement non disponible" });
+      if (!isSupportedNowPaymentsDepositCurrency(payCurrency)) {
+        return res.status(400).json({ message: "Seul USDT BEP20 est disponible pour les dépôts crypto." });
       }
 
       const settings = await storage.getSettings();
@@ -1138,26 +1141,15 @@ export async function registerRoutes(
       // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
       const orderId = `tgood-${user.id}-${Date.now()}`;
 
-      // Stablecoins whose value is pegged 1:1 to USD.
-      // For these, we set price_currency = pay_currency so NOWPayments charges
-      // the exact amount requested (e.g. 16 USDT TRC20 → exactly 16, not ~15.9).
-      // For non-stable currencies (TRX, BNB, ETH, MATIC…) we keep price_currency
-      // as "usd" so NOWPayments auto-converts the USD value to the right quantity.
-      const USD_STABLE_CURRENCIES = new Set([
-        "usdtbsc", "usdtmatic", "usdttrc20", "usdterc20",
-        "usdc", "usdcbsc", "usdcerc20", "usdcsol", "pyusd",
-      ]);
       const payCurrencyLower = payCurrency.toLowerCase();
-      const priceCurrency = USD_STABLE_CURRENCIES.has(payCurrencyLower)
-        ? payCurrencyLower
-        : "usd";
+      const priceCurrency = payCurrencyLower;
 
       const payment = await createNowPaymentsDirectPayment({
         amount: amountValue,
         priceCurrency,
         payCurrency: payCurrencyLower,
         orderId,
-        description: `Dépôt DIAMANT de ${amountValue} USDT`,
+        description: `Dépôt DIAMANT de ${amountValue} USDT BEP20`,
       });
 
       if (!payment.pay_address || !payment.payment_id) {
@@ -1172,7 +1164,7 @@ export async function registerRoutes(
         accountNumber: payment.pay_address,
         country: user.country,
         paymentMethod: "NOWPayments",
-        channelName: payCurrency.toUpperCase(),
+        channelName: "USDT BEP20",
         reference: String(payment.payment_id),
         status: "pending",
         nowPaymentsStatus: "WAITING",
@@ -1547,7 +1539,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/deposits", requireAuth, async (req, res) => {
+  app.post("/api/deposits", requireAuth, requireSameOrigin, async (req, res) => {
     try {
       const { amount, accountName, accountNumber, paymentMethod, country, paymentChannelId,
         depositChannelId, paymentNumberId, channelName, screenshot, paymentMessage, reference } = req.body;
@@ -1559,47 +1551,73 @@ export async function registerRoutes(
 
       const settings = await storage.getSettings();
       const minDeposit = parseInt(settings.minDeposit || "18");
-      if (amount < minDeposit) {
+      const amountValue = Number(amount);
+      if (!Number.isSafeInteger(amountValue) || amountValue < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
 
-      if (!accountName || !accountNumber || !paymentMethod || !country) {
+      const cleanAccountName = typeof accountName === "string" ? accountName.trim() : "";
+      const cleanAccountNumber = typeof accountNumber === "string" ? accountNumber.trim() : "";
+      const requestedPaymentMethod = typeof paymentMethod === "string" ? paymentMethod.trim() : "";
+      const depositReference = typeof reference === "string" ? reference.trim() : "";
+      if (!cleanAccountName || !cleanAccountNumber || !requestedPaymentMethod || !country || !depositReference) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
+      if (String(country).toUpperCase() !== user.country.toUpperCase()) {
+        return res.status(400).json({ message: "Le pays du dépôt ne correspond pas à votre compte." });
+      }
 
-      let resolvedChannelName = channelName || null;
-      if (depositChannelId) {
-        const depositChannel = await storage.getDepositChannel(Number(depositChannelId));
-        if (!depositChannel || !depositChannel.isActive || depositChannel.country !== user.country) {
-          return res.status(400).json({ message: "Canal de dépôt invalide" });
-        }
-        resolvedChannelName = depositChannel.name;
+      let resolvedChannelName: string | null = null;
+      let resolvedPaymentMethod = requestedPaymentMethod;
+      const parsedPaymentNumberId = paymentNumberId === undefined || paymentNumberId === null
+        ? null
+        : Number(paymentNumberId);
+      const parsedDepositChannelId = depositChannelId === undefined || depositChannelId === null
+        ? null
+        : Number(depositChannelId);
 
-        if (user.country === "CI" && depositChannel.name === "Canal 1") {
-          return res.status(400).json({ message: "Le Canal 1 utilise WestPay. Veuillez choisir le canal Wave pour un paiement manuel." });
-        }
+      if (parsedPaymentNumberId === null || !Number.isSafeInteger(parsedPaymentNumberId) || parsedPaymentNumberId <= 0) {
+        return res.status(400).json({ message: "Choisissez un opérateur Mobile Money actif." });
+      }
+      const operators = await storage.getPaymentNumbersByCountry(user.country);
+      const selectedOperator = operators.find((operator) => operator.id === parsedPaymentNumberId);
+      if (!selectedOperator) {
+        return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
+      }
+      if (selectedOperator.operatorName.trim().toLowerCase() !== resolvedPaymentMethod.toLowerCase()) {
+        return res.status(400).json({ message: "Le moyen de paiement ne correspond pas à l’opérateur choisi." });
+      }
+      if (selectedOperator.channelId) {
+        const selectedChannel = await storage.getDepositChannel(selectedOperator.channelId);
         if (
-          user.country === "CI" &&
-          depositChannel.name === "Wave" &&
-          String(paymentMethod).toLowerCase() !== "wave"
+          !selectedChannel ||
+          !selectedChannel.isActive ||
+          selectedChannel.country.toUpperCase() !== user.country.toUpperCase() ||
+          (parsedDepositChannelId !== null && parsedDepositChannelId !== selectedOperator.channelId)
         ) {
-          return res.status(400).json({ message: "Le canal Wave accepte uniquement les paiements manuels Wave." });
+          return res.status(400).json({ message: "Le canal Mobile Money n’est plus disponible." });
         }
+        resolvedChannelName = selectedChannel.name;
+      } else {
+        if (parsedDepositChannelId !== null) {
+          return res.status(400).json({ message: "Canal Mobile Money invalide." });
+        }
+        resolvedChannelName = selectedOperator.operatorName;
       }
 
       const deposit = await storage.createDeposit({
         userId: req.session.userId!,
-        amount,
-        accountName,
-        accountNumber,
-        country,
-        paymentMethod,
-        paymentChannelId: paymentChannelId && paymentChannelId > 0 ? paymentChannelId : null,
-        paymentNumberId: paymentNumberId || null,
+        amount: amountValue,
+        accountName: cleanAccountName,
+        accountNumber: cleanAccountNumber,
+        country: user.country,
+        paymentMethod: resolvedPaymentMethod,
+        paymentChannelId: paymentChannelId && Number(paymentChannelId) > 0 ? Number(paymentChannelId) : null,
+        paymentNumberId: parsedPaymentNumberId,
         channelName: resolvedChannelName,
         screenshot: screenshot || null,
         paymentMessage: paymentMessage || null,
-        reference: reference || null,
+        reference: depositReference,
         status: "pending",
       });
 
@@ -3765,15 +3783,15 @@ export async function registerRoutes(
     }
   });
 
-  // Le portefeuille USDT BEP20 est le seul moyen de retrait, pour tous les pays.
+  // The only withdrawal wallet offered in any country is USDT BEP20.
   app.get("/api/countries/:code/operators", requireAuth, async (req, res) => {
     try {
       const codeParam = req.params.code;
       const code = (Array.isArray(codeParam) ? codeParam[0] : codeParam).toUpperCase();
       const allCountries = await storage.getActiveCountries();
-      const country = allCountries.find((c: any) => c.code === code);
-       if (!country) return res.json([]);
-       res.json(["USDT BEP20"]);
+      const country = allCountries.find((entry) => entry.code === code);
+      if (!country) return res.json([]);
+      res.json(["USDT BEP20"]);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

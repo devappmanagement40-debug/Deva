@@ -4,12 +4,21 @@ import {
   assessNowPaymentsDeposit,
   getConfiguredAppUrlInfo,
   getNowPaymentsCallbackUrl,
+  isSupportedNowPaymentsDepositCurrency,
   isNowPaymentsVerificationCode,
   NowPaymentsPayoutError,
   normalizeWithdrawalMode,
   nextWithdrawalStatusFromPayoutIpn,
   shouldReconcileNowPaymentsPayoutError,
 } from "./nowpayments";
+
+test("only permits USDT BEP20 for new crypto deposits", () => {
+  assert.equal(isSupportedNowPaymentsDepositCurrency("usdtbsc"), true);
+  assert.equal(isSupportedNowPaymentsDepositCurrency("USDTBSC"), true);
+  assert.equal(isSupportedNowPaymentsDepositCurrency("usdttrc20"), false);
+  assert.equal(isSupportedNowPaymentsDepositCurrency("eth"), false);
+  assert.equal(isSupportedNowPaymentsDepositCurrency(undefined), false);
+});
 
 test("reads the public payment callback URL from APP_URL", () => {
   const previousAppUrl = process.env.APP_URL;

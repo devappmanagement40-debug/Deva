@@ -1,7 +1,7 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global country selection](rdc-only-market.md) — global countries/US default; visible amount labels are XOF without conversion, « Moi » stays FCFA, and payment rails stay USDT.
+- [Global country selection](rdc-only-market.md) — global country picker; XOF display labels; Mobile Money operators are country-configured; deposits and withdrawals use USDT BEP20.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — deposits start at 18 USDT, withdrawals at 1 USDT, and users receive the requested amount in full.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
