@@ -4,7 +4,7 @@
 - [Country selection and markets](rdc-only-market.md) — authentication follows active country settings; deposits use active configured country channels while preserving XOF/USDT rules.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — withdrawals start at 1 USDT and are paid in full through configured Mobile Money or USDT BEP20.
-- [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — USDT payment is XOF ÷ 650; store and credit the requested XOF without showing the rate on the deposit page.
+- [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — rate is XOF ÷ 650; credits stay XOF, the rate stays hidden, and deposit guidance follows admin settings.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.

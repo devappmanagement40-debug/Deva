@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, Camera, Check, ChevronRight, Copy, History, I
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { formatDepositGuidanceContent } from "@/lib/deposit-guidance";
 import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
@@ -22,16 +23,6 @@ function parseDepositPresetAmounts(value: string | undefined): number[] {
     .filter((entry) => Number.isSafeInteger(entry) && entry > 0);
 
   return amounts.length > 0 ? amounts : DEFAULT_DEPOSIT_AMOUNTS;
-}
-
-function formatDepositGuidanceContent(value: string, minDeposit: number, lang: string): string {
-  const formattedMinimum = minDeposit.toLocaleString(localeForLang(lang as "fr" | "en" | "ar" | "zh"));
-  return value
-    .replace(/\{\{?\s*minDeposit\s*\}?\}/gi, formattedMinimum)
-    .replace(
-      /((?:minimum\s+(?:de\s+)?(?:dépôt|recharge|deposit)|(?:dépôt|recharge|deposit)\s+minimum)[^.\n]*?)\d[\d\s.,\u00a0\u202f]*\s*(?:XOF|FCFA)/gi,
-      (_match, prefix: string) => `${prefix}${formattedMinimum} XOF`,
-    );
 }
 
 function getCountryFlagEmoji(countryCode: string): string | null {
@@ -986,7 +977,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       fallback: "Ne payez qu’avec les coordonnées affichées pour votre dépôt. Si le crédit est retardé, signalez l’opération depuis cette page ou contactez le support.",
     },
   ].map(({ key, fallback }) =>
-    formatDepositGuidanceContent(getContent(settings, key, fallback), minDeposit, lang),
+    formatDepositGuidanceContent(
+      getContent(settings, key, fallback),
+      minDeposit.toLocaleString(localeForLang(lang)),
+    ),
   );
 
   const availableMethodLabels = [
