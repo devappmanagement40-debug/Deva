@@ -2005,7 +2005,7 @@ export async function registerRoutes(
         }
       }
 
-      const bonusAmount = crypto.randomInt(10, 41) / 100;
+      const bonusAmount = crypto.randomInt(50, 101);
       const currentEarnings = Number(user.totalEarnings || "0");
       const newTotalEarnings = (Number.isFinite(currentEarnings) ? currentEarnings : 0) + bonusAmount;
       await storage.updateUser(user.id, {
@@ -2015,14 +2015,14 @@ export async function registerRoutes(
       await storage.createTransaction({
         userId: user.id,
         type: "bonus",
-        amount: bonusAmount.toFixed(2),
-        description: `Pointage quotidien : +${bonusAmount.toFixed(2)} XOF`,
+        amount: String(bonusAmount),
+        description: `Pointage quotidien : +${bonusAmount} XOF`,
       });
 
       return res.json({
         success: true,
-        amount: bonusAmount.toFixed(2),
-        message: `Pointage validé : +${bonusAmount.toFixed(2)} XOF ajouté à votre solde des gains`,
+        amount: bonusAmount,
+        message: `Pointage validé : +${bonusAmount} XOF ajouté à votre solde des gains`,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });

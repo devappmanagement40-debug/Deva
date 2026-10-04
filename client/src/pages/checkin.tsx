@@ -1,12 +1,13 @@
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
+import WheelResultModal from "@/components/wheel-result-modal";
 import checkinHeroArt from "@assets/generated_images/diamant-checkin-wheel-hero-visible-512.png";
 import checkinHeroBanner from "@assets/file_00000000feb08210a3d5f9f7e15417b6_1791113696843.png";
 import checkinCoin from "@assets/generated_images/diamant-checkin-wheel-coin-128.png";
@@ -21,6 +22,10 @@ interface BonusStatus {
     claimedAt: string;
     amount: number;
   }>;
+}
+
+interface DailyBonusClaimResponse {
+  amount: number;
 }
 
 function dateKey(date: Date) {
@@ -40,6 +45,7 @@ export default function CheckinPage() {
   const { t, lang } = useI18n();
   const locale = localeForLang(lang);
   const isFrench = lang.toLowerCase().startsWith("fr");
+  const [claimedAmount, setClaimedAmount] = useState<number | null>(null);
 
   const { data: bonusStatus, isLoading: bonusStatusLoading } = useQuery<BonusStatus>({
     queryKey: ["/api/daily-bonus-status"],
@@ -50,22 +56,27 @@ export default function CheckinPage() {
     queryKey: ["/api/settings"],
   });
 
-  const claimMutation = useMutation<{ message?: string }>({
+  const claimMutation = useMutation<DailyBonusClaimResponse>({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/claim-daily-bonus", {});
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || t.errorOccurred);
       }
-      return res.json();
+      const data: unknown = await res.json();
+      if (!data || typeof data !== "object" || !("amount" in data)) {
+        throw new Error(t.errorOccurred);
+      }
+      const amount = Number(data.amount);
+      if (!Number.isInteger(amount) || amount < 50 || amount > 100) {
+        throw new Error(t.errorOccurred);
+      }
+      return { amount };
     },
     onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/daily-bonus-status"] });
       await refreshUser();
-      toast({
-        title: t.checkinBonusTitle,
-        description: data.message || t.checkinBonusDesc,
-      });
+      setClaimedAmount(data.amount);
     },
     onError: (error: Error) => {
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
@@ -112,19 +123,24 @@ export default function CheckinPage() {
 
   if (!user) return null;
 
+  const claimedAmountLabel = claimedAmount === null
+    ? undefined
+    : `${formatReward(claimedAmount, locale)} XOF`;
+
   return (
-    <main
-      className="ielp-checkin-page min-h-screen w-full"
-      style={{
-        maxWidth: 480,
-        margin: "0 auto",
-        backgroundColor: "#ff745d",
-        backgroundImage: `linear-gradient(180deg, rgba(255,59,43,.72) 0%, rgba(255,112,83,.34) 34%, rgba(255,211,173,.16) 52%, rgba(255,83,67,.50) 100%), url("${wheelBackground}")`,
-        backgroundSize: "100% max(760px, 82dvh)",
-        backgroundPosition: "center top",
-        backgroundRepeat: "no-repeat",
-        color: "#713823",
-        fontFamily: "Roboto, Arial, sans-serif",
+    <>
+      <main
+        className="ielp-checkin-page min-h-screen w-full"
+        style={{
+          maxWidth: 480,
+          margin: "0 auto",
+          backgroundColor: "#ff745d",
+          backgroundImage: `linear-gradient(180deg, rgba(255,59,43,.72) 0%, rgba(255,112,83,.34) 34%, rgba(255,211,173,.16) 52%, rgba(255,83,67,.50) 100%), url("${wheelBackground}")`,
+          backgroundSize: "100% max(760px, 82dvh)",
+          backgroundPosition: "center top",
+          backgroundRepeat: "no-repeat",
+          color: "#713823",
+          fontFamily: "Roboto, Arial, sans-serif",
       }}
     >
       <header
@@ -452,6 +468,15 @@ export default function CheckinPage() {
           </div>
         </div>
       </section>
-    </main>
+      </main>
+      <WheelResultModal
+        open={claimedAmount !== null}
+        onClose={() => setClaimedAmount(null)}
+        kind="win"
+        amount={claimedAmount ?? undefined}
+        titleOverride={t.checkinBonusTitle}
+        messageOverride={claimedAmountLabel ? t.checkinBonusDesc.replace("{0}", claimedAmountLabel) : undefined}
+      />
+    </>
   );
 }

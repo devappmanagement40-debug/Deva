@@ -12,9 +12,19 @@ interface Props {
   kind: "win" | "loss" | "no-spins";
   amount?: number;
   label?: string;
+  titleOverride?: string;
+  messageOverride?: string;
 }
 
-export default function WheelResultModal({ open, onClose, kind, amount, label }: Props) {
+export default function WheelResultModal({
+  open,
+  onClose,
+  kind,
+  amount,
+  label,
+  titleOverride,
+  messageOverride,
+}: Props) {
   const { t } = useI18n();
   const modalRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -53,16 +63,16 @@ export default function WheelResultModal({ open, onClose, kind, amount, label }:
       ? `${amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} XOF`
       : label ?? "0 XOF",
   );
-  const title = kind === "win"
+  const title = titleOverride ?? (kind === "win"
     ? t.wheelResultWinTitle
     : kind === "loss"
       ? t.wheelResultLossTitle
-      : t.wheelResultNoSpinsTitle;
-  const message = kind === "win"
+      : t.wheelResultNoSpinsTitle);
+  const message = messageOverride ?? (kind === "win"
     ? t.wheelResultWinMessage.replace("{0}", displayAmount)
     : kind === "loss"
       ? t.wheelResultLossMessage
-      : t.wheelResultNoSpinsMessage;
+      : t.wheelResultNoSpinsMessage);
 
   return (
     <div ref={modalRef}>
