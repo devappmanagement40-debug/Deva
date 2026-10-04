@@ -176,6 +176,8 @@ export type Translations = {
   // salary-bonus / task center page
   salaryPageTitle: string;
   salaryRewardLabel: string;
+  salaryRequiredInvites: string;
+  salaryIncomplete: string;
   salaryActiveMembers: string;
   salaryActiveMemberDef: string;
   salaryUnlocked: string;
@@ -948,8 +950,10 @@ const fr: Translations = {
     membersNoneAtLevel:  "Aucun membre au niveau {0}",
     membersInviteFriends:"Invitez des amis pour agrandir votre équipe",
     membersBonus:        "Bonus",
-    salaryPageTitle:        "Récompenses de parrainage",
+    salaryPageTitle:        "Récompenses des tâches",
     salaryRewardLabel:      "Récompense",
+    salaryRequiredInvites:  "Requis : inviter pour activer {0} personnes",
+    salaryIncomplete:       "Incomplète",
     salaryActiveMembers:    "Membres actifs",
     salaryActiveMemberDef:  "Filleul direct ayant acheté au minimum VIP 1",
     salaryUnlocked:         "Débloquée",
