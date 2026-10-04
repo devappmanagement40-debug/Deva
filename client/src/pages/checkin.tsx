@@ -209,21 +209,22 @@ export default function CheckinPage() {
             type="button"
             className="absolute flex items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             style={{
-              left: isFrench ? "2%" : "3.5%",
+              left: isFrench ? "3%" : "3.5%",
               top: isFrench ? undefined : "8%",
-              bottom: isFrench ? "7%" : undefined,
-              width: isFrench ? 30 : "11%",
-              height: isFrench ? 30 : "20%",
+              bottom: isFrench ? "3%" : undefined,
+              width: isFrench ? 40 : "11%",
+              height: isFrench ? 40 : "20%",
               zIndex: 3,
-              color: "#fff7db",
-              background: "rgba(97,37,19,.25)",
-              border: "1px solid rgba(255,255,255,.55)",
+              color: "#ffffff",
+              background: isFrench ? "#7b211d" : "rgba(97,37,19,.25)",
+              border: isFrench ? "2px solid #ffffff" : "1px solid rgba(255,255,255,.55)",
+              boxShadow: isFrench ? "0 3px 10px rgba(66,18,14,.55)" : undefined,
               textShadow: "0 1px 4px rgba(75,18,16,.45)",
             }}
             data-testid="button-back"
             aria-label={t.back}
           >
-            <ChevronLeft size={isFrench ? 19 : 23} strokeWidth={2.2} />
+            <ChevronLeft size={isFrench ? 23 : 23} strokeWidth={2.4} />
           </button>
         </Link>
         {!isFrench && (
