@@ -180,25 +180,6 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
     enabled: !!selectedUser?.id,
   });
 
-  const revokeMutation = useMutation({
-    mutationFn: async ({ userId, productId }: { userId: number; productId: number }) => {
-      const response = await apiRequest("POST", `/api/admin/users/${userId}/revoke-product`, { value: productId });
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Erreur");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", selectedUser?.id, "products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      toast({ title: "Produit revoque!" });
-    },
-    onError: (error: any) => {
-      toast({ title: error.message || "Une erreur est survenue", variant: "destructive" });
-    },
-  });
-
   const updateMutation = useMutation({
     mutationFn: async ({ userId, action, value }: { userId: number; action: string; value?: any }) => {
       const response = await apiRequest("POST", `/api/admin/users/${userId}/${action}`, { value });
@@ -661,7 +642,10 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Produits de l'utilisateur</label>
+                  <label className="text-sm font-medium">Achats de l’utilisateur</label>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Les achats enregistrés restent conservés et ne peuvent pas être révoqués.
+                  </p>
                   <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
                     {userProductsLoading ? (
                       <p className="text-sm text-muted-foreground">Chargement...</p>
@@ -675,17 +659,6 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                               {up.isActive ? " (Actif)" : " (Termine)"}
                             </p>
                           </div>
-                          {up.isActive && (
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => revokeMutation.mutate({ userId: selectedUser.id, productId: up.productId })}
-                              disabled={revokeMutation.isPending}
-                              data-testid={`button-revoke-product-${up.productId}`}
-                            >
-                              {revokeMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
-                            </Button>
-                          )}
                         </div>
                       ))
                     ) : (

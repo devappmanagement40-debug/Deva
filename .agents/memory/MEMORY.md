@@ -16,6 +16,7 @@
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
 - [TGOOD product cycle credits](tgood-product-earnings-collection.md) — gains accrue through the full cycle and credit once; settle legacy unpaid gains without repeating prior credits.
+- [DIAMANT purchase snapshots](diamant-purchase-snapshots.md) — existing purchases keep their purchase-time terms; catalog edits or removal must not rewrite or revoke them.
 - [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.

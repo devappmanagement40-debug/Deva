@@ -3121,9 +3121,9 @@ export async function registerRoutes(
           await storage.logAdminAction(req.session.userId!, "assign_product", userId, `Produit ${value} attribué`);
           break;
         case "revoke-product":
-          await storage.removeUserProduct(userId, value);
-          await storage.logAdminAction(req.session.userId!, "revoke_product", userId, `Produit ${value} révoqué`);
-          break;
+          return res.status(409).json({
+            message: "Un achat enregistré ne peut pas être révoqué. Désactivez le produit du catalogue pour arrêter les nouvelles ventes.",
+          });
         case "toggle-super-admin":
           if (!adminUser?.isSuperAdmin) {
             return res.status(403).json({ message: "Action réservée au super admin" });
@@ -3179,7 +3179,7 @@ export async function registerRoutes(
         id: up.userProduct.id,
         productId: up.userProduct.productId,
         productName: up.product.name,
-        productPrice: up.product.price,
+        productPrice: Number(up.product.price),
         dailyEarnings: up.product.dailyEarnings,
         isActive: up.userProduct.isActive,
         purchaseDate: up.userProduct.purchaseDate,
@@ -3259,9 +3259,12 @@ export async function registerRoutes(
   app.delete("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string);
-      await storage.deleteProduct(id);
-      await storage.logAdminAction(req.session.userId!, "delete_product", null, `Produit ${id} supprimé`);
-      res.json({ success: true });
+      const result = await storage.deleteProduct(id);
+      const details = result.archived
+        ? `Produit ${id} retiré du catalogue; achats conservés`
+        : `Produit ${id} supprimé`;
+      await storage.logAdminAction(req.session.userId!, "delete_product", null, details);
+      res.json({ success: true, archived: result.archived });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }

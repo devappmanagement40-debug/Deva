@@ -117,11 +117,14 @@ export const products = pgTable("products", {
   isUnavailable: boolean("is_unavailable").notNull().default(false),
 });
 
+export type ProductSnapshot = typeof products.$inferSelect;
+
 // User products (investments)
 export const userProducts = pgTable("user_products", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   productId: integer("product_id").notNull().references(() => products.id),
+  productSnapshot: jsonb("product_snapshot").$type<ProductSnapshot>(),
   purchaseDate: timestamp("purchase_date").notNull().defaultNow(),
   lastEarningDate: timestamp("last_earning_date"),
   daysRemaining: integer("days_remaining").notNull(),

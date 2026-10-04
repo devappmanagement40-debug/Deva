@@ -103,7 +103,7 @@ export default function OrdersPage() {
                   <div className="flex items-start gap-2">
                     <div className="w-24 h-24 flex-shrink-0">
                       <img
-                        src={getProductImage(up.productId ? up.productId % productImages.length : index)}
+                        src={up.product?.imageUrl || getProductImage(up.productId ? up.productId % productImages.length : index)}
                         alt={rebrandText(up.product?.name || t.noProducts)}
                         className="w-full h-full object-cover rounded-lg"
                       />

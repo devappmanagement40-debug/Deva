@@ -101,13 +101,12 @@ export interface IStorage {
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(data: Partial<Product>): Promise<Product>;
   updateProduct(id: number, data: Partial<Product>): Promise<Product>;
-  deleteProduct(id: number): Promise<void>;
+  deleteProduct(id: number): Promise<{ archived: boolean }>;
   
   // User Products
   getUserProducts(userId: number): Promise<(UserProduct & { product: Product })[]>;
   getAllUserProducts(userId: number): Promise<{ userProduct: UserProduct; product: Product }[]>;
   purchaseProduct(userId: number, productId: number, assignedByAdmin?: boolean): Promise<UserProduct>;
-  removeUserProduct(userId: number, productId: number): Promise<void>;
   updateUserProduct(id: number, data: Partial<UserProduct>): Promise<UserProduct>;
   processEarnings(): Promise<void>;
   
@@ -478,8 +477,29 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async deleteProduct(id: number): Promise<void> {
+  async deleteProduct(id: number): Promise<{ archived: boolean }> {
+    const [existingProduct] = await db.select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+    if (!existingProduct) throw new Error("Produit introuvable");
+
+    const [existingPurchase] = await db.select({ id: userProducts.id })
+      .from(userProducts)
+      .where(eq(userProducts.productId, id))
+      .limit(1);
+
+    if (existingPurchase) {
+      // Keep the product row for its foreign-key relationship; user purchases
+      // use their own snapshot and remain available in the history.
+      await db.update(products)
+        .set({ isActive: false })
+        .where(eq(products.id, id));
+      return { archived: true };
+    }
+
     await db.delete(products).where(eq(products.id, id));
+    return { archived: false };
   }
 
   // User Products
@@ -491,7 +511,10 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(userProducts.productId, products.id))
       .where(and(eq(userProducts.userId, userId), eq(userProducts.isActive, true)));
     
-    return result.map(r => ({ ...r.userProduct, product: r.product }));
+    return result.map(r => ({
+      ...r.userProduct,
+      product: r.userProduct.productSnapshot ?? r.product,
+    }));
   }
 
   async getAllUserProducts(userId: number): Promise<{ userProduct: UserProduct; product: Product }[]> {
@@ -502,7 +525,12 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(userProducts.productId, products.id))
       .where(eq(userProducts.userId, userId));
     
-    return result.sort((a, b) => {
+    const purchasesWithSnapshots = result.map(r => ({
+      ...r,
+      product: r.userProduct.productSnapshot ?? r.product,
+    }));
+
+    return purchasesWithSnapshots.sort((a, b) => {
       const dateA = a.userProduct.purchaseDate ? new Date(a.userProduct.purchaseDate).getTime() : 0;
       const dateB = b.userProduct.purchaseDate ? new Date(b.userProduct.purchaseDate).getTime() : 0;
       return dateB - dateA;
@@ -545,16 +573,21 @@ export class DatabaseStorage implements IStorage {
       const earningsDebit = productPrice - depositDebit;
       
       // Check if this is user's first paid investment
-      const existingPaidProducts = await db.select()
+      const existingProducts = await db.select({
+        productSnapshot: userProducts.productSnapshot,
+        productIsFree: products.isFree,
+      })
         .from(userProducts)
         .innerJoin(products, eq(userProducts.productId, products.id))
         .where(and(
           eq(userProducts.userId, userId),
-          eq(products.isFree, false),
           eq(userProducts.assignedByAdmin, false)
         ));
       
-      const isFirstInvestment = existingPaidProducts.length === 0;
+      const hasPreviousPaidPurchase = existingProducts.some(({ productSnapshot, productIsFree }) =>
+        !(productSnapshot?.isFree ?? productIsFree)
+      );
+      const isFirstInvestment = !hasPreviousPaidPurchase;
       
       await this.updateUser(userId, { 
         balance: (depositBalance - depositDebit).toFixed(2),
@@ -598,6 +631,7 @@ export class DatabaseStorage implements IStorage {
     const [userProduct] = await db.insert(userProducts).values({
       userId,
       productId,
+      productSnapshot: product,
       daysRemaining: product.cycleDays,
       assignedByAdmin,
       lastEarningDate: new Date(),
@@ -616,12 +650,6 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userProducts.id, id))
       .returning();
     return updated;
-  }
-
-  async removeUserProduct(userId: number, productId: number): Promise<void> {
-    await db.update(userProducts)
-      .set({ isActive: false })
-      .where(and(eq(userProducts.userId, userId), eq(userProducts.productId, productId)));
   }
 
   async processReferralCommissions(userId: number, amount: number, productId: number): Promise<void> {
@@ -733,6 +761,7 @@ export class DatabaseStorage implements IStorage {
             .from(products)
             .where(eq(products.id, current.productId));
           if (!currentProduct) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
+          const originalProduct = current.productSnapshot ?? currentProduct;
 
           const purchaseDate = new Date(current.purchaseDate);
           const lastEarning = current.lastEarningDate
@@ -754,7 +783,7 @@ export class DatabaseStorage implements IStorage {
           const cyclesToAccrue = Math.min(cyclesSinceLastEarning, current.daysRemaining);
           if (cyclesToAccrue < 1) return;
 
-          const earningsPerCycle = Number(currentProduct.dailyEarnings);
+          const earningsPerCycle = Number(originalProduct.dailyEarnings);
           const previousTotal = Number(current.totalEarned || "0");
           const previousPending = Number(current.pendingEarnings || "0");
           if (
@@ -768,7 +797,7 @@ export class DatabaseStorage implements IStorage {
 
           const accrued = Number((earningsPerCycle * cyclesToAccrue).toFixed(2));
           const newTotal = Number((previousTotal + accrued).toFixed(2));
-          const newPending = currentProduct.collectAtEnd
+          const newPending = originalProduct.collectAtEnd
             ? previousPending
             : Number((previousPending + accrued).toFixed(2));
           const newDaysRemaining = Math.max(0, current.daysRemaining - cyclesToAccrue);
@@ -777,7 +806,7 @@ export class DatabaseStorage implements IStorage {
             lastEarning.getTime() + cyclesToAccrue * dayInMilliseconds,
           );
           const payout = completedAt
-            ? currentProduct.collectAtEnd ? newTotal : newPending
+            ? originalProduct.collectAtEnd ? newTotal : newPending
             : 0;
 
           if (payout > 0) {
@@ -801,7 +830,7 @@ export class DatabaseStorage implements IStorage {
               userId: current.userId,
               type: "earning",
               amount: payout.toFixed(2),
-              description: `Crédit automatique — fin du cycle ${currentProduct.name}`,
+              description: `Crédit automatique — fin du cycle ${originalProduct.name}`,
             });
           }
 
@@ -844,9 +873,10 @@ export class DatabaseStorage implements IStorage {
             .from(products)
             .where(eq(products.id, current.productId));
           if (!product) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
+          const originalProduct = current.productSnapshot ?? product;
 
           const unpaidEarnings = Number(
-            product.collectAtEnd ? current.totalEarned || "0" : current.pendingEarnings || "0",
+            originalProduct.collectAtEnd ? current.totalEarned || "0" : current.pendingEarnings || "0",
           );
           if (!Number.isFinite(unpaidEarnings) || unpaidEarnings < 0) {
             throw new Error(`Montant de gain invalide pour l'achat ${current.id}`);
@@ -874,7 +904,7 @@ export class DatabaseStorage implements IStorage {
               userId: current.userId,
               type: "earning",
               amount: unpaidEarnings.toFixed(2),
-              description: `Crédit automatique — fin du cycle ${product.name}`,
+              description: `Crédit automatique — fin du cycle ${originalProduct.name}`,
             });
           }
 

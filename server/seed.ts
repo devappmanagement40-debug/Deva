@@ -107,6 +107,34 @@ export async function seed() {
   await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "collect_at_end" boolean NOT NULL DEFAULT false`);
   await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "stock_percentage" integer NOT NULL DEFAULT 0`);
 
+  // Existing purchases did not store the product definition used at purchase.
+  // Preserve the currently linked catalog values as their immutable baseline.
+  await db.execute(sql`
+    UPDATE "user_products" AS up
+    SET "product_snapshot" = jsonb_build_object(
+      'id', p."id",
+      'name', p."name",
+      'productType', p."product_type",
+      'price', p."price"::text,
+      'dailyEarnings', p."daily_earnings"::text,
+      'cycleDays', p."cycle_days",
+      'totalReturn', p."total_return"::text,
+      'imageUrl', p."image_url",
+      'isFree', p."is_free",
+      'isActive', p."is_active",
+      'sortOrder', p."sort_order",
+      'seriesId', p."series_id",
+      'minInviteCount', p."min_invite_count",
+      'maxOwned', p."max_owned",
+      'collectAtEnd', p."collect_at_end",
+      'stockPercentage', p."stock_percentage",
+      'isUnavailable', p."is_unavailable"
+    )
+    FROM "products" AS p
+    WHERE up."product_id" = p."id"
+      AND up."product_snapshot" IS NULL
+  `);
+
   // Create session table for connect-pg-simple (if not exists)
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "session" (

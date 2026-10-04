@@ -323,10 +323,13 @@ export default function AdminProducts() {
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || "Erreur"); }
       return res.json();
     },
-    onSuccess: () => {
+      onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/products/all"] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      toast({ title: "Produit supprimé" });
+        toast({
+          title: result.archived ? "Produit retiré du catalogue" : "Produit supprimé",
+          description: result.archived ? "Les achats existants et leur historique sont conservés." : undefined,
+        });
     },
     onError: (e: any) => toast({ title: e.message || "Erreur", variant: "destructive" }),
   });
