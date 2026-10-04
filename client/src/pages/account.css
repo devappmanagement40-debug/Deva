@@ -485,37 +485,6 @@
   white-space: nowrap;
 }
 
-.ielp-account-balance-values {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 0 4px 14px;
-  padding: 10px 11px;
-  border: 1px solid rgba(184, 205, 255, .1);
-  border-radius: 12px;
-  background: rgba(6, 20, 51, .28);
-}
-
-.ielp-account-balance-values > div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ielp-account-balance-values span {
-  color: rgba(226, 232, 255, .72);
-  font-size: 11px;
-  line-height: 1.25;
-}
-
-.ielp-account-balance-values strong {
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
 .ielp-account-shortcuts {
   display: grid;
   height: auto;

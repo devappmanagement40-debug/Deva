@@ -60,8 +60,6 @@ type AccountCopy = {
   orders: string;
   walletCard: string;
   balance: string;
-  depositBalance: string;
-  withdrawableBalance: string;
   memberId: string;
   team: string;
   myCompany: string;
@@ -100,8 +98,6 @@ const COPY: Record<Lang, AccountCopy> = {
     orders: "Commandes",
     walletCard: "Portefeuille carte",
     balance: "Mon solde",
-    depositBalance: "Solde de dépôts",
-    withdrawableBalance: "Solde retirable",
     memberId: "ID",
     team: "Équipe",
     myCompany: "Mon entreprise",
@@ -138,8 +134,6 @@ const COPY: Record<Lang, AccountCopy> = {
     orders: "Orders",
     walletCard: "Card wallet",
     balance: "My balance",
-    depositBalance: "Deposit balance",
-    withdrawableBalance: "Withdrawable balance",
     memberId: "ID",
     team: "Team",
     myCompany: "My company",
@@ -176,8 +170,6 @@ const COPY: Record<Lang, AccountCopy> = {
     orders: "الطلبات",
     walletCard: "المحفظة",
     balance: "رصيدي",
-    depositBalance: "رصيد الإيداع",
-    withdrawableBalance: "الرصيد القابل للسحب",
     memberId: "المعرّف",
     team: "الفريق",
     myCompany: "شركتي",
@@ -214,8 +206,6 @@ const COPY: Record<Lang, AccountCopy> = {
     orders: "订单",
     walletCard: "卡包",
     balance: "我的余额",
-    depositBalance: "存款余额",
-    withdrawableBalance: "可提现余额",
     memberId: "编号",
     team: "团队",
     myCompany: "我的企业",
@@ -305,8 +295,6 @@ export default function AccountPage() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const copy = COPY[lang];
-  const depositBalance = Number.isFinite(Number(user?.balance)) ? Number(user?.balance) : 0;
-  const withdrawableBalance = Number.isFinite(Number(user?.totalEarnings)) ? Number(user?.totalEarnings) : 0;
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [adminPin, setAdminPin] = useState("");
@@ -516,16 +504,7 @@ export default function AccountPage() {
           <section className="ielp-account-balance-card" aria-label={copy.balance}>
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
-            </div>
-            <div className="ielp-account-balance-values">
-              <div data-testid="account-deposit-balance">
-                <span>{copy.depositBalance}</span>
-                <strong>{depositBalance.toLocaleString()} FCFA</strong>
-              </div>
-              <div data-testid="account-withdrawable-balance">
-                <span>{copy.withdrawableBalance}</span>
-                <strong>{withdrawableBalance.toLocaleString()} FCFA</strong>
-              </div>
+              <strong>{(Number(user.balance) || 0).toLocaleString()} FCFA</strong>
             </div>
             <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
               {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
