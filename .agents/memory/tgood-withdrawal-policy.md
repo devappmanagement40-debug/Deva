@@ -3,7 +3,7 @@ name: TGOOD withdrawal policy
 description: Withdrawal thresholds, supported payout methods, processing routes, and the no-fee payout rule
 ---
 
-TGOOD accepts deposits from 18 USDT and withdrawals from 1 USDT. Withdrawals are paid in full: no withdrawal fee is deducted, and a new withdrawal must store the requested amount as both gross and net with zero fees. Users may withdraw through active Mobile Money operators configured for their country or USDT BEP20. Côte d’Ivoire uses Wave; Togo uses Togocel and Moov. Mobile Money is the first and default withdrawal type. Mobile Money wallet options use operator names only, never deposit receiving numbers, and are processed manually; NOWPayments payouts remain USDT BEP20 only.
+Withdrawals start at 1 USDT and are paid in full: no withdrawal fee is deducted, and a new withdrawal must store the requested amount as both gross and net with zero fees. Users may withdraw through active Mobile Money operators configured for their country or USDT BEP20. Côte d’Ivoire uses Wave; Togo uses Togocel and Moov. Mobile Money is the first and default withdrawal type. Mobile Money wallet options use operator names only, never deposit receiving numbers, and are processed manually; NOWPayments payouts remain USDT BEP20 only.
 
 **Why:** The platform policy was explicitly changed from the older high thresholds and percentage-based deductions; leaving any old fallback or multiple-of-100 rule would make the displayed policy differ from actual behavior. The user requested Mobile Money before USDT BEP20 in the withdrawal type selector and specified Wave for Côte d’Ivoire plus Togocel and Moov for Togo on 2026-10-04. Mobile Money operators are country-configured, while NOWPayments payout support is specific to USDT BEP20.
 

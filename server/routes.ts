@@ -122,6 +122,7 @@ function spinWheelTimestampIso(value: Date | string): string {
 
 import {
   assessNowPaymentsDeposit,
+  convertXofToUsdt,
   createNowPaymentsDirectPayment,
   createPayout,
   getConfiguredAppUrl,
@@ -1143,7 +1144,7 @@ export async function registerRoutes(
         payCurrency?: string;
       };
       const user = await storage.getUser(req.session.userId!);
-      const amountValue = Number(amount);
+      const amountXof = Number(amount);
 
       if (!user) return res.status(401).json({ message: "Non authentifié" });
       if (!process.env.NOWPAYMENTS_API_KEY || !process.env.NOWPAYMENTS_IPN_SECRET) {
@@ -1154,7 +1155,7 @@ export async function registerRoutes(
           message: "Les dépôts automatiques nécessitent APP_URL ou PUBLIC_URL avec l'URL HTTPS publique de l'application",
         });
       }
-      if (!Number.isFinite(amountValue) || !Number.isInteger(amountValue) || amountValue <= 0) {
+      if (!Number.isSafeInteger(amountXof) || amountXof <= 0 || amountXof > 2_147_483_647) {
         return res.status(400).json({ message: "Montant invalide" });
       }
       if (!isSupportedNowPaymentsDepositCurrency(payCurrency)) {
@@ -1163,9 +1164,11 @@ export async function registerRoutes(
 
       const settings = await storage.getSettings();
       const minDeposit = parseInt(settings.minDeposit || "18", 10);
-      if (amountValue < minDeposit) {
+      if (amountXof < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
+
+      const amountUsdt = convertXofToUsdt(amountXof);
 
       // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
       const orderId = `tgood-${user.id}-${Date.now()}`;
@@ -1174,11 +1177,11 @@ export async function registerRoutes(
       const priceCurrency = payCurrencyLower;
 
       const payment = await createNowPaymentsDirectPayment({
-        amount: amountValue,
+        amount: amountUsdt,
         priceCurrency,
         payCurrency: payCurrencyLower,
         orderId,
-        description: `Dépôt DIAMANT de ${amountValue} USDT BEP20`,
+        description: "Dépôt DIAMANT",
       });
 
       if (!payment.pay_address || !payment.payment_id) {
@@ -1188,7 +1191,7 @@ export async function registerRoutes(
 
       const deposit = await storage.createDeposit({
         userId: user.id,
-        amount: Math.round(amountValue),
+        amount: amountXof,
         accountName: user.fullName,
         accountNumber: payment.pay_address,
         country: user.country,
@@ -1197,7 +1200,7 @@ export async function registerRoutes(
         reference: String(payment.payment_id),
         status: "pending",
         nowPaymentsStatus: "WAITING",
-        nowPaymentsExpectedAmount: String(payment.pay_amount ?? amountValue),
+        nowPaymentsExpectedAmount: String(payment.pay_amount ?? amountUsdt),
         nowPaymentsExpectedCurrency: String(payment.pay_currency || payCurrencyLower).toLowerCase(),
       });
 
@@ -1211,7 +1214,7 @@ export async function registerRoutes(
         depositId: deposit.id,
         paymentId: String(payment.payment_id),
         payAddress: payment.pay_address,
-        payAmount: payment.pay_amount ?? amountValue,
+        payAmount: payment.pay_amount ?? amountUsdt,
         payCurrency: payment.pay_currency || payCurrency.toLowerCase(),
         payinExtraId: payment.payin_extra_id || undefined,
         network: payment.network || undefined,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assessNowPaymentsDeposit,
+  convertXofToUsdt,
   getConfiguredAppUrlInfo,
   getNowPaymentsCallbackUrl,
   isSupportedNowPaymentsDepositCurrency,
@@ -11,6 +12,14 @@ import {
   nextWithdrawalStatusFromPayoutIpn,
   shouldReconcileNowPaymentsPayoutError,
 } from "./nowpayments";
+
+test("converts the requested XOF deposit into the exact USDT payment amount", () => {
+  assert.equal(convertXofToUsdt(650), 1);
+  assert.equal(convertXofToUsdt(1300), 2);
+  assert.equal(convertXofToUsdt(3500), 5.38461538);
+  assert.throws(() => convertXofToUsdt(0), RangeError);
+  assert.throws(() => convertXofToUsdt(650.5), RangeError);
+});
 
 test("only permits USDT BEP20 for new crypto deposits", () => {
   assert.equal(isSupportedNowPaymentsDepositCurrency("usdtbsc"), true);

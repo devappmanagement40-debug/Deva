@@ -17,10 +17,19 @@ import {
 } from "@nowpaymentsio/nowpayments-sdk-nodejs";
 
 export const SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY = "usdtbsc";
+export const XOF_PER_USDT = 650;
 
 export function isSupportedNowPaymentsDepositCurrency(value: unknown): value is string {
   return typeof value === "string"
     && value.trim().toLowerCase() === SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY;
+}
+
+export function convertXofToUsdt(amountXof: number): number {
+  if (!Number.isSafeInteger(amountXof) || amountXof <= 0) {
+    throw new RangeError("Le montant XOF doit être un entier positif.");
+  }
+
+  return Number((amountXof / XOF_PER_USDT).toFixed(8));
 }
 
 // ---------------------------------------------------------------------------
