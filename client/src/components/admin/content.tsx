@@ -12,25 +12,27 @@ import { Loader2, Save, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { CONTENT_GROUPS, ALL_CONTENT_FIELDS } from "@shared/content-fields";
 import { rebrandText } from "@/lib/content";
+import InformationArticlesAdmin from "@/components/admin/information-articles";
 
 export default function AdminContent() {
   const { toast } = useToast();
   const { t } = useI18n();
   const [values, setValues] = useState<Record<string, string>>({});
+  const [contentDirty, setContentDirty] = useState(false);
 
   const { data: settings, isLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/admin/settings"],
   });
 
   useEffect(() => {
-    if (settings) {
+    if (settings && !contentDirty) {
       const initial: Record<string, string> = {};
       for (const field of ALL_CONTENT_FIELDS) {
         initial[field.key] = rebrandText(settings[field.key] ?? field.defaultValue);
       }
       setValues(initial);
     }
-  }, [settings]);
+  }, [settings, contentDirty]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: Record<string, string>) => {
@@ -42,6 +44,7 @@ export default function AdminContent() {
       return response.json();
     },
     onSuccess: () => {
+      setContentDirty(false);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
       toast({ title: t.adminContentSaved });
@@ -61,6 +64,8 @@ export default function AdminContent() {
         {t.adminContentDesc}
       </p>
 
+      <InformationArticlesAdmin settings={settings} />
+
       {CONTENT_GROUPS.map((group) => (
         <Card key={group.id}>
           <CardHeader className="pb-2">
@@ -77,7 +82,10 @@ export default function AdminContent() {
                   <Textarea
                     id={field.key}
                     value={values[field.key] ?? field.defaultValue}
-                    onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                    onChange={(e) => {
+                      setValues((v) => ({ ...v, [field.key]: e.target.value }));
+                      setContentDirty(true);
+                    }}
                     rows={field.defaultValue.length > 80 ? 4 : 2}
                     data-testid={`input-content-${field.key}`}
                   />
@@ -85,7 +93,10 @@ export default function AdminContent() {
                   <Input
                     id={field.key}
                     value={values[field.key] ?? field.defaultValue}
-                    onChange={(e) => setValues((v) => ({ ...v, [field.key]: e.target.value }))}
+                    onChange={(e) => {
+                      setValues((v) => ({ ...v, [field.key]: e.target.value }));
+                      setContentDirty(true);
+                    }}
                     data-testid={`input-content-${field.key}`}
                   />
                 )}

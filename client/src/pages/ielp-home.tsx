@@ -23,7 +23,7 @@ import BannerCarousel from "@/components/banner-carousel";
 import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
-import { NEWS_ARTICLES } from "@/pages/news-detail";
+import { resolveInfoArticles } from "@/data/diamant-info-articles";
 import productsHero from "@assets/generated_images/diamant-home-products-hero.jpg";
 import chargingHero from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
@@ -245,6 +245,7 @@ function HomePage() {
   const { data: settings = {}, isLoading: isSettingsLoading } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
+  const informationArticles = useMemo(() => resolveInfoArticles(settings), [settings]);
   const {
     data: catalogProducts = [],
     isLoading: isProductsLoading,
@@ -532,9 +533,9 @@ function HomePage() {
 
           <section className="ielp-home-info" aria-labelledby="ielp-home-info-title">
             <h2 id="ielp-home-info-title">{copy.information}</h2>
-            {NEWS_ARTICLES.length ? (
+            {informationArticles.length ? (
               <div className="ielp-home-info__articles">
-                {NEWS_ARTICLES.map((article) => {
+                {informationArticles.map((article) => {
                   const articleCopy = article.copy[lang];
                   return (
                     <button
@@ -550,7 +551,7 @@ function HomePage() {
                         <strong className="ielp-home-info-card__title">{articleCopy.title}</strong>
                         <span className="ielp-home-info-card__summary">{articleCopy.summary}</span>
                       </span>
-                      <img className="ielp-home-info-card__image" src={article.image} alt="" loading="lazy" />
+                      <img className="ielp-home-info-card__image" src={article.image} alt={`${articleCopy.title} — illustration`} loading="lazy" />
                     </button>
                   );
                 })}

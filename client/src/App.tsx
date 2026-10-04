@@ -81,7 +81,7 @@ import WithdrawalHistoryPage from "@/pages/withdrawal-history";
 import DepositOrdersPage from "@/pages/deposit-orders";
 import DepositCallbackPage from "@/pages/deposit-callback";
 import SalaryBonusPage from "@/pages/salary-bonus";
-import NewsDetailPage from "@/pages/news-detail";
+import NewsDetailPage from "@/pages/news-article";
 import SpinWheelPage from "@/pages/spin-wheel";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
