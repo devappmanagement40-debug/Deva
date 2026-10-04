@@ -25,3 +25,4 @@
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
+- [Supabase account migration](supabase-account-migration.md) — Replit PostgreSQL is the confirmed legacy source; Supabase is the working target; global settings and sessions stay separate.
