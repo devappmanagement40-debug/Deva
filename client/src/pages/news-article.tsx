@@ -49,14 +49,14 @@ export default function NewsArticlePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-black" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
-      <header className="sticky top-0 z-10 flex items-center bg-[#1e2e0a] px-4 py-3">
+      <header className="sticky top-0 z-10 flex items-center bg-[#653de9] px-4 py-3">
         <button
           onClick={() => navigate("/")}
-          className="rounded-lg p-2 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          className="rounded-full bg-white/90 p-2 text-[#653de9] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
           data-testid="button-back"
           aria-label={t.back}
         >
-          <ChevronLeft className="h-6 w-6 text-white" />
+          <ChevronLeft className="h-6 w-6 text-[#653de9]" />
         </button>
         <h1 className="flex-1 line-clamp-2 pr-8 text-center text-base font-bold text-white">
           {articleCopy.title}
