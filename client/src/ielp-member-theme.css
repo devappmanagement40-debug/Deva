@@ -490,3 +490,76 @@ body.ielp-route-theme ol[data-radix-toast-viewport] li * {
 body.ielp-route-theme :focus-visible {
   outline-color: #a994ff !important;
 }
+
+body.ielp-route-theme .ielp-deposit-main {
+  color: #edf3ff !important;
+  background: linear-gradient(180deg, #07113a 0%, #050923 100%) !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main__header {
+  background: rgba(5, 9, 35, .98);
+  border-bottom: 1px solid rgba(178, 202, 255, .16);
+  box-shadow: 0 6px 18px rgba(1, 5, 25, .2);
+}
+
+body.ielp-route-theme .ielp-deposit-main__header-button {
+  color: #dce8ff;
+  border: 1px solid rgba(178, 202, 255, .2);
+  background: #101c49;
+}
+
+body.ielp-route-theme .ielp-deposit-main__brand {
+  color: #b9a8ff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__title {
+  color: #fff;
+}
+
+body.ielp-route-theme .ielp-deposit-main__card {
+  border-color: rgba(178, 202, 255, .18);
+  background: linear-gradient(165deg, #101c49 0%, #0c173d 100%);
+  box-shadow: 0 10px 24px rgba(1, 5, 25, .2);
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-deposit-section-title {
+  margin-bottom: 14px;
+  color: #edf3ff !important;
+  font-size: 15px !important;
+  font-weight: 600;
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-brand-marker {
+  background: linear-gradient(180deg, #8c6bff, #7041f2) !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main__amount {
+  border-color: rgba(178, 202, 255, .22);
+  background: #08112f;
+}
+
+body.ielp-route-theme .ielp-deposit-main__amount > span {
+  color: #c4d5f4;
+}
+
+body.ielp-route-theme .ielp-deposit-main__amount input {
+  color: #fff;
+  caret-color: #a994ff !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main .ielp-deposit-preset {
+  min-height: 48px;
+  border-radius: 12px !important;
+  font-weight: 600;
+  box-shadow: none !important;
+}
+
+body.ielp-route-theme .ielp-deposit-main__guidance {
+  border-color: rgba(178, 202, 255, .18);
+  color: #c4d5f4;
+  background: rgba(16, 28, 73, .72);
+}
+
+body.ielp-route-theme .ielp-deposit-main__guidance-title {
+  color: #edf3ff;
+}

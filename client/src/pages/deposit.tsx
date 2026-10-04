@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import type { PaymentNumber } from "@shared/schema";
-import depositHero from "@assets/generated_images/diamant-deposit-hero.jpg";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
 
@@ -866,112 +865,112 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   }
 
   return (
-    <main className="ielp-deposit-page min-h-screen bg-[#f4f4f4] pb-9" style={{ color: "#171717" }}>
-      <section className="relative h-[282px] overflow-hidden bg-[#dceef7]">
-        <img src={depositHero} alt="DIAMANT electric charging station" className="h-full w-full object-cover" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/30 to-transparent" />
-        <div className="absolute inset-x-0 top-5 flex items-center justify-between px-5">
-          <Link href="/">
-            <button
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-white/35 backdrop-blur-[1px] active:scale-95"
-              aria-label="Back to home"
-              data-testid="button-deposit-back"
-            >
-              <ArrowLeft size={30} strokeWidth={1.6} />
-            </button>
-          </Link>
-          <h1 className="absolute left-1/2 -translate-x-1/2 font-normal" style={{ fontSize: 18 }}>RECHARGE</h1>
-          <Link href="/deposit-history">
-            <button
-              className="flex h-11 w-11 items-center justify-center active:scale-95"
-              aria-label="Deposit history"
-              data-testid="button-deposit-history"
-            >
-              <History size={31} strokeWidth={1.45} />
-            </button>
-          </Link>
+    <main className="ielp-deposit-page ielp-deposit-main min-h-screen pb-24">
+      <header className="ielp-deposit-main__header flex h-[76px] items-center gap-3 px-4">
+        <Link href="/">
+          <button
+            type="button"
+            className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
+            aria-label="Back to home"
+            data-testid="button-deposit-back"
+          >
+            <ArrowLeft size={23} strokeWidth={1.9} />
+          </button>
+        </Link>
+        <div className="min-w-0 flex-1 text-center">
+          <p className="ielp-deposit-main__brand text-[10px] font-semibold uppercase tracking-[0.18em]">DIAMANT</p>
+          <h1 className="ielp-deposit-main__title mt-0.5 text-[18px] font-semibold">RECHARGE</h1>
         </div>
-      </section>
+        <Link href="/deposit-history">
+          <button
+            type="button"
+            className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
+            aria-label="Deposit history"
+            data-testid="button-deposit-history"
+          >
+            <History size={21} strokeWidth={1.8} />
+          </button>
+        </Link>
+      </header>
 
-      <section className="mx-1.5 -mt-0 rounded-[5px] bg-white px-[14px] pb-[14px] pt-[15px]">
-        <SectionTitle>Recharge amount</SectionTitle>
-        <div className="flex h-[52px] items-center border px-5" style={{ borderColor: "#72cf91", background: "#fafafa", fontSize: 20 }}>
-          <span className="mr-3 text-[#555]">{CURRENCY}</span>
-          <input
-            type="number"
-            value={amount}
-            min={minDeposit}
-            onChange={(event) => setAmount(event.target.value)}
-            className="min-w-0 flex-1 bg-transparent font-medium outline-none"
-            aria-label="Recharge amount"
-            data-testid="input-deposit-amount"
-          />
-        </div>
-        <div className="mt-5 grid grid-cols-4 gap-x-[10px] gap-y-[10px]">
-          {depositPresetAmounts.map((preset) => {
-            const selected = amount !== "" && Number(amount) === preset;
-            return (
-              <button
-                key={preset}
-                onClick={() => setAmount(String(preset))}
-                className="ielp-deposit-preset h-[55px] rounded-[7px] border font-normal transition active:scale-[.97]"
-                data-selected={selected ? "true" : "false"}
-                style={{
-                  borderColor: ACCENT_GREEN,
-                  color: selected ? "#fff" : "#656565",
-                  background: selected ? ACCENT_GREEN : "#fff",
-                  fontSize: "clamp(13px, 4.1vw, 19px)",
-                  boxShadow: selected ? "0 3px 8px rgba(50,201,91,.25)" : "none",
-                }}
-                data-testid={`button-preset-amount-${preset}`}
-              >
-                {preset.toLocaleString(localeForLang(lang))}
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <div className="ielp-deposit-main__content mx-auto w-full max-w-xl space-y-4 px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-4">
+        <section className="ielp-deposit-main__card rounded-[20px] border px-4 pb-4 pt-4">
+          <SectionTitle>Recharge amount</SectionTitle>
+          <label className="ielp-deposit-main__amount flex h-[54px] items-center gap-3 rounded-[13px] border px-4">
+            <span className="text-[15px] font-semibold">{CURRENCY}</span>
+            <input
+              type="number"
+              value={amount}
+              min={minDeposit}
+              onChange={(event) => setAmount(event.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-[18px] font-semibold outline-none"
+              aria-label="Recharge amount"
+              data-testid="input-deposit-amount"
+            />
+          </label>
+          <div className="mt-4 grid grid-cols-4 gap-2">
+            {depositPresetAmounts.map((preset) => {
+              const selected = amount !== "" && Number(amount) === preset;
+              return (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setAmount(String(preset))}
+                  className="ielp-deposit-preset ielp-deposit-main__preset min-h-12 rounded-xl border px-1 text-[clamp(12px,3.8vw,16px)] font-semibold transition active:scale-[.97]"
+                  data-selected={selected ? "true" : "false"}
+                  data-testid={`button-preset-amount-${preset}`}
+                >
+                  {preset.toLocaleString(localeForLang(lang))}
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
-      <section className="mx-1.5 mt-[18px] min-h-[150px] rounded-[5px] bg-white px-[14px] pt-[14px]">
-        <SectionTitle>Recharge method</SectionTitle>
+        <section className="ielp-deposit-main__card rounded-[20px] border p-4">
+          <SectionTitle>Recharge method</SectionTitle>
+          <button
+            type="button"
+            onClick={submitMainDeposit}
+            className="flex min-h-[58px] w-full items-center gap-3 rounded-[14px] px-4 text-left text-white shadow-[0_8px_20px_rgba(83,54,198,.24)] transition active:scale-[.985]"
+            data-testid="button-deposit-method"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15">
+              <CreditCard size={21} strokeWidth={1.8} />
+            </span>
+            <span className="min-w-0 flex-1 text-[14px] font-semibold sm:text-[16px]">Mobile Money or USDT BEP20</span>
+            <ChevronRight size={20} strokeWidth={2} />
+          </button>
+        </section>
+
         <button
+          type="button"
           onClick={submitMainDeposit}
-          className="flex h-[56px] w-full items-center rounded-[10px] px-5 text-left text-white shadow-[0_3px_7px_rgba(44,185,86,.2)] transition active:scale-[.985]"
-          style={{ background: ACCENT_GREEN }}
-          data-testid="button-deposit-method"
+          className="flex h-[52px] w-full items-center justify-center rounded-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(83,54,198,.24)] transition active:scale-[.98] disabled:opacity-70"
+          data-testid="button-confirm-deposit"
         >
-          <span className="mr-4 flex h-7 w-7 items-center justify-center rounded bg-white/20">
-            <CreditCard size={25} fill="white" strokeWidth={1.6} />
-          </span>
-          <span className="flex-1" style={{ fontSize: 17 }}>Mobile Money or USDT BEP20</span>
-          <ChevronRight size={22} strokeWidth={2.3} />
-        </button>
-      </section>
-
-      <button
-        onClick={submitMainDeposit}
-        className="mx-auto mt-5 flex h-[48px] w-[51%] items-center justify-center rounded-full font-normal text-white shadow-[0_3px_8px_rgba(0,180,15,.18)] transition active:scale-[.98] disabled:opacity-70"
-        style={{ background: "#00b80f", fontSize: 19 }}
-        data-testid="button-confirm-deposit"
-      >
           Pay
-      </button>
-      <button
-        onClick={() => setView("issue")}
-        className="mx-auto mt-3 block text-center active:opacity-70"
-        style={{ color: "#0c9b2e", fontSize: 17 }}
-        data-testid="button-deposit-issue"
-      >
-        Payment delayed? Click here
-      </button>
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("issue")}
+          className="mx-auto block min-h-10 px-3 text-center text-[14px] font-medium active:opacity-70"
+          data-testid="button-deposit-issue"
+        >
+          Payment delayed? Click here
+        </button>
 
-      <section className="mx-[14px] mt-9 text-[15px] leading-[1.55] text-[#555]">
-        <p>1. The minimum deposit is {minDeposit.toLocaleString(localeForLang(lang))} {CURRENCY}. Deposits below this amount will not be credited.</p>
-        <p>2. The wallet number entered on the deposit page must be the same one used for payment.</p>
-        <p>3. Always use the most recent account number for payments and avoid using expired account information.</p>
-        <p>4. Read the payment platform instructions carefully and follow them exactly.</p>
-        <p>5. If your deposit is not credited immediately after the transfer, upload your payment information on the deposit page or contact customer service.</p>
-      </section>
+        <section className="ielp-deposit-main__guidance rounded-[18px] border px-4 py-4">
+          <h2 className="ielp-deposit-main__guidance-title text-[14px] font-semibold">Deposit information</h2>
+          <div className="mt-3 space-y-3 text-[13px] leading-5">
+            <p>1. The minimum deposit is {minDeposit.toLocaleString(localeForLang(lang))} {CURRENCY}. Deposits below this amount will not be credited.</p>
+            <p>2. The wallet number entered on the deposit page must be the same one used for payment.</p>
+            <p>3. Always use the most recent account number for payments and avoid using expired account information.</p>
+            <p>4. Read the payment platform instructions carefully and follow them exactly.</p>
+            <p>5. If your deposit is not credited immediately after the transfer, upload your payment information on the deposit page or contact customer service.</p>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
