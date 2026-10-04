@@ -55,6 +55,15 @@ export type Translations = {
   withdrawalPinResetConfirm: string;
   withdrawalPinResetButton: string;
   withdrawalPinResetSuccess: string;
+  changeWithdrawalPin: string;
+  changeWithdrawalPinDescription: string;
+  currentWithdrawalPin: string;
+  newWithdrawalPin: string;
+  confirmWithdrawalPin: string;
+  withdrawalPinChangeSuccess: string;
+  withdrawalPinUnchanged: string;
+  withdrawalPinChangeRequiresReset: string;
+  withdrawalPinResetOpenWithdrawal: string;
   authCaptchaLabel: string;
   authCaptchaRequired: string;
   authNoAccountPrompt: string;
@@ -725,6 +734,15 @@ const fr: Translations = {
     withdrawalPinResetConfirm: "Confirmer le nouveau code PIN",
     withdrawalPinResetButton: "Enregistrer le nouveau PIN",
     withdrawalPinResetSuccess: "Code PIN mis à jour",
+    changeWithdrawalPin: "Modifier le PIN de retrait",
+    changeWithdrawalPinDescription: "Saisissez votre PIN actuel, puis choisissez et confirmez un nouveau PIN.",
+    currentWithdrawalPin: "PIN actuel",
+    newWithdrawalPin: "Nouveau PIN",
+    confirmWithdrawalPin: "Confirmer le nouveau PIN",
+    withdrawalPinChangeSuccess: "PIN de retrait modifié avec succès",
+    withdrawalPinUnchanged: "Choisissez un nouveau PIN différent de l’ancien",
+    withdrawalPinChangeRequiresReset: "Votre PIN doit être réinitialisé avant de pouvoir le modifier. Confirmez le mot de passe de votre compte sur la page de retrait.",
+    withdrawalPinResetOpenWithdrawal: "Ouvrir la page de retrait",
     authCaptchaLabel:   "Code",
     authCaptchaRequired:"Saisissez le code affiché",
     authNoAccountPrompt:"Pas de compte ?",
@@ -1385,6 +1403,15 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalPinResetConfirm: "Confirm new security PIN",
     withdrawalPinResetButton: "Save new PIN",
     withdrawalPinResetSuccess: "Security PIN updated",
+    changeWithdrawalPin: "Change withdrawal PIN",
+    changeWithdrawalPinDescription: "Enter your current PIN, then choose and confirm a new PIN.",
+    currentWithdrawalPin: "Current PIN",
+    newWithdrawalPin: "New PIN",
+    confirmWithdrawalPin: "Confirm new PIN",
+    withdrawalPinChangeSuccess: "Withdrawal PIN changed successfully",
+    withdrawalPinUnchanged: "Choose a PIN different from your current one",
+    withdrawalPinChangeRequiresReset: "Your PIN must be reset before it can be changed. Confirm your account password on the withdrawal page.",
+    withdrawalPinResetOpenWithdrawal: "Open withdrawal page",
   },
   ar: {
     languageLabel: "اللغة",
@@ -1468,6 +1495,15 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalPinResetConfirm: "تأكيد رمز PIN الجديد",
     withdrawalPinResetButton: "حفظ رمز PIN الجديد",
     withdrawalPinResetSuccess: "تم تحديث رمز PIN للأمان",
+    changeWithdrawalPin: "تغيير رمز PIN للسحب",
+    changeWithdrawalPinDescription: "أدخل رمز PIN الحالي ثم اختر وأكد رمزاً جديداً.",
+    currentWithdrawalPin: "رمز PIN الحالي",
+    newWithdrawalPin: "رمز PIN جديد",
+    confirmWithdrawalPin: "تأكيد رمز PIN الجديد",
+    withdrawalPinChangeSuccess: "تم تغيير رمز PIN للسحب بنجاح",
+    withdrawalPinUnchanged: "اختر رمز PIN مختلفاً عن الرمز الحالي",
+    withdrawalPinChangeRequiresReset: "يجب إعادة تعيين رمز PIN قبل تغييره. أكد كلمة مرور حسابك في صفحة السحب.",
+    withdrawalPinResetOpenWithdrawal: "فتح صفحة السحب",
     serviceTitle: "خدمة العملاء",
     serviceOnlineConsult: "استشارة عبر الإنترنت",
     serviceHoursLabel: "ساعات خدمة العملاء",
@@ -1558,6 +1594,15 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalPinResetConfirm: "确认新安全 PIN",
     withdrawalPinResetButton: "保存新 PIN",
     withdrawalPinResetSuccess: "安全 PIN 已更新",
+    changeWithdrawalPin: "修改提现 PIN",
+    changeWithdrawalPinDescription: "输入当前 PIN，然后设置并确认新的 PIN。",
+    currentWithdrawalPin: "当前 PIN",
+    newWithdrawalPin: "新 PIN",
+    confirmWithdrawalPin: "确认新 PIN",
+    withdrawalPinChangeSuccess: "提现 PIN 修改成功",
+    withdrawalPinUnchanged: "请选择一个与当前 PIN 不同的新 PIN",
+    withdrawalPinChangeRequiresReset: "请先重置 PIN，然后再进行修改。请在提现页面验证账户密码。",
+    withdrawalPinResetOpenWithdrawal: "打开提现页面",
     serviceTitle: "客服",
     serviceOnlineConsult: "在线咨询",
     serviceHoursLabel: "客服服务时间",

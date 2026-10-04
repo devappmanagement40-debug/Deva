@@ -115,7 +115,7 @@ const COPY: Record<Lang, AccountCopy> = {
     idCopyFailed: "Impossible de copier l’ID.",
     faq: "FAQ",
     password: "Mot de passe",
-    securityPin: "Code PIN de sécurité",
+    securityPin: "PIN de retrait",
     support: "Soutien",
     companyDetails: "Détails de l'entreprise DIAMANT",
     about: "À propos",
@@ -151,7 +151,7 @@ const COPY: Record<Lang, AccountCopy> = {
     idCopyFailed: "Could not copy the ID.",
     faq: "FAQ",
     password: "Password",
-    securityPin: "Security PIN",
+    securityPin: "Withdrawal PIN",
     support: "Support",
     companyDetails: "DIAMANT company details",
     about: "About",
@@ -187,7 +187,7 @@ const COPY: Record<Lang, AccountCopy> = {
     idCopyFailed: "تعذر نسخ المعرّف.",
     faq: "الأسئلة الشائعة",
     password: "كلمة المرور",
-    securityPin: "رمز PIN للأمان",
+    securityPin: "رمز PIN للسحب",
     support: "الدعم",
     companyDetails: "تفاصيل شركة DIAMANT",
     about: "حول",
@@ -223,7 +223,7 @@ const COPY: Record<Lang, AccountCopy> = {
     idCopyFailed: "无法复制编号。",
     faq: "常见问题",
     password: "密码",
-    securityPin: "安全 PIN 码",
+    securityPin: "提现 PIN",
     support: "支持",
     companyDetails: "DIAMANT 公司详情",
     about: "关于",
@@ -275,11 +275,12 @@ const ACCOUNT_LINKS: {
 ];
 
 const ACCOUNT_MENU_ACTIONS: {
-  labelKey: "changePassword" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "about" | "revenue" | "taskCenterTitle";
+  labelKey: "changePassword" | "changeWithdrawalPin" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "about" | "revenue" | "taskCenterTitle";
   href: string;
   Icon: LucideIcon;
 }[] = [
   { labelKey: "changePassword", href: "/change-password", Icon: KeyRound },
+  { labelKey: "changeWithdrawalPin", href: "/change-withdrawal-pin", Icon: LockKeyhole },
   { labelKey: "wallet", href: "/wallet", Icon: CreditCard },
   { labelKey: "redeem", href: "/gift-code", Icon: Gift },
   { labelKey: "checkinBtn", href: "/checkin", Icon: CalendarDays },
@@ -408,7 +409,7 @@ export default function AccountPage() {
       openAdmin();
       return;
     }
-    navigate("/service");
+    navigate("/change-withdrawal-pin");
   };
 
   return (

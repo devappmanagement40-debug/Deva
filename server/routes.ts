@@ -627,6 +627,56 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/auth/transaction-pin/change", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const currentPin = typeof req.body.currentPin === "string" ? req.body.currentPin : "";
+      const newPin = typeof req.body.newPin === "string" ? req.body.newPin : "";
+      if (!currentPin || !newPin.trim()) {
+        return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+      }
+      if (Buffer.byteLength(newPin, "utf8") > 72) {
+        return res.status(400).json({ message: "Le nouveau code PIN ne peut pas dépasser 72 octets" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Non authentifié" });
+      }
+      if (!user.transactionPassword || user.mustResetTransactionPassword) {
+        return res.status(409).json({
+          code: "TRANSACTION_PIN_RESET_REQUIRED",
+          message: "Réinitialisez votre code PIN avant de le modifier.",
+        });
+      }
+      if (checkTransactionPinAttempts(req, res, user.id)) return;
+
+      const validCurrentPin = await bcrypt.compare(currentPin, user.transactionPassword);
+      if (!validCurrentPin) {
+        recordFailedTransactionPinAttempt(req, user.id);
+        return res.status(401).json({
+          code: "INVALID_TRANSACTION_PIN",
+          message: "Code PIN incorrect",
+        });
+      }
+      clearTransactionPinAttempts(req, user.id);
+
+      const pinIsUnchanged = await bcrypt.compare(newPin, user.transactionPassword);
+      if (pinIsUnchanged) {
+        return res.status(400).json({
+          code: "TRANSACTION_PIN_UNCHANGED",
+          message: "Le nouveau PIN doit être différent de l'ancien",
+        });
+      }
+
+      const transactionPassword = await bcrypt.hash(newPin, 10);
+      await storage.updateUser(user.id, { transactionPassword });
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Transaction PIN change error:", error);
+      res.status(500).json({ message: "Impossible de modifier le PIN de retrait" });
+    }
+  });
+
   app.post("/api/auth/logout", (req, res) => {
     req.session.destroy(() => {
       res.json({ success: true });
