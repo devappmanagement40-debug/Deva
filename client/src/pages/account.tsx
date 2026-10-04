@@ -16,12 +16,10 @@ import {
   Gift,
   HandCoins,
   Headphones,
-  Info,
   KeyRound,
   LockKeyhole,
   LogOut,
   MessageSquare,
-  PanelsTopLeft,
   ReceiptText,
   Shield,
   UsersRound,
@@ -76,11 +74,10 @@ type AccountCopy = {
   securityPin: string;
   support: string;
   companyDetails: string;
-  about: string;
+  application: string;
   logout: string;
   accountMenu: string;
   member: string;
-  install: string;
   installing: string;
   installHint: string;
   installSuccess: string;
@@ -114,11 +111,10 @@ const COPY: Record<Lang, AccountCopy> = {
     securityPin: "PIN de retrait",
     support: "Soutien",
     companyDetails: "Détails de l'entreprise DIAMANT",
-    about: "À propos",
+    application: "Application",
     logout: "DÉCONNEXION",
     accountMenu: "Mon compte",
     member: "Membre DIAMANT",
-    install: "Installer l'application",
     installing: "Installation…",
     installHint: "Utilisez le menu de votre navigateur pour installer l’application.",
     installSuccess: "Application installée.",
@@ -150,11 +146,10 @@ const COPY: Record<Lang, AccountCopy> = {
     securityPin: "Withdrawal PIN",
     support: "Support",
     companyDetails: "DIAMANT company details",
-    about: "About",
+    application: "App",
     logout: "LOG OUT",
     accountMenu: "My account",
     member: "DIAMANT member",
-    install: "Install app",
     installing: "Installing…",
     installHint: "Use your browser menu to install the app.",
     installSuccess: "App installed.",
@@ -186,11 +181,10 @@ const COPY: Record<Lang, AccountCopy> = {
     securityPin: "رمز PIN للسحب",
     support: "الدعم",
     companyDetails: "تفاصيل شركة DIAMANT",
-    about: "حول",
+    application: "التطبيق",
     logout: "تسجيل الخروج",
     accountMenu: "حسابي",
     member: "عضو DIAMANT",
-    install: "تثبيت التطبيق",
     installing: "جارٍ التثبيت…",
     installHint: "استخدم قائمة المتصفح لتثبيت التطبيق.",
     installSuccess: "تم تثبيت التطبيق.",
@@ -222,11 +216,10 @@ const COPY: Record<Lang, AccountCopy> = {
     securityPin: "提现 PIN",
     support: "支持",
     companyDetails: "DIAMANT 公司详情",
-    about: "关于",
+    application: "应用",
     logout: "退出登录",
     accountMenu: "我的账户",
     member: "DIAMANT 会员",
-    install: "安装应用",
     installing: "正在安装…",
     installHint: "使用浏览器菜单安装应用。",
     installSuccess: "应用已安装。",
@@ -258,7 +251,7 @@ const BUSINESS_ACTIONS: {
 ];
 
 const ACCOUNT_LINKS: {
-  copyKey: "faq" | "password" | "securityPin" | "support" | "companyDetails" | "about";
+  copyKey: "faq" | "password" | "securityPin" | "support" | "companyDetails" | "application";
   href?: string;
   Icon: LucideIcon;
 }[] = [
@@ -267,12 +260,13 @@ const ACCOUNT_LINKS: {
   { copyKey: "securityPin", Icon: LockKeyhole },
   { copyKey: "support", href: "/service", Icon: Headphones },
   { copyKey: "companyDetails", href: "/about", Icon: BookOpen },
-  { copyKey: "about", href: "/about", Icon: PanelsTopLeft },
+  { copyKey: "application", Icon: Download },
 ];
 
 const ACCOUNT_MENU_ACTIONS: {
-  labelKey: "changePassword" | "changeWithdrawalPin" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "about" | "revenue" | "taskCenterTitle";
-  href: string;
+  labelKey: "changePassword" | "changeWithdrawalPin" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "application" | "revenue" | "taskCenterTitle";
+  href?: string;
+  action?: "install";
   Icon: LucideIcon;
 }[] = [
   { labelKey: "changePassword", href: "/change-password", Icon: KeyRound },
@@ -286,7 +280,7 @@ const ACCOUNT_MENU_ACTIONS: {
   { labelKey: "taskCenterTitle", href: "/tasks", Icon: FileText },
   { labelKey: "security", href: "/rules", Icon: Bookmark },
   { labelKey: "customerService", href: "/service", Icon: Headphones },
-  { labelKey: "about", href: "/about", Icon: Info },
+  { labelKey: "application", action: "install", Icon: Download },
 ];
 
 export default function AccountPage() {
@@ -608,12 +602,16 @@ export default function AccountPage() {
                 key={copyKey}
                 type="button"
                 className="ielp-account-link"
-                onClick={() => href ? navigate(href) : handleSecurityPin()}
+                onClick={() => {
+                  if (copyKey === "application") void handleInstall();
+                  else if (href) navigate(href);
+                  else handleSecurityPin();
+                }}
                 data-testid={`account-link-${copyKey}`}
               >
                 <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
                 <span>{copy[copyKey]}</span>
-                {index !== 1 && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
+                {index !== 1 && copyKey !== "application" && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
               </button>
             ))}
           </section>
@@ -642,10 +640,17 @@ export default function AccountPage() {
               <p className="font-medium text-[#1f2933]">{maskedPhone}</p>
               <p className="mt-1 text-xs text-[#65736e]">{copy.member}</p>
             </div>
-            {ACCOUNT_MENU_ACTIONS.map(({ labelKey, href, Icon }) => (
+            {ACCOUNT_MENU_ACTIONS.map(({ labelKey, href, action, Icon }) => (
               <button
-                key={href}
-                onClick={() => { setShowAccountMenu(false); navigate(href); }}
+                key={labelKey}
+                onClick={() => {
+                  if (action === "install") {
+                    void handleInstall();
+                  } else if (href) {
+                    setShowAccountMenu(false);
+                    navigate(href);
+                  }
+                }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
               >
                 {labelKey === "customerService" ? (
@@ -653,17 +658,13 @@ export default function AccountPage() {
                 ) : (
                   <Icon size={19} color="#0789e9" />
                 )}
-                <span className="text-sm text-[#30363a]">{t[labelKey]}</span>
+                <span className="text-sm text-[#30363a]">
+                  {labelKey === "application"
+                    ? installing ? copy.installing : copy.application
+                    : t[labelKey]}
+                </span>
               </button>
             ))}
-            <button
-              onClick={handleInstall}
-              disabled={installing}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50 disabled:opacity-60"
-            >
-              <Download size={19} color="#0789e9" />
-              <span className="text-sm text-[#30363a]">{installing ? copy.installing : copy.install}</span>
-            </button>
             {user.isAdmin && (
               <button
                 onClick={openAdmin}

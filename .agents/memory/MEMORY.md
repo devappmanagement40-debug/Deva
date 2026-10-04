@@ -23,3 +23,4 @@
 - [DIAMANT referral commissions](diamant-referral-commissions.md) — default rates are 30/3/2% for levels 1/2/3 and remain editable in the admin panel.
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
+- [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
