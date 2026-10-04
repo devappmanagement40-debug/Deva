@@ -8,14 +8,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Loader2, Save, Trash2, Image as ImageIcon, Star, CheckCircle2 } from "lucide-react";
+import { Loader2, Save, Trash2, Image as ImageIcon, Star, CheckCircle2, Pencil } from "lucide-react";
 import ImageUploader from "@/components/admin/image-uploader";
 import type { Product } from "@shared/schema";
-import homeHero from "@assets/generated_images/diamant-home-products-hero.jpg";
-import chargingStation from "@assets/generated_images/diamant-charging-station-hero.jpg";
-import electricScooter from "@assets/generated_images/diamant-scooter.jpg";
-
-const DEFAULT_DIAMANT_BANNERS = [homeHero, chargingStation, electricScooter];
+import {
+  ACCOUNT_BANNER_DEFAULT_IMAGES,
+  HOME_BANNER_DEFAULT_IMAGES,
+} from "@/lib/banner-defaults";
+import { parseBannerImages, serializeBannerImages } from "@/lib/banner-images";
 
 /* ── Mini preview card ──────────────────────────────────────────────────── */
 function ThumbCard({
@@ -24,6 +24,7 @@ function ThumbCard({
   total,
   onMoveUp,
   onMoveDown,
+  onReplace,
   onRemove,
 }: {
   url: string;
@@ -31,9 +32,11 @@ function ThumbCard({
   total: number;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onReplace: (url: string) => void;
   onRemove: () => void;
 }) {
   const [ok, setOk] = useState(true);
+  const [replacing, setReplacing] = useState(false);
   return (
     <div className="rounded-xl border bg-muted/20 p-3 space-y-2">
       {ok ? (
@@ -52,11 +55,35 @@ function ThumbCard({
       <div className="flex items-center gap-2">
         <span className="flex-1 text-xs font-mono text-muted-foreground truncate">{url}</span>
         <div className="flex gap-1 shrink-0">
-          <button onClick={onMoveUp}  disabled={idx === 0}          className="text-xs px-1.5 py-0.5 rounded border disabled:opacity-30 hover:bg-muted" title="Monter">↑</button>
-          <button onClick={onMoveDown} disabled={idx === total - 1}  className="text-xs px-1.5 py-0.5 rounded border disabled:opacity-30 hover:bg-muted" title="Descendre">↓</button>
-          <button onClick={onRemove}   className="text-destructive hover:text-destructive/70" title="Supprimer"><Trash2 className="w-4 h-4" /></button>
+          <button type="button" onClick={onMoveUp} disabled={idx === 0} className="text-xs px-1.5 py-0.5 rounded border disabled:opacity-30 hover:bg-muted" title="Monter">↑</button>
+          <button type="button" onClick={onMoveDown} disabled={idx === total - 1} className="text-xs px-1.5 py-0.5 rounded border disabled:opacity-30 hover:bg-muted" title="Descendre">↓</button>
+          <button
+            type="button"
+            onClick={() => setReplacing((value) => !value)}
+            className="text-muted-foreground hover:text-foreground"
+            title="Remplacer"
+            aria-label={`Remplacer l’image ${idx + 1}`}
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button type="button" onClick={onRemove} className="text-destructive hover:text-destructive/70" title="Supprimer" aria-label={`Supprimer l’image ${idx + 1}`}>
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
+      {replacing && (
+        <ImageUploader
+          value=""
+          onChange={(replacement) => {
+            if (!replacement) return;
+            onReplace(replacement);
+            setReplacing(false);
+          }}
+          label="Remplacer cette image"
+          previewHeight={0}
+          maxSizeMb={10}
+        />
+      )}
     </div>
   );
 }
@@ -65,9 +92,11 @@ function ThumbCard({
 function BannerSlotEditor({
   label,
   settingKey,
+  defaultImages,
 }: {
   label: string;
-  settingKey: "banner1Images" | "banner2Images";
+  settingKey: "banner1Images" | "accountBannerImages";
+  defaultImages: readonly string[];
 }) {
   const { toast } = useToast();
   const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
@@ -77,16 +106,16 @@ function BannerSlotEditor({
 
   useEffect(() => {
     if (!settings) return;
-    try {
-      const parsed = JSON.parse(settings[settingKey] || "[]");
-      setUrls(Array.isArray(parsed) ? parsed : []);
-    } catch { setUrls([]); }
+    setUrls(parseBannerImages(settings[settingKey], defaultImages));
     setDirty(false);
-  }, [settings, settingKey]);
+  }, [settings, settingKey, defaultImages]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/admin/settings", { key: settingKey, value: JSON.stringify(urls) });
+      await apiRequest("POST", "/api/admin/settings", {
+        key: settingKey,
+        value: serializeBannerImages(urls),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
@@ -99,6 +128,10 @@ function BannerSlotEditor({
   function addImage(url: string) {
     if (!url) return;
     setUrls(prev => [...prev, url]);
+    setDirty(true);
+  }
+  function replaceImage(idx: number, url: string) {
+    setUrls((prev) => prev.map((image, index) => index === idx ? url : image));
     setDirty(true);
   }
   function remove(idx: number)    { setUrls(prev => prev.filter((_, i) => i !== idx)); setDirty(true); }
@@ -125,17 +158,10 @@ function BannerSlotEditor({
           </Button>
         </div>
 
-        {/* Uploaded images list */}
+        {/* Images in this banner */}
         {urls.length === 0 ? (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-              Aucune image personnalisée — l'accueil utilise les visuels DIAMANT par défaut.
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {DEFAULT_DIAMANT_BANNERS.map((url, index) => (
-                <img key={url} src={url} alt={`Aperçu DIAMANT ${index + 1}`} className="h-16 w-full rounded-lg object-cover" />
-              ))}
-            </div>
+          <div className="rounded-xl border border-dashed p-4 text-center text-sm text-muted-foreground">
+            Aucune image — cette bannière reste masquée jusqu’à l’ajout d’une image.
           </div>
         ) : (
           <div className="space-y-3">
@@ -147,6 +173,7 @@ function BannerSlotEditor({
                 total={urls.length}
                 onMoveUp={() => moveUp(idx)}
                 onMoveDown={() => moveDown(idx)}
+                onReplace={(replacement) => replaceImage(idx, replacement)}
                 onRemove={() => remove(idx)}
               />
             ))}
@@ -280,10 +307,19 @@ export default function AdminBannerConfig() {
       <div>
         <h2 className="text-lg font-bold">Bannières & Produits populaires</h2>
         <p className="text-sm text-muted-foreground">
-          Gérez la bannière principale et choisissez les produits du carrousel d’accueil.
+          Gérez séparément les images de la page d’accueil et de la page « Moi », puis choisissez les produits populaires.
         </p>
       </div>
-      <BannerSlotEditor label="🖼 Bannière du haut (pleine largeur)" settingKey="banner1Images" />
+      <BannerSlotEditor
+        label="Bannière de la page d’accueil"
+        settingKey="banner1Images"
+        defaultImages={HOME_BANNER_DEFAULT_IMAGES}
+      />
+      <BannerSlotEditor
+        label="Bannière de la page « Moi »"
+        settingKey="accountBannerImages"
+        defaultImages={ACCOUNT_BANNER_DEFAULT_IMAGES}
+      />
       <SpecialProductsConfig />
     </div>
   );

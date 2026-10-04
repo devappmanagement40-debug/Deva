@@ -15,7 +15,7 @@ The homepage uses horizontal product cards followed by vertically stacked Inform
 
 **Why:** The user clarified with a screenshot that “Information” means article previews, asked for popular products to be visible in the carousel, requested removal of the Invitation card, then specified that popular products open the Products page, the “View all” link be removed, and green metric text be violet. They also pointed out excessive blank space between the last Information card and the fixed bottom navigation.
 
-**How to apply:** Reuse the existing admin product setting and keep its order; use catalog order only as the empty-selection default, never sales-based guesses. Keep product-card clicks directed to `/products`, use violet for green metric text, and omit the “View all” control. Reuse localized DIAMANT article content and images for Information cards rather than inventing external company news or returning to homepage statistics. Keep the Invitation card out of the home layout. Leave only a small safe-area-aware scroll gap between the last Information card and the fixed bottom navigation; avoid a large blank reserve on the homepage.
+**How to apply:** Reuse the existing admin product setting and keep its order; use catalog order only as the empty-selection default, never sales-based guesses. Product-card clicks must use the registered Products route `/invest`. Use violet for green metric text, and omit the “View all” control. Reuse localized DIAMANT article content and images for Information cards rather than inventing external company news or returning to homepage statistics. Keep the Invitation card out of the home layout. Leave only a small safe-area-aware scroll gap between the last Information card and the fixed bottom navigation; avoid a large blank reserve on the homepage.
 
 ## Horizontal navigation palette
 
@@ -33,13 +33,13 @@ Preserve the prior palettes of existing home cards, including the account/balanc
 
 **How to apply:** Keep existing account/action card colors unchanged; use `linear-gradient(108deg, #16437e 0%, #5e3658 50%, #b92a2e 100%)` for the popular-product and Information card backgrounds.
 
-## Account-banner photo sourcing
+## Homepage banner and administration
 
-The homepage's top-banner fallback uses the four mining photos supplied by the user. Keep admin-configured banner images as the priority, and do not move these photos into the account profile carousel.
+The homepage banner and the account ("Moi") banner are separate admin-managed image lists. Admins can add, replace, reorder, and remove images in each list independently. The homepage defaults to the four supplied mining photos; the account banner keeps its existing team photos by default.
 
-**Why:** The user clarified that the mining photos belong on the homepage banner while the account carousel should remain unchanged.
+**Why:** The user wants both banners editable from administration without changes to one affecting the other, and clarified that the mining photos belong only on the homepage.
 
-**How to apply:** Keep the four mining-photo imports in the homepage fallback only; preserve the existing account profile photos and carousel layout.
+**How to apply:** Keep independent settings for the two lists, preserve each banner's own fallback images, and treat an explicitly saved empty list as hidden rather than restoring defaults.
 
 ## Account-banner photo sourcing
 
@@ -47,7 +47,7 @@ The DIAMANT profile carousel uses the user's real team photos; do not reintroduc
 
 **Why:** The user explicitly changed the profile-carousel direction to use the real uploaded team images and remove the 3D posters.
 
-**How to apply:** Use optimized copies for the profile carousel, retain the source uploads, and preserve each photo's natural aspect ratio so people or groups are not cropped. Track any separately requested promotional artwork independently from this carousel.
+**How to apply:** Use optimized copies for the profile carousel, retain the source uploads, and preserve each photo's natural aspect ratio so people or groups are not cropped. Keep the account banner controls separate from the homepage banner controls.
 
 ## Profile VIP card
 

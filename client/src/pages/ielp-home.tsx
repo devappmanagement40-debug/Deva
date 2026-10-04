@@ -24,10 +24,8 @@ import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import { resolveInfoArticles } from "@/data/diamant-info-articles";
-import miningExcavatorPhoto from "@assets/compress_actuality_teaser_1623317774_1791124161647.jpg";
-import miningTrucksPhoto from "@assets/shutterstock_1257632146-1024x683_1791124161721.jpg";
-import undergroundMinerPhoto from "@assets/Top-10-Mining-Companies-in-Africa_1791124161785.jpg";
-import undergroundWorkPhoto from "@assets/Mines-travaux-770x470_1791124161825.jpg";
+import { HOME_BANNER_DEFAULT_IMAGES } from "@/lib/banner-defaults";
+import { parseBannerImages } from "@/lib/banner-images";
 
 type IncomeSummary = {
   productEarnings?: number | string;
@@ -178,12 +176,7 @@ const COPY: Record<Lang, HomeCopy> = {
   },
 };
 
-const FALLBACK_BANNERS = [
-  miningExcavatorPhoto,
-  miningTrucksPhoto,
-  undergroundMinerPhoto,
-  undergroundWorkPhoto,
-];
+const FALLBACK_BANNERS = HOME_BANNER_DEFAULT_IMAGES;
 const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -224,20 +217,6 @@ function parseProductIds(value?: string) {
   }
 }
 
-function parseBanners(value?: string) {
-  if (!value) return FALLBACK_BANNERS;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (Array.isArray(parsed)) {
-      const images = parsed.filter((image): image is string => typeof image === "string" && image.trim().length > 0);
-      if (images.length) return images;
-    }
-  } catch {
-    return FALLBACK_BANNERS;
-  }
-  return FALLBACK_BANNERS;
-}
-
 function HomePage() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -270,7 +249,10 @@ function HomePage() {
     queryKey: ["/api/user/income-summary"],
   });
 
-  const bannerImages = useMemo(() => parseBanners(settings.banner1Images), [settings.banner1Images]);
+  const bannerImages = useMemo(
+    () => parseBannerImages(settings.banner1Images, FALLBACK_BANNERS),
+    [settings.banner1Images],
+  );
   const selectedPopularIds = useMemo(
     () => parseProductIds(settings.specialProductIds),
     [settings.specialProductIds],
@@ -488,7 +470,7 @@ function HomePage() {
                       className="ielp-home-product-card"
                       type="button"
                       key={product.id}
-                      onClick={() => navigate("/products")}
+                      onClick={() => navigate("/invest")}
                       aria-label={`${name} — ${copy.viewProducts}`}
                       data-testid={`home-popular-product-${product.id}`}
                     >

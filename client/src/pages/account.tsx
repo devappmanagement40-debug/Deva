@@ -45,16 +45,12 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import bannerTeamPhoto from "@/assets/images/diamant-banner-team-dsc-0636.jpg";
-import bannerLeadershipPhoto from "@/assets/images/diamant-banner-leadership-team.jpg";
-import bannerMeganePhoto from "@/assets/images/diamant-banner-megane.jpg";
+import {
+  ACCOUNT_BANNER_DEFAULT_IMAGES,
+  buildAccountBannerPosters,
+} from "@/lib/banner-defaults";
+import { parseBannerImages } from "@/lib/banner-images";
 import "./account.css";
-
-const ACCOUNT_BANNER_POSTERS = [
-  { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198, fit: "cover" },
-  { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318, fit: "cover" },
-  { id: "megane-photo", src: bannerMeganePhoto, slideWidth: 132, fit: "contain" },
-] as const;
 
 type AccountCopy = {
   deposit: string;
@@ -310,6 +306,9 @@ export default function AccountPage() {
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
+  const accountBannerPosters = buildAccountBannerPosters(
+    parseBannerImages(settings.accountBannerImages, ACCOUNT_BANNER_DEFAULT_IMAGES),
+  );
   const { data: catalogProducts = [] } = useQuery<any[]>({
     queryKey: ["/api/products"],
   });
@@ -435,31 +434,33 @@ export default function AccountPage() {
 
         <div className="ielp-account-content">
           <section className="ielp-account-hero" aria-label={copy.accountMenu}>
-            <div className="ielp-account-banner" aria-hidden="true">
-              <div className="ielp-account-banner-track">
-                {[...ACCOUNT_BANNER_POSTERS, ...ACCOUNT_BANNER_POSTERS].map((poster, index) => (
-                  <div
-                    className="ielp-account-banner-slide"
-                    key={`${poster.id}-${index}`}
-                    style={{
-                      width: poster.slideWidth,
-                      flexBasis: poster.slideWidth,
-                      backgroundColor: poster.fit === "contain" ? "#020304" : undefined,
-                    }}
-                  >
-                    <img
-                      src={poster.src}
-                      alt=""
-                      draggable={false}
+            {accountBannerPosters.length > 0 && (
+              <div className="ielp-account-banner" aria-hidden="true">
+                <div className="ielp-account-banner-track">
+                  {[...accountBannerPosters, ...accountBannerPosters].map((poster, index) => (
+                    <div
+                      className="ielp-account-banner-slide"
+                      key={`${poster.id}-${index}`}
                       style={{
-                        objectFit: poster.fit,
-                        transform: poster.fit === "contain" ? "none" : undefined,
+                        width: poster.slideWidth,
+                        flexBasis: poster.slideWidth,
+                        backgroundColor: poster.fit === "contain" ? "#020304" : undefined,
                       }}
-                    />
+                    >
+                      <img
+                        src={poster.src}
+                        alt=""
+                        draggable={false}
+                        style={{
+                          objectFit: poster.fit,
+                          transform: poster.fit === "contain" ? "none" : undefined,
+                        }}
+                      />
+                    </div>
+                  ))}
                   </div>
-                ))}
               </div>
-            </div>
+            )}
             <div className="ielp-account-profile">
               <button
                 type="button"
