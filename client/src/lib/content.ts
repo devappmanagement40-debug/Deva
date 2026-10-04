@@ -2,6 +2,7 @@
 // falling back to the field's default when the setting is absent or empty.
 
 const PRESERVED_USDT_TERMS = /\bUSDT(?:\s+|-)(?:BEP20|TRC20|ERC20|BSC|MATIC)\b|\b(?:BEP20|TRC20|ERC20|POLYGON|ETH|MATIC|BSC)-USDT\b|\/USDT\b/gi;
+const NON_MINING_ABOUT_TERMS = /(électri|electr|énerg|energy|mobilit|mobility|vélo|velo|scooter|cyclomoteur|recharg|charging)/i;
 
 export function displayCurrencyText(value: string): string {
   const preservedTerms: string[] = [];
@@ -25,5 +26,10 @@ export function getContent(
   fallback: string
 ): string {
   const value = settings?.[key];
-  return rebrandText(value !== undefined && value.trim() !== "" ? value : fallback);
+  const configuredValue = value !== undefined && value.trim() !== "" ? value : undefined;
+  const containsOutOfScopeAboutCopy =
+    key.startsWith("content_about_") &&
+    configuredValue !== undefined &&
+    NON_MINING_ABOUT_TERMS.test(configuredValue);
+  return rebrandText(configuredValue && !containsOutOfScopeAboutCopy ? configuredValue : fallback);
 }

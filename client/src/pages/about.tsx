@@ -13,21 +13,21 @@ export default function AboutPage() {
   const pageTitle = ["A propos de nous", "À propos de DIAMANT"].includes(storedPageTitle)
     ? companyPageTitle
     : storedPageTitle;
-  const storyTitle = getContent(settings, "content_about_storyTitle", "Fondée en Chine en 2000");
+  const storyTitle = getContent(settings, "content_about_storyTitle", "Une entreprise minière fondée en Chine en 2000");
   const storyText = getContent(
     settings,
     "content_about_storyText",
-    "Fondée en Chine en 2000, DIAMANT est née d’une ambition : mettre l’innovation au service de solutions concrètes. Aujourd’hui, la plateforme présente une offre orientée vers la mobilité électrique et les solutions énergétiques, avec des informations destinées à accompagner les membres dans leurs choix.",
+    "Fondée en Chine en 2000, DIAMANT est une entreprise du secteur minier. Elle s’intéresse aux ressources minérales et aux enjeux qui les entourent, notamment pour l’or, le diamant et le cuivre. Son ambition est de présenter ce domaine avec clarté et de promouvoir une approche réfléchie et responsable.",
   );
-  const s1Title = getContent(settings, "content_about_s1Title", "Notre vision");
-  const s1Text1 = getContent(settings, "content_about_s1Text1", "DIAMANT souhaite rapprocher technologie, énergie et mobilité à travers des solutions pensées pour répondre aux besoins d’aujourd’hui.");
-  const s1Text2 = getContent(settings, "content_about_s1Text2", "La plateforme rassemble les produits, les services et les informations utiles dans un espace conçu pour aider chaque membre à comprendre le fonctionnement et les conditions affichées.");
-  const s2Title = getContent(settings, "content_about_s2Title", "Énergie et mobilité au cœur de nos orientations");
-  const s2Text = getContent(settings, "content_about_s2Text", "DIAMANT s’intéresse aux solutions de mobilité électrique et aux infrastructures énergétiques intelligentes. La plateforme présente notamment des vélos, scooters, cyclomoteurs et équipements de recharge. Les caractéristiques et conditions de chaque produit sont consultables sur sa fiche.");
-  const s3Title = getContent(settings, "content_about_s3Title", "Une plateforme pensée pour les membres");
-  const s3Text = getContent(settings, "content_about_s3Text", "L’espace membre permet de consulter les produits disponibles, gérer son solde en XOF, suivre ses opérations et retrouver les règles applicables. Les prix, durées et montants sont indiqués sur les fiches produits afin que chacun puisse les examiner avant de confirmer une opération.");
-  const s4Title = getContent(settings, "content_about_s4Title", "Notre engagement : clarté et responsabilité");
-  const s4Text = getContent(settings, "content_about_s4Text", "Nous voulons offrir une expérience fondée sur la clarté des informations, la protection des comptes et un accompagnement accessible selon les horaires publiés. Les conditions et règles propres à chaque opération restent consultables sur la plateforme, afin que chacun puisse décider en connaissance de cause.");
+  const s1Title = getContent(settings, "content_about_s1Title", "Notre vision du secteur minier");
+  const s1Text1 = getContent(settings, "content_about_s1Text1", "Les ressources minérales jouent un rôle important dans de nombreuses industries. Pour DIAMANT, faire connaître le secteur minier, c’est aussi expliquer les ressources, les filières et les enjeux propres à chaque projet.");
+  const s1Text2 = getContent(settings, "content_about_s1Text2", "Notre ambition est de construire une présentation accessible et sérieuse, qui donne aux membres des repères pour mieux comprendre les activités minières sans simplifier leur complexité.");
+  const s2Title = getContent(settings, "content_about_s2Title", "Or, diamant et cuivre");
+  const s2Text = getContent(settings, "content_about_s2Text", "DIAMANT met l’accent sur l’or, le diamant et le cuivre. Chacune de ces ressources possède ses caractéristiques, ses usages et ses enjeux. Leur étude demande de tenir compte des réalités techniques, économiques, environnementales et réglementaires propres à chaque projet.");
+  const s3Title = getContent(settings, "content_about_s3Title", "Comprendre les projets miniers");
+  const s3Text = getContent(settings, "content_about_s3Text", "Un projet minier repose sur des études, des choix techniques adaptés, des autorisations et une analyse des impacts. Les informations présentées par DIAMANT ont vocation à aider les membres à comprendre les différentes dimensions du secteur et à examiner chaque projet selon ses caractéristiques.");
+  const s4Title = getContent(settings, "content_about_s4Title", "Clarté et responsabilité");
+  const s4Text = getContent(settings, "content_about_s4Text", "Le secteur minier exige une information précise et une réflexion à long terme. DIAMANT souhaite présenter ses orientations et ses contenus avec clarté, en rappelant que les conditions et perspectives varient selon les projets. Chaque information doit être examinée dans son contexte avant toute décision.");
 
   return (
     <div className="flex min-h-screen flex-col text-[#26352d]" style={{ background: "#f8f9fa", color: "#26352d" }}>

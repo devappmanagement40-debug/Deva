@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Save, FileText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { CONTENT_GROUPS, ALL_CONTENT_FIELDS } from "@shared/content-fields";
-import { rebrandText } from "@/lib/content";
+import { getContent } from "@/lib/content";
 import InformationArticlesAdmin from "@/components/admin/information-articles";
 
 export default function AdminContent() {
@@ -28,7 +28,7 @@ export default function AdminContent() {
     if (settings && !contentDirty) {
       const initial: Record<string, string> = {};
       for (const field of ALL_CONTENT_FIELDS) {
-        initial[field.key] = rebrandText(settings[field.key] ?? field.defaultValue);
+        initial[field.key] = getContent(settings, field.key, field.defaultValue);
       }
       setValues(initial);
     }
