@@ -49,6 +49,7 @@ export const users = pgTable("users", {
   spinTokens: integer("spin_tokens").notNull().default(0),
   telegram: text("telegram"),
   transactionPassword: text("transaction_password"),
+  mustResetTransactionPassword: boolean("must_reset_transaction_password").notNull().default(false),
 }, (table) => [
   uniqueIndex("users_phone_country_unique").on(table.phone, table.country),
 ]);
@@ -508,6 +509,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   isWithdrawalBlocked: true,
   isPromoter: true,
   mustInviteToWithdraw: true,
+  mustResetTransactionPassword: true,
   hasDeposited: true,
   hasActiveProduct: true,
   createdAt: true,

@@ -36,10 +36,37 @@ export default function WithdrawalPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState<number | "">("");
+  const [transactionPin, setTransactionPin] = useState("");
+  const [resetAccountPassword, setResetAccountPassword] = useState("");
+  const [newTransactionPin, setNewTransactionPin] = useState("");
+  const [confirmTransactionPin, setConfirmTransactionPin] = useState("");
+  const [forceTransactionPinReset, setForceTransactionPinReset] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
   const [, navigate] = useLocation();
 
   const currency = "XOF";
+
+  const {
+    data: transactionPinStatus,
+    isLoading: transactionPinStatusLoading,
+    refetch: refetchTransactionPinStatus,
+  } = useQuery<{ hasPin: boolean; resetRequired: boolean }>({
+    queryKey: ["/api/auth/transaction-pin-status", user?.id],
+    queryFn: async () => {
+      const response = await fetch("/api/auth/transaction-pin-status", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!response.ok) throw new Error("Impossible de vérifier le PIN de retrait");
+      return response.json();
+    },
+    enabled: Boolean(user?.id),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+  const needsTransactionPinReset = forceTransactionPinReset || Boolean(
+    transactionPinStatus && (!transactionPinStatus.hasPin || transactionPinStatus.resetRequired),
+  );
 
   const { data: withdrawalSettings } = useQuery<{
     withdrawalEnabled: boolean;
@@ -93,6 +120,28 @@ export default function WithdrawalPage() {
 
   const hasActiveProduct = userProducts.some((p) => p.status === "active");
 
+  const transactionPinResetMutation = useMutation({
+    mutationFn: async (data: { accountPassword: string; newPin: string }) => {
+      const response = await apiRequest("POST", "/api/auth/transaction-pin/reset", data);
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || t.errorOccurred);
+      }
+      return response.json();
+    },
+    onSuccess: async () => {
+      setResetAccountPassword("");
+      setNewTransactionPin("");
+      setConfirmTransactionPin("");
+      setForceTransactionPinReset(false);
+      toast({ title: t.withdrawalPinResetSuccess });
+      await Promise.all([refetchTransactionPinStatus(), refreshUser()]);
+    },
+    onError: (error: Error) => {
+      toast({ title: error.message || t.errorOccurred, variant: "destructive" });
+    },
+  });
+
   useEffect(() => {
     const savedWalletId = localStorage.getItem("selectedWalletId");
     if (savedWalletId && bep20Wallets.length > 0) {
@@ -114,9 +163,20 @@ export default function WithdrawalPage() {
   }, [bep20Wallets, selectedWallet]);
 
   const withdrawMutation = useMutation({
-    mutationFn: async (data: { amount: number; walletId: number }) => {
-      const res = await apiRequest("POST", "/api/withdrawals", data);
-      return res.json();
+    mutationFn: async (data: { amount: number; walletId: number; transactionPassword: string }) => {
+      const response = await fetch("/api/withdrawals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(result.message || t.errorOccurred) as Error & { code?: string };
+        error.code = result.code;
+        throw error;
+      }
+      return result;
     },
     onSuccess: (data) => {
       toast({
@@ -128,9 +188,20 @@ export default function WithdrawalPage() {
       refreshUser();
       queryClient.invalidateQueries({ queryKey: ["/api/withdrawals"] });
       setAmount("");
+      setTransactionPin("");
     },
     onError: (error: Error) => {
-      toast({ title: error.message || t.errorOccurred, variant: "destructive" });
+      const code = (error as Error & { code?: string }).code;
+      if (code === "TRANSACTION_PIN_RESET_REQUIRED") {
+        setTransactionPin("");
+        setForceTransactionPinReset(true);
+        void refetchTransactionPinStatus();
+        return;
+      }
+      toast({
+        title: code === "INVALID_TRANSACTION_PIN" ? t.withdrawalPinIncorrect : error.message || t.errorOccurred,
+        variant: "destructive",
+      });
     },
   });
 
@@ -155,7 +226,15 @@ export default function WithdrawalPage() {
       toast({ title: "Select an account", description: "Please link a withdrawal account.", variant: "destructive" });
       return;
     }
-    withdrawMutation.mutate({ amount: Number(amount), walletId: selectedWallet.id });
+    if (!transactionPin) {
+      toast({ title: t.errTransactionPasswordRequired, variant: "destructive" });
+      return;
+    }
+    withdrawMutation.mutate({
+      amount: Number(amount),
+      walletId: selectedWallet.id,
+      transactionPassword: transactionPin,
+    });
   };
 
   if (walletsLoading) return null;
@@ -230,6 +309,93 @@ export default function WithdrawalPage() {
           </p>
         </div>
 
+        {transactionPinStatusLoading ? (
+          <div className="mt-[29px] rounded-[14px] bg-white p-5 text-center" role="status">
+            {t.loading}
+          </div>
+        ) : needsTransactionPinReset ? (
+          <form
+            className="mt-[29px] rounded-[14px] bg-white p-5"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (newTransactionPin !== confirmTransactionPin) {
+                toast({ title: t.errPasswordMismatch, variant: "destructive" });
+                return;
+              }
+              transactionPinResetMutation.mutate({
+                accountPassword: resetAccountPassword,
+                newPin: newTransactionPin,
+              });
+            }}
+            data-testid="form-reset-withdrawal-pin"
+          >
+            <h2 className="font-semibold" style={{ fontSize: 20, lineHeight: 1.25 }}>
+              {t.withdrawalPinResetTitle}
+            </h2>
+            <p className="mt-2 text-sm text-[#626262]">
+              {t.withdrawalPinResetDescription}
+            </p>
+
+            <label className="mt-5 block text-sm font-medium" htmlFor="pin-reset-account-password">
+              {t.withdrawalPinResetAccountPassword}
+            </label>
+            <input
+              id="pin-reset-account-password"
+              type="password"
+              autoComplete="current-password"
+              value={resetAccountPassword}
+              onChange={(event) => setResetAccountPassword(event.target.value)}
+              placeholder={t.passwordPlaceholder}
+              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              data-testid="input-pin-reset-account-password"
+            />
+
+            <label className="mt-4 block text-sm font-medium" htmlFor="pin-reset-new">
+              {t.withdrawalPinResetNew}
+            </label>
+            <input
+              id="pin-reset-new"
+              type="password"
+              autoComplete="new-password"
+              value={newTransactionPin}
+              onChange={(event) => setNewTransactionPin(event.target.value)}
+              placeholder={t.authPinLabel}
+              maxLength={72}
+              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              data-testid="input-pin-reset-new"
+            />
+
+            <label className="mt-4 block text-sm font-medium" htmlFor="pin-reset-confirm">
+              {t.withdrawalPinResetConfirm}
+            </label>
+            <input
+              id="pin-reset-confirm"
+              type="password"
+              autoComplete="new-password"
+              value={confirmTransactionPin}
+              onChange={(event) => setConfirmTransactionPin(event.target.value)}
+              placeholder={t.withdrawalPinResetConfirm}
+              maxLength={72}
+              className="mt-2 h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#00ae2f]"
+              data-testid="input-pin-reset-confirm"
+            />
+
+            <button
+              type="submit"
+              disabled={
+                transactionPinResetMutation.isPending ||
+                !resetAccountPassword ||
+                !newTransactionPin ||
+                !confirmTransactionPin
+              }
+              className="mt-5 h-[51px] w-full rounded-full bg-[#00bd08] px-4 font-semibold text-white disabled:opacity-50"
+              data-testid="button-save-withdrawal-pin"
+            >
+              {transactionPinResetMutation.isPending ? t.saving : t.withdrawalPinResetButton}
+            </button>
+          </form>
+        ) : (
+          <>
         <div className="mt-[29px]">
           <p className="font-normal" style={{ fontSize: 20, lineHeight: 1.2 }}>
             Please select your bank card
@@ -344,6 +510,23 @@ export default function WithdrawalPage() {
           </div>
         </div>
 
+        <div className="mt-5">
+          <label className="block font-normal" htmlFor="withdrawal-transaction-pin" style={{ fontSize: 20, lineHeight: 1.2 }}>
+            {t.authPinLabel}
+          </label>
+          <input
+            id="withdrawal-transaction-pin"
+            type="password"
+            autoComplete="off"
+            value={transactionPin}
+            onChange={(event) => setTransactionPin(event.target.value)}
+            placeholder={t.authPinLabel}
+            className="mt-[16px] h-[51px] w-full rounded-md border border-[#dddddd] bg-[#f9f9f9] px-3 font-normal outline-none focus:border-[#00ae2f]"
+            style={{ color: "#404040", fontSize: 19 }}
+            data-testid="input-withdrawal-pin"
+          />
+        </div>
+
         {!withdrawalEnabled && (
           <div className="mt-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
             Withdrawals are currently disabled.
@@ -379,6 +562,8 @@ export default function WithdrawalPage() {
           <p id="withdrawal-product-notice" className="sr-only">
             {withdrawalWarningNoProduct}
           </p>
+        )}
+          </>
         )}
 
         <div className="mt-[14px] space-y-0 pb-2">

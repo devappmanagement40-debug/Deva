@@ -29,6 +29,7 @@ interface UserProductItem {
 }
 
 interface UserWithTeam extends User {
+  hasTransactionPassword: boolean;
   level1Count: number;
   level2Count: number;
   level3Count: number;
@@ -213,6 +214,30 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
       setSelectedUser(null);
     },
     onError: (error: any) => {
+      toast({ title: error.message || "Une erreur est survenue", variant: "destructive" });
+    },
+  });
+
+  const resetTransactionPinMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/transaction-pin/reset`, {});
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || "Erreur");
+      }
+      return response.json();
+    },
+    onSuccess: (_data, userId) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setSelectedUser((current) => current?.id === userId
+        ? { ...current, mustResetTransactionPassword: true }
+        : current);
+      toast({
+        title: "Réinitialisation demandée",
+        description: "L’utilisateur devra définir un nouveau PIN avant de pouvoir retirer.",
+      });
+    },
+    onError: (error: Error) => {
       toast({ title: error.message || "Une erreur est survenue", variant: "destructive" });
     },
   });
@@ -520,6 +545,16 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     <span className="font-medium font-mono">{selectedUser.referredBy}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">PIN de retrait</span>
+                  <span className="font-medium">
+                    {selectedUser.mustResetTransactionPassword
+                      ? "Réinitialisation demandée"
+                      : selectedUser.hasTransactionPassword
+                        ? "Configuré (valeur non visible)"
+                        : "Non configuré"}
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center text-sm">
@@ -677,6 +712,24 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     {selectedUser.isWithdrawalBlocked ? <Unlock className="w-4 h-4 mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
                     {selectedUser.isWithdrawalBlocked ? "Debloquer" : "Bloquer retrait"}
                   </Button>
+
+                  <Button
+                    variant="outline"
+                    className="col-span-2"
+                    onClick={() => resetTransactionPinMutation.mutate(selectedUser.id)}
+                    disabled={resetTransactionPinMutation.isPending || selectedUser.mustResetTransactionPassword}
+                    data-testid="button-reset-transaction-pin"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    {resetTransactionPinMutation.isPending
+                      ? "Demande en cours..."
+                      : selectedUser.mustResetTransactionPassword
+                        ? "Réinitialisation du PIN demandée"
+                        : "Demander la réinitialisation du PIN"}
+                  </Button>
+                  <p className="col-span-2 text-xs text-muted-foreground">
+                    L’utilisateur devra vérifier son mot de passe de compte et choisir un nouveau PIN avant de retirer.
+                  </p>
 
                   <Button
                     variant={selectedUser.isPromoter ? "secondary" : "outline"}

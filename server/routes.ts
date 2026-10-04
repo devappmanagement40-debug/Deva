@@ -139,6 +139,7 @@ import {
 
 // --- Brute-force protection (in-memory) ---
 const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
+const transactionPinAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_LOGIN_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -174,6 +175,40 @@ function recordFailedAttempt(req: Request) {
 
 function clearFailedAttempts(req: Request) {
   loginAttempts.delete(getClientKey(req));
+}
+
+function transactionPinAttemptKey(req: Request, userId: number) {
+  return `${userId}:${getClientKey(req)}`;
+}
+
+function checkTransactionPinAttempts(req: Request, res: Response, userId: number): boolean {
+  const key = transactionPinAttemptKey(req, userId);
+  const now = Date.now();
+  const record = transactionPinAttempts.get(key);
+  if (record && record.blockedUntil > now) {
+    const minutesLeft = Math.ceil((record.blockedUntil - now) / 60000);
+    res.status(429).json({ message: `Trop de tentatives de PIN. Réessayez dans ${minutesLeft} minute(s).` });
+    return true;
+  }
+  if (record && record.blockedUntil > 0 && record.blockedUntil <= now) {
+    transactionPinAttempts.delete(key);
+  }
+  return false;
+}
+
+function recordFailedTransactionPinAttempt(req: Request, userId: number) {
+  const key = transactionPinAttemptKey(req, userId);
+  const record = transactionPinAttempts.get(key) || { count: 0, blockedUntil: 0 };
+  record.count += 1;
+  if (record.count >= MAX_LOGIN_ATTEMPTS) {
+    record.blockedUntil = Date.now() + BLOCK_DURATION_MS;
+    record.count = 0;
+  }
+  transactionPinAttempts.set(key, record);
+}
+
+function clearTransactionPinAttempts(req: Request, userId: number) {
+  transactionPinAttempts.delete(transactionPinAttemptKey(req, userId));
 }
 // --- end brute-force protection ---
 
@@ -534,6 +569,61 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("Auth/me error:", error);
       res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+
+  app.get("/api/auth/transaction-pin-status", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Non authentifié" });
+      }
+      res.json({
+        hasPin: Boolean(user.transactionPassword),
+        resetRequired: Boolean(user.mustResetTransactionPassword),
+      });
+    } catch (error: any) {
+      console.error("Transaction PIN status error:", error);
+      res.status(500).json({ message: "Impossible de vérifier le PIN de retrait" });
+    }
+  });
+
+  app.post("/api/auth/transaction-pin/reset", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const accountPassword = typeof req.body.accountPassword === "string" ? req.body.accountPassword : "";
+      const newPin = typeof req.body.newPin === "string" ? req.body.newPin : "";
+      if (!accountPassword || !newPin.trim()) {
+        return res.status(400).json({ message: "Veuillez remplir tous les champs" });
+      }
+      if (Buffer.byteLength(newPin, "utf8") > 72) {
+        return res.status(400).json({ message: "Le code PIN ne peut pas dépasser 72 octets" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        return res.status(401).json({ message: "Non authentifié" });
+      }
+      if (user.transactionPassword && !user.mustResetTransactionPassword) {
+        return res.status(409).json({ message: "Une réinitialisation du PIN n'a pas été demandée" });
+      }
+      if (checkTransactionPinAttempts(req, res, user.id)) return;
+
+      const validPassword = await bcrypt.compare(accountPassword, user.password);
+      if (!validPassword) {
+        recordFailedTransactionPinAttempt(req, user.id);
+        return res.status(401).json({ message: "Mot de passe du compte incorrect" });
+      }
+
+      const transactionPassword = await bcrypt.hash(newPin, 10);
+      await storage.updateUser(user.id, {
+        transactionPassword,
+        mustResetTransactionPassword: false,
+      });
+      clearTransactionPinAttempts(req, user.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Transaction PIN reset error:", error);
+      res.status(500).json({ message: "Impossible de réinitialiser le PIN de retrait" });
     }
   });
 
@@ -1656,7 +1746,7 @@ export async function registerRoutes(
 
 
   // Withdrawals
-  app.post("/api/withdrawals", requireAuth, async (req, res) => {
+  app.post("/api/withdrawals", requireAuth, requireSameOrigin, async (req, res) => {
     try {
       const amount = Number(req.body.amount);
       const user = await storage.getUser(req.session.userId!);
@@ -1664,6 +1754,30 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ message: "Non authentifié" });
       }
+
+      if (!user.transactionPassword || user.mustResetTransactionPassword) {
+        return res.status(403).json({
+          code: "TRANSACTION_PIN_RESET_REQUIRED",
+          message: "Réinitialisez votre code PIN avant d'effectuer un retrait.",
+        });
+      }
+
+      const transactionPassword = typeof req.body.transactionPassword === "string"
+        ? req.body.transactionPassword
+        : "";
+      if (!transactionPassword) {
+        return res.status(400).json({ message: "Saisissez votre code PIN de sécurité" });
+      }
+      if (checkTransactionPinAttempts(req, res, user.id)) return;
+      const validTransactionPassword = await bcrypt.compare(transactionPassword, user.transactionPassword);
+      if (!validTransactionPassword) {
+        recordFailedTransactionPinAttempt(req, user.id);
+        return res.status(401).json({
+          code: "INVALID_TRANSACTION_PIN",
+          message: "Code PIN incorrect",
+        });
+      }
+      clearTransactionPinAttempts(req, user.id);
 
       // Vérifier que l'utilisateur possède au moins un produit actif
       const activeProducts = await storage.getUserProducts(req.session.userId!);
@@ -2739,6 +2853,7 @@ export async function registerRoutes(
           ...user,
           password: undefined,
           transactionPassword: undefined,
+          hasTransactionPassword: Boolean(user.transactionPassword),
           ...teamStats,
           referrerName: null,
         };
@@ -2746,6 +2861,33 @@ export async function registerRoutes(
       res.json({ users: usersWithTeam, total, page, limit, totalPages: Math.ceil(total / limit) });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/admin/users/:id/transaction-pin/reset", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const userId = Number(req.params.id);
+      if (!Number.isInteger(userId) || userId <= 0) {
+        return res.status(400).json({ message: "Identifiant utilisateur invalide" });
+      }
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "Utilisateur introuvable" });
+      }
+
+      if (!targetUser.mustResetTransactionPassword) {
+        await storage.updateUser(userId, { mustResetTransactionPassword: true });
+        await storage.logAdminAction(
+          req.session.userId!,
+          "request_transaction_pin_reset",
+          userId,
+          "Réinitialisation du PIN de retrait demandée",
+        );
+      }
+
+      res.json({ success: true, resetRequired: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
     }
   });
 

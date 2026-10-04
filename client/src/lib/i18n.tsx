@@ -47,6 +47,14 @@ export type Translations = {
   authPhoneLabel: string;
   authPasswordLabel: string;
   authPinLabel: string;
+  withdrawalPinIncorrect: string;
+  withdrawalPinResetTitle: string;
+  withdrawalPinResetDescription: string;
+  withdrawalPinResetAccountPassword: string;
+  withdrawalPinResetNew: string;
+  withdrawalPinResetConfirm: string;
+  withdrawalPinResetButton: string;
+  withdrawalPinResetSuccess: string;
   authCaptchaLabel: string;
   authCaptchaRequired: string;
   authNoAccountPrompt: string;
@@ -709,6 +717,14 @@ const fr: Translations = {
     authPhoneLabel:     "Téléphone",
     authPasswordLabel:  "Mot de passe",
     authPinLabel:       "Code PIN de sécurité",
+    withdrawalPinIncorrect: "Code PIN incorrect",
+    withdrawalPinResetTitle: "Réinitialiser votre code PIN de retrait",
+    withdrawalPinResetDescription: "Confirmez le mot de passe de votre compte pour choisir un nouveau PIN. L’administration ne peut pas voir l’ancien.",
+    withdrawalPinResetAccountPassword: "Mot de passe du compte",
+    withdrawalPinResetNew: "Nouveau code PIN",
+    withdrawalPinResetConfirm: "Confirmer le nouveau code PIN",
+    withdrawalPinResetButton: "Enregistrer le nouveau PIN",
+    withdrawalPinResetSuccess: "Code PIN mis à jour",
     authCaptchaLabel:   "Code",
     authCaptchaRequired:"Saisissez le code affiché",
     authNoAccountPrompt:"Pas de compte ?",
@@ -1361,6 +1377,14 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalSubmitted: "Request submitted",
     withdrawalCreatedDesc: "Your withdrawal request has been submitted and is being processed.",
     withdrawalSubmittedDesc: "Your withdrawal request has been submitted.",
+    withdrawalPinIncorrect: "Incorrect security PIN",
+    withdrawalPinResetTitle: "Reset your withdrawal PIN",
+    withdrawalPinResetDescription: "Confirm your account password to choose a new PIN. Administrators cannot see your old PIN.",
+    withdrawalPinResetAccountPassword: "Account password",
+    withdrawalPinResetNew: "New security PIN",
+    withdrawalPinResetConfirm: "Confirm new security PIN",
+    withdrawalPinResetButton: "Save new PIN",
+    withdrawalPinResetSuccess: "Security PIN updated",
   },
   ar: {
     languageLabel: "اللغة",
@@ -1436,6 +1460,14 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalSubmitted: "تم إرسال الطلب",
     withdrawalCreatedDesc: "تم إرسال طلب السحب الخاص بك وهو قيد المعالجة.",
     withdrawalSubmittedDesc: "تم إرسال طلب السحب الخاص بك.",
+    withdrawalPinIncorrect: "رمز PIN للأمان غير صحيح",
+    withdrawalPinResetTitle: "إعادة تعيين رمز PIN للسحب",
+    withdrawalPinResetDescription: "أكد كلمة مرور حسابك لاختيار رمز PIN جديد. لا يمكن للإدارة رؤية الرمز القديم.",
+    withdrawalPinResetAccountPassword: "كلمة مرور الحساب",
+    withdrawalPinResetNew: "رمز PIN جديد",
+    withdrawalPinResetConfirm: "تأكيد رمز PIN الجديد",
+    withdrawalPinResetButton: "حفظ رمز PIN الجديد",
+    withdrawalPinResetSuccess: "تم تحديث رمز PIN للأمان",
     serviceTitle: "خدمة العملاء",
     serviceOnlineConsult: "استشارة عبر الإنترنت",
     serviceHoursLabel: "ساعات خدمة العملاء",
@@ -1518,6 +1550,14 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     withdrawalSubmitted: "申请已提交",
     withdrawalCreatedDesc: "您的提现申请已提交，正在处理中。",
     withdrawalSubmittedDesc: "您的提现申请已提交。",
+    withdrawalPinIncorrect: "安全 PIN 不正确",
+    withdrawalPinResetTitle: "重置提现 PIN",
+    withdrawalPinResetDescription: "请验证账户密码并设置新的 PIN。管理员无法查看旧 PIN。",
+    withdrawalPinResetAccountPassword: "账户密码",
+    withdrawalPinResetNew: "新安全 PIN",
+    withdrawalPinResetConfirm: "确认新安全 PIN",
+    withdrawalPinResetButton: "保存新 PIN",
+    withdrawalPinResetSuccess: "安全 PIN 已更新",
     serviceTitle: "客服",
     serviceOnlineConsult: "在线咨询",
     serviceHoursLabel: "客服服务时间",
