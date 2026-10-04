@@ -153,7 +153,7 @@ export default function AdminTeamPage() {
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/admin")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate("/admin")} aria-label={t.back}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>

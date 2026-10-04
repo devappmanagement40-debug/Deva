@@ -2065,3 +2065,13 @@ ol[data-radix-toast-viewport] li * {
     font-size: 13px;
   }
 }
+
+/* Keep page-level back navigation on the DIAMANT violet across all sections. */
+button[data-testid*="back"] svg,
+a[data-testid*="back"] svg,
+button[aria-label*="Retour"] svg,
+a[aria-label*="Retour"] svg,
+button[aria-label*="Back"] svg,
+a[aria-label*="Back"] svg {
+  color: #653de9;
+}

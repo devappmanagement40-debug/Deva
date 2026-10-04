@@ -64,7 +64,7 @@ export default function TasksPage() {
     >
       <div className="mx-auto min-h-screen w-full max-w-[480px] overflow-clip bg-[#fbfbfa]">
         <header className="relative z-20 flex h-[58px] items-center justify-center border-b border-[#f1f1f1] bg-white">
-          <Link href="/" className="absolute left-3 flex h-9 w-9 items-center justify-center">
+          <Link href="/" className="absolute left-3 flex h-9 w-9 items-center justify-center" aria-label={t.back}>
             <ChevronLeft className="h-6 w-6 text-[#222]" strokeWidth={2.4} />
           </Link>
           <h1 className="text-[20px] font-bold text-[#111]">{t.taskPageTitle}</h1>
