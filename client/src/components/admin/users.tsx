@@ -713,23 +713,36 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     {selectedUser.isWithdrawalBlocked ? "Debloquer" : "Bloquer retrait"}
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    className="col-span-2"
-                    onClick={() => resetTransactionPinMutation.mutate(selectedUser.id)}
-                    disabled={resetTransactionPinMutation.isPending || selectedUser.mustResetTransactionPassword}
-                    data-testid="button-reset-transaction-pin"
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    {resetTransactionPinMutation.isPending
-                      ? "Demande en cours..."
-                      : selectedUser.mustResetTransactionPassword
-                        ? "Réinitialisation du PIN demandée"
-                        : "Demander la réinitialisation du PIN"}
-                  </Button>
-                  <p className="col-span-2 text-xs text-muted-foreground">
-                    L’utilisateur devra vérifier son mot de passe de compte et choisir un nouveau PIN avant de retirer.
-                  </p>
+                  <div className="col-span-2">
+                    <label className="text-sm font-medium">Réinitialiser le PIN de retrait</label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        type="text"
+                        value={selectedUser.mustResetTransactionPassword
+                          ? "Réinitialisation demandée"
+                          : selectedUser.hasTransactionPassword
+                            ? "Configuré (valeur non visible)"
+                            : "Non configuré"}
+                        readOnly
+                        aria-label="État du PIN de retrait"
+                        data-testid="input-transaction-pin-status"
+                      />
+                      <Button
+                        onClick={() => resetTransactionPinMutation.mutate(selectedUser.id)}
+                        disabled={resetTransactionPinMutation.isPending || selectedUser.mustResetTransactionPassword}
+                        data-testid="button-reset-transaction-pin"
+                      >
+                        {resetTransactionPinMutation.isPending
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : selectedUser.mustResetTransactionPassword
+                            ? "Demandée"
+                            : "Demander"}
+                      </Button>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      L’utilisateur devra vérifier son mot de passe de compte et choisir un nouveau PIN avant de retirer.
+                    </p>
+                  </div>
 
                   <Button
                     variant={selectedUser.isPromoter ? "secondary" : "outline"}
