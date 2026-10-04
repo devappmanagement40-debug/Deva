@@ -7,9 +7,8 @@ import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import checkinBanner from "@/assets/images/diamant-checkin-orange-banner.png";
-import checkinBannerArt from "@/assets/images/diamant-checkin-banner-art.png";
-import checkinCoin from "@/assets/images/diamant-checkin-coin-reference.png";
+import checkinBanner from "@assets/generated_images/diamant-checkin-wheel-hero.png";
+import checkinCoin from "@assets/generated_images/diamant-checkin-wheel-coin-128.png";
 
 interface BonusStatus {
   canClaim: boolean;
@@ -99,49 +98,43 @@ export default function CheckinPage() {
   return (
     <main
       className="ielp-checkin-page min-h-screen w-full"
-      style={{ maxWidth: 480, margin: "0 auto", background: "#f4f4f4", color: "#2b2b2b" }}
+      style={{
+        maxWidth: 480,
+        margin: "0 auto",
+        backgroundColor: "#ff745d",
+        backgroundImage: "linear-gradient(180deg, #ff745d 0%, #ed5147 55%, #b8241a 100%)",
+        color: "#481d18",
+      }}
     >
       <header
         className="ielp-checkin-hero relative w-full overflow-hidden"
         style={{
           aspectRatio: "576 / 310",
-          background: "linear-gradient(90deg, #fea901 0%, #fe9216 50%, #fe7129 100%)",
+          background: "#b8241a",
         }}
       >
-        {isFrench ? (
-          <img
-            src={checkinBanner}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full"
-            style={{ objectFit: "fill" }}
-          />
-        ) : (
-          <>
-            <img
-              src={checkinBannerArt}
-              alt=""
-              aria-hidden="true"
-              className="absolute bottom-0 left-0 w-full"
-            />
-            <h1
-              className="ielp-checkin-title absolute font-semibold"
-              style={{
-                left: "21.2%",
-                top: "13.2%",
-                margin: 0,
-                color: "#fff6dd",
-                fontSize: "clamp(16px, 4.85vw, 25px)",
-                lineHeight: 1.2,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {headerTitle}
-            </h1>
-          </>
-        )}
-
-        {isFrench && <h1 className="sr-only">{headerTitle}</h1>}
+        <img
+          src={checkinBanner}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full"
+          style={{ objectFit: "cover" }}
+        />
+        <h1
+          className="ielp-checkin-title absolute font-semibold"
+          style={{
+            left: "21.2%",
+            top: "13.2%",
+            margin: 0,
+            color: "#fff6dd",
+            fontSize: "clamp(16px, 4.85vw, 25px)",
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+            textShadow: "0 2px 6px rgba(75, 18, 16, .5)",
+          }}
+        >
+          {headerTitle}
+        </h1>
 
         <Link href="/account">
           <button
@@ -153,12 +146,13 @@ export default function CheckinPage() {
               width: "11%",
               height: "20%",
               color: "#fff7db",
-              background: isFrench ? "transparent" : "rgba(255,255,255,.12)",
+              background: "rgba(75, 18, 16, .18)",
+              textShadow: "0 1px 4px rgba(75, 18, 16, .45)",
             }}
             data-testid="button-back"
-            aria-label={isFrench ? "Retour" : "Back"}
+            aria-label={t.back}
           >
-            {isFrench ? <span className="sr-only">Retour</span> : <ChevronLeft size={23} strokeWidth={2.2} />}
+            <ChevronLeft size={23} strokeWidth={2.2} />
           </button>
         </Link>
       </header>
@@ -172,10 +166,10 @@ export default function CheckinPage() {
           padding: "6px 9px",
           gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1.15fr) 64px",
           gap: 4,
-          border: 0,
+          border: "1px solid rgba(255,255,255,.85)",
           borderRadius: 12,
-          background: "#ffffff",
-          boxShadow: "0 2px 8px rgba(0,0,0,.035)",
+          background: "linear-gradient(180deg, #fff8e4 0%, #ffeab5 100%)",
+          boxShadow: "0 4px 13px rgba(143, 63, 34, .16), inset 0 1px 0 #fff",
         }}
       >
         <div className="min-w-0 text-center">
@@ -213,7 +207,7 @@ export default function CheckinPage() {
             type="button"
             disabled
             className="flex h-8 w-full items-center justify-center rounded-full text-white"
-            style={{ background: "#c9c9c9" }}
+            style={{ background: "#f1d19c", color: "#8a4938" }}
             aria-label={t.loading}
           >
             <Loader2 size={17} className="animate-spin" />
@@ -225,8 +219,8 @@ export default function CheckinPage() {
             disabled={claimMutation.isPending}
             className="flex h-8 w-full items-center justify-center rounded-full font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:opacity-60"
             style={{
-              background: "linear-gradient(110deg, #f7a400, #f47a19)",
-              boxShadow: "0 2px 5px rgba(211,113,18,.17)",
+              background: "linear-gradient(110deg, #ff7861, #d91c16)",
+              boxShadow: "0 2px 5px rgba(142, 38, 27, .28)",
               fontSize: 14,
             }}
             data-testid="button-pointer"
@@ -245,7 +239,7 @@ export default function CheckinPage() {
             type="button"
             disabled
             className="flex h-8 w-full items-center justify-center rounded-full px-1 text-center"
-            style={{ background: "#eeeeee", color: "#777777", fontSize: 9, lineHeight: 1.1 }}
+            style={{ background: "#f1d19c", color: "#8a4938", fontSize: 9, lineHeight: 1.1 }}
             data-testid="button-pointer-disabled"
           >
             {t.checkinComeBack.replace("{0}", String(bonusStatus.hoursRemaining))}
@@ -261,7 +255,9 @@ export default function CheckinPage() {
           style={{
             padding: "14px 14px 16px",
             borderRadius: 14,
-            background: "#ffffff",
+            border: "1px solid rgba(255,255,255,.8)",
+            background: "linear-gradient(180deg, rgba(255,248,228,.97), rgba(255,234,181,.96))",
+            boxShadow: "0 5px 16px rgba(100, 30, 25, .15), inset 0 1px 0 #fff",
           }}
         >
           <div
@@ -289,17 +285,18 @@ export default function CheckinPage() {
                     height: 101,
                     padding: "10px 2px 8px",
                     borderRadius: 11,
-                    background: "#f2f2f2",
+                    border: "1px solid rgba(198,108,8,.20)",
+                    background: "linear-gradient(180deg, #fff8e4 0%, #fff1ca 100%)",
                   }}
                   data-testid={`checkin-day-${day}`}
                   data-claimed={isClaimed}
                 >
-                  <span style={{ color: "#858585", fontSize: 14, lineHeight: 1.1 }}>
+                  <span style={{ color: "#8b5240", fontSize: 14, lineHeight: 1.1 }}>
                     {displayDate}
                   </span>
                   <span
                     className="whitespace-nowrap font-medium"
-                    style={{ color: "#777777", fontSize: 15, lineHeight: 1.1 }}
+                    style={{ color: "#a9261d", fontSize: 15, lineHeight: 1.1 }}
                   >
                     {isClaimed ? formatReward(amount, locale) : "—"}
                   </span>

@@ -319,13 +319,12 @@ body.ielp-route-theme .ielp-checkin-title {
 }
 
 body.ielp-route-theme .ielp-checkin-balance {
-  color: #c27650 !important;
+  color: #a9261d !important;
 }
 
 body.ielp-route-theme .ielp-checkin-page {
-  color: #2b2b2b !important;
-  background-color: #f4f4f4 !important;
-  background-image: none !important;
+  color: #481d18 !important;
+  background-color: #ff745d !important;
 }
 
 body.ielp-route-theme .ielp-deposit-page,
@@ -335,7 +334,7 @@ body.ielp-route-theme .ielp-withdrawal-page {
 }
 
 body.ielp-route-theme .ielp-checkin-caption {
-  color: #858585 !important;
+  color: #8b5240 !important;
 }
 
 body.ielp-route-theme .ielp-checkin-calendar-label {
