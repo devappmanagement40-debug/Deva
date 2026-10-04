@@ -327,6 +327,12 @@ body.ielp-route-theme .ielp-checkin-page {
   background-color: #ff745d !important;
 }
 
+body.ielp-route-theme .ielp-checkin-page [data-testid="button-pointer"] {
+  color: #713823 !important;
+  border-color: #ff8e85 !important;
+  background: linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%) !important;
+}
+
 body.ielp-route-theme .ielp-deposit-page,
 body.ielp-route-theme .ielp-withdrawal-page {
   color: #edf3ff !important;
