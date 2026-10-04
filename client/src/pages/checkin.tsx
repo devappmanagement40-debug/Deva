@@ -7,8 +7,9 @@ import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import checkinBanner from "@assets/generated_images/diamant-checkin-wheel-hero.png";
+import checkinHeroArt from "@assets/generated_images/diamant-checkin-wheel-hero-visible-512.png";
 import checkinCoin from "@assets/generated_images/diamant-checkin-wheel-coin-128.png";
+import wheelBackground from "@assets/generated_images/spin-wheel-palace-bg-optimized.jpg";
 
 interface BonusStatus {
   canClaim: boolean;
@@ -102,35 +103,56 @@ export default function CheckinPage() {
         maxWidth: 480,
         margin: "0 auto",
         backgroundColor: "#ff745d",
-        backgroundImage: "linear-gradient(180deg, #ff745d 0%, #ed5147 55%, #b8241a 100%)",
-        color: "#481d18",
+        backgroundImage: `linear-gradient(180deg, rgba(255,59,43,.72) 0%, rgba(255,112,83,.34) 34%, rgba(255,211,173,.16) 52%, rgba(255,83,67,.50) 100%), url("${wheelBackground}")`,
+        backgroundSize: "100% max(760px, 82dvh)",
+        backgroundPosition: "center top",
+        backgroundRepeat: "no-repeat",
+        color: "#713823",
+        fontFamily: "Roboto, Arial, sans-serif",
       }}
     >
       <header
         className="ielp-checkin-hero relative w-full overflow-hidden"
         style={{
           aspectRatio: "576 / 310",
-          background: "#b8241a",
+          border: "5px solid #ffd2a5",
+          borderBottom: "7px solid #ffe3c8",
+          borderRadius: "0 0 34px 34px",
+          background: "radial-gradient(circle at 78% 25%, rgba(255,237,196,.28), transparent 35%), linear-gradient(180deg, #ff533d 0%, #f33328 78%, #ed271f 100%)",
+          boxShadow: "0 5px 14px rgba(66,29,17,.24)",
         }}
       >
         <img
-          src={checkinBanner}
+          src={checkinHeroArt}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full"
-          style={{ objectFit: "cover" }}
+          draggable={false}
+          className="absolute"
+          style={{
+            zIndex: 1,
+            right: "-2%",
+            bottom: "-11%",
+            width: "56%",
+            height: "94%",
+            objectFit: "contain",
+            objectPosition: "center bottom",
+            filter: "drop-shadow(0 6px 8px rgba(87,30,18,.28))",
+            pointerEvents: "none",
+          }}
         />
         <h1
           className="ielp-checkin-title absolute font-semibold"
           style={{
-            left: "21.2%",
-            top: "13.2%",
+            zIndex: 2,
+            left: "19%",
+            top: "5%",
             margin: 0,
-            color: "#fff6dd",
-            fontSize: "clamp(16px, 4.85vw, 25px)",
+            maxWidth: "58%",
+            color: "#fffdf8",
+            fontSize: "clamp(16px, 5vw, 24px)",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
-            textShadow: "0 2px 6px rgba(75, 18, 16, .5)",
+            textShadow: "0 2px 5px rgba(97,37,19,.5)",
           }}
         >
           {headerTitle}
@@ -145,9 +167,11 @@ export default function CheckinPage() {
               top: "8%",
               width: "11%",
               height: "20%",
+              zIndex: 3,
               color: "#fff7db",
-              background: "rgba(75, 18, 16, .18)",
-              textShadow: "0 1px 4px rgba(75, 18, 16, .45)",
+              background: "rgba(97,37,19,.25)",
+              border: "1px solid rgba(255,255,255,.55)",
+              textShadow: "0 1px 4px rgba(75,18,16,.45)",
             }}
             data-testid="button-back"
             aria-label={t.back}
@@ -155,6 +179,20 @@ export default function CheckinPage() {
             <ChevronLeft size={23} strokeWidth={2.2} />
           </button>
         </Link>
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            zIndex: 2,
+            left: "12%",
+            right: "12%",
+            bottom: 1,
+            height: 14,
+            borderBottom: "4px solid #ffe9d7",
+            borderRadius: "0 0 50% 50%",
+            pointerEvents: "none",
+          }}
+        />
       </header>
 
       <section
@@ -166,10 +204,10 @@ export default function CheckinPage() {
           padding: "6px 9px",
           gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1.15fr) 64px",
           gap: 4,
-          border: "1px solid rgba(255,255,255,.85)",
-          borderRadius: 12,
-          background: "linear-gradient(180deg, #fff8e4 0%, #ffeab5 100%)",
-          boxShadow: "0 4px 13px rgba(143, 63, 34, .16), inset 0 1px 0 #fff",
+          border: "4px solid #fffdf8",
+          borderRadius: 20,
+          background: "#fff0f2",
+          boxShadow: "0 8px 20px rgba(66,29,17,.24), 0 2px 0 rgba(139,66,36,.32), inset 0 1px 0 #fff",
         }}
       >
         <div className="min-w-0 text-center">
@@ -207,7 +245,11 @@ export default function CheckinPage() {
             type="button"
             disabled
             className="flex h-8 w-full items-center justify-center rounded-full text-white"
-            style={{ background: "#f1d19c", color: "#8a4938" }}
+            style={{
+              border: "2px solid #f5b6a8",
+              background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
+              color: "#713823",
+            }}
             aria-label={t.loading}
           >
             <Loader2 size={17} className="animate-spin" />
@@ -219,8 +261,10 @@ export default function CheckinPage() {
             disabled={claimMutation.isPending}
             className="flex h-8 w-full items-center justify-center rounded-full font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:opacity-60"
             style={{
-              background: "linear-gradient(110deg, #ff7861, #d91c16)",
-              boxShadow: "0 2px 5px rgba(142, 38, 27, .28)",
+              border: "2px solid #ff8e85",
+              background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
+              color: "#713823",
+              boxShadow: "0 3px 8px rgba(112,41,26,.22), inset 0 1px 0 rgba(255,255,255,.95)",
               fontSize: 14,
             }}
             data-testid="button-pointer"
@@ -239,7 +283,13 @@ export default function CheckinPage() {
             type="button"
             disabled
             className="flex h-8 w-full items-center justify-center rounded-full px-1 text-center"
-            style={{ background: "#f1d19c", color: "#8a4938", fontSize: 9, lineHeight: 1.1 }}
+            style={{
+              border: "2px solid #f5b6a8",
+              background: "#fff0f2",
+              color: "#713823",
+              fontSize: 9,
+              lineHeight: 1.1,
+            }}
             data-testid="button-pointer-disabled"
           >
             {t.checkinComeBack.replace("{0}", String(bonusStatus.hoursRemaining))}
@@ -252,17 +302,20 @@ export default function CheckinPage() {
         style={{ width: "92%", margin: "5px auto 0", paddingBottom: 18 }}
       >
         <div
+          className="ielp-checkin-calendar-frame relative"
           style={{
             padding: "14px 14px 16px",
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,.8)",
-            background: "linear-gradient(180deg, rgba(255,248,228,.97), rgba(255,234,181,.96))",
-            boxShadow: "0 5px 16px rgba(100, 30, 25, .15), inset 0 1px 0 #fff",
+            borderRadius: "22px 22px 34px 34px",
+            border: "5px solid #fffdf8",
+            background: "linear-gradient(180deg, #fffdf8 0%, #fff0f2 70%, #fff9f2 100%)",
+            boxShadow: "0 15px 30px rgba(66,29,17,.3), 0 3px 0 rgba(139,66,36,.38)",
           }}
         >
           <div
             className="grid"
             style={{
+              position: "relative",
+              zIndex: 2,
               gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
               gap: 8,
             }}
@@ -285,18 +338,19 @@ export default function CheckinPage() {
                     height: 101,
                     padding: "10px 2px 8px",
                     borderRadius: 11,
-                    border: "1px solid rgba(198,108,8,.20)",
-                    background: "linear-gradient(180deg, #fff8e4 0%, #fff1ca 100%)",
+                    border: "1px solid #f5b6a8",
+                    background: "linear-gradient(180deg, #fffaf8 0%, #fff0f2 100%)",
+                    boxShadow: "0 2px 4px rgba(112,41,26,.06)",
                   }}
                   data-testid={`checkin-day-${day}`}
                   data-claimed={isClaimed}
                 >
-                  <span style={{ color: "#8b5240", fontSize: 14, lineHeight: 1.1 }}>
+                  <span style={{ color: "#713823", fontSize: 14, lineHeight: 1.1 }}>
                     {displayDate}
                   </span>
                   <span
                     className="whitespace-nowrap font-medium"
-                    style={{ color: "#a9261d", fontSize: 15, lineHeight: 1.1 }}
+                    style={{ color: "#c76437", fontSize: 15, lineHeight: 1.1 }}
                   >
                     {isClaimed ? formatReward(amount, locale) : "—"}
                   </span>

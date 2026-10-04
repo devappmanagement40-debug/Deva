@@ -319,11 +319,11 @@ body.ielp-route-theme .ielp-checkin-title {
 }
 
 body.ielp-route-theme .ielp-checkin-balance {
-  color: #a9261d !important;
+  color: #c76437 !important;
 }
 
 body.ielp-route-theme .ielp-checkin-page {
-  color: #481d18 !important;
+  color: #713823 !important;
   background-color: #ff745d !important;
 }
 
@@ -334,15 +334,38 @@ body.ielp-route-theme .ielp-withdrawal-page {
 }
 
 body.ielp-route-theme .ielp-checkin-caption {
-  color: #8b5240 !important;
+  color: #713823 !important;
 }
 
 body.ielp-route-theme .ielp-checkin-calendar-label {
-  color: #333333 !important;
+  color: #713823 !important;
 }
 
 body.ielp-route-theme .ielp-checkin-rule-text {
-  color: #666666 !important;
+  color: #713823 !important;
+}
+
+body.ielp-route-theme .ielp-checkin-calendar-frame::before,
+body.ielp-route-theme .ielp-checkin-calendar-frame::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 43px;
+  bottom: 20px;
+  width: 7px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, #f6b47a 0 4px, #fff5e7 4px 8px, #e96d3c 8px 12px);
+  box-shadow: 1px 1px 2px rgba(103,39,18,.25);
+  pointer-events: none;
+}
+
+body.ielp-route-theme .ielp-checkin-calendar-frame::before {
+  left: 2px;
+}
+
+body.ielp-route-theme .ielp-checkin-calendar-frame::after {
+  right: 2px;
+  box-shadow: -1px 1px 2px rgba(103,39,18,.25);
 }
 
 body.ielp-route-theme .ielp-deposit-form-label,
