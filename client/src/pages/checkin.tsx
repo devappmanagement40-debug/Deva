@@ -425,9 +425,9 @@ export default function CheckinPage() {
                       aria-label={`${fullDateLabel}: ${claimLabel}`}
                       className="flex min-w-0 flex-col items-center justify-between"
                       style={{
-                        height: 68,
-                        padding: "5px 1px 4px",
-                        borderRadius: 8,
+                        height: 86,
+                        padding: "7px 2px 6px",
+                        borderRadius: 11,
                         border: isToday ? "2px solid #e3a23b" : "1px solid #f5b6a8",
                         background: isToday
                           ? "linear-gradient(180deg, #fff6dc 0%, #ffe7ad 100%)"
@@ -438,12 +438,12 @@ export default function CheckinPage() {
                       data-claimed={isClaimed}
                       data-today={isToday}
                     >
-                      <span style={{ color: "#713823", fontSize: "clamp(11px, 3vw, 13px)", lineHeight: 1.1 }}>
+                      <span style={{ color: "#713823", fontSize: 13, lineHeight: 1.1 }}>
                         {day}
                       </span>
                       <span
                         className="whitespace-nowrap font-medium"
-                        style={{ color: "#c76437", fontSize: "clamp(9px, 2.8vw, 11px)", lineHeight: 1.1 }}
+                        style={{ color: "#c76437", fontSize: 14, lineHeight: 1.1 }}
                       >
                         {isClaimed ? formatReward(amount, locale) : "—"}
                       </span>
@@ -451,11 +451,11 @@ export default function CheckinPage() {
                         src={checkinCoin}
                         alt=""
                         aria-hidden="true"
-                        width={18}
-                        height={18}
+                        width={24}
+                        height={24}
                         style={{
-                          width: 18,
-                          height: 18,
+                          width: 24,
+                          height: 24,
                           objectFit: "contain",
                           filter: isClaimed ? "none" : "grayscale(1) opacity(.55)",
                         }}
