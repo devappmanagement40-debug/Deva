@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight, Clock3, CreditCard, Loader2, ShieldCheck, Wifi } from "lucide-react";
 import { getContent } from "@/lib/content";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
-import "./withdrawal-popup.css";
 
 interface WalletData {
   id: number;
@@ -32,9 +32,8 @@ function formatCardNumber(accountNumber: string) {
 export default function WithdrawalPage() {
   const { user, refreshUser } = useAuth();
   const { t } = useI18n();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [feedbackPopup, setFeedbackPopup] = useState<{ title: string; description?: string } | null>(null);
-  const feedbackDialogRef = useRef<HTMLDialogElement>(null);
   const [amount, setAmount] = useState<number | "">("");
   const [transactionPin, setTransactionPin] = useState("");
   const [resetAccountPassword, setResetAccountPassword] = useState("");
@@ -45,14 +44,6 @@ export default function WithdrawalPage() {
   const [, navigate] = useLocation();
 
   const currency = "XOF";
-
-  useEffect(() => {
-    const dialog = feedbackDialogRef.current;
-    if (!dialog) return;
-
-    if (feedbackPopup && !dialog.open) dialog.showModal();
-    if (!feedbackPopup && dialog.open) dialog.close();
-  }, [feedbackPopup]);
 
   const {
     data: transactionPinStatus,
@@ -168,11 +159,11 @@ export default function WithdrawalPage() {
       setNewTransactionPin("");
       setConfirmTransactionPin("");
       setForceTransactionPinReset(false);
-      setFeedbackPopup({ title: t.withdrawalPinResetSuccess });
+      toast({ title: t.withdrawalPinResetSuccess });
       await Promise.all([refetchTransactionPinStatus(), refreshUser()]);
     },
     onError: (error: Error) => {
-      setFeedbackPopup({ title: error.message || t.errorOccurred });
+      toast({ title: error.message || t.errorOccurred, variant: "destructive" });
     },
   });
 
@@ -213,7 +204,7 @@ export default function WithdrawalPage() {
       return result;
     },
     onSuccess: (data) => {
-      setFeedbackPopup({
+      toast({
         title: data?.payoutRequiresVerification ? t.withdrawalCreated : t.withdrawalSubmitted,
         description: data?.payoutRequiresVerification
           ? t.withdrawalCreatedDesc
@@ -232,35 +223,36 @@ export default function WithdrawalPage() {
         void refetchTransactionPinStatus();
         return;
       }
-      setFeedbackPopup({
+      toast({
         title: code === "INVALID_TRANSACTION_PIN" ? t.withdrawalPinIncorrect : error.message || t.errorOccurred,
+        variant: "destructive",
       });
     },
   });
 
   const handleSubmit = () => {
     if (!withdrawalEnabled) {
-      setFeedbackPopup({ title: t.errorOccurred });
+      toast({ title: t.errorOccurred, variant: "destructive" });
       return;
     }
     if (!hasActiveProduct) {
-      setFeedbackPopup({ title: withdrawalWarningNoProduct });
+      toast({ title: withdrawalWarningNoProduct, variant: "destructive" });
       return;
     }
     if (!amount || amount < minWithdrawal) {
-      setFeedbackPopup({ title: t.invalidAmount, description: `${t.minAmountPrefix} ${minWithdrawal.toLocaleString()} ${currency}` });
+      toast({ title: t.invalidAmount, description: `${t.minAmountPrefix} ${minWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
       return;
     }
     if (amount > maxWithdrawal) {
-      setFeedbackPopup({ title: "Amount too high", description: `The maximum amount is ${maxWithdrawal.toLocaleString()} ${currency}` });
+      toast({ title: "Amount too high", description: `The maximum amount is ${maxWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
       return;
     }
     if (!selectedWallet) {
-      setFeedbackPopup({ title: "Select an account", description: "Please link a withdrawal account." });
+      toast({ title: "Select an account", description: "Please link a withdrawal account.", variant: "destructive" });
       return;
     }
     if (!transactionPin) {
-      setFeedbackPopup({ title: t.errTransactionPasswordRequired });
+      toast({ title: t.errTransactionPasswordRequired, variant: "destructive" });
       return;
     }
     withdrawMutation.mutate({
@@ -360,7 +352,7 @@ export default function WithdrawalPage() {
             onSubmit={(event) => {
               event.preventDefault();
               if (newTransactionPin !== confirmTransactionPin) {
-                setFeedbackPopup({ title: t.errPasswordMismatch });
+                toast({ title: t.errPasswordMismatch, variant: "destructive" });
                 return;
               }
               transactionPinResetMutation.mutate({
@@ -618,40 +610,6 @@ export default function WithdrawalPage() {
           ))}
         </div>
       </section>
-      <dialog
-        ref={feedbackDialogRef}
-        className="ielp-withdrawal-popup"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="ielp-withdrawal-popup-title"
-        aria-describedby={feedbackPopup?.description ? "ielp-withdrawal-popup-description" : undefined}
-        onCancel={(event) => {
-          event.preventDefault();
-          setFeedbackPopup(null);
-        }}
-        data-testid="dialog-withdrawal-feedback"
-      >
-        {feedbackPopup && (
-          <>
-            <div className="ielp-withdrawal-popup__message">
-              <h2 id="ielp-withdrawal-popup-title">{feedbackPopup.title}</h2>
-              {feedbackPopup.description && (
-                <p id="ielp-withdrawal-popup-description">{feedbackPopup.description}</p>
-              )}
-            </div>
-            <div className="ielp-withdrawal-popup__actions">
-              <button
-                type="button"
-                autoFocus
-                onClick={() => setFeedbackPopup(null)}
-                data-testid="button-close-withdrawal-feedback"
-              >
-                OK
-              </button>
-            </div>
-          </>
-        )}
-      </dialog>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-.ielp-withdrawal-popup {
+.ielp-message-popup {
   width: min(406px, calc(100vw - 56px));
   max-width: calc(100vw - 56px);
   max-height: calc(100dvh - 48px);
@@ -12,19 +12,19 @@
   box-shadow: 0 24px 70px rgba(0, 0, 0, .56);
 }
 
-.ielp-withdrawal-popup::backdrop {
+.ielp-message-popup::backdrop {
   background: rgba(4, 6, 21, .76);
   backdrop-filter: blur(2px);
 }
 
-.ielp-withdrawal-popup__message {
+.ielp-message-popup__message {
   max-height: calc(100dvh - 170px);
   overflow-y: auto;
   padding: 29px 25px 30px;
   overscroll-behavior: contain;
 }
 
-.ielp-withdrawal-popup__message h2 {
+.ielp-message-popup__message h2 {
   margin: 0;
   color: #fff;
   font-size: 16px;
@@ -33,7 +33,7 @@
   overflow-wrap: anywhere;
 }
 
-.ielp-withdrawal-popup__message p {
+.ielp-message-popup__message p {
   margin: 7px 0 0;
   color: #f2f4ff;
   font-size: 16px;
@@ -42,13 +42,17 @@
   overflow-wrap: anywhere;
 }
 
-.ielp-withdrawal-popup__actions {
+.ielp-message-popup__message .ielp-message-popup__first-description {
+  margin-top: 0;
+}
+
+.ielp-message-popup__actions {
   display: grid;
-  padding: 18px 20px 18px;
+  padding: 18px 20px;
   border-top: 1px solid rgba(173, 186, 225, .18);
 }
 
-.ielp-withdrawal-popup__actions button {
+.ielp-message-popup__actions button {
   min-height: 64px;
   border: 1px solid rgba(204, 190, 255, .76);
   border-radius: 16px;
@@ -62,23 +66,23 @@
   font-weight: 750;
 }
 
-.ielp-withdrawal-popup__actions button:focus-visible {
+.ielp-message-popup__actions button:focus-visible {
   outline: 3px solid rgba(190, 174, 255, .9);
   outline-offset: 3px;
 }
 
 @media (max-width: 380px) {
-  .ielp-withdrawal-popup {
+  .ielp-message-popup {
     width: calc(100vw - 36px);
     max-width: calc(100vw - 36px);
     border-radius: 23px;
   }
 
-  .ielp-withdrawal-popup__message {
+  .ielp-message-popup__message {
     padding: 23px 20px 24px;
   }
 
-  .ielp-withdrawal-popup__actions {
+  .ielp-message-popup__actions {
     padding: 15px 16px 16px;
   }
 }
