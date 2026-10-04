@@ -314,25 +314,17 @@ body.ielp-route-theme [data-testid^="task-item-"] .h-1 > div {
   background: var(--ielp-primary) !important;
 }
 
-body.ielp-route-theme .ielp-checkin-reward-surface {
-  background: linear-gradient(135deg, #ffb10a, #ff5b2e) !important;
-}
-
 body.ielp-route-theme .ielp-checkin-title {
-  color: #ffffff !important;
+  color: #fff6dd !important;
 }
 
 body.ielp-route-theme .ielp-checkin-balance {
-  color: #f16a1a !important;
-}
-
-body.ielp-route-theme .ielp-checkin-stat {
-  border-color: rgba(255, 145, 31, .45) !important;
+  color: #c27650 !important;
 }
 
 body.ielp-route-theme .ielp-checkin-page {
-  color: #262626 !important;
-  background-color: #f2f2f2 !important;
+  color: #2b2b2b !important;
+  background-color: #f4f4f4 !important;
   background-image: none !important;
 }
 
@@ -342,9 +334,18 @@ body.ielp-route-theme .ielp-withdrawal-page {
   background-color: #050923 !important;
 }
 
-body.ielp-route-theme .ielp-checkin-caption,
-body.ielp-route-theme .ielp-checkin-rule-text,
-body.ielp-route-theme .ielp-checkin-calendar-label,
+body.ielp-route-theme .ielp-checkin-caption {
+  color: #858585 !important;
+}
+
+body.ielp-route-theme .ielp-checkin-calendar-label {
+  color: #333333 !important;
+}
+
+body.ielp-route-theme .ielp-checkin-rule-text {
+  color: #666666 !important;
+}
+
 body.ielp-route-theme .ielp-deposit-form-label,
 body.ielp-route-theme .ielp-withdrawal-muted,
 body.ielp-route-theme .ielp-service-label,
