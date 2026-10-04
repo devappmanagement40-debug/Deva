@@ -90,7 +90,22 @@ export default function CheckinPage() {
 
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const days = Array.from({ length: daysInMonth }, (_, index) => index + 1);
+  const language = lang.toLowerCase();
+  const firstDayOfWeek = language.startsWith("ar") ? 6 : language.startsWith("en") ? 0 : 1;
+  const leadingDays = (new Date(now.getFullYear(), now.getMonth(), 1).getDay() - firstDayOfWeek + 7) % 7;
+  const calendarCellCount = Math.ceil((leadingDays + daysInMonth) / 7) * 7;
+  const calendarDays = Array.from({ length: calendarCellCount }, (_, index) => {
+    const day = index - leadingDays + 1;
+    return day > 0 && day <= daysInMonth ? day : null;
+  });
+  const calendarWeeks = Array.from({ length: calendarCellCount / 7 }, (_, index) =>
+    calendarDays.slice(index * 7, (index + 1) * 7),
+  );
+  const weekdayLabels = Array.from({ length: 7 }, (_, index) => {
+    const weekdayIndex = (firstDayOfWeek + index) % 7;
+    return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(2024, 0, 7 + weekdayIndex));
+  });
+  const calendarMonthLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(now);
   const headerTitle = t.checkinHeading;
   const streakLabel = getContent(settings, "content_checkin_streakLabel", "Jours de connexion");
   const totalLabel = getContent(settings, "content_checkin_totalLabel", "Profit capturé");
@@ -217,11 +232,10 @@ export default function CheckinPage() {
         className="ielp-checkin-stat grid items-center"
         style={{
           width: "92%",
-          height: 76,
           margin: "9px auto 0",
-          padding: "6px 9px",
-          gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1.15fr) 64px",
-          gap: 4,
+          padding: "10px 12px",
+          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+          gap: 8,
           border: "4px solid #fffdf8",
           borderRadius: 20,
           background: "#fff0f2",
@@ -262,8 +276,9 @@ export default function CheckinPage() {
           <button
             type="button"
             disabled
-            className="flex h-8 w-full items-center justify-center rounded-full text-white"
+            className="flex h-10 w-full items-center justify-center rounded-full text-white"
             style={{
+              gridColumn: "1 / -1",
               border: "2px solid #f5b6a8",
               background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
               color: "#713823",
@@ -277,8 +292,9 @@ export default function CheckinPage() {
             type="button"
             onClick={() => claimMutation.mutate()}
             disabled={claimMutation.isPending}
-            className="flex h-8 w-full items-center justify-center rounded-full font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:opacity-60"
+            className="flex h-10 w-full items-center justify-center rounded-full font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:opacity-60"
             style={{
+              gridColumn: "1 / -1",
               border: "2px solid #ff8e85",
               background: "linear-gradient(180deg, #fff7dc 0%, #ffe0a0 100%)",
               color: "#713823",
@@ -290,8 +306,6 @@ export default function CheckinPage() {
           >
             {claimMutation.isPending ? (
               <Loader2 size={17} className="animate-spin" />
-            ) : isFrench ? (
-              "Se"
             ) : (
               t.checkinBtn
             )}
@@ -300,13 +314,14 @@ export default function CheckinPage() {
           <button
             type="button"
             disabled
-            className="flex h-8 w-full items-center justify-center rounded-full px-1 text-center"
+            className="flex h-10 w-full items-center justify-center rounded-full px-2 text-center"
             style={{
+              gridColumn: "1 / -1",
               border: "2px solid #f5b6a8",
               background: "#fff0f2",
               color: "#713823",
-              fontSize: 9,
-              lineHeight: 1.1,
+              fontSize: 12,
+              lineHeight: 1.15,
             }}
             data-testid="button-pointer-disabled"
           >
@@ -329,65 +344,111 @@ export default function CheckinPage() {
             boxShadow: "0 15px 30px rgba(66,29,17,.3), 0 3px 0 rgba(139,66,36,.38)",
           }}
         >
+          <h2
+            className="m-0 mb-2 text-center font-semibold"
+            style={{ color: "#713823", fontSize: 15, lineHeight: 1.2, textTransform: "capitalize" }}
+          >
+            {calendarMonthLabel}
+          </h2>
           <div
             className="grid"
             style={{
               position: "relative",
               zIndex: 2,
-              gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-              gap: 7,
+              gap: 5,
             }}
-            role="list"
-            aria-label={t.checkinCalendarTitle}
+            role="grid"
+            aria-label={`${calendarMonthLabel}: ${t.checkinCalendarTitle}`}
           >
-            {days.map((day) => {
-              const dayDate = new Date(now.getFullYear(), now.getMonth(), day);
-              const amount = checkinsByDay.get(dateKey(dayDate));
-              const isClaimed = amount !== undefined;
-              const displayDate = `${String(dayDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-
-              return (
+            <div
+              className="grid"
+              role="row"
+              style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4 }}
+            >
+              {weekdayLabels.map((label, index) => (
                 <div
-                  key={day}
-                  role="listitem"
-                  aria-label={`${displayDate}: ${isClaimed ? `${t.checkinDayClaimed}, ${formatReward(amount, locale)} ${currency}` : t.checkinDayNotClaimed}`}
-                  className="flex min-w-0 flex-col items-center justify-between"
-                  style={{
-                    height: 86,
-                    padding: "7px 2px 6px",
-                    borderRadius: 11,
-                    border: "1px solid #f5b6a8",
-                    background: "linear-gradient(180deg, #fffaf8 0%, #fff0f2 100%)",
-                    boxShadow: "0 2px 4px rgba(112,41,26,.06)",
-                  }}
-                  data-testid={`checkin-day-${day}`}
-                  data-claimed={isClaimed}
+                  key={`${label}-${index}`}
+                  role="columnheader"
+                  className="text-center font-semibold"
+                  style={{ color: "#713823", fontSize: 10, lineHeight: "16px", textTransform: "capitalize" }}
                 >
-                  <span style={{ color: "#713823", fontSize: 13, lineHeight: 1.1 }}>
-                    {displayDate}
-                  </span>
-                  <span
-                    className="whitespace-nowrap font-medium"
-                    style={{ color: "#c76437", fontSize: 14, lineHeight: 1.1 }}
-                  >
-                    {isClaimed ? formatReward(amount, locale) : "—"}
-                  </span>
-                  <img
-                    src={checkinCoin}
-                    alt=""
-                    aria-hidden="true"
-                    width={24}
-                    height={24}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      objectFit: "contain",
-                      filter: isClaimed ? "none" : "grayscale(1) opacity(.55)",
-                    }}
-                  />
+                  {label}
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            {calendarWeeks.map((week, weekIndex) => (
+              <div
+                key={`week-${weekIndex}`}
+                className="grid"
+                role="row"
+                style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: 4 }}
+              >
+                {week.map((day, columnIndex) => {
+                  if (day === null) {
+                    return <div key={`empty-${weekIndex}-${columnIndex}`} role="gridcell" aria-hidden="true" />;
+                  }
+
+                  const dayDate = new Date(now.getFullYear(), now.getMonth(), day);
+                  const amount = checkinsByDay.get(dateKey(dayDate));
+                  const isClaimed = amount !== undefined;
+                  const isToday = day === now.getDate();
+                  const fullDateLabel = new Intl.DateTimeFormat(locale, {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  }).format(dayDate);
+                  const claimLabel = isClaimed
+                    ? `${t.checkinDayClaimed}, ${formatReward(amount, locale)} ${currency}`
+                    : t.checkinDayNotClaimed;
+
+                  return (
+                    <div
+                      key={day}
+                      role="gridcell"
+                      aria-label={`${fullDateLabel}: ${claimLabel}`}
+                      className="flex min-w-0 flex-col items-center justify-between"
+                      style={{
+                        height: 68,
+                        padding: "5px 1px 4px",
+                        borderRadius: 8,
+                        border: isToday ? "2px solid #e3a23b" : "1px solid #f5b6a8",
+                        background: isToday
+                          ? "linear-gradient(180deg, #fff6dc 0%, #ffe7ad 100%)"
+                          : "linear-gradient(180deg, #fffaf8 0%, #fff0f2 100%)",
+                        boxShadow: "0 2px 4px rgba(112,41,26,.06)",
+                      }}
+                      data-testid={`checkin-day-${day}`}
+                      data-claimed={isClaimed}
+                      data-today={isToday}
+                    >
+                      <span style={{ color: "#713823", fontSize: "clamp(11px, 3vw, 13px)", lineHeight: 1.1 }}>
+                        {day}
+                      </span>
+                      <span
+                        className="whitespace-nowrap font-medium"
+                        style={{ color: "#c76437", fontSize: "clamp(9px, 2.8vw, 11px)", lineHeight: 1.1 }}
+                      >
+                        {isClaimed ? formatReward(amount, locale) : "—"}
+                      </span>
+                      <img
+                        src={checkinCoin}
+                        alt=""
+                        aria-hidden="true"
+                        width={18}
+                        height={18}
+                        style={{
+                          width: 18,
+                          height: 18,
+                          objectFit: "contain",
+                          filter: isClaimed ? "none" : "grayscale(1) opacity(.55)",
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
           </div>
         </div>
       </section>
