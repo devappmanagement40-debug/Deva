@@ -649,3 +649,13 @@ body.ielp-route-theme .ielp-deposit-main__channel-error {
 body.ielp-route-theme .ielp-deposit-main__channel-error {
   color: #ff9ba5;
 }
+
+/* Keep the deposit screen visually fixed while its buttons are pressed. */
+body.ielp-route-theme .ielp-deposit-page button {
+  transition: none !important;
+}
+
+body.ielp-route-theme .ielp-deposit-page button:active:not(:disabled) {
+  transform: none !important;
+  opacity: 1 !important;
+}

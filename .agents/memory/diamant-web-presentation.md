@@ -9,6 +9,14 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 **How to apply:** Keep page scrolling inside the viewport frame, anchor each page's top header, and preserve the member navigation's fixed bottom placement with safe-area support. Keep the Products page header and category tabs stationary while only its product list scrolls. Avoid fixed-background effects, scroll-time card transforms, or heavy backdrop filters on scrolling pages. Keep the wheel and check-in floaters on the home page only, alongside the support-avatar button. Preserve existing page palettes and payment-flow scroll behavior.
 
+## Stable deposit interactions
+
+Keep the deposit page visually stationary when buttons are tapped; do not scale or translate its controls during press animations.
+
+**Why:** the user explicitly said the deposit page should not move or bounce when tapped.
+
+**How to apply:** Scope no-transform press behavior to deposit-page buttons so other app interactions remain unchanged.
+
 ## Home product carousel and information cards
 
 The homepage uses horizontal product cards followed by vertically stacked Information article cards with an image, title, and excerpt. Admin-selected paid products appear in selection order, up to four; when no selection exists, show up to four active paid products by sort order. Popular-product cards open the Products page directly; do not show a “View all” link. Display all popular-product numeric text, including the return-percentage badge, in violet. Do not show the “Invite Friends” promotional card at the bottom; Wheel and Check-in remain floating shortcuts on the homepage only.
