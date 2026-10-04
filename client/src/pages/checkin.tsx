@@ -299,12 +299,12 @@ export default function CheckinPage() {
 
       <section
         className="ielp-checkin-calendar"
-        style={{ width: "92%", margin: "5px auto 0", paddingBottom: 18 }}
+        style={{ width: "92%", margin: "5px auto 0", paddingBottom: 12 }}
       >
         <div
           className="ielp-checkin-calendar-frame relative"
           style={{
-            padding: "14px 14px 16px",
+            padding: "12px 12px 13px",
             borderRadius: "22px 22px 34px 34px",
             border: "5px solid #fffdf8",
             background: "linear-gradient(180deg, #fffdf8 0%, #fff0f2 70%, #fff9f2 100%)",
@@ -317,7 +317,7 @@ export default function CheckinPage() {
               position: "relative",
               zIndex: 2,
               gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-              gap: 8,
+              gap: 7,
             }}
             role="list"
             aria-label={t.checkinCalendarTitle}
@@ -335,8 +335,8 @@ export default function CheckinPage() {
                   aria-label={`${displayDate}: ${isClaimed ? `${t.checkinDayClaimed}, ${formatReward(amount, locale)} ${currency}` : t.checkinDayNotClaimed}`}
                   className="flex min-w-0 flex-col items-center justify-between"
                   style={{
-                    height: 101,
-                    padding: "10px 2px 8px",
+                    height: 86,
+                    padding: "7px 2px 6px",
                     borderRadius: 11,
                     border: "1px solid #f5b6a8",
                     background: "linear-gradient(180deg, #fffaf8 0%, #fff0f2 100%)",
@@ -345,12 +345,12 @@ export default function CheckinPage() {
                   data-testid={`checkin-day-${day}`}
                   data-claimed={isClaimed}
                 >
-                  <span style={{ color: "#713823", fontSize: 14, lineHeight: 1.1 }}>
+                  <span style={{ color: "#713823", fontSize: 13, lineHeight: 1.1 }}>
                     {displayDate}
                   </span>
                   <span
                     className="whitespace-nowrap font-medium"
-                    style={{ color: "#c76437", fontSize: 15, lineHeight: 1.1 }}
+                    style={{ color: "#c76437", fontSize: 14, lineHeight: 1.1 }}
                   >
                     {isClaimed ? formatReward(amount, locale) : "—"}
                   </span>
@@ -358,11 +358,11 @@ export default function CheckinPage() {
                     src={checkinCoin}
                     alt=""
                     aria-hidden="true"
-                    width={28}
-                    height={28}
+                    width={24}
+                    height={24}
                     style={{
-                      width: 28,
-                      height: 28,
+                      width: 24,
+                      height: 24,
                       objectFit: "contain",
                       filter: isClaimed ? "none" : "grayscale(1) opacity(.55)",
                     }}
