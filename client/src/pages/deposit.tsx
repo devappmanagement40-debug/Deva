@@ -128,7 +128,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [payerName, setPayerName] = useState(user?.fullName || "");
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
   const [mobileTransactionId, setMobileTransactionId] = useState("");
-  const [copiedField, setCopiedField] = useState<"address" | "memo" | "memberId" | null>(null);
+  const [copiedField, setCopiedField] = useState<"amount" | "address" | "memo" | null>(null);
 
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
@@ -346,7 +346,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     return () => window.clearTimeout(timeout);
   }, [copiedField]);
 
-  const copyText = async (value: string, field: "address" | "memo" | "memberId") => {
+  const copyText = async (value: string, field: "amount" | "address" | "memo") => {
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -368,7 +368,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           ? t.depositCopiedToast
           : field === "memo"
             ? "Mémo copié"
-            : "ID membre copié",
+            : "Montant copié",
       });
     } catch {
       toast({ title: t.depositCopyFail, variant: "destructive" });
@@ -385,9 +385,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     void copyText(cryptoPayment.payinExtraId, "memo");
   };
 
-  const copyMemberId = () => {
-    if (!user) return;
-    void copyText(String(user.referralCode || user.id), "memberId");
+  const copyPaymentAmount = () => {
+    if (!cryptoPayment) return;
+    void copyText(String(cryptoPayment.payAmount), "amount");
   };
 
   const openMobileMoney = (countryCode?: string) => {
@@ -480,11 +480,23 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <section className="mt-4 overflow-hidden rounded-[22px] border border-[#dcebe0] bg-white shadow-[0_10px_28px_rgba(0,70,30,.08)]">
             <div className="border-b border-[#e5efe7] bg-[#f8fcf9] px-5 py-4">
               <div className="flex items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-[12px] font-medium uppercase tracking-[0.12em] text-[#698173]">{t.depositExactAmount}</p>
-                  <p className="mt-1 text-[26px] font-bold tracking-tight text-[#087a38]">
-                    {Number(cryptoPayment.payAmount).toLocaleString(undefined, { maximumFractionDigits: 8 })} <span className="text-[16px]">{selectedCurrencyLabel}</span>
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <p className="text-[26px] font-bold tracking-tight text-[#087a38]">
+                      {Number(cryptoPayment.payAmount).toLocaleString(undefined, { maximumFractionDigits: 8 })} <span className="text-[16px]">{selectedCurrencyLabel}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={copyPaymentAmount}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#eaf7ee] text-[#087a38] transition hover:bg-[#d9f0df] active:scale-95"
+                      aria-label="Copier le montant à payer"
+                      title="Copier le montant à payer"
+                      data-testid="button-copy-crypto-amount"
+                    >
+                      {copiedField === "amount" ? <Check size={16} /> : <Copy size={16} />}
+                    </button>
+                  </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#e4f6e9] px-3 py-1.5 text-[12px] font-semibold text-[#087a38]">
                   <ShieldCheck size={15} />
@@ -505,16 +517,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                     <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#698173]">Scannez pour payer</p>
                     <p className="mt-1 text-[13px] text-[#66746b]">Scannez ce code QR avec votre portefeuille.</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={copyMemberId}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eaf7ee] text-[#087a38] transition hover:bg-[#d9f0df] active:scale-95"
-                    aria-label="Copier mon ID membre"
-                    title="Copier mon ID membre"
-                    data-testid="button-copy-member-id-deposit"
-                  >
-                    {copiedField === "memberId" ? <Check size={17} /> : <Copy size={17} />}
-                  </button>
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eaf7ee] text-[#087a38]">
+                    <WalletCards size={18} />
+                  </div>
                 </div>
                 <div className="ielp-qr-code-surface mx-auto mt-4 flex h-[190px] w-[190px] items-center justify-center rounded-[18px] border border-[#e0ebe2] bg-white p-3 shadow-[0_4px_14px_rgba(0,70,30,.06)]">
                   <img src={cryptoPayment.qrCode} alt="Code QR de paiement" className="h-full w-full rounded-[8px]" />

@@ -2206,6 +2206,8 @@ const DEPOSIT_PAGE_STATIC_TRANSLATIONS: StaticTranslationRow[] = [
   ["Retour à l’accueil", "Back to home", "العودة إلى الرئيسية", "返回首页"],
   ["Historique des dépôts", "Deposit history", "سجل الإيداعات", "充值记录"],
   ["Capture de paiement sélectionnée", "Selected payment screenshot", "لقطة الدفع المحددة", "已选付款截图"],
+  ["Copier le montant à payer", "Copy payment amount", "نسخ مبلغ الدفع", "复制应付金额"],
+  ["Montant copié", "Amount copied", "تم نسخ المبلغ", "金额已复制"],
 ];
 DEPOSIT_PAGE_STATIC_TRANSLATIONS.forEach((row) => row.forEach((value) => STATIC_UI_LOOKUP.set(value, row)));
 
