@@ -35,11 +35,19 @@ Preserve the prior palettes of existing home cards, including the account/balanc
 
 ## Account-banner photo sourcing
 
-The DIAMANT account banner uses the four mining photographs supplied by the user. Do not restore the former profile/team photos there. Preserve the supplied photos and display their full natural aspect ratios without cropping.
+The homepage's top-banner fallback uses the four mining photos supplied by the user. Keep admin-configured banner images as the priority, and do not move these photos into the account profile carousel.
 
-**Why:** The user asked to replace the former banner images with the four supplied mining photos and remove the old images from the banner code.
+**Why:** The user clarified that the mining photos belong on the homepage banner while the account carousel should remain unchanged.
 
-**How to apply:** Keep the four supplied mining photos in the account banner, preserve their aspect ratios, and do not reintroduce the previous team-photo imports or carousel entries.
+**How to apply:** Keep the four mining-photo imports in the homepage fallback only; preserve the existing account profile photos and carousel layout.
+
+## Account-banner photo sourcing
+
+The DIAMANT profile carousel uses the user's real team photos; do not reintroduce the previously generated 3D diamond posters there unless the user asks. Preserve supplied photos as photographs and keep their original files unchanged.
+
+**Why:** The user explicitly changed the profile-carousel direction to use the real uploaded team images and remove the 3D posters.
+
+**How to apply:** Use optimized copies for the profile carousel, retain the source uploads, and preserve each photo's natural aspect ratio so people or groups are not cropped. Track any separately requested promotional artwork independently from this carousel.
 
 ## Profile VIP card
 

@@ -24,9 +24,10 @@ import type { Product } from "@shared/schema";
 import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import { resolveInfoArticles } from "@/data/diamant-info-articles";
-import productsHero from "@assets/generated_images/diamant-home-products-hero.jpg";
-import chargingHero from "@assets/generated_images/diamant-charging-station-hero.jpg";
-import scooterHero from "@assets/generated_images/diamant-scooter.jpg";
+import miningExcavatorPhoto from "@assets/compress_actuality_teaser_1623317774_1791124161647.jpg";
+import miningTrucksPhoto from "@assets/shutterstock_1257632146-1024x683_1791124161721.jpg";
+import undergroundMinerPhoto from "@assets/Top-10-Mining-Companies-in-Africa_1791124161785.jpg";
+import undergroundWorkPhoto from "@assets/Mines-travaux-770x470_1791124161825.jpg";
 
 type IncomeSummary = {
   productEarnings?: number | string;
@@ -177,7 +178,12 @@ const COPY: Record<Lang, HomeCopy> = {
   },
 };
 
-const FALLBACK_BANNERS = [productsHero, chargingHero, scooterHero];
+const FALLBACK_BANNERS = [
+  miningExcavatorPhoto,
+  miningTrucksPhoto,
+  undergroundMinerPhoto,
+  undergroundWorkPhoto,
+];
 const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
