@@ -439,10 +439,13 @@ export default function WithdrawalPage() {
               onClick={() => navigate("/wallet?from=withdrawal")}
               className="ielp-withdrawal-card relative mt-[16px] block w-full overflow-hidden text-left transition-transform active:scale-[.98]"
               style={{
+                width: "88%",
+                marginLeft: "auto",
+                marginRight: "auto",
                 aspectRatio: "1.586 / 1",
-                minHeight: 196,
+                minHeight: 184,
                 borderRadius: 18,
-                padding: "20px 22px 18px",
+                padding: "16px 18px 14px",
                 color: "#ffffff",
                 background: "linear-gradient(135deg, #063d2b 0%, #087a38 48%, #00c853 100%)",
                 boxShadow: "0 12px 24px rgba(0, 91, 44, .28)",
@@ -460,15 +463,15 @@ export default function WithdrawalPage() {
               />
               <div className="relative flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <CreditCard size={27} strokeWidth={1.6} />
-                  <span className="text-[16px] font-semibold tracking-[.08em]">DIAMANT</span>
+                  <CreditCard size={24} strokeWidth={1.6} />
+                  <span className="text-[15px] font-semibold tracking-[.08em]">DIAMANT</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck size={18} strokeWidth={1.6} className="opacity-80" />
                   <span className="text-[12px] font-semibold tracking-[.12em] opacity-90">XOF</span>
                 </div>
               </div>
-              <div className="relative mt-5 flex items-center gap-4">
+              <div className="relative mt-4 flex items-center gap-4">
                 <div
                   className="h-[32px] w-[43px] rounded-[6px]"
                   style={{
@@ -482,13 +485,13 @@ export default function WithdrawalPage() {
                 </div>
                 <Wifi size={23} strokeWidth={2} className="rotate-90 opacity-80" aria-hidden="true" />
               </div>
-              <p className="relative mt-4 truncate text-[18px] font-medium tracking-[.12em]">
+              <p className="relative mt-3 truncate text-[16px] font-medium tracking-[.12em]">
                 {formatCardNumber(selectedWallet.accountNumber)}
               </p>
-              <div className="relative mt-3 flex items-end justify-between gap-3">
+              <div className="relative mt-2 flex items-end justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[9px] uppercase tracking-[.18em] opacity-70">Titulaire</p>
-                  <p className="truncate text-[13px] font-semibold uppercase tracking-[.08em]">{selectedWallet.accountName}</p>
+                  <p className="truncate text-[12px] font-semibold uppercase tracking-[.08em]">{selectedWallet.accountName}</p>
                 </div>
                 <div className="shrink-0 text-right">
                   <p className="text-[9px] uppercase tracking-[.18em] opacity-70">Réseau</p>
