@@ -988,43 +988,10 @@ export async function registerRoutes(
 
   app.get("/api/deposit-countries", requireAuth, async (_req, res) => {
     try {
-      const [countries, channels, paymentNumbers] = await Promise.all([
-        storage.getActiveCountries(),
-        storage.getDepositChannels(),
-        storage.getPaymentNumbers(),
-      ]);
-      const manualCountries = new Map(
-        countries
-          .filter((country) => !country.autoPaymentEnabled)
-          .map((country) => [country.code.trim().toUpperCase(), country]),
-      );
-      const activeChannelsById = new Map(
-        channels.filter((channel) => channel.isActive).map((channel) => [channel.id, channel]),
-      );
-      const availableCountryCodes = new Set<string>();
-
-      for (const number of paymentNumbers) {
-        if (!number.isActive) continue;
-        const countryCode = number.country.trim().toUpperCase();
-        if (!manualCountries.has(countryCode)) continue;
-
-        if (!number.channelId) {
-          availableCountryCodes.add(countryCode);
-          continue;
-        }
-
-        const channel = activeChannelsById.get(number.channelId);
-        if (channel?.country.trim().toUpperCase() === countryCode) {
-          availableCountryCodes.add(countryCode);
-        }
-      }
-
+      const countries = await storage.getActiveCountries();
       res.json(
         countries
-          .filter((country) =>
-            !country.autoPaymentEnabled
-            && availableCountryCodes.has(country.code.trim().toUpperCase()),
-          )
+          .filter((country) => !country.autoPaymentEnabled)
           .map(({ code, name }) => ({ code, name })),
       );
     } catch (error: any) {
