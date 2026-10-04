@@ -108,7 +108,7 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[80]" onMouseDown={close}>
+        <div className="fixed inset-0 z-[80] bg-black/50" onMouseDown={close}>
           <div
             ref={panelRef}
             role="menu"
@@ -131,20 +131,21 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
                 first.focus();
               }
             }}
-            className="absolute w-[min(250px,calc(100vw-24px))] overflow-hidden border border-[#dfe8e2] bg-white shadow-[0_12px_30px_rgba(0,0,0,.18)] outline-none"
+            className="absolute w-[min(250px,calc(100vw-24px))] overflow-hidden border-[2px] border-[#111] bg-[#f9fafb] font-sans text-[#354e5c] shadow-[0_12px_30px_rgba(0,0,0,.35)] outline-none"
             style={{
               top: variant === "home" ? 56 : 62,
               right: "max(12px, calc((100vw - 480px) / 2 + 16px))",
               borderRadius: 14,
               maxHeight: "calc(100vh - 76px)",
+              fontFamily: "Arial, Roboto, sans-serif",
             }}
           >
-            <div className="flex h-[54px] items-center justify-between border-b border-[#e5e7eb] px-4">
-              <div className="flex items-center gap-2 text-[#202124]">
-                <Globe2 size={21} color="#087a38" />
-                <span className="text-[18px] font-medium">{t.languageLabel}</span>
+            <div className="flex h-[54px] items-center justify-between border-b-2 border-[#111] bg-[#f9fafb] px-4">
+              <div className="flex items-center gap-2 text-[#354e5c]">
+                <Globe2 size={21} color="#5d6064" />
+                <span className="text-[18px] font-normal">{t.languageLabel}</span>
               </div>
-              <button type="button" onClick={close} className="flex h-8 w-8 items-center justify-center rounded-full text-[#5f6368] hover:bg-[#f1f7f3]" aria-label={t.cancel}>
+              <button type="button" onClick={close} className="flex h-8 w-8 items-center justify-center rounded-full text-[#5d6064] hover:bg-[#eeeeee]" aria-label={t.cancel}>
                 <X size={20} />
               </button>
             </div>
@@ -161,17 +162,24 @@ export function LanguagePicker({ global = false, variant = "default" }: Language
                       setLang(language.code as Lang);
                       close();
                     }}
-                    className="flex h-[58px] w-full items-center justify-between px-4 text-left"
-                    style={{ borderBottom: index < LANGUAGES.length - 1 ? "1px solid #eceff1" : "none" }}
+                    className="flex h-[58px] w-full items-center justify-between px-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#222] focus-visible:outline-offset-[-2px]"
+                    style={{
+                      borderBottom: index < LANGUAGES.length - 1 ? "1px solid #d1d5db" : "none",
+                      background: isSelected ? "#eeeeee" : "transparent",
+                      color: "#354e5c",
+                      fontFamily: "Arial, Roboto, sans-serif",
+                      fontSize: 18,
+                      fontWeight: 400,
+                    }}
                     data-testid={`language-option-${language.code}`}
                   >
                     <span className="flex items-center gap-3">
                       <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center text-[23px] leading-none">
                         {language.flag}
                       </span>
-                      <span className="text-[17px] font-medium text-[#202124]">{language.nativeName}</span>
+                      <span className="text-[18px] font-normal text-[#354e5c]">{language.nativeName}</span>
                     </span>
-                    {isSelected && <Check size={22} strokeWidth={2.7} color="#087a38" aria-label={`${language.nativeName} ${selectedLabel}`} />}
+                    {isSelected && <Check size={22} strokeWidth={2.7} color="#666" aria-label={`${language.nativeName} ${selectedLabel}`} />}
                   </button>
                 );
               })}
