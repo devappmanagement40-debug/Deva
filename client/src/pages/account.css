@@ -485,7 +485,7 @@
   white-space: nowrap;
 }
 
-.ielp-account-balance-breakdown {
+.ielp-account-balance-values {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
@@ -496,20 +496,20 @@
   background: rgba(6, 20, 51, .28);
 }
 
-.ielp-account-balance-breakdown > div {
+.ielp-account-balance-values > div {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 4px;
 }
 
-.ielp-account-balance-breakdown span {
+.ielp-account-balance-values span {
   color: rgba(226, 232, 255, .72);
   font-size: 11px;
   line-height: 1.25;
 }
 
-.ielp-account-balance-breakdown strong {
+.ielp-account-balance-values strong {
   color: #fff;
   font-size: 13px;
   font-weight: 700;

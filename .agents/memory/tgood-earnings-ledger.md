@@ -9,8 +9,8 @@ User gains must credit `totalEarnings`, including product earnings, referral com
 
 **How to apply:** New reward or gain transactions should update `totalEarnings` and refresh the authenticated user state after success. Keep the signup bonus on `balance`; do not treat it as withdrawable earnings.
 
-On the profile, the displayed combined balance is the sum of the deposit balance and earnings balance, with both components shown separately. The combined display does not make deposited funds withdrawable.
+On the profile, show the deposit balance and withdrawable earnings as two separate amounts; do not calculate or display a combined total.
 
-**Why:** The user asked for the profile balance to include both deposit and withdrawal balances together while the underlying withdrawal rule remains earnings-only.
+**Why:** The user clarified that the existing profile balance area should show both amounts separately, not add them into a new total.
 
-**How to apply:** Keep the combined number presentational; withdrawal eligibility and payouts must continue to use only the earnings balance.
+**How to apply:** Keep the profile display separate from transaction rules; withdrawal eligibility and payouts continue to use only the earnings balance.

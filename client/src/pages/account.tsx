@@ -307,7 +307,6 @@ export default function AccountPage() {
   const copy = COPY[lang];
   const depositBalance = Number.isFinite(Number(user?.balance)) ? Number(user?.balance) : 0;
   const withdrawableBalance = Number.isFinite(Number(user?.totalEarnings)) ? Number(user?.totalEarnings) : 0;
-  const combinedBalance = depositBalance + withdrawableBalance;
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [adminPin, setAdminPin] = useState("");
@@ -517,9 +516,8 @@ export default function AccountPage() {
           <section className="ielp-account-balance-card" aria-label={copy.balance}>
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
-              <strong data-testid="account-combined-balance">{combinedBalance.toLocaleString()} FCFA</strong>
             </div>
-            <div className="ielp-account-balance-breakdown">
+            <div className="ielp-account-balance-values">
               <div data-testid="account-deposit-balance">
                 <span>{copy.depositBalance}</span>
                 <strong>{depositBalance.toLocaleString()} FCFA</strong>
