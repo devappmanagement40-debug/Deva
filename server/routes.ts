@@ -2041,7 +2041,11 @@ export async function registerRoutes(
       const canClaim = hoursSinceClaim >= 24;
       const hoursRemaining = canClaim ? 0 : Math.ceil(24 - hoursSinceClaim);
       const transactions = await storage.getUserTransactions(user.id);
-      const bonusTransactions = transactions.filter((transaction) => transaction.type === "bonus");
+      const bonusTransactions = transactions.filter(
+        (transaction) =>
+          transaction.type === "bonus" &&
+          transaction.description.trim().toLowerCase().startsWith("pointage quotidien"),
+      );
       const totalBonusClaimed = bonusTransactions.reduce(
         (total, transaction) => total + (parseFloat(transaction.amount) || 0),
         0,
@@ -2052,6 +2056,10 @@ export async function registerRoutes(
         hoursRemaining,
         totalBonusClaimed: Number(totalBonusClaimed.toFixed(2)),
         daysPointed: bonusTransactions.length,
+        checkinHistory: bonusTransactions.map((transaction) => ({
+          claimedAt: transaction.createdAt.toISOString(),
+          amount: Number(transaction.amount),
+        })),
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message });

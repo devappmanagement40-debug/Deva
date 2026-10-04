@@ -376,6 +376,12 @@ export type Translations = {
   // checkin
   checkinBtn: string;
   checkinComeBack: string;
+  checkinHeading: string;
+  checkinCalendarTitle: string;
+  checkinPreviousMonth: string;
+  checkinNextMonth: string;
+  checkinDayClaimed: string;
+  checkinDayNotClaimed: string;
   // account
   pinMinLength: string;
   // about modal
@@ -1003,6 +1009,12 @@ const fr: Translations = {
     withdrawalSubmitting: "Envoi en cours...",
     checkinBtn:         "Pointer",
     checkinComeBack:    "Revenez dans {0} heures",
+    checkinHeading: "Connexion quotidienne",
+    checkinCalendarTitle: "Calendrier du mois",
+    checkinPreviousMonth: "Mois précédent",
+    checkinNextMonth: "Mois suivant",
+    checkinDayClaimed: "Pointage validé",
+    checkinDayNotClaimed: "Aucun pointage",
     pinMinLength:       "Entrez au moins 4 caractères pour le PIN",
     aboutTitle:         "À propos de DIAMANT",
     aboutDesc1:         "DIAMANT est une entreprise technologique engagée dans les solutions énergétiques et les infrastructures électriques intelligentes.",
@@ -1339,6 +1351,12 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     depositLabel: "Deposit",
     checkinBtn: "Check in",
     checkinComeBack: "Come back in {0} hours",
+    checkinHeading: "Daily check-in",
+    checkinCalendarTitle: "Monthly calendar",
+    checkinPreviousMonth: "Previous month",
+    checkinNextMonth: "Next month",
+    checkinDayClaimed: "Check-in completed",
+    checkinDayNotClaimed: "No check-in",
     withdrawalCreated: "Withdrawal created",
     withdrawalSubmitted: "Request submitted",
     withdrawalCreatedDesc: "Your withdrawal request has been submitted and is being processed.",
@@ -1406,6 +1424,12 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     depositLabel: "إيداع",
     checkinBtn: "تسجيل الحضور",
     checkinComeBack: "ارجع بعد {0} ساعة",
+    checkinHeading: "تسجيل الحضور اليومي",
+    checkinCalendarTitle: "تقويم الشهر",
+    checkinPreviousMonth: "الشهر السابق",
+    checkinNextMonth: "الشهر التالي",
+    checkinDayClaimed: "تم تسجيل الحضور",
+    checkinDayNotClaimed: "لم يتم التسجيل",
     withdrawalCreated: "تم إنشاء السحب",
     withdrawalSubmitted: "تم إرسال الطلب",
     withdrawalCreatedDesc: "تم إرسال طلب السحب الخاص بك وهو قيد المعالجة.",
@@ -1480,6 +1504,12 @@ const TRANSLATION_OVERRIDES: Record<Exclude<Lang, "fr">, Partial<Translations>> 
     depositLabel: "充值",
     checkinBtn: "签到",
     checkinComeBack: "{0} 小时后再来",
+    checkinHeading: "每日签到",
+    checkinCalendarTitle: "本月日历",
+    checkinPreviousMonth: "上个月",
+    checkinNextMonth: "下个月",
+    checkinDayClaimed: "已签到",
+    checkinDayNotClaimed: "未签到",
     withdrawalCreated: "提现已创建",
     withdrawalSubmitted: "申请已提交",
     withdrawalCreatedDesc: "您的提现申请已提交，正在处理中。",
@@ -1816,7 +1846,7 @@ function translateLegacyFrenchToEnglish(source: string) {
 const en: Translations = Object.fromEntries(
   Object.entries(fr).map(([key, value]) => [
     key,
-    ENGLISH_TRANSLATIONS[key as keyof Translations] ??
+    (ENGLISH_TRANSLATIONS as unknown as Partial<Translations>)[key as keyof Translations] ??
       TRANSLATION_OVERRIDES.en[key as keyof Translations] ??
       translateLegacyFrenchToEnglish(value),
   ]),
