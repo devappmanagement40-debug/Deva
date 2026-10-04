@@ -75,7 +75,6 @@ import RulesPage from "@/pages/rules";
 import GiftCodePage from "@/pages/gift-code";
 import TeamDetailsPage from "@/pages/team-details";
 import MembersPage from "@/pages/members";
-import MyProductsPage from "@/pages/my-products";
 import EarningsPage from "@/pages/earnings";
 import CheckinPage from "@/pages/checkin";
 import WithdrawalHistoryPage from "@/pages/withdrawal-history";
@@ -308,11 +307,7 @@ function RouterComponent() {
         </ProtectedRoute>
       </Route>
       <Route path="/my-products">
-        <ProtectedRoute>
-          <AppLayout>
-            <MyProductsPage />
-          </AppLayout>
-        </ProtectedRoute>
+        <Redirect to="/orders" />
       </Route>
       <Route path="/earnings">
         <ProtectedRoute>

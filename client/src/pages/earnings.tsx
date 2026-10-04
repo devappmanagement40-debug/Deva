@@ -111,7 +111,7 @@ export default function EarningsPage() {
         <div className="flex flex-1 items-center justify-center">
           <DiamantBrand variant="on-dark" markSize={24} className="text-[12px]" />
         </div>
-        <Link href="/my-products" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: MEMBER_ACCENT, fontSize: 19 }}>
+        <Link href="/orders" className="ielp-member-products-link w-[142px] text-center font-medium active:opacity-60" style={{ color: MEMBER_ACCENT, fontSize: 19 }}>
           {t.myProductsTitle}
         </Link>
       </header>
