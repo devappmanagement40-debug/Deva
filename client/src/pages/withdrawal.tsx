@@ -269,7 +269,7 @@ export default function WithdrawalPage() {
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="absolute left-[4%] top-[7.5%] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#173d2e] shadow-md transition active:scale-95"
+          className="absolute left-[4%] top-[7.5%] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#653de9] shadow-md transition active:scale-95"
           aria-label="Retour au compte"
           data-testid="button-withdrawal-back"
         >

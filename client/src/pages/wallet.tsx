@@ -212,7 +212,7 @@ export default function WalletPage() {
           <button
             type="button"
             onClick={() => showForm ? resetForm() : navigate(backLink)}
-            className="flex h-10 w-10 items-center justify-center text-[#163d2a] active:scale-95"
+            className="flex h-10 w-10 items-center justify-center text-[#653de9] active:scale-95"
             aria-label="Retour"
             data-testid={showForm ? "button-back-form" : "button-back"}
           >
