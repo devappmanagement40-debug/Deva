@@ -9,9 +9,11 @@ import {
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
+import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
 const COUNTRY_BOOTSTRAP_MIGRATION_KEY = "__migration_country_bootstrap_v1";
+const COUNTRY_WITHDRAWAL_OPERATOR_POLICY_MIGRATION_KEY = "__migration_country_withdrawal_operator_policy_v1";
 
 async function migrateReferralCodes(): Promise<number> {
   return db.transaction(async (tx) => {
@@ -224,7 +226,7 @@ export async function seed() {
       name: "Côte d’Ivoire",
       currency: "USDT",
       phonePrefix: "225",
-      operators: JSON.stringify(["Wave"]),
+      operators: JSON.stringify(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.CI),
       isActive: true,
       autoPaymentEnabled: false,
     },
@@ -233,7 +235,7 @@ export async function seed() {
       name: "Togo",
       currency: "USDT",
       phonePrefix: "228",
-      operators: JSON.stringify(["Togocel", "Moov"]),
+      operators: JSON.stringify(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.TG),
       isActive: true,
       autoPaymentEnabled: false,
     },
@@ -257,6 +259,33 @@ export async function seed() {
   });
   if (!countryBootstrapClaimed) {
     console.log("Country bootstrap already completed or country settings already exist");
+  }
+
+  // Withdrawal operator settings are stored separately from deposit channels
+  // and receiving numbers. Apply this country-specific policy once to existing
+  // rows, then leave future administrator edits untouched.
+  const withdrawalOperatorPolicyMigrated = await db.transaction(async (tx) => {
+    const [claim] = await tx.insert(platformSettings)
+      .values({ key: COUNTRY_WITHDRAWAL_OPERATOR_POLICY_MIGRATION_KEY, value: "complete" })
+      .onConflictDoNothing()
+      .returning({ id: platformSettings.id });
+    if (!claim) return false;
+
+    for (const [code, operators] of Object.entries(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY)) {
+      const [country] = await tx.select({ id: countries.id })
+        .from(countries)
+        .where(eq(countries.code, code))
+        .limit(1);
+      if (!country) continue;
+
+      await tx.update(countries)
+        .set({ operators: JSON.stringify(operators) })
+        .where(eq(countries.id, country.id));
+    }
+    return true;
+  });
+  if (withdrawalOperatorPolicyMigrated) {
+    console.log("Country withdrawal operators configured: CI=Wave; TG=TMoney, Moov");
   }
 
   // Remove obsolete configuration and content fields from the previous rules page.

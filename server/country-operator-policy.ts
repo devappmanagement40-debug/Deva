@@ -1,3 +1,8 @@
+export const DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY = {
+  CI: ["Wave"],
+  TG: ["TMoney", "Moov"],
+} as const;
+
 export function parseCountryOperators(value: unknown): string[] {
   if (typeof value !== "string") return [];
 

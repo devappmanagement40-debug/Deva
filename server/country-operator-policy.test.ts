@@ -1,10 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY,
   parseCountryOperators,
   resolveCountryOperator,
   serializeCountryOperators,
 } from "./country-operator-policy";
+
+test("withdrawal operator defaults match the configured CI and TG payout methods", () => {
+  assert.deepEqual(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.CI, ["Wave"]);
+  assert.deepEqual(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.TG, ["TMoney", "Moov"]);
+});
 
 test("parses, trims, and deduplicates country operator names", () => {
   assert.deepEqual(
@@ -19,7 +25,7 @@ test("fails closed for invalid country operator configuration", () => {
 });
 
 test("resolves an operator case-insensitively to its configured display name", () => {
-  const operators = '["Wave", "Togocel", "Moov"]';
+  const operators = '["Wave", "TMoney", "Moov"]';
   assert.equal(resolveCountryOperator(operators, "mOoV"), "Moov");
   assert.equal(resolveCountryOperator(operators, "Orange"), undefined);
 });
