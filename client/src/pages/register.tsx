@@ -7,12 +7,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
-import { FALLBACK_COUNTRIES, fetchPublicCountries, type ApiCountry } from "@/lib/countries";
 import { CountrySelector } from "@/components/country-selector";
-import { DEFAULT_COUNTRY_CODE, WORLD_COUNTRIES } from "@/lib/world-countries";
 import { useI18n } from "@/lib/i18n";
 import { setAppLoading } from "@/components/navigation-loader";
 import { AuthScene } from "@/components/auth-scene";
+import {
+  AUTH_COUNTRIES,
+  DEFAULT_AUTH_COUNTRY_CODE,
+  isAuthCountryCode,
+} from "@shared/auth-countries";
 
 interface CaptchaResponse {
   image: string;
@@ -40,7 +43,7 @@ export default function RegisterPage() {
 
   const registerSchema = z.object({
     phone: z.string().min(8, t.errInvalidPhone),
-    country: z.string().min(2, t.selectCountry),
+    country: z.string().refine(isAuthCountryCode, t.selectCountry),
     password: z.string().min(6, t.errMinPassword),
     confirmPassword: z.string().min(1, t.errConfirmPassword),
     transactionPassword: z.string().min(1, t.errTransactionPasswordRequired),
@@ -60,18 +63,13 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       phone: "",
-      country: DEFAULT_COUNTRY_CODE,
+      country: DEFAULT_AUTH_COUNTRY_CODE,
       password: "",
       confirmPassword: "",
       transactionPassword: "",
       invitationCode: refCode,
       captchaCode: "",
     },
-  });
-  const { data: apiCountries = [] } = useQuery<ApiCountry[]>({
-    queryKey: ["/api/countries"],
-    queryFn: fetchPublicCountries,
-    retry: false,
   });
   const { data: captcha, refetch: refreshCaptcha } = useQuery<CaptchaResponse>({
     queryKey: ["/api/auth/captcha"],
@@ -84,9 +82,8 @@ export default function RegisterPage() {
     refetchOnWindowFocus: false,
   });
   const selectedCountry = form.watch("country");
-  const countryData = apiCountries.find(country => country.code === selectedCountry && country.isActive)
-    ?? WORLD_COUNTRIES.find(country => country.code === selectedCountry)
-    ?? FALLBACK_COUNTRIES.find(country => country.code === selectedCountry);
+  const countryData = AUTH_COUNTRIES.find(country => country.code === selectedCountry)
+    ?? AUTH_COUNTRIES[0];
   const countryLocale = lang === "zh" ? "zh-CN" : lang === "ar" ? "ar" : lang === "en" ? "en-US" : "fr-FR";
   const countryName = countryData?.code && typeof Intl.DisplayNames === "function"
     ? new Intl.DisplayNames([countryLocale], { type: "region" }).of(countryData.code)
@@ -126,12 +123,12 @@ export default function RegisterPage() {
             type="button"
             onClick={() => setCountryModalOpen(true)}
             className="auth-country-trigger"
-            aria-label={`${t.selectCountry}: ${countryName || countryData?.name || "United States"}, +${countryData?.phonePrefix || "1"}`}
+            aria-label={`${t.selectCountry}: ${countryName || countryData.name}, +${countryData.phonePrefix}`}
             aria-haspopup="dialog"
             aria-expanded={countryModalOpen}
             data-testid="button-select-country"
           >
-            +{countryData?.phonePrefix || "1"}
+            +{countryData.phonePrefix}
           </button>
           <input
             {...form.register("phone")}
@@ -249,7 +246,6 @@ export default function RegisterPage() {
         onClose={() => setCountryModalOpen(false)}
         onSelect={code => form.setValue("country", code, { shouldValidate: true })}
         selectedCode={selectedCountry}
-        apiCountries={apiCountries}
         triggerRef={countryTriggerRef}
       />
     </AuthScene>

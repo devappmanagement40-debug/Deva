@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { CheckCircle2, Search } from "lucide-react";
-import { WORLD_COUNTRIES } from "@/lib/world-countries";
 import { useI18n } from "@/lib/i18n";
+import { AUTH_COUNTRIES, type AuthCountryCode } from "@shared/auth-countries";
 
 interface CountrySelectorProps {
   open: boolean;
   onClose: () => void;
-  onSelect: (countryCode: string) => void;
-  selectedCode?: string;
-  apiCountries?: { code: string; name: string; phonePrefix: string; isActive: boolean }[];
+  onSelect: (countryCode: AuthCountryCode) => void;
+  selectedCode?: AuthCountryCode;
   triggerRef?: RefObject<HTMLButtonElement | null>;
 }
 
@@ -17,7 +16,6 @@ export function CountrySelector({
   onClose,
   onSelect,
   selectedCode,
-  apiCountries,
   triggerRef,
 }: CountrySelectorProps) {
   const { lang, t } = useI18n();
@@ -55,25 +53,17 @@ export function CountrySelector({
   }, [open, onClose, triggerRef]);
 
   const sourceList = useMemo(() => {
-    const apiByCode = new Map((apiCountries || []).map((country) => [country.code, country]));
     const locale = lang === "zh" ? "zh-CN" : lang === "ar" ? "ar" : lang === "en" ? "en-US" : "fr-FR";
     const displayNames = typeof Intl.DisplayNames === "function"
       ? new Intl.DisplayNames([locale], { type: "region" })
       : null;
 
-    return WORLD_COUNTRIES
-      .map((country) => ({
+    return AUTH_COUNTRIES.map((country) => ({
         ...country,
-        sourceName: apiByCode.get(country.code)?.name || country.name,
-        name: displayNames?.of(country.code) || apiByCode.get(country.code)?.name || country.name,
-      }))
-      .sort((a, b) => {
-        const aUsesPlusOne = a.phonePrefix === "1";
-        const bUsesPlusOne = b.phonePrefix === "1";
-        if (aUsesPlusOne !== bUsesPlusOne) return aUsesPlusOne ? -1 : 1;
-        return a.name.localeCompare(b.name, locale, { sensitivity: "base" });
-      });
-  }, [apiCountries, lang]);
+        sourceName: country.name,
+        name: displayNames?.of(country.code) || country.name,
+      }));
+  }, [lang]);
 
   const normalizedSearch = search
     .trim()
