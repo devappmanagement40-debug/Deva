@@ -14,6 +14,8 @@ import bnbIcon from "@/assets/crypto/bnb.png";
 
 const CURRENCY = "XOF";
 const ACCENT_GREEN = "#32c95b";
+const DEPOSIT_BACK_BUTTON_CLASS =
+  "flex items-center justify-center rounded-full bg-[#8000ff] text-white shadow-sm transition hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8000ff] focus-visible:ring-offset-2";
 const DEFAULT_DEPOSIT_AMOUNTS = [3500, 5000, 7000, 10000, 15000, 20000, 50000, 70000];
 
 function parseDepositPresetAmounts(value: string | undefined): number[] {
@@ -451,7 +453,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <button
             type="button"
             onClick={() => setView("main")}
-            className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
+            className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
             aria-label="Back to currency selection"
             data-testid="button-crypto-payment-back"
           >
@@ -577,7 +579,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           <button
             type="button"
             onClick={() => setView("main")}
-            className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
+            className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
             aria-label="Back to deposit amount"
             data-testid="button-currency-back"
           >
@@ -691,7 +693,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               setSelectedOperator(null);
               setView("main");
             }}
-            className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-white/10 active:scale-95"
+            className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
             aria-label="Back to deposit methods"
             data-testid="button-mobile-money-back"
           >
@@ -856,7 +858,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         <header className="flex h-[116px] items-center gap-3 bg-white px-5">
           <button
             onClick={leaveIssueForm}
-            className="flex h-10 w-8 items-center justify-center active:scale-95"
+            className={`${DEPOSIT_BACK_BUTTON_CLASS} h-10 w-10`}
             aria-label="Retour"
             data-testid="button-issue-back"
           >
@@ -1002,7 +1004,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         <Link href="/">
           <button
             type="button"
-            className="ielp-deposit-main__header-button flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
+            className={`${DEPOSIT_BACK_BUTTON_CLASS} h-11 w-11`}
             aria-label="Back to home"
             data-testid="button-deposit-back"
           >
