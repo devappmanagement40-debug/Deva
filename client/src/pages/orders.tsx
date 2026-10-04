@@ -131,9 +131,11 @@ export default function OrdersPage() {
                         <p className="text-gray-600">
                           {t.ordersCycleLbl}：<span className="text-gray-800 font-medium">{up.product?.cycleDays || 0} {t.ordersDaysLbl}</span>
                         </p>
-                        <p className="text-gray-600">
-                          {t.ordersRemainingLbl}：<span className="text-[#2196F3] font-medium">{up.daysRemaining || 0}</span>
-                        </p>
+                        {productIsActive && (
+                          <p className="text-gray-600">
+                            {t.ordersRemainingLbl}：<span className="text-[#2196F3] font-medium">{up.daysRemaining || 0}</span>
+                          </p>
+                        )}
                         <p className="text-gray-600">
                           {t.ordersTotalEarnedLbl}：<span className="text-gray-600 font-bold">{totalEarned.toLocaleString()} XOF</span>
                         </p>

@@ -3121,9 +3121,18 @@ export async function registerRoutes(
           await storage.logAdminAction(req.session.userId!, "assign_product", userId, `Produit ${value} attribué`);
           break;
         case "revoke-product":
-          return res.status(409).json({
-            message: "Un achat enregistré ne peut pas être révoqué. Désactivez le produit du catalogue pour arrêter les nouvelles ventes.",
-          });
+          if (!Number.isSafeInteger(value) || value <= 0) {
+            return res.status(400).json({ message: "Identifiant d'achat invalide" });
+          }
+          if (await storage.revokeUserProduct(userId, value)) {
+            await storage.logAdminAction(
+              req.session.userId!,
+              "revoke_product",
+              userId,
+              `Achat ${value} révoqué par l'administration`,
+            );
+          }
+          break;
         case "toggle-super-admin":
           if (!adminUser?.isSuperAdmin) {
             return res.status(403).json({ message: "Action réservée au super admin" });

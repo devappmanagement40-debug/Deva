@@ -189,8 +189,15 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      if (variables.action === "revoke-product") {
+        toast({
+          title: "Produit révoqué",
+          description: "L’achat apparaît maintenant dans les produits terminés.",
+        });
+        return;
+      }
       toast({ title: "Utilisateur mis a jour!" });
       setSelectedUser(null);
     },
@@ -644,7 +651,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <div>
                   <label className="text-sm font-medium">Achats de l’utilisateur</label>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Les achats enregistrés restent conservés et ne peuvent pas être révoqués.
+                    Révoquer arrête les gains futurs et classe l’achat dans les produits terminés. L’historique d’achat est conservé.
                   </p>
                   <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
                     {userProductsLoading ? (
@@ -652,13 +659,37 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     ) : userProducts && userProducts.length > 0 ? (
                       userProducts.map((up) => (
                         <div key={up.id} className={`flex items-center justify-between p-2 rounded-lg ${up.isActive ? "bg-black/10 border border-gray-500/20" : "bg-secondary"}`}>
-                          <div>
-                            <p className="text-sm font-medium">{up.productName}</p>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium break-words">{up.productName}</p>
                             <p className="text-xs text-muted-foreground">
                               {up.productPrice.toLocaleString()} XOF - Jour {up.daysClaimed}/{up.totalCycle}
                               {up.isActive ? " (Actif)" : " (Termine)"}
                             </p>
                           </div>
+                          {up.isActive && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="ml-2 shrink-0 px-2"
+                              disabled={updateMutation.isPending}
+                              data-testid={`button-revoke-product-${up.id}`}
+                              onClick={() => {
+                                const confirmed = window.confirm(
+                                  `Révoquer ${up.productName} ? Le cycle s’arrêtera, les jours complets déjà écoulés seront pris en compte, et le produit passera dans les produits terminés. Aucun gain futur ne sera généré.`,
+                                );
+                                if (confirmed) {
+                                  updateMutation.mutate({
+                                    userId: selectedUser.id,
+                                    action: "revoke-product",
+                                    value: up.id,
+                                  });
+                                }
+                              }}
+                            >
+                              <Ban className="mr-1 h-3.5 w-3.5" />
+                              Révoquer
+                            </Button>
+                          )}
                         </div>
                       ))
                     ) : (

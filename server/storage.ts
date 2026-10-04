@@ -108,6 +108,7 @@ export interface IStorage {
   getAllUserProducts(userId: number): Promise<{ userProduct: UserProduct; product: Product }[]>;
   purchaseProduct(userId: number, productId: number, assignedByAdmin?: boolean): Promise<UserProduct>;
   updateUserProduct(id: number, data: Partial<UserProduct>): Promise<UserProduct>;
+  revokeUserProduct(userId: number, userProductId: number): Promise<boolean>;
   processEarnings(): Promise<void>;
   
   // Deposits
@@ -650,6 +651,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userProducts.id, id))
       .returning();
     return updated;
+  }
+
+  async revokeUserProduct(userId: number, userProductId: number): Promise<boolean> {
+    // Credit any full 24-hour periods already elapsed before stopping the cycle.
+    await this.processEarningsForUser(userId);
+
+    return db.transaction(async (tx) => {
+      const [purchase] = await tx.select()
+        .from(userProducts)
+        .where(and(
+          eq(userProducts.id, userProductId),
+          eq(userProducts.userId, userId),
+        ))
+        .for("update");
+
+      if (!purchase) throw new Error("Achat introuvable pour cet utilisateur");
+      if (!purchase.isActive) return false;
+
+      await tx.update(userProducts)
+        .set({ isActive: false })
+        .where(eq(userProducts.id, userProductId));
+
+      const [otherActiveProduct] = await tx.select({ id: userProducts.id })
+        .from(userProducts)
+        .where(and(
+          eq(userProducts.userId, userId),
+          eq(userProducts.isActive, true),
+        ))
+        .limit(1);
+
+      await tx.update(users)
+        .set({ hasActiveProduct: Boolean(otherActiveProduct) })
+        .where(eq(users.id, userId));
+
+      return true;
+    });
   }
 
   async processReferralCommissions(userId: number, amount: number, productId: number): Promise<void> {
