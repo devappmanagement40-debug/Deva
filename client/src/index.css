@@ -800,6 +800,10 @@ ol[data-radix-toast-viewport] li * {
   background: transparent;
 }
 
+.ielp-home-page > .ielp-home-shell {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
 .ielp-home-header {
   position: sticky;
   top: 0;

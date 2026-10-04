@@ -42,9 +42,18 @@ export default function RegisterPage() {
     phone: z.string().min(8, t.errInvalidPhone),
     country: z.string().min(2, t.selectCountry),
     password: z.string().min(6, t.errMinPassword),
+    confirmPassword: z.string().min(1, t.errConfirmPassword),
     transactionPassword: z.string().min(1, t.errTransactionPasswordRequired),
     invitationCode: z.string().optional(),
     captchaCode: z.string().trim().min(1, t.authCaptchaRequired),
+  }).superRefine((data, context) => {
+    if (data.confirmPassword && data.password !== data.confirmPassword) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: t.errPasswordMismatch,
+      });
+    }
   });
   type RegisterForm = z.infer<typeof registerSchema>;
   const form = useForm<RegisterForm>({
@@ -53,6 +62,7 @@ export default function RegisterPage() {
       phone: "",
       country: DEFAULT_COUNTRY_CODE,
       password: "",
+      confirmPassword: "",
       transactionPassword: "",
       invitationCode: refCode,
       captchaCode: "",
@@ -158,6 +168,18 @@ export default function RegisterPage() {
 
         <div className="auth-input">
           <input
+            {...form.register("confirmPassword")}
+            type="password"
+            autoComplete="new-password"
+            aria-label={t.repeatPassword}
+            placeholder={t.repeatPassword}
+            data-testid="input-confirm-password"
+          />
+        </div>
+        {form.formState.errors.confirmPassword && <p className="auth-form-error" role="alert">{form.formState.errors.confirmPassword.message}</p>}
+
+        <div className="auth-input">
+          <input
             {...form.register("transactionPassword")}
             type={showPin ? "text" : "password"}
             autoComplete="new-password"
@@ -222,10 +244,6 @@ export default function RegisterPage() {
           {t.loginBtn}
         </button>
       </div>
-      <button type="button" className="auth-home-link" onClick={() => navigate("/")}>
-        {t.authHome}
-      </button>
-
       <CountrySelector
         open={countryModalOpen}
         onClose={() => setCountryModalOpen(false)}

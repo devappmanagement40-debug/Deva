@@ -161,10 +161,6 @@ export default function LoginPage() {
           {t.registerBtn}
         </button>
       </div>
-      <button type="button" className="auth-home-link" onClick={() => navigate("/")}>
-        {t.authHome}
-      </button>
-
       <CountrySelector
         open={countryModalOpen}
         onClose={() => setCountryModalOpen(false)}
