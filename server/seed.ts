@@ -206,8 +206,9 @@ export async function seed() {
     console.log(`${migratedReferralCodes} referral code(s) migrated; legacy aliases preserved`);
   }
 
-  // Seed/update the only supported country: RDC
-  const requiredCountries = [
+  // Seed country defaults without deleting other countries or overwriting
+  // administrator-managed operator settings.
+  const countryDefaults = [
     {
       code: "CD",
       name: "République démocratique du Congo",
@@ -217,32 +218,33 @@ export async function seed() {
       isActive: true,
       autoPaymentEnabled: true,
     },
+    {
+      code: "CI",
+      name: "Côte d’Ivoire",
+      currency: "USDT",
+      phonePrefix: "225",
+      operators: JSON.stringify(["Wave"]),
+      isActive: true,
+      autoPaymentEnabled: false,
+    },
+    {
+      code: "TG",
+      name: "Togo",
+      currency: "USDT",
+      phonePrefix: "228",
+      operators: JSON.stringify(["Togocel", "Moov"]),
+      isActive: true,
+      autoPaymentEnabled: false,
+    },
   ];
 
-  // Remove old countries no longer in the list (e.g. Tchad/Niger, discontinued)
-  const activeCodes = requiredCountries.map(c => c.code);
-  const allCountries = await db.select().from(countries);
-  for (const c of allCountries) {
-    if (!activeCodes.includes(c.code)) {
-      await db.delete(countries).where(eq(countries.code, c.code));
-      console.log(`Country removed: ${c.name}`);
-    }
-  }
-
-  for (const countryData of requiredCountries) {
+  for (const countryData of countryDefaults) {
     const existing = await db.select().from(countries).where(eq(countries.code, countryData.code));
     if (existing.length === 0) {
       await db.insert(countries).values(countryData);
       console.log(`Country added: ${countryData.name}`);
     } else {
-      await db.update(countries).set({
-        name: countryData.name,
-        currency: countryData.currency,
-        phonePrefix: countryData.phonePrefix,
-        operators: countryData.operators,
-        isActive: countryData.isActive,
-      }).where(eq(countries.code, countryData.code));
-      console.log(`Country updated: ${countryData.name}`);
+      console.log(`Country preserved: ${countryData.name}`);
     }
   }
 

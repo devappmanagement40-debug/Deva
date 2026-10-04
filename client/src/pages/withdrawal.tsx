@@ -109,11 +109,35 @@ export default function WithdrawalPage() {
     queryKey: ["/api/wallets"],
     refetchOnWindowFocus: true,
   });
+  const { data: activeMobileMoneyOperators = [] } = useQuery<string[]>({
+    queryKey: ["/api/countries", user?.country, "operators", "mobile-money"],
+    queryFn: async () => {
+      if (!user?.country) return [];
+      const response = await fetch(
+        `/api/countries/${encodeURIComponent(user.country)}/operators?type=mobile-money`,
+        { credentials: "include", cache: "no-store" },
+      );
+      if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
+      const values: unknown = await response.json();
+      return Array.isArray(values)
+        ? Array.from(new Set(values
+            .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+            .map((value) => value.trim())))
+        : [];
+    },
+    enabled: Boolean(user?.country),
+  });
   const withdrawalWallets = useMemo(
-    () => wallets.filter((wallet) =>
-      wallet.paymentMethod === "USDT BEP20" || wallet.paymentMethod.startsWith("Mobile Money - "),
-    ),
-    [wallets],
+    () => wallets.filter((wallet) => {
+      if (wallet.paymentMethod === "USDT BEP20") return true;
+      if (!wallet.paymentMethod.startsWith("Mobile Money - ")) return false;
+      if (wallet.country.trim().toUpperCase() !== user?.country?.trim().toUpperCase()) return false;
+      const operatorName = wallet.paymentMethod.slice("Mobile Money - ".length).trim();
+      return activeMobileMoneyOperators.some(
+        (operator) => operator.toLowerCase() === operatorName.toLowerCase(),
+      );
+    }),
+    [wallets, activeMobileMoneyOperators, user?.country],
   );
 
   const { data: userProducts = [] } = useQuery<UserProduct[]>({

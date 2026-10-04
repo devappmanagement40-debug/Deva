@@ -21,6 +21,7 @@ import {
   withdrawalProofReviewSchema,
   withdrawalProofSubmissionSchema,
 } from "./withdrawal-proof-validation";
+import { parseCountryOperators, resolveCountryOperator } from "./country-operator-policy";
 
 /**
  * Résout les paramètres WestPay.
@@ -1928,6 +1929,20 @@ export async function registerRoutes(
       if (!isUsdtBep20 && !isMobileMoney) {
         return res.status(400).json({ message: "Sélectionnez un moyen de retrait Mobile Money ou USDT BEP20 valide." });
       }
+      if (isMobileMoney) {
+        const userCountry = String(user.country || "").trim().toUpperCase();
+        const walletCountry = String(wallet.country || "").trim().toUpperCase();
+        const operatorName = wallet.paymentMethod.slice("Mobile Money - ".length).trim();
+        const activeCountry = (await storage.getActiveCountries()).find(
+          (country) => country.code.trim().toUpperCase() === userCountry,
+        );
+        if (
+          walletCountry !== userCountry
+          || !resolveCountryOperator(activeCountry?.operators, operatorName)
+        ) {
+          return res.status(400).json({ message: "Cet opérateur Mobile Money n'est pas actif pour votre pays." });
+        }
+      }
 
       const todayCount = await storage.getUserWithdrawalCountToday(user.id);
       const maxPerDay = parseInt(settingsForWithdrawal.maxWithdrawalsPerDay || "1");
@@ -2097,21 +2112,14 @@ export async function registerRoutes(
           return res.status(400).json({ message: "Numéro Mobile Money invalide." });
         }
 
-        const configuredOperators = await storage.getPaymentNumbersByCountry(userCountry);
-        const activeOperators = await Promise.all(configuredOperators.map(async (operator) => {
-          if (!operator.channelId) return operator;
-          const channel = await storage.getDepositChannel(operator.channelId);
-          return channel?.isActive && channel.country.toUpperCase() === userCountry.toUpperCase()
-            ? operator
-            : null;
-        }));
-        const selectedOperator = activeOperators.find((operator) =>
-          operator !== null && operator.operatorName.trim().toLowerCase() === selectedNetwork.toLowerCase()
+        const activeCountry = (await storage.getActiveCountries()).find(
+          (country) => country.code.trim().toUpperCase() === userCountry.toUpperCase(),
         );
+        const selectedOperator = resolveCountryOperator(activeCountry?.operators, selectedNetwork);
         if (!selectedOperator) {
           return res.status(400).json({ message: "Cet opérateur Mobile Money n'est pas actif pour votre pays." });
         }
-        resolvedPaymentMethod = `Mobile Money - ${selectedOperator.operatorName.trim()}`;
+        resolvedPaymentMethod = `Mobile Money - ${selectedOperator}`;
       } else {
         return res.status(400).json({ message: "Choisissez Mobile Money ou USDT comme type de retrait." });
       }
@@ -3872,19 +3880,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Type de retrait invalide." });
       }
 
-      const configuredOperators = await storage.getPaymentNumbersByCountry(user.country);
-      const activeOperators = await Promise.all(configuredOperators.map(async (operator) => {
-        if (!operator.channelId) return operator;
-        const channel = await storage.getDepositChannel(operator.channelId);
-        return channel?.isActive && channel.country.toUpperCase() === user.country.toUpperCase()
-          ? operator
-          : null;
-      }));
-      const names = Array.from(new Set(activeOperators
-        .filter((operator) => operator !== null)
-        .map((operator) => operator.operatorName.trim())
-        .filter(Boolean)));
-      res.json(names);
+      res.json(parseCountryOperators(country.operators));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -3906,8 +3902,8 @@ export async function registerRoutes(
       if (!code || !name || !phonePrefix) {
         return res.status(400).json({ message: "Code, nom, devise et indicatif sont requis" });
       }
-      if (String(code).toUpperCase() !== "CD") {
-        return res.status(400).json({ message: "Seule la République démocratique du Congo est disponible." });
+      if (!["CD", "CI", "TG"].includes(String(code).trim().toUpperCase())) {
+        return res.status(400).json({ message: "Seuls CD, CI et TG sont disponibles." });
       }
       const country = await storage.createCountry({
         code: code.toUpperCase(),
