@@ -8,6 +8,7 @@ import { localeForLang, useI18n } from "@/lib/i18n";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import checkinHeroArt from "@assets/generated_images/diamant-checkin-wheel-hero-visible-512.png";
+import checkinHeroBanner from "@assets/file_00000000feb08210a3d5f9f7e15417b6_1791113696843.png";
 import checkinCoin from "@assets/generated_images/diamant-checkin-wheel-coin-128.png";
 import wheelBackground from "@assets/generated_images/spin-wheel-palace-bg-optimized.jpg";
 
@@ -114,7 +115,7 @@ export default function CheckinPage() {
       <header
         className="ielp-checkin-hero relative w-full overflow-hidden"
         style={{
-          aspectRatio: "576 / 310",
+          aspectRatio: isFrench ? "2.14 / 1" : "576 / 310",
           border: "5px solid #ffd2a5",
           borderBottom: "7px solid #ffe3c8",
           borderRadius: "0 0 34px 34px",
@@ -122,51 +123,66 @@ export default function CheckinPage() {
           boxShadow: "0 5px 14px rgba(66,29,17,.24)",
         }}
       >
-        <img
-          src={checkinHeroArt}
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-          className="absolute"
-          style={{
-            zIndex: 1,
-            right: "-2%",
-            bottom: "-11%",
-            width: "56%",
-            height: "94%",
-            objectFit: "contain",
-            objectPosition: "center bottom",
-            filter: "drop-shadow(0 6px 8px rgba(87,30,18,.28))",
-            pointerEvents: "none",
-          }}
-        />
+        {isFrench ? (
+          <img
+            src={checkinHeroBanner}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className="absolute inset-0 h-full w-full"
+            style={{ zIndex: 1, objectFit: "cover", objectPosition: "center", pointerEvents: "none" }}
+          />
+        ) : (
+          <img
+            src={checkinHeroArt}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className="absolute"
+            style={{
+              zIndex: 1,
+              right: "-2%",
+              bottom: "-11%",
+              width: "56%",
+              height: "94%",
+              objectFit: "contain",
+              objectPosition: "center bottom",
+              filter: "drop-shadow(0 6px 8px rgba(87,30,18,.28))",
+              pointerEvents: "none",
+            }}
+          />
+        )}
         <h1
-          className="ielp-checkin-title absolute font-semibold"
-          style={{
-            zIndex: 2,
-            left: "19%",
-            top: "5%",
-            margin: 0,
-            maxWidth: "58%",
-            color: "#fffdf8",
-            fontSize: "clamp(16px, 5vw, 24px)",
-            lineHeight: 1.2,
-            whiteSpace: "nowrap",
-            textShadow: "0 2px 5px rgba(97,37,19,.5)",
-          }}
+          className={isFrench ? "sr-only" : "ielp-checkin-title absolute font-semibold"}
+          style={isFrench ? undefined : {
+              zIndex: 2,
+              left: "19%",
+              top: "5%",
+              margin: 0,
+              maxWidth: "58%",
+              color: "#fffdf8",
+              fontSize: "clamp(16px, 5vw, 24px)",
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
+              textShadow: "0 2px 5px rgba(97,37,19,.5)",
+            }}
         >
           {headerTitle}
         </h1>
+        {isFrench && (
+          <p className="sr-only">Connecte-toi chaque jour et gagne des récompenses !</p>
+        )}
 
         <Link href="/account">
           <button
             type="button"
             className="absolute flex items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             style={{
-              left: "3.5%",
-              top: "8%",
-              width: "11%",
-              height: "20%",
+              left: isFrench ? "2%" : "3.5%",
+              top: isFrench ? undefined : "8%",
+              bottom: isFrench ? "7%" : undefined,
+              width: isFrench ? 30 : "11%",
+              height: isFrench ? 30 : "20%",
               zIndex: 3,
               color: "#fff7db",
               background: "rgba(97,37,19,.25)",
@@ -176,23 +192,25 @@ export default function CheckinPage() {
             data-testid="button-back"
             aria-label={t.back}
           >
-            <ChevronLeft size={23} strokeWidth={2.2} />
+            <ChevronLeft size={isFrench ? 19 : 23} strokeWidth={2.2} />
           </button>
         </Link>
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            zIndex: 2,
-            left: "12%",
-            right: "12%",
-            bottom: 1,
-            height: 14,
-            borderBottom: "4px solid #ffe9d7",
-            borderRadius: "0 0 50% 50%",
-            pointerEvents: "none",
-          }}
-        />
+        {!isFrench && (
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              zIndex: 2,
+              left: "12%",
+              right: "12%",
+              bottom: 1,
+              height: 14,
+              borderBottom: "4px solid #ffe9d7",
+              borderRadius: "0 0 50% 50%",
+              pointerEvents: "none",
+            }}
+          />
+        )}
       </header>
 
       <section
