@@ -126,20 +126,6 @@
   color: #122044;
 }
 
-.diamant-invest-owned-badge {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 7px;
-  border: 1px solid #9583e8;
-  border-radius: 8px;
-  color: #35227f;
-  background: #e9e4ff;
-  font-size: 10px;
-  font-weight: 800;
-}
-
 .diamant-invest-product-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;

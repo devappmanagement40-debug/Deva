@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Check, CircleHelp, Loader2, MessageSquare, RefreshCw } from "lucide-react";
+import { AlertTriangle, CircleHelp, Loader2, MessageSquare, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -15,11 +15,6 @@ import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import "./products.css";
 
-interface ProductWithOwnership extends Product {
-  isOwned: boolean;
-  ownedCount?: number;
-}
-
 const PRODUCT_TAB_TYPES = ["stability", "wellness", "activity"] as const;
 
 const INVEST_COPY: Record<Lang, {
@@ -30,7 +25,6 @@ const INVEST_COPY: Record<Lang, {
   term: string;
   priceLabel: string;
   total: string;
-  owned: string;
   investNow: string;
   soldOut: string;
   unavailable: string;
@@ -51,7 +45,6 @@ const INVEST_COPY: Record<Lang, {
     term: "Jours de revenu",
     priceLabel: "Prix",
     total: "Revenu total",
-    owned: "Possédés",
     investNow: "Acheter",
     soldOut: "Épuisé",
     unavailable: "Bientôt disponible",
@@ -72,7 +65,6 @@ const INVEST_COPY: Record<Lang, {
     term: "Revenue days",
     priceLabel: "Price",
     total: "Total revenue",
-    owned: "Owned",
     investNow: "Buy",
     soldOut: "Sold out",
     unavailable: "Unavailable",
@@ -93,7 +85,6 @@ const INVEST_COPY: Record<Lang, {
     term: "أيام الربح",
     priceLabel: "السعر",
     total: "إجمالي العائد",
-    owned: "مملوك",
     investNow: "شراء",
     soldOut: "نفد المخزون",
     unavailable: "غير متاح",
@@ -114,7 +105,6 @@ const INVEST_COPY: Record<Lang, {
     term: "收益天数",
     priceLabel: "价格",
     total: "总收益",
-    owned: "已拥有",
     investNow: "购买",
     soldOut: "已售罄",
     unavailable: "暂不可用",
@@ -139,11 +129,11 @@ export default function ProductsPage() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [confirmProduct, setConfirmProduct] = useState<ProductWithOwnership | null>(null);
+  const [confirmProduct, setConfirmProduct] = useState<Product | null>(null);
   const [selectedTab, setSelectedTab] = useState(0);
   const copy = INVEST_COPY[lang];
 
-  const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<ProductWithOwnership[]>({
+  const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
 
@@ -180,12 +170,12 @@ export default function ProductsPage() {
     (product) => !product.productType || product.productType === "all" || product.productType === selectedProductType,
   );
   const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
-  const getDisplayName = (product: ProductWithOwnership) => rebrandText(product.name);
-  const getProductImage = (product: ProductWithOwnership, index: number) => getProductVisual(product.imageUrl, index);
+  const getDisplayName = (product: Product) => rebrandText(product.name);
+  const getProductImage = (product: Product, index: number) => getProductVisual(product.imageUrl, index);
   const confirmProductIndex = confirmProduct
     ? Math.max(0, sectionProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
-  const handleBuy = (product: ProductWithOwnership) => setConfirmProduct(product);
+  const handleBuy = (product: Product) => setConfirmProduct(product);
 
   return (
     <main className="ielp-home-page diamant-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
@@ -259,7 +249,6 @@ export default function ProductsPage() {
                       <div className="diamant-invest-product-copy">
                         <div className="diamant-invest-product-title-row">
                           <h3>{displayName}</h3>
-                          {product.isOwned && <span className="diamant-invest-owned-badge"><Check size={12} />{copy.owned} · {product.ownedCount || 1}</span>}
                         </div>
                         <dl>
                           <div><dt>{copy.daily}</dt><dd>{formatXof(dailyEarnings)} <small>XOF</small></dd></div>
