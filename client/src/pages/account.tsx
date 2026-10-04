@@ -45,15 +45,17 @@ import {
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
-import bannerTeamPhoto from "@/assets/images/diamant-banner-team-dsc-0636.jpg";
-import bannerLeadershipPhoto from "@/assets/images/diamant-banner-leadership-team.jpg";
-import bannerMeganePhoto from "@/assets/images/diamant-banner-megane.jpg";
+import miningExcavatorPhoto from "@assets/compress_actuality_teaser_1623317774_1791124161647.jpg";
+import miningTrucksPhoto from "@assets/shutterstock_1257632146-1024x683_1791124161721.jpg";
+import undergroundMinerPhoto from "@assets/Top-10-Mining-Companies-in-Africa_1791124161785.jpg";
+import undergroundWorkPhoto from "@assets/Mines-travaux-770x470_1791124161825.jpg";
 import "./account.css";
 
 const ACCOUNT_BANNER_POSTERS = [
-  { id: "team-photo", src: bannerTeamPhoto, slideWidth: 198, fit: "cover" },
-  { id: "leadership-team-photo", src: bannerLeadershipPhoto, slideWidth: 318, fit: "cover" },
-  { id: "megane-photo", src: bannerMeganePhoto, slideWidth: 132, fit: "contain" },
+  { id: "mining-excavator", src: miningExcavatorPhoto, slideWidth: 266, fit: "contain" },
+  { id: "mining-trucks", src: miningTrucksPhoto, slideWidth: 198, fit: "contain" },
+  { id: "underground-miner", src: undergroundMinerPhoto, slideWidth: 261, fit: "contain" },
+  { id: "underground-work", src: undergroundWorkPhoto, slideWidth: 216, fit: "contain" },
 ] as const;
 
 type AccountCopy = {
