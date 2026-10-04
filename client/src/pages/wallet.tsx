@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -9,9 +9,10 @@ import type { WithdrawalWallet } from "@shared/schema";
 import { useI18n } from "@/lib/i18n";
 import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-landscape.png";
 
-const WITHDRAWAL_ASSET = "USDT";
-const WITHDRAWAL_NETWORK = "BEP20";
-const PAYMENT_METHOD = "USDT BEP20";
+type WithdrawalAsset = "Mobile Money" | "USDT";
+
+const WITHDRAWAL_ASSET: WithdrawalAsset = "USDT";
+const WITHDRAWAL_NETWORK = "USDT BEP20";
 
 type PickerType = "asset" | "network" | null;
 
@@ -34,6 +35,37 @@ export default function WalletPage() {
   const [network, setNetwork] = useState(WITHDRAWAL_NETWORK);
   const [address, setAddress] = useState("");
 
+  const {
+    data: mobileMoneyNetworks = [],
+    isLoading: mobileMoneyNetworksLoading,
+    isError: mobileMoneyNetworksError,
+  } = useQuery<string[]>({
+    queryKey: ["/api/countries", user?.country, "operators", "mobile-money"],
+    queryFn: async () => {
+      if (!user?.country) return [];
+      const response = await fetch(
+        `/api/countries/${encodeURIComponent(user.country)}/operators?type=mobile-money`,
+        { credentials: "include", cache: "no-store" },
+      );
+      if (!response.ok) throw new Error("Impossible de charger les réseaux Mobile Money.");
+      const values: unknown = await response.json();
+      return Array.isArray(values)
+        ? Array.from(new Set(values.filter((value): value is string => typeof value === "string" && value.trim().length > 0).map((value) => value.trim())))
+        : [];
+    },
+    enabled: Boolean(user?.country),
+  });
+
+  useEffect(() => {
+    const nextNetwork =
+      asset === "USDT"
+        ? WITHDRAWAL_NETWORK
+        : mobileMoneyNetworks.includes(network)
+          ? network
+          : mobileMoneyNetworks[0] || "";
+    if (nextNetwork !== network) setNetwork(nextNetwork);
+  }, [asset, mobileMoneyNetworks, network]);
+
   const { data: wallets = [], isLoading } = useQuery<WithdrawalWallet[]>({
     queryKey: ["/api/wallets"],
   });
@@ -41,9 +73,10 @@ export default function WalletPage() {
   const addMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/wallets", {
-        accountName: user?.fullName || user?.phone || "Portefeuille USDT BEP20",
+        accountName: user?.fullName || user?.phone || "Portefeuille de retrait",
         accountNumber: address.trim(),
-        paymentMethod: PAYMENT_METHOD,
+        type: asset,
+        network,
         country: user!.country,
       });
       if (!response.ok) {
@@ -57,6 +90,8 @@ export default function WalletPage() {
       toast({ title: "Withdrawal method added successfully" });
       setShowForm(false);
       setAddress("");
+      setAsset(WITHDRAWAL_ASSET);
+      setNetwork(WITHDRAWAL_NETWORK);
     },
     onError: (error: Error) => {
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
@@ -86,7 +121,7 @@ export default function WalletPage() {
       const response = await apiRequest("PATCH", `/api/wallets/${walletId}/default`, {});
       if (!response.ok) {
         const result = await response.json();
-        throw new Error((await response.json()).message || "Erreur");
+        throw new Error(result.message || "Erreur");
       }
       return response.json();
     },
@@ -98,13 +133,41 @@ export default function WalletPage() {
     setShowForm(false);
     setPicker(null);
     setAddress("");
+    setAsset(WITHDRAWAL_ASSET);
+    setNetwork(WITHDRAWAL_NETWORK);
   };
 
   const handleConfirm = () => {
-    if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+    if (asset === "USDT") {
+      if (network !== WITHDRAWAL_NETWORK || !/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+        toast({
+          title: "Invalid USDT BEP20 address",
+          description: "Use a BSC address starting with 0x and containing 40 hexadecimal characters.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else if (!mobileMoneyNetworks.includes(network)) {
       toast({
-        title: "Invalid USDT BEP20 address",
-        description: "Use a BSC address starting with 0x and containing 40 hexadecimal characters.",
+        title: mobileMoneyNetworksError ? "Mobile Money networks could not be loaded" : "No Mobile Money network is available",
+        description: "Choose an active Mobile Money operator configured for your country.",
+        variant: "destructive",
+      });
+      return;
+    } else {
+      const digits = address.replace(/\D/g, "");
+      if (!/^\+?[0-9().\s-]+$/.test(address.trim()) || digits.length < 6 || digits.length > 15) {
+        toast({
+          title: "Invalid Mobile Money number",
+          description: "Enter a valid phone number for the selected Mobile Money operator.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    if (!address.trim()) {
+      toast({
+        title: "Enter the withdrawal account",
         variant: "destructive",
       });
       return;
@@ -121,8 +184,16 @@ export default function WalletPage() {
   if (!user) return null;
 
   const backLink = selectMode ? "/withdrawal" : "/account";
-  const pickerOptions = picker === "asset" ? [WITHDRAWAL_ASSET] : [WITHDRAWAL_NETWORK];
-  const pickerTitle = picker === "asset" ? "Withdrawal type" : "Network";
+  const networkOptions = asset === "Mobile Money" ? mobileMoneyNetworks : [WITHDRAWAL_NETWORK];
+  const pickerOptions = picker === "asset" ? ["Mobile Money", "USDT"] : networkOptions;
+  const pickerTitle = picker === "asset" ? "Type" : "Réseau";
+
+  const selectAsset = (value: string) => {
+    const nextAsset = value as WithdrawalAsset;
+    setAsset(nextAsset);
+    setNetwork(nextAsset === "USDT" ? WITHDRAWAL_NETWORK : mobileMoneyNetworks[0] || "");
+    setAddress("");
+  };
 
   return (
     <div className="relative min-h-screen overflow-clip bg-white">
@@ -178,7 +249,9 @@ export default function WalletPage() {
                 data-testid="button-select-withdrawal-network"
               >
                 <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
-                <span className="flex-1 text-[16px] text-[#111f18]">{network}</span>
+                <span className="flex-1 text-[16px] text-[#111f18]">
+                  {network || (mobileMoneyNetworksLoading ? "Chargement…" : "Sélectionner")}
+                </span>
                 <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
               </button>
 
@@ -186,15 +259,15 @@ export default function WalletPage() {
                 <label htmlFor="wallet-network-address" className="sr-only">Adresse du réseau</label>
                 <input
                   id="wallet-network-address"
-                  type="text"
+                  type={asset === "Mobile Money" ? "tel" : "text"}
                   value={address}
                   onChange={(event) => setAddress(event.target.value.trim())}
-                  placeholder="Enter the network address"
-                  maxLength={42}
+                  placeholder={asset === "Mobile Money" ? "Numéro Mobile Money" : "Adresse USDT BEP20"}
+                  maxLength={asset === "Mobile Money" ? 24 : 42}
                   spellCheck={false}
                   autoCapitalize="off"
                   autoComplete="off"
-                  className="h-[44px] w-full bg-transparent px-0 text-right font-mono text-[16px] text-[#1e3026] outline-none placeholder:font-sans placeholder:text-center placeholder:text-[17px] placeholder:text-[#7b8580]"
+                  className={`h-[44px] w-full bg-transparent px-0 text-right text-[16px] text-[#1e3026] outline-none placeholder:font-sans placeholder:text-center placeholder:text-[17px] placeholder:text-[#7b8580] ${asset === "USDT" ? "font-mono" : ""}`}
                   data-testid="input-wallet-number"
                 />
               </div>
@@ -321,19 +394,33 @@ export default function WalletPage() {
               <button type="button" onClick={() => setPicker(null)} className="text-[#078a42]">Confirmer</button>
             </div>
             <div className="pt-[72px]">
-              {pickerOptions.map((option) => {
+              {picker === "network" && asset === "Mobile Money" && mobileMoneyNetworksLoading ? (
+                <p className="flex h-[80px] items-center justify-center gap-2 text-sm text-[#64766b]" role="status">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des réseaux…
+                </p>
+              ) : picker === "network" && asset === "Mobile Money" && mobileMoneyNetworksError ? (
+                <p className="px-6 py-5 text-center text-sm text-red-700" role="alert">
+                  Impossible de charger les réseaux Mobile Money.
+                </p>
+              ) : picker === "network" && asset === "Mobile Money" && pickerOptions.length === 0 ? (
+                <p className="px-6 py-5 text-center text-sm text-[#64766b]">
+                  Aucun opérateur Mobile Money actif n’est configuré pour votre pays.
+                </p>
+              ) : (
+                pickerOptions.map((option) => {
                 const selected = picker === "asset" ? asset === option : network === option;
                 return (
                   <button
                     key={option}
                     type="button"
-                    onClick={() => picker === "asset" ? setAsset(option) : setNetwork(option)}
+                    onClick={() => picker === "asset" ? selectAsset(option) : setNetwork(option)}
                     className={`flex h-[43px] w-full items-center justify-center border-b border-[#edf0ee] text-[17px] ${selected ? "text-[#078a42]" : "text-[#25322b]"}`}
                   >
                     {option}
                   </button>
                 );
-              })}
+                })
+              )}
             </div>
           </section>
         </div>

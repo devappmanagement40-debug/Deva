@@ -32,7 +32,7 @@ export default function WithdrawalHistoryPage() {
     amount: withdrawal.amount,
     status: withdrawal.status,
     createdAt: withdrawal.createdAt,
-    paymentMethod: "USDT BEP20",
+    paymentMethod: withdrawal.paymentMethod || "USDT BEP20",
     accountNumber: withdrawal.accountNumber,
     fees: withdrawal.fees,
     netAmount: withdrawal.netAmount,

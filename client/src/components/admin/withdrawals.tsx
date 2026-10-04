@@ -319,7 +319,7 @@ export default function AdminWithdrawals() {
 
                 {withdrawal.status === "pending" && (
                   <div className="flex gap-2">
-                    {isManual ? (
+                    {isManual || withdrawal.paymentMethod?.startsWith("Mobile Money - ") ? (
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
@@ -329,7 +329,7 @@ export default function AdminWithdrawals() {
                       >
                         {processMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> {t.approve}</>}
                       </Button>
-                    ) : (
+                    ) : withdrawal.paymentMethod === "USDT BEP20" ? (
                       <Button
                         size="sm"
                         className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
@@ -341,6 +341,10 @@ export default function AdminWithdrawals() {
                           ? <Loader2 className="w-4 h-4 animate-spin" />
                           : <><Zap className="w-4 h-4 mr-1" />Envoyer à NOWPayments</>}
                       </Button>
+                    ) : (
+                      <p className="flex-1 self-center text-sm text-destructive">
+                        Moyen de retrait non pris en charge
+                      </p>
                     )}
                     <Button
                       size="sm"

@@ -109,8 +109,10 @@ export default function WithdrawalPage() {
     queryKey: ["/api/wallets"],
     refetchOnWindowFocus: true,
   });
-  const bep20Wallets = useMemo(
-    () => wallets.filter((wallet) => wallet.paymentMethod === "USDT BEP20"),
+  const withdrawalWallets = useMemo(
+    () => wallets.filter((wallet) =>
+      wallet.paymentMethod === "USDT BEP20" || wallet.paymentMethod.startsWith("Mobile Money - "),
+    ),
     [wallets],
   );
 
@@ -144,23 +146,23 @@ export default function WithdrawalPage() {
 
   useEffect(() => {
     const savedWalletId = localStorage.getItem("selectedWalletId");
-    if (savedWalletId && bep20Wallets.length > 0) {
-      const wallet = bep20Wallets.find(w => w.id === parseInt(savedWalletId));
+    if (savedWalletId && withdrawalWallets.length > 0) {
+      const wallet = withdrawalWallets.find(w => w.id === parseInt(savedWalletId, 10));
       if (wallet) setSelectedWallet(wallet);
       localStorage.removeItem("selectedWalletId");
     }
-  }, [bep20Wallets]);
+  }, [withdrawalWallets]);
 
   useEffect(() => {
-    if (selectedWallet && selectedWallet.paymentMethod !== "USDT BEP20") {
+    if (selectedWallet && !withdrawalWallets.some((wallet) => wallet.id === selectedWallet.id)) {
       setSelectedWallet(null);
       return;
     }
-    if (!selectedWallet && bep20Wallets.length > 0) {
-      const defaultWallet = bep20Wallets.find(w => w.isDefault);
-      if (defaultWallet) setSelectedWallet(defaultWallet);
+    if (!selectedWallet && withdrawalWallets.length > 0) {
+      const defaultWallet = withdrawalWallets.find(w => w.isDefault) || withdrawalWallets[0];
+      setSelectedWallet(defaultWallet);
     }
-  }, [bep20Wallets, selectedWallet]);
+  }, [withdrawalWallets, selectedWallet]);
 
   const withdrawMutation = useMutation({
     mutationFn: async (data: { amount: number; walletId: number; transactionPassword: string }) => {

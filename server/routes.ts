@@ -1909,7 +1909,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Solde insuffisant" });
       }
 
-      // Récupérer le portefeuille USDT BEP20 sélectionné.
+      // Récupérer le moyen de retrait sélectionné.
       const walletId = Number(req.body.walletId);
       let wallet: any = null;
       if (walletId) {
@@ -1920,10 +1920,13 @@ export async function registerRoutes(
         wallet = await storage.getDefaultWallet(user.id);
       }
       if (!wallet) {
-        return res.status(400).json({ message: "Veuillez ajouter un portefeuille USDT BEP20 avant de retirer" });
+        return res.status(400).json({ message: "Veuillez ajouter un moyen de retrait avant de retirer" });
       }
-      if (wallet.paymentMethod !== "USDT BEP20") {
-        return res.status(400).json({ message: "Les retraits sont disponibles uniquement via USDT BEP20. Ajoutez une adresse BSC." });
+      const isUsdtBep20 = wallet.paymentMethod === "USDT BEP20";
+      const isMobileMoney = typeof wallet.paymentMethod === "string"
+        && wallet.paymentMethod.startsWith("Mobile Money - ");
+      if (!isUsdtBep20 && !isMobileMoney) {
+        return res.status(400).json({ message: "Sélectionnez un moyen de retrait Mobile Money ou USDT BEP20 valide." });
       }
 
       const todayCount = await storage.getUserWithdrawalCountToday(user.id);
@@ -1948,7 +1951,7 @@ export async function registerRoutes(
         accountName: wallet.accountName,
         accountNumber: wallet.accountNumber,
         country: user.country,
-        paymentMethod: "USDT BEP20",
+        paymentMethod: wallet.paymentMethod,
         status: "pending",
       });
       return res.json({
@@ -2052,32 +2055,72 @@ export async function registerRoutes(
 
   app.post("/api/wallets", requireAuth, async (req, res) => {
     try {
-      const { accountName, accountNumber, paymentMethod, country } = req.body;
-      const normalizedPaymentMethod = String(paymentMethod || "").trim().toUpperCase();
+      const { accountName, accountNumber, type, network, paymentMethod: legacyPaymentMethod } = req.body;
+      const normalizedType = String(type || "").trim().toLowerCase();
+      const selectedNetwork = String(network || "").trim();
+      const holderName = String(accountName || "").trim();
+      const account = String(accountNumber || "").trim();
 
-      if (!accountName || !accountName.trim()) {
+      if (!holderName) {
         return res.status(400).json({ message: "Le nom du titulaire est requis" });
       }
       const user = await storage.getUser(req.session.userId!);
       if (!user) {
         return res.status(401).json({ message: "Utilisateur introuvable" });
       }
-      if (normalizedPaymentMethod !== "USDT BEP20") {
-        return res.status(400).json({ message: "Le seul moyen de retrait disponible est USDT BEP20" });
+      const userCountry = String(user.country || "").trim();
+      if (!userCountry) {
+        return res.status(400).json({ message: "Le pays du compte n'est pas configuré" });
       }
-      const userCountry = country || req.body.country || "CD";
-      const address = String(accountNumber || "").trim();
-      if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-        return res.status(400).json({
-          message: "Adresse USDT BEP20 invalide — utilisez une adresse BSC commençant par 0x",
-        });
+
+      let resolvedPaymentMethod: string;
+      if (
+        normalizedType === "usdt"
+        || (!normalizedType && String(legacyPaymentMethod || "").trim().toUpperCase() === "USDT BEP20")
+      ) {
+        const normalizedNetwork = selectedNetwork.toUpperCase();
+        if (normalizedNetwork && normalizedNetwork !== "USDT BEP20" && normalizedNetwork !== "BEP20") {
+          return res.status(400).json({ message: "Le réseau de retrait USDT doit être BEP20." });
+        }
+        if (!/^0x[a-fA-F0-9]{40}$/.test(account)) {
+          return res.status(400).json({
+            message: "Adresse USDT BEP20 invalide — utilisez une adresse BSC commençant par 0x",
+          });
+        }
+        resolvedPaymentMethod = "USDT BEP20";
+      } else if (normalizedType === "mobile money" || normalizedType === "mobile-money") {
+        if (!selectedNetwork) {
+          return res.status(400).json({ message: "Sélectionnez un opérateur Mobile Money." });
+        }
+        const digits = account.replace(/\D/g, "");
+        if (!/^\+?[0-9().\s-]+$/.test(account) || digits.length < 6 || digits.length > 15) {
+          return res.status(400).json({ message: "Numéro Mobile Money invalide." });
+        }
+
+        const configuredOperators = await storage.getPaymentNumbersByCountry(userCountry);
+        const activeOperators = await Promise.all(configuredOperators.map(async (operator) => {
+          if (!operator.channelId) return operator;
+          const channel = await storage.getDepositChannel(operator.channelId);
+          return channel?.isActive && channel.country.toUpperCase() === userCountry.toUpperCase()
+            ? operator
+            : null;
+        }));
+        const selectedOperator = activeOperators.find((operator) =>
+          operator !== null && operator.operatorName.trim().toLowerCase() === selectedNetwork.toLowerCase()
+        );
+        if (!selectedOperator) {
+          return res.status(400).json({ message: "Cet opérateur Mobile Money n'est pas actif pour votre pays." });
+        }
+        resolvedPaymentMethod = `Mobile Money - ${selectedOperator.operatorName.trim()}`;
+      } else {
+        return res.status(400).json({ message: "Choisissez Mobile Money ou USDT comme type de retrait." });
       }
 
       const wallet = await storage.createWallet({
         userId: req.session.userId!,
-        accountName: accountName.trim(),
-         accountNumber: address,
-         paymentMethod: "USDT BEP20",
+        accountName: holderName,
+        accountNumber: account,
+        paymentMethod: resolvedPaymentMethod,
         country: userCountry,
       });
       res.json(wallet);
@@ -2102,7 +2145,7 @@ export async function registerRoutes(
     try {
       const updated = await storage.setDefaultWallet(req.session.userId!, parseInt(req.params.id as string));
       if (!updated) {
-        return res.status(404).json({ message: "Portefeuille USDT BEP20 introuvable" });
+        return res.status(404).json({ message: "Moyen de retrait introuvable" });
       }
       res.json({ success: true });
     } catch (error: any) {
@@ -2777,6 +2820,13 @@ export async function registerRoutes(
       if (!Number.isInteger(withdrawalId)) {
         return res.status(400).json({ message: "Identifiant de retrait invalide" });
       }
+      const existingWithdrawal = (await storage.getWithdrawals()).find((item) => item.id === withdrawalId);
+      if (!existingWithdrawal) {
+        return res.status(404).json({ message: "Retrait introuvable" });
+      }
+      if (existingWithdrawal.paymentMethod !== "USDT BEP20") {
+        return res.status(400).json({ message: "NOWPayments prend uniquement en charge les retraits USDT BEP20." });
+      }
       // NOWPayments uses this durable reference for reconciliation; do not rename it.
       const externalId = `tgood-withdrawal-${withdrawalId}`;
       const withdrawal = await storage.claimWithdrawalForNowPayments(
@@ -2855,9 +2905,6 @@ export async function registerRoutes(
   app.post("/api/admin/withdrawals/:id/approve", requireAdmin, requireSameOrigin, async (req, res) => {
     try {
       const settings = await storage.getSettings();
-      if (normalizeWithdrawalMode(settings.withdrawalMode) !== "manual") {
-        return res.status(400).json({ message: "Utilisez l'action NOWPayments en mode semi-automatique" });
-      }
       const withdrawalId = parseInt(req.params.id as string);
       const existingWithdrawal = await storage.getWithdrawals();
       const withdrawalData = existingWithdrawal.find(w => w.id === withdrawalId);
@@ -2867,6 +2914,15 @@ export async function registerRoutes(
       }
       if (withdrawalData.status !== "pending") {
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
+      }
+      const isUsdtBep20 = withdrawalData.paymentMethod === "USDT BEP20";
+      const isMobileMoney = typeof withdrawalData.paymentMethod === "string"
+        && withdrawalData.paymentMethod.startsWith("Mobile Money - ");
+      if (!isUsdtBep20 && !isMobileMoney) {
+        return res.status(400).json({ message: "Ce moyen de retrait n'est pas pris en charge." });
+      }
+      if (isUsdtBep20 && normalizeWithdrawalMode(settings.withdrawalMode) !== "manual") {
+        return res.status(400).json({ message: "Utilisez l'action NOWPayments en mode semi-automatique" });
       }
 
       const withdrawal = await storage.updateWithdrawal(withdrawalId, {
@@ -3783,15 +3839,40 @@ export async function registerRoutes(
     }
   });
 
-  // The only withdrawal wallet offered in any country is USDT BEP20.
+  // Withdrawal networks are country-configured for Mobile Money; USDT uses BEP20.
   app.get("/api/countries/:code/operators", requireAuth, async (req, res) => {
     try {
       const codeParam = req.params.code;
       const code = (Array.isArray(codeParam) ? codeParam[0] : codeParam).toUpperCase();
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      if (code !== user.country.toUpperCase()) {
+        return res.status(403).json({ message: "Les opérateurs d’un autre pays ne sont pas accessibles." });
+      }
+
       const allCountries = await storage.getActiveCountries();
       const country = allCountries.find((entry) => entry.code === code);
       if (!country) return res.json([]);
-      res.json(["USDT BEP20"]);
+
+      const type = typeof req.query.type === "string" ? req.query.type.trim().toLowerCase() : "usdt";
+      if (type === "usdt") return res.json(["USDT BEP20"]);
+      if (type !== "mobile-money" && type !== "mobile money") {
+        return res.status(400).json({ message: "Type de retrait invalide." });
+      }
+
+      const configuredOperators = await storage.getPaymentNumbersByCountry(user.country);
+      const activeOperators = await Promise.all(configuredOperators.map(async (operator) => {
+        if (!operator.channelId) return operator;
+        const channel = await storage.getDepositChannel(operator.channelId);
+        return channel?.isActive && channel.country.toUpperCase() === user.country.toUpperCase()
+          ? operator
+          : null;
+      }));
+      const names = Array.from(new Set(activeOperators
+        .filter((operator) => operator !== null)
+        .map((operator) => operator.operatorName.trim())
+        .filter(Boolean)));
+      res.json(names);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

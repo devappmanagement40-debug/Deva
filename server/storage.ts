@@ -1705,7 +1705,6 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(withdrawalWallets.id, walletId),
         eq(withdrawalWallets.userId, userId),
-        eq(withdrawalWallets.paymentMethod, "USDT BEP20"),
       ));
     if (!wallet) return false;
 
