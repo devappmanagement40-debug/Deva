@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import newBannerImg from "@assets/piedestal-realiste-trophees-gobelets-metal-composition-rubans-_1785144220204.jpg";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, CheckCircle2, Users, Trophy } from "lucide-react";
-import { getCountryByCode } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
@@ -53,7 +52,6 @@ export default function SalaryBonusPage() {
 
   if (!user) return null;
 
-  const country = getCountryByCode(user.country);
   const currency = "XOF";
   const activeMembers = tasks.length > 0 ? ((tasks[0] as any).currentInvites || 0) : 0;
   const totalClaimed = (tasks as any[])

@@ -11,6 +11,7 @@ import {
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
+const COUNTRY_BOOTSTRAP_MIGRATION_KEY = "__migration_country_bootstrap_v1";
 
 async function migrateReferralCodes(): Promise<number> {
   return db.transaction(async (tx) => {
@@ -206,8 +207,8 @@ export async function seed() {
     console.log(`${migratedReferralCodes} referral code(s) migrated; legacy aliases preserved`);
   }
 
-  // Seed country defaults without deleting other countries or overwriting
-  // administrator-managed operator settings.
+  // Country defaults are a first-install bootstrap only. Do not recreate a
+  // country after an administrator intentionally deletes it.
   const countryDefaults = [
     {
       code: "CD",
@@ -238,14 +239,24 @@ export async function seed() {
     },
   ];
 
-  for (const countryData of countryDefaults) {
-    const existing = await db.select().from(countries).where(eq(countries.code, countryData.code));
-    if (existing.length === 0) {
-      await db.insert(countries).values(countryData);
+  const countryBootstrapClaimed = await db.transaction(async (tx) => {
+    const [claim] = await tx.insert(platformSettings)
+      .values({ key: COUNTRY_BOOTSTRAP_MIGRATION_KEY, value: "complete" })
+      .onConflictDoNothing()
+      .returning({ id: platformSettings.id });
+    if (!claim) return false;
+
+    const [existingCountry] = await tx.select({ id: countries.id }).from(countries).limit(1);
+    if (existingCountry) return false;
+
+    for (const countryData of countryDefaults) {
+      await tx.insert(countries).values(countryData);
       console.log(`Country added: ${countryData.name}`);
-    } else {
-      console.log(`Country preserved: ${countryData.name}`);
     }
+    return true;
+  });
+  if (!countryBootstrapClaimed) {
+    console.log("Country bootstrap already completed or country settings already exist");
   }
 
   // Remove obsolete configuration and content fields from the previous rules page.

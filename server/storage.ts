@@ -348,29 +348,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(data: Partial<User>): Promise<User> {
-    let referralCode = "";
-    for (let attempt = 0; attempt < 10; attempt++) {
-      const candidate = generateReferralCode();
-      if (!(await this.getUserByReferralCode(candidate))) {
-        referralCode = candidate;
-        break;
-      }
-    }
-    if (!referralCode) {
-      throw new Error("Impossible de générer un code de parrainage unique");
-    }
-
     const hashedPassword = await bcrypt.hash(data.password!, 10);
 
-    const [user] = await db.insert(users).values({
-      ...data,
-      password: hashedPassword,
-      referralCode,
-      balance: "0",
-      totalEarnings: "0",
-    } as any).returning();
-    
-    return user;
+    return db.transaction(async (tx) => {
+      if (!data.country) {
+        const error = new Error("Le pays du compte est requis.");
+        error.name = "CountryNotAvailableError";
+        throw error;
+      }
+
+      const [country] = await tx.select({
+        code: countries.code,
+        isActive: countries.isActive,
+      })
+        .from(countries)
+        .where(eq(countries.code, data.country))
+        .for("share");
+      if (!country || !country.isActive) {
+        const error = new Error("Ce pays n’est pas actif pour les inscriptions.");
+        error.name = "CountryNotAvailableError";
+        throw error;
+      }
+
+      let referralCode = "";
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const candidate = generateReferralCode();
+        const [existingUser] = await tx.select({ id: users.id })
+          .from(users)
+          .where(eq(users.referralCode, candidate));
+        if (!existingUser) {
+          referralCode = candidate;
+          break;
+        }
+      }
+      if (!referralCode) {
+        throw new Error("Impossible de générer un code de parrainage unique");
+      }
+
+      const [user] = await tx.insert(users).values({
+        ...data,
+        password: hashedPassword,
+        referralCode,
+        balance: "0",
+        totalEarnings: "0",
+      } as any).returning();
+
+      return user;
+    });
   }
 
   async updateUser(id: number, data: Partial<User>): Promise<User> {
@@ -2613,11 +2637,13 @@ export class DatabaseStorage implements IStorage {
 
   // Countries
   async getCountries(): Promise<Country[]> {
-    return await db.select().from(countries);
+    return await db.select().from(countries).orderBy(asc(countries.name));
   }
 
   async getActiveCountries(): Promise<Country[]> {
-    return await db.select().from(countries).where(eq(countries.isActive, true));
+    return await db.select().from(countries)
+      .where(eq(countries.isActive, true))
+      .orderBy(asc(countries.name));
   }
 
   async getCountry(id: number): Promise<Country | undefined> {
@@ -2636,7 +2662,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteCountry(id: number): Promise<void> {
-    await db.delete(countries).where(eq(countries.id, id));
+    await db.transaction(async (tx) => {
+      const [country] = await tx.select({ id: countries.id, code: countries.code })
+        .from(countries)
+        .where(eq(countries.id, id))
+        .for("update")
+        .limit(1);
+      if (!country) {
+        const error = new Error("Pays introuvable.");
+        error.name = "CountryNotFoundError";
+        throw error;
+      }
+
+      const usersWithCountry = await tx.select({ id: users.id })
+        .from(users).where(eq(users.country, country.code)).limit(1);
+      const depositsWithCountry = await tx.select({ id: deposits.id })
+        .from(deposits).where(eq(deposits.country, country.code)).limit(1);
+      const withdrawalsWithCountry = await tx.select({ id: withdrawals.id })
+        .from(withdrawals).where(eq(withdrawals.country, country.code)).limit(1);
+      const walletsWithCountry = await tx.select({ id: withdrawalWallets.id })
+        .from(withdrawalWallets).where(eq(withdrawalWallets.country, country.code)).limit(1);
+      const channelsWithCountry = await tx.select({ id: depositChannels.id })
+        .from(depositChannels).where(eq(depositChannels.country, country.code)).limit(1);
+      const paymentNumbersWithCountry = await tx.select({ id: paymentNumbers.id })
+        .from(paymentNumbers).where(eq(paymentNumbers.country, country.code)).limit(1);
+
+      if (
+        usersWithCountry.length ||
+        depositsWithCountry.length ||
+        withdrawalsWithCountry.length ||
+        walletsWithCountry.length ||
+        channelsWithCountry.length ||
+        paymentNumbersWithCountry.length
+      ) {
+        const error = new Error(
+          "Ce pays est encore utilisé par des comptes ou des opérations. Désactivez-le à la place.",
+        );
+        error.name = "CountryInUseError";
+        throw error;
+      }
+
+      await tx.delete(countries).where(eq(countries.id, id));
+    });
   }
 
   // Deposit Channels

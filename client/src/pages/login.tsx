@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
@@ -10,11 +11,8 @@ import { CountrySelector } from "@/components/country-selector";
 import { useI18n } from "@/lib/i18n";
 import { setAppLoading } from "@/components/navigation-loader";
 import { AuthScene } from "@/components/auth-scene";
-import {
-  AUTH_COUNTRIES,
-  DEFAULT_AUTH_COUNTRY_CODE,
-  isAuthCountryCode,
-} from "@shared/auth-countries";
+import { fetchLoginCountries, type CountryOption } from "@/lib/countries";
+import { isCountryCode } from "@shared/country-codes";
 
 const REMEMBERED_PHONE_KEY = "ielp-auth-phone";
 const REMEMBERED_COUNTRY_KEY = "ielp-auth-country";
@@ -24,12 +22,12 @@ function readRememberedLogin() {
     const rememberedCountry = window.localStorage.getItem(REMEMBERED_COUNTRY_KEY);
     return {
       phone: window.localStorage.getItem(REMEMBERED_PHONE_KEY) || "",
-      country: isAuthCountryCode(rememberedCountry)
+      country: isCountryCode(rememberedCountry)
         ? rememberedCountry
-        : DEFAULT_AUTH_COUNTRY_CODE,
+        : "",
     };
   } catch {
-    return { phone: "", country: DEFAULT_AUTH_COUNTRY_CODE };
+    return { phone: "", country: "" };
   }
 }
 
@@ -37,7 +35,7 @@ export default function LoginPage() {
   const [, navigate] = useLocation();
   const { login } = useAuth();
   const { toast } = useToast();
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const [isLoading, setIsLoading] = useState(false);
   const [countryModalOpen, setCountryModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,9 +43,18 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(Boolean(savedLogin.phone));
   const countryTriggerRef = useRef<HTMLButtonElement>(null);
 
+  const {
+    data: countries = [],
+    isLoading: countriesLoading,
+    isError: countriesError,
+  } = useQuery<CountryOption[]>({
+    queryKey: ["/api/auth/countries"],
+    queryFn: fetchLoginCountries,
+  });
+
   const loginSchema = z.object({
     phone: z.string().min(8, t.errInvalidPhone),
-    country: z.string().refine(isAuthCountryCode, t.selectCountry),
+    country: z.string().refine(isCountryCode, t.selectCountry),
     password: z.string().min(1, t.errPasswordRequired),
   });
   type LoginForm = z.infer<typeof loginSchema>;
@@ -56,12 +63,15 @@ export default function LoginPage() {
     defaultValues: { phone: savedLogin.phone, country: savedLogin.country, password: "" },
   });
   const selectedCountry = form.watch("country");
-  const countryData = AUTH_COUNTRIES.find(country => country.code === selectedCountry)
-    ?? AUTH_COUNTRIES[0];
-  const countryLocale = lang === "zh" ? "zh-CN" : lang === "ar" ? "ar" : lang === "en" ? "en-US" : "fr-FR";
-  const countryName = countryData?.code && typeof Intl.DisplayNames === "function"
-    ? new Intl.DisplayNames([countryLocale], { type: "region" }).of(countryData.code)
-    : countryData?.name;
+  const countryData = countries.find(country => country.code === selectedCountry);
+
+  useEffect(() => {
+    if (countries.length === 0 || countries.some(country => country.code === selectedCountry)) return;
+    const defaultCountry = countries.find(country => country.code === savedLogin.country)
+      ?? countries.find(country => country.isActive)
+      ?? countries[0];
+    form.setValue("country", defaultCountry.code, { shouldValidate: true });
+  }, [countries, form, savedLogin.country, selectedCountry]);
 
   async function onSubmit(data: LoginForm) {
     setIsLoading(true);
@@ -97,13 +107,16 @@ export default function LoginPage() {
             ref={countryTriggerRef}
             type="button"
             onClick={() => setCountryModalOpen(true)}
+            disabled={countriesLoading || countries.length === 0}
             className="auth-country-trigger"
-            aria-label={`${t.selectCountry}: ${countryName || countryData.name}, +${countryData.phonePrefix}`}
+            aria-label={countryData
+              ? `${t.selectCountry}: ${countryData.name}, +${countryData.phonePrefix}`
+              : t.selectCountry}
             aria-haspopup="dialog"
             aria-expanded={countryModalOpen}
             data-testid="button-select-country"
           >
-            +{countryData.phonePrefix}
+            {countryData ? `+${countryData.phonePrefix}` : "—"}
           </button>
           <input
             {...form.register("phone")}
@@ -115,6 +128,11 @@ export default function LoginPage() {
             data-testid="input-phone"
           />
         </div>
+        {!countriesLoading && (countriesError || countries.length === 0) && (
+          <p className="auth-form-error" role="status">
+            {countriesError ? t.errorOccurred : t.adminNoCountries}
+          </p>
+        )}
         {form.formState.errors.phone && <p className="auth-form-error" role="alert">{form.formState.errors.phone.message}</p>}
 
         <div className="auth-input">
@@ -149,7 +167,7 @@ export default function LoginPage() {
           <span>{t.authRememberMe}</span>
         </label>
 
-        <button type="submit" disabled={isLoading} className="auth-submit" data-testid="button-login">
+        <button type="submit" disabled={isLoading || !countryData} className="auth-submit" data-testid="button-login">
           {isLoading ? t.loginLoading : t.loginBtn}
         </button>
       </form>
@@ -161,6 +179,7 @@ export default function LoginPage() {
         </button>
       </div>
       <CountrySelector
+        countries={countries}
         open={countryModalOpen}
         onClose={() => setCountryModalOpen(false)}
         onSelect={code => form.setValue("country", code, { shouldValidate: true })}

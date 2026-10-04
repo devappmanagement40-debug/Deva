@@ -2,7 +2,6 @@ import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
-import { getCountryByCode } from "@/lib/countries";
 import { Skeleton } from "@/components/ui/skeleton";
 import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import { useI18n } from "@/lib/i18n";
@@ -26,7 +25,6 @@ function formatDate(iso: string) {
 export default function DepositOrdersPage() {
   const { user } = useAuth();
   const { t } = useI18n();
-  const countryInfo = user ? getCountryByCode(user.country) : null;
   const currency = "XOF";
 
   const STATUS_CONFIG = {

@@ -1,24 +1,26 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { CheckCircle2, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { AUTH_COUNTRIES, type AuthCountryCode } from "@shared/auth-countries";
+import type { CountryOption } from "@/lib/countries";
 
 interface CountrySelectorProps {
+  countries: CountryOption[];
   open: boolean;
   onClose: () => void;
-  onSelect: (countryCode: AuthCountryCode) => void;
-  selectedCode?: AuthCountryCode;
+  onSelect: (countryCode: string) => void;
+  selectedCode?: string;
   triggerRef?: RefObject<HTMLButtonElement | null>;
 }
 
 export function CountrySelector({
+  countries,
   open,
   onClose,
   onSelect,
   selectedCode,
   triggerRef,
 }: CountrySelectorProps) {
-  const { lang, t } = useI18n();
+  const { t } = useI18n();
   const dialogRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(false);
@@ -52,27 +54,14 @@ export function CountrySelector({
     };
   }, [open, onClose, triggerRef]);
 
-  const sourceList = useMemo(() => {
-    const locale = lang === "zh" ? "zh-CN" : lang === "ar" ? "ar" : lang === "en" ? "en-US" : "fr-FR";
-    const displayNames = typeof Intl.DisplayNames === "function"
-      ? new Intl.DisplayNames([locale], { type: "region" })
-      : null;
-
-    return AUTH_COUNTRIES.map((country) => ({
-        ...country,
-        sourceName: country.name,
-        name: displayNames?.of(country.code) || country.name,
-      }));
-  }, [lang]);
-
   const normalizedSearch = search
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
-  const visibleCountries = sourceList.filter((country) => {
+  const visibleCountries = countries.filter((country) => {
     if (!normalizedSearch) return true;
-    const searchable = `${country.name} ${country.sourceName} ${country.code} ${country.phonePrefix}`
+    const searchable = `${country.name} ${country.code} ${country.phonePrefix}`
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase();
@@ -173,7 +162,7 @@ export function CountrySelector({
                 }}
                 data-testid={`country-option-${country.code}`}
               >
-                <span>{country.name} (+{country.phonePrefix})</span>
+                  <span>{country.name} (+{country.phonePrefix})</span>
                 {isSelected && (
                   <CheckCircle2
                     size={21}

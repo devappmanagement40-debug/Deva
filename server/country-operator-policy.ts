@@ -20,6 +20,27 @@ export function parseCountryOperators(value: unknown): string[] {
   return Array.from(unique.values());
 }
 
+export function serializeCountryOperators(value: unknown): string {
+  let parsed: unknown = value;
+  if (typeof value === "string") {
+    if (!value.trim()) return "[]";
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      throw new Error("La liste des opérateurs doit être un tableau JSON valide.");
+    }
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("La liste des opérateurs doit être un tableau.");
+  }
+  if (parsed.some((item) => typeof item !== "string")) {
+    throw new Error("Chaque opérateur doit être un texte.");
+  }
+
+  return JSON.stringify(parseCountryOperators(JSON.stringify(parsed)));
+}
+
 export function resolveCountryOperator(value: unknown, requestedOperator: string): string | undefined {
   const requested = requestedOperator.trim().toLowerCase();
   if (!requested) return undefined;

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getCountryFlagEmoji } from "@/lib/countries";
 import { Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff } from "lucide-react";
 import type { PaymentNumber } from "@shared/schema";
 
@@ -19,11 +20,6 @@ interface Country {
   phonePrefix: string;
   isActive: boolean;
 }
-
-const COUNTRY_FLAGS: Record<string, string> = {
-  CM: "🇨🇲", BF: "🇧🇫", TG: "🇹🇬", BJ: "🇧🇯", CI: "🇨🇮", CG: "🇨🇬",
-  CD: "🇨🇩", CF: "🇨🇫",
-};
 
 const emptyForm = { ownerName: "", phone: "", operatorName: "", country: "", logoUrl: "", isActive: true };
 
@@ -40,7 +36,7 @@ export default function AdminPaymentNumbers() {
   });
 
   const { data: countries = [] } = useQuery<Country[]>({
-    queryKey: ["/api/countries"],
+    queryKey: ["/api/admin/countries"],
   });
 
   const saveMutation = useMutation({
@@ -156,7 +152,7 @@ export default function AdminPaymentNumbers() {
         Object.entries(grouped).map(([country, nums]) => (
           <div key={country}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{COUNTRY_FLAGS[country] || "🌍"}</span>
+              <span className="text-lg">{getCountryFlagEmoji(country) || "🌍"}</span>
               <h3 className="font-semibold text-foreground">{getCountryName(country)}</h3>
               <Badge variant="secondary">{nums.length}</Badge>
             </div>
@@ -234,7 +230,7 @@ export default function AdminPaymentNumbers() {
                     <option value="">-- Choisir un pays --</option>
                     {countries.map(c => (
                       <option key={c.code} value={c.code}>
-                        {COUNTRY_FLAGS[c.code] || "🌍"} {c.name} ({c.code})
+                        {getCountryFlagEmoji(c.code) || "🌍"} {c.name} ({c.code})
                       </option>
                     ))}
                     <option value="__manual__">✏️ Saisir manuellement...</option>

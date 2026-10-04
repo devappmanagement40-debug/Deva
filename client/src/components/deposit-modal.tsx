@@ -11,7 +11,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { getPaymentMethodsForCountry, formatCurrency } from "@/lib/countries";
+import {
+  fetchPublicCountries,
+  getPaymentMethodsForCountry,
+  formatCurrency,
+  type ApiCountry,
+} from "@/lib/countries";
 import { Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { PaymentChannel } from "@shared/schema";
@@ -40,6 +45,11 @@ export default function DepositModal({ open, onClose }: DepositModalProps) {
 
   const { data: channels } = useQuery<PaymentChannel[]>({
     queryKey: ["/api/payment-channels"],
+    enabled: open,
+  });
+  const { data: countries = [] } = useQuery<ApiCountry[]>({
+    queryKey: ["/api/countries"],
+    queryFn: fetchPublicCountries,
     enabled: open,
   });
 
@@ -109,7 +119,7 @@ export default function DepositModal({ open, onClose }: DepositModalProps) {
 
   if (!user) return null;
 
-  const paymentMethods = getPaymentMethodsForCountry(user.country);
+  const paymentMethods = getPaymentMethodsForCountry(user.country, countries);
   const activeChannels = channels?.filter(c => c.isActive) || [];
   const presetAmounts = [2000, 5000, 10000, 20000, 50000, 100000];
 

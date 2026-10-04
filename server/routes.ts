@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema } from "@shared/schema";
+import { isCountryCode } from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -21,7 +22,11 @@ import {
   withdrawalProofReviewSchema,
   withdrawalProofSubmissionSchema,
 } from "./withdrawal-proof-validation";
-import { parseCountryOperators, resolveCountryOperator } from "./country-operator-policy";
+import {
+  parseCountryOperators,
+  resolveCountryOperator,
+  serializeCountryOperators,
+} from "./country-operator-policy";
 
 /**
  * Résout les paramètres WestPay.
@@ -378,6 +383,7 @@ export async function registerRoutes(
   // render and leaves session loading for authenticated routes only.
   const publicApiPathsWithoutSession = new Set([
     "/countries",
+    "/auth/countries",
     "/settings",
     "/settings/links",
     "/nowpayments/ipn",
@@ -476,6 +482,10 @@ export async function registerRoutes(
       }
 
       const data = registerSchema.parse(req.body);
+      const activeCountries = await storage.getActiveCountries();
+      if (!activeCountries.some((country) => country.code === data.country)) {
+        return res.status(400).json({ message: "Ce pays n’est pas actif pour les inscriptions." });
+      }
       const existing = await storage.getUserByPhone(data.phone, data.country);
       if (existing) {
         return res.status(400).json({ message: "Ce numéro est déjà utilisé" });
@@ -510,6 +520,9 @@ export async function registerRoutes(
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
       }
+      if (error?.name === "CountryNotAvailableError") {
+        return res.status(400).json({ message: error.message });
+      }
       if (error?.code === "23505") {
         return res.status(400).json({ message: "Ce numéro est déjà utilisé pour ce pays" });
       }
@@ -523,11 +536,8 @@ export async function registerRoutes(
     try {
       const data = loginSchema.parse(req.body);
       
-      // Normal users must match both phone and country. The super-admin is
-      // allowed to sign in by phone suffix as well because the legacy admin
-      // account is stored under CI while the global login form defaults to
-      // US/+1. This avoids locking the administrator out without weakening
-      // country matching for regular accounts.
+      // Normal users must match both phone and country. Keep the legacy
+      // super-admin phone-suffix sign-in so older admin accounts remain reachable.
       const user =
         await storage.getUserByPhone(data.phone, data.country) ||
         await storage.getSuperAdminByPhone(data.phone);
@@ -1681,7 +1691,10 @@ export async function registerRoutes(
         GH: "Ghana",
         NG: "Nigeria",
       };
-      const wpCountry = countryMap[user.country || "CI"] ?? "Cote d'Ivoire";
+      const wpCountry = countryMap[user.country];
+      if (!wpCountry) {
+        return res.status(400).json({ message: "WestPay n’est pas configuré pour ce pays." });
+      }
 
       // Create a processing deposit record to track this payment
       const deposit = await storage.createDeposit({
@@ -1689,7 +1702,7 @@ export async function registerRoutes(
         amount: Number(amount),
         accountName: user.fullName || user.phone,
         accountNumber: user.phone,
-        country: user.country || "CI",
+        country: user.country,
         paymentMethod: "WestPay",
         channelName: westpayChannelName,
         status: "processing",
@@ -1712,7 +1725,7 @@ export async function registerRoutes(
       payUrl.searchParams.set("country",  wpCountry);
       payUrl.searchParams.set("redirect", redirectUrl);
       // Clé API par pays (DB → env var) — ajoutée si disponible
-      const apiKey = wp.apiKey[user.country || "CI"];
+      const apiKey = wp.apiKey[user.country];
       if (apiKey) payUrl.searchParams.set("api_key", apiKey);
 
       res.json({ depositId: deposit.id, payUrl: payUrl.toString() });
@@ -3849,11 +3862,21 @@ export async function registerRoutes(
     }
   });
 
-  // Countries routes (public)
+  // Login keeps inactive countries available so existing users can still sign in.
+  app.get("/api/auth/countries", async (_req, res) => {
+    try {
+      const allCountries = await storage.getCountries();
+      res.json(allCountries.map((country) => ({ ...country, currency: "USDT" })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Registration and country-dependent public controls use active countries only.
   app.get("/api/countries", async (req, res) => {
     try {
-       const activeCountries = await storage.getActiveCountries();
-       res.json(activeCountries.map((country) => ({ ...country, currency: "USDT" })));
+      const activeCountries = await storage.getActiveCountries();
+      res.json(activeCountries.map((country) => ({ ...country, currency: "USDT" })));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -3898,40 +3921,89 @@ export async function registerRoutes(
 
   app.post("/api/admin/countries", requireAdmin, async (req, res) => {
     try {
-      const { code, name, phonePrefix, operators, isActive, autoPaymentEnabled } = req.body;
-      if (!code || !name || !phonePrefix) {
-        return res.status(400).json({ message: "Code, nom, devise et indicatif sont requis" });
+      const body = req.body ?? {};
+      const code = typeof body.code === "string" ? body.code.trim().toUpperCase() : "";
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      const rawPhonePrefix = typeof body.phonePrefix === "string" ? body.phonePrefix.trim() : "";
+      const phonePrefix = rawPhonePrefix.replace(/^\+/, "").replace(/[\s().-]/g, "");
+      if (!isCountryCode(code)) {
+        return res.status(400).json({ message: "Le code pays doit contenir deux lettres majuscules." });
       }
-      if (!["CD", "CI", "TG"].includes(String(code).trim().toUpperCase())) {
-        return res.status(400).json({ message: "Seuls CD, CI et TG sont disponibles." });
+      if (!name || name.length > 100) {
+        return res.status(400).json({ message: "Le nom du pays est requis et ne doit pas dépasser 100 caractères." });
+      }
+      if (!/^\d{1,4}$/.test(phonePrefix)) {
+        return res.status(400).json({ message: "L’indicatif doit contenir de 1 à 4 chiffres." });
+      }
+      const isActive = body.isActive === undefined ? true : body.isActive;
+      const autoPaymentEnabled = body.autoPaymentEnabled === undefined ? false : body.autoPaymentEnabled;
+      if (typeof isActive !== "boolean" || typeof autoPaymentEnabled !== "boolean") {
+        return res.status(400).json({ message: "Les options du pays doivent être activées ou désactivées." });
       }
       const country = await storage.createCountry({
-        code: code.toUpperCase(),
+        code,
         name,
         currency: "USDT",
         phonePrefix,
-        operators: operators || "[]",
-        isActive: isActive !== undefined ? isActive : true,
-        autoPaymentEnabled: autoPaymentEnabled !== undefined ? autoPaymentEnabled : false,
+        operators: serializeCountryOperators(body.operators ?? []),
+        isActive,
+        autoPaymentEnabled,
       });
       res.json(country);
     } catch (error: any) {
+      if (error?.code === "23505") {
+        return res.status(409).json({ message: "Un pays avec ce code existe déjà." });
+      }
       res.status(400).json({ message: error.message });
     }
   });
 
   app.put("/api/admin/countries/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id as string);
-      const { name, phonePrefix, operators, isActive, autoPaymentEnabled } = req.body;
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Identifiant de pays invalide." });
+      }
+      const existing = await storage.getCountry(id);
+      if (!existing) return res.status(404).json({ message: "Pays introuvable." });
+
+      const body = req.body ?? {};
       const updateData: any = {};
-      if (name !== undefined) updateData.name = name;
+      if (body.name !== undefined) {
+        if (typeof body.name !== "string" || !body.name.trim() || body.name.trim().length > 100) {
+          return res.status(400).json({ message: "Le nom du pays est requis et ne doit pas dépasser 100 caractères." });
+        }
+        updateData.name = body.name.trim();
+      }
       updateData.currency = "USDT";
-      if (phonePrefix !== undefined) updateData.phonePrefix = phonePrefix;
-      if (operators !== undefined) updateData.operators = operators;
-      if (isActive !== undefined) updateData.isActive = isActive;
-      if (autoPaymentEnabled !== undefined) updateData.autoPaymentEnabled = autoPaymentEnabled;
+      if (body.phonePrefix !== undefined) {
+        if (typeof body.phonePrefix !== "string") {
+          return res.status(400).json({ message: "L’indicatif doit contenir de 1 à 4 chiffres." });
+        }
+        const rawPhonePrefix = body.phonePrefix.trim();
+        const phonePrefix = rawPhonePrefix.replace(/^\+/, "").replace(/[\s().-]/g, "");
+        if (!/^\d{1,4}$/.test(phonePrefix)) {
+          return res.status(400).json({ message: "L’indicatif doit contenir de 1 à 4 chiffres." });
+        }
+        updateData.phonePrefix = phonePrefix;
+      }
+      if (body.operators !== undefined) {
+        updateData.operators = serializeCountryOperators(body.operators);
+      }
+      if (body.isActive !== undefined) {
+        if (typeof body.isActive !== "boolean") {
+          return res.status(400).json({ message: "L’état actif doit être vrai ou faux." });
+        }
+        updateData.isActive = body.isActive;
+      }
+      if (body.autoPaymentEnabled !== undefined) {
+        if (typeof body.autoPaymentEnabled !== "boolean") {
+          return res.status(400).json({ message: "Le mode de paiement doit être activé ou désactivé." });
+        }
+        updateData.autoPaymentEnabled = body.autoPaymentEnabled;
+      }
       const country = await storage.updateCountry(id, updateData);
+      if (!country) return res.status(404).json({ message: "Pays introuvable." });
       res.json(country);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3940,10 +4012,19 @@ export async function registerRoutes(
 
   app.delete("/api/admin/countries/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id as string);
+      const id = Number(req.params.id);
+      if (!Number.isSafeInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Identifiant de pays invalide." });
+      }
       await storage.deleteCountry(id);
       res.json({ success: true });
     } catch (error: any) {
+      if (error?.name === "CountryNotFoundError") {
+        return res.status(404).json({ message: error.message });
+      }
+      if (error?.name === "CountryInUseError") {
+        return res.status(409).json({ message: error.message });
+      }
       res.status(400).json({ message: error.message });
     }
   });

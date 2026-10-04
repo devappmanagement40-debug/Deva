@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, HelpCircle, Users } from "lucide-react";
-import { getCountryByCode } from "@/lib/countries";
 import { useI18n } from "@/lib/i18n";
 import { displayCurrencyText } from "@/lib/content";
 
@@ -49,7 +48,6 @@ export default function RewardsPage() {
 
   if (!user) return null;
 
-  const country = getCountryByCode(user.country);
   const currency = "XOF";
 
   const totalReward = tasks?.reduce((sum, t) => sum + t.reward, 0) || 0;

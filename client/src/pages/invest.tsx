@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { formatCurrency, getCountryByCode } from "@/lib/countries";
+import { formatCurrency } from "@/lib/countries";
 import { Loader2, AlertTriangle, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
@@ -56,7 +56,6 @@ export default function InvestPage() {
   if (!user) return null;
 
   const balance = parseFloat(user.balance || "0");
-  const country = getCountryByCode(user.country);
   const currency = "XOF";
   const paidProducts = products?.filter(p => !p.isFree) || [];
 

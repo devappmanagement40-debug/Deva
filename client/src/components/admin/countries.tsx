@@ -66,6 +66,7 @@ export default function AdminCountries() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/countries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/countries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/countries"] });
       toast({ title: editingId ? t.adminCountryUpdated : t.adminCountryAdded });
       setDialogOpen(false);
       setForm(emptyForm);
@@ -85,6 +86,7 @@ export default function AdminCountries() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/countries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/countries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/countries"] });
       toast({ title: t.adminCountryDeleted });
       setDeleteId(null);
     },
@@ -102,6 +104,7 @@ export default function AdminCountries() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/countries"] });
       queryClient.invalidateQueries({ queryKey: ["/api/countries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/countries"] });
     },
   });
 
@@ -213,7 +216,7 @@ export default function AdminCountries() {
                   value={form.code}
                   onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
                   placeholder="CM"
-                  maxLength={3}
+                  maxLength={2}
                   disabled={!!editingId}
                   required
                   data-testid="input-country-code"

@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { getCountryFlagEmoji } from "@/lib/countries";
 import {
   Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff,
   ChevronDown, ChevronUp, Settings,
@@ -17,11 +18,6 @@ import type { DepositChannel, PaymentNumber } from "@shared/schema";
 interface Country {
   id: number; code: string; name: string; phonePrefix: string; isActive: boolean;
 }
-
-const FLAGS: Record<string, string> = {
-  CM: "🇨🇲", BF: "🇧🇫", TG: "🇹🇬", BJ: "🇧🇯", CI: "🇨🇮",
-  CG: "🇨🇬", CD: "🇨🇩", CF: "🇨🇫", ML: "🇲🇱", SN: "🇸🇳",
-};
 
 /* ─── Empty forms ─────────────────────────── */
 const emptyCh = { name: "", description: "", country: "", isActive: true, sortOrder: 0 };
@@ -201,7 +197,7 @@ export default function AdminDepositChannels() {
   const { data: channels = [], isLoading } = useQuery<DepositChannel[]>({
     queryKey: ["/api/admin/deposit-channels"],
   });
-  const { data: countries = [] } = useQuery<Country[]>({ queryKey: ["/api/countries"] });
+  const { data: countries = [] } = useQuery<Country[]>({ queryKey: ["/api/admin/countries"] });
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -282,7 +278,7 @@ export default function AdminDepositChannels() {
       {!isLoading && Object.entries(byCountry).map(([country, chs]) => (
         <div key={country}>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">{FLAGS[country] ?? "🌍"}</span>
+            <span className="text-lg">{getCountryFlagEmoji(country) || "🌍"}</span>
             <span className="font-semibold text-sm">{countries.find(c => c.code === country)?.name ?? country}</span>
             <Badge variant="outline" className="text-xs">{chs.length} canal{chs.length > 1 ? "x" : ""}</Badge>
           </div>
@@ -376,7 +372,7 @@ export default function AdminDepositChannels() {
                 <option value="">— Sélectionner un pays —</option>
                 {countries.filter(c => c.isActive).map(c => (
                   <option key={c.code} value={c.code}>
-                    {FLAGS[c.code] ?? "🌍"} {c.name} ({c.code})
+                    {getCountryFlagEmoji(c.code) || "🌍"} {c.name} ({c.code})
                   </option>
                 ))}
               </select>
