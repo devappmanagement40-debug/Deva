@@ -8,6 +8,9 @@ import {
   DEFAULT_SPIN_WHEEL_INVITE_TEXT,
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
 } from "@shared/spin-wheel";
+import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
+
+const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
 
 async function migrateReferralCodes(): Promise<number> {
   return db.transaction(async (tx) => {
@@ -415,9 +418,9 @@ export async function seed() {
     { key: "withdrawalStartHour", value: "9" },
     { key: "withdrawalEndHour", value: "17" },
     { key: "maxWithdrawalsPerDay", value: "1" },
-    { key: "level1Commission", value: "10" },
-    { key: "level2Commission", value: "2" },
-    { key: "level3Commission", value: "1" },
+    { key: "level1Commission", value: DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission },
+    { key: "level2Commission", value: DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission },
+    { key: "level3Commission", value: DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission },
     { key: "soleaspayEnabled", value: "false" },
     { key: "soleaspayCountries", value: "" },
     { key: "soleaspayChannelName", value: "Soleaspay" },
@@ -498,6 +501,36 @@ export async function seed() {
     } else {
       console.log(`Setting preserved: ${settingData.key}`);
     }
+  }
+
+  // Upgrade only the untouched legacy defaults once. Preserve any rates that
+  // an administrator has already customized.
+  if (!existingSettings.some(setting => setting.key === REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY)) {
+    const currentRates = Object.fromEntries(
+      ["level1Commission", "level2Commission", "level3Commission"].map(key => [
+        key,
+        existingSettings.find(setting => setting.key === key)?.value,
+      ]),
+    ) as Record<string, string | undefined>;
+    const isLegacyDefaultRates =
+      Number(currentRates.level1Commission) === 10 &&
+      Number(currentRates.level2Commission) === 2 &&
+      Number(currentRates.level3Commission) === 1;
+
+    if (isLegacyDefaultRates) {
+      await db.transaction(async tx => {
+        for (const key of ["level1Commission", "level2Commission", "level3Commission"] as const) {
+          await tx.update(platformSettings)
+            .set({ value: DEFAULT_REFERRAL_COMMISSION_RATES[key] })
+            .where(eq(platformSettings.key, key));
+        }
+      });
+      console.log("Legacy referral commission defaults upgraded to 30/3/2");
+    }
+
+    await db.insert(platformSettings)
+      .values({ key: REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY, value: "1" })
+      .onConflictDoNothing();
   }
 
   // Update only known default copy. Custom admin content remains untouched.

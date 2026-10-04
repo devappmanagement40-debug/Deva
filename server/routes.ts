@@ -2078,6 +2078,7 @@ export async function registerRoutes(
         westpayWebhookSecret, westpayMerchantSlug,
         westpayApiKey_CI, westpayApiKey_BF, westpayApiKey_BJ,
         westpayApiKey_TG, westpayApiKey_CM, westpayApiKey_ML,
+        __migration_referral_commission_defaults_v1,
         ...publicSettings
       } = settings;
        res.json(normalizePublicSettings(publicSettings));
@@ -3342,6 +3343,11 @@ export async function registerRoutes(
         "spinWheelSelfPurchaseSpins",
         "spinWheelReferralPurchaseSpins",
       ]);
+      const referralCommissionSettingKeys = new Set([
+        "level1Commission",
+        "level2Commission",
+        "level3Commission",
+      ]);
 
       // Validate all configurable spin rewards before saving any part of a
       // bulk update, so malformed values cannot leave the panel half-saved.
@@ -3360,6 +3366,20 @@ export async function registerRoutes(
       }
 
       for (const [key, value] of entries) {
+        if (!referralCommissionSettingKeys.has(key)) continue;
+        const rate = typeof value === "number"
+          ? value
+          : typeof value === "string" && value.trim() !== ""
+            ? Number(value.trim())
+            : Number.NaN;
+        if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+          return res.status(400).json({
+            message: "Chaque taux de commission doit être un nombre entre 0 et 100",
+          });
+        }
+      }
+
+      for (const [key, value] of entries) {
         if (key === "withdrawalMode") {
           const mode = normalizeWithdrawalMode(typeof value === "string" ? value : undefined);
           if (
@@ -3372,6 +3392,9 @@ export async function registerRoutes(
         } else if (spinRewardSettingKeys.has(key)) {
           const spins = typeof value === "number" ? value : Number(String(value).trim());
           await storage.setSetting(key, String(spins), req.session.userId);
+        } else if (referralCommissionSettingKeys.has(key)) {
+          const rate = typeof value === "number" ? value : Number(String(value).trim());
+          await storage.setSetting(key, String(rate), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [
             "supportLink",

@@ -17,6 +17,7 @@ import {
   SPIN_WHEEL_SETTING_KEY,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
+import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
 
 // Compares phone numbers regardless of local vs international MSISDN format
@@ -620,9 +621,15 @@ export class DatabaseStorage implements IStorage {
     if (!user || !user.referredBy) return;
 
     const settings = await this.getSettings();
-    const level1Rate = parseFloat(settings.level1Commission || "25") / 100;
-    const level2Rate = parseFloat(settings.level2Commission || "1") / 100;
-    const level3Rate = parseFloat(settings.level3Commission || "1") / 100;
+    const getRate = (value: string | undefined, fallback: string) => {
+      const parsed = value?.trim() ? Number(value) : Number.NaN;
+      return (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100
+        ? parsed
+        : Number(fallback)) / 100;
+    };
+    const level1Rate = getRate(settings.level1Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission);
+    const level2Rate = getRate(settings.level2Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission);
+    const level3Rate = getRate(settings.level3Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission);
 
     // Level 1
     const level1User = await this.getUserByReferralCode(user.referredBy);

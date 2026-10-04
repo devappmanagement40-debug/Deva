@@ -14,8 +14,9 @@
 - [DIAMANT withdrawal proofs](diamant-withdrawal-proofs.md) — publish only after approval, mask phone numbers, and credit any sharing bonus to earnings exactly once.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
-- [TGOOD product cycle credits](tgood-product-earnings-collection.md) — product gains accrue for a full cycle, then credit once automatically; legacy unpaid gains settle without repeating prior credits.
+- [TGOOD product cycle credits](tgood-product-earnings-collection.md) — gains accrue through the full cycle and credit once; settle legacy unpaid gains without repeating prior credits.
 - [DIAMANT product sections](diamant-product-sections.md) — products use the existing Stability, Wellness, and Activity sections; legacy products remain visible in every section until assigned.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
+- [DIAMANT referral commissions](diamant-referral-commissions.md) — default rates are 30/3/2% for levels 1/2/3 and remain editable in the admin panel.

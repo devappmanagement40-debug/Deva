@@ -21,6 +21,7 @@ import {
   interpolateSpinWheelRewards,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
+import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
 interface RecentSpin {
   id: number;
@@ -346,6 +347,20 @@ export default function SpinWheelPage() {
   });
   const selfPurchaseSpins = platformSettings?.spinWheelSelfPurchaseSpins ?? "3";
   const referralPurchaseSpins = platformSettings?.spinWheelReferralPurchaseSpins ?? "2";
+  const referralCommissionRates = [
+    {
+      level: 1,
+      value: platformSettings?.level1Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission,
+    },
+    {
+      level: 2,
+      value: platformSettings?.level2Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission,
+    },
+    {
+      level: 3,
+      value: platformSettings?.level3Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission,
+    },
+  ];
   const inviteText = displayCurrencyText(interpolateSpinWheelRewards(
     platformSettings?.spinWheelInviteText ?? DEFAULT_SPIN_WHEEL_INVITE_TEXT,
     selfPurchaseSpins,
@@ -753,13 +768,13 @@ export default function SpinWheelPage() {
               avec 100 % de chance de gagner. Vous pourrez retirer jusqu'à 5 000 francs{" "}
               <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span> immédiatement.
             </p>
-            <p>
-              De plus, vous recevrez 20 % de leur investissement en commission. Par exemple, s'ils investissent
-              100 000 francs{" "}
-              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span>, vous recevrez 20 000 francs{" "}
-              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span> de commission. Les commissions
-              sont retirables instantanément.
-            </p>
+            <p className="mb-2">De plus, vous recevrez une commission sur les investissements de votre équipe :</p>
+            <div className="mb-3 space-y-1" aria-label={t.teamCommissionRate}>
+              {referralCommissionRates.map(({ level, value }) => (
+                <p key={level}>{t.levelLabel} {level} : {value}%</p>
+              ))}
+            </div>
+            <p className="mb-5">Les commissions sont retirables instantanément.</p>
             <button
               type="button"
               onClick={() => setShowRules(true)}

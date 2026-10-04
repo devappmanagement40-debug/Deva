@@ -14,6 +14,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Save, Link, Clock, Users, PowerOff, Power, HandCoins, Zap } from "lucide-react";
+import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
+
+const commissionRateSchema = z.string()
+  .trim()
+  .min(1, "Commission requise")
+  .refine(value => {
+    const rate = Number(value);
+    return Number.isFinite(rate) && rate >= 0 && rate <= 100;
+  }, "Saisissez un taux entre 0 et 100");
 
 const NETWORKS = [
   { value: "telegram", label: "Telegram" },
@@ -53,9 +62,9 @@ const settingsSchema = z.object({
   withdrawalDays: z.string().min(1, "Jours requis"),
   withdrawalStartHour: z.string().min(1, "Heure requise"),
   withdrawalEndHour: z.string().min(1, "Heure requise"),
-  level1Commission: z.string().min(1, "Commission requise"),
-  level2Commission: z.string().min(1, "Commission requise"),
-  level3Commission: z.string().min(1, "Commission requise"),
+  level1Commission: commissionRateSchema,
+  level2Commission: commissionRateSchema,
+  level3Commission: commissionRateSchema,
   // WestPay
   westpayMerchantSlug: z.string().optional(),
   westpayWebhookSecret: z.string().optional(),
@@ -240,9 +249,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       withdrawalDays: "1,2,3,4,5",
       withdrawalStartHour: "9",
       withdrawalEndHour: "17",
-      level1Commission: "10",
-      level2Commission: "2",
-      level3Commission: "1",
+      level1Commission: DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission,
+      level2Commission: DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission,
+      level3Commission: DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission,
       westpayMerchantSlug: "",
       westpayWebhookSecret: "",
       westpayApiKey_CI: "",
@@ -287,9 +296,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       withdrawalDays:         settings.withdrawalDays         ?? "1,2,3,4,5",
       withdrawalStartHour:    settings.withdrawalStartHour    ?? "9",
       withdrawalEndHour:      settings.withdrawalEndHour      ?? "17",
-      level1Commission:       settings.level1Commission       ?? "10",
-      level2Commission:       settings.level2Commission       ?? "2",
-      level3Commission:       settings.level3Commission       ?? "1",
+      level1Commission:       settings.level1Commission       ?? DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission,
+      level2Commission:       settings.level2Commission       ?? DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission,
+      level3Commission:       settings.level3Commission       ?? DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission,
       popupTitle:             rebrandText(settings.popupTitle ?? ""),
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
@@ -865,26 +874,26 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-xs text-muted-foreground">Pourcentage reversé aux parrains lorsqu'un filleul achète un produit.</p>
+            <p className="text-xs text-muted-foreground">Ces taux sont crédités sur les achats de produits des filleuls. Vous pouvez modifier chaque niveau ici.</p>
             <div className="grid grid-cols-3 gap-4">
               <FormField control={form.control} name="level1Commission" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Niveau 1 (%)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormControl><Input {...field} type="number" min="0" max="100" step="0.01" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="level2Commission" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Niveau 2 (%)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormControl><Input {...field} type="number" min="0" max="100" step="0.01" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="level3Commission" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Niveau 3 (%)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormControl><Input {...field} type="number" min="0" max="100" step="0.01" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
