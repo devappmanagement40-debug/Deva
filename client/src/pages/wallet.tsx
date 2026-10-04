@@ -11,7 +11,7 @@ import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-lands
 
 type WithdrawalAsset = "Mobile Money" | "USDT";
 
-const WITHDRAWAL_ASSET: WithdrawalAsset = "USDT";
+const WITHDRAWAL_ASSET: WithdrawalAsset = "Mobile Money";
 const WITHDRAWAL_NETWORK = "USDT BEP20";
 
 type PickerType = "asset" | "network" | null;
@@ -32,7 +32,7 @@ export default function WalletPage() {
   const [showForm, setShowForm] = useState(false);
   const [picker, setPicker] = useState<PickerType>(null);
   const [asset, setAsset] = useState(WITHDRAWAL_ASSET);
-  const [network, setNetwork] = useState(WITHDRAWAL_NETWORK);
+  const [network, setNetwork] = useState("");
   const [address, setAddress] = useState("");
 
   const {
@@ -91,7 +91,7 @@ export default function WalletPage() {
       setShowForm(false);
       setAddress("");
       setAsset(WITHDRAWAL_ASSET);
-      setNetwork(WITHDRAWAL_NETWORK);
+      setNetwork("");
     },
     onError: (error: Error) => {
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
@@ -134,7 +134,7 @@ export default function WalletPage() {
     setPicker(null);
     setAddress("");
     setAsset(WITHDRAWAL_ASSET);
-    setNetwork(WITHDRAWAL_NETWORK);
+    setNetwork("");
   };
 
   const handleConfirm = () => {
