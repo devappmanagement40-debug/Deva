@@ -192,6 +192,7 @@ export const withdrawalProofs = pgTable("withdrawal_proofs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   proofImage: text("proof_image").notNull(),
+  proofImage2: text("proof_image_2"),
   message: text("message").notNull(),
   status: text("status").$type<WithdrawalProofStatus>().notNull().default("pending"),
   shareBonusXof: integer("share_bonus_xof").notNull().default(0),

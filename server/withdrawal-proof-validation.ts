@@ -1,13 +1,15 @@
 import { z } from "zod";
 
 const proofImagePattern = /^data:image\/(?:png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+const proofImageSchema = z.string()
+  .regex(proofImagePattern, "Une capture au format PNG, JPG ou WebP est requise")
+  .max(7_100_000, "L'image de preuve ne peut pas dépasser 5 Mo");
 
 export const withdrawalProofSubmissionSchema = z.object({
   message: z.string().trim().min(1, "Ajoutez un message").max(500, "Le message ne peut pas dépasser 500 caractères"),
-  proof: z.string()
-    .regex(proofImagePattern, "Une capture au format PNG, JPG ou WebP est requise")
-    .max(7_100_000, "L'image de preuve ne peut pas dépasser 5 Mo"),
-});
+  proof: proofImageSchema,
+  proof2: proofImageSchema.optional(),
+}).strict();
 
 export const withdrawalProofReviewSchema = z.discriminatedUnion("action", [
   z.object({

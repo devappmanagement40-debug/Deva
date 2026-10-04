@@ -1407,11 +1407,12 @@ export async function registerRoutes(
   app.get("/api/withdrawal-proofs", requireAuth, async (_req, res) => {
     try {
       const proofs = await storage.getWithdrawalProofs("approved", 100);
-      return res.json(proofs.map(({ id, message, shareBonusXof, createdAt, user }) => ({
+      return res.json(proofs.map(({ id, message, shareBonusXof, createdAt, user, proofImage2 }) => ({
         id,
         message,
         shareBonusXof,
         createdAt,
+        imageCount: proofImage2 ? 2 : 1,
         maskedPhone: maskPhoneForWithdrawalProof(user.phone),
       })));
     } catch (error) {
@@ -1425,11 +1426,17 @@ export async function registerRoutes(
     if (!Number.isSafeInteger(id) || id < 1) {
       return res.status(400).json({ message: "Identifiant de preuve invalide" });
     }
+    const requestedImage = req.query.image;
+    if (requestedImage !== undefined && requestedImage !== "1" && requestedImage !== "2") {
+      return res.status(400).json({ message: "Numéro de capture invalide" });
+    }
 
     try {
       const proof = await storage.getWithdrawalProof(id);
       if (!proof || proof.status !== "approved") return res.status(404).json({ message: "Image introuvable" });
-      return sendWithdrawalProofImage(res, proof.proofImage);
+      const image = requestedImage === "2" ? proof.proofImage2 : proof.proofImage;
+      if (!image) return res.status(404).json({ message: "Image introuvable" });
+      return sendWithdrawalProofImage(res, image);
     } catch (error) {
       console.error("Withdrawal proof image error:", error);
       return res.status(500).json({ message: "Impossible de charger cette image" });
@@ -1445,6 +1452,7 @@ export async function registerRoutes(
       const proof = await storage.createWithdrawalProof({
         userId: user.id,
         proofImage: payload.proof,
+        proofImage2: payload.proof2 ?? null,
         message: payload.message,
       });
       return res.status(201).json({ id: proof.id, status: proof.status });
@@ -2543,7 +2551,10 @@ export async function registerRoutes(
         status as "pending" | "approved" | "rejected" | "all",
         250,
       );
-      return res.json(proofs.map(({ proofImage: _proofImage, ...proof }) => proof));
+      return res.json(proofs.map(({ proofImage: _proofImage, proofImage2, ...proof }) => ({
+        ...proof,
+        imageCount: proofImage2 ? 2 : 1,
+      })));
     } catch (error) {
       console.error("Admin withdrawal proofs list error:", error);
       return res.status(500).json({ message: "Impossible de charger les preuves de retrait" });
@@ -2555,11 +2566,17 @@ export async function registerRoutes(
     if (!Number.isSafeInteger(id) || id < 1) {
       return res.status(400).json({ message: "Identifiant de preuve invalide" });
     }
+    const requestedImage = req.query.image;
+    if (requestedImage !== undefined && requestedImage !== "1" && requestedImage !== "2") {
+      return res.status(400).json({ message: "Numéro de capture invalide" });
+    }
 
     try {
       const proof = await storage.getWithdrawalProof(id);
       if (!proof) return res.status(404).json({ message: "Image introuvable" });
-      return sendWithdrawalProofImage(res, proof.proofImage);
+      const image = requestedImage === "2" ? proof.proofImage2 : proof.proofImage;
+      if (!image) return res.status(404).json({ message: "Image introuvable" });
+      return sendWithdrawalProofImage(res, image);
     } catch (error) {
       console.error("Admin withdrawal proof image error:", error);
       return res.status(500).json({ message: "Impossible de charger cette image" });

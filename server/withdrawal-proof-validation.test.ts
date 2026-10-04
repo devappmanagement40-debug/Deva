@@ -16,6 +16,17 @@ test("withdrawal proof submissions accept supported images and trim the message"
   if (result.success) assert.equal(result.data.message, "Retrait reçu");
 });
 
+test("withdrawal proof submissions accept an optional second screenshot", () => {
+  const result = withdrawalProofSubmissionSchema.safeParse({
+    message: "Retrait reçu",
+    proof: "data:image/png;base64,aGVsbG8=",
+    proof2: "data:image/webp;base64,aGVsbG8=",
+  });
+
+  assert.equal(result.success, true);
+  if (result.success) assert.equal(result.data.proof2, "data:image/webp;base64,aGVsbG8=");
+});
+
 test("withdrawal proof submissions reject empty messages and unsupported image types", () => {
   assert.equal(withdrawalProofSubmissionSchema.safeParse({
     message: " ",
@@ -25,6 +36,18 @@ test("withdrawal proof submissions reject empty messages and unsupported image t
   assert.equal(withdrawalProofSubmissionSchema.safeParse({
     message: "Preuve de retrait",
     proof: "data:image/svg+xml;base64,PHN2Zz4=",
+  }).success, false);
+
+  assert.equal(withdrawalProofSubmissionSchema.safeParse({
+    message: "Preuve de retrait",
+    proof: "data:image/png;base64,aGVsbG8=",
+    proof2: "data:image/svg+xml;base64,PHN2Zz4=",
+  }).success, false);
+
+  assert.equal(withdrawalProofSubmissionSchema.safeParse({
+    message: "Preuve de retrait",
+    proof: "data:image/png;base64,aGVsbG8=",
+    proof3: "data:image/png;base64,aGVsbG8=",
   }).success, false);
 });
 

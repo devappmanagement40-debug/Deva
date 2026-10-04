@@ -134,7 +134,12 @@ export interface IStorage {
   createShareReport(data: Partial<ShareReport>): Promise<ShareReport>;
   getShareReports(status?: string): Promise<(ShareReport & { user: ShareReportUser })[]>;
   updateShareReport(id: number, data: Partial<ShareReport>): Promise<ShareReport>;
-  createWithdrawalProof(data: { userId: number; proofImage: string; message: string }): Promise<WithdrawalProof>;
+  createWithdrawalProof(data: {
+    userId: number;
+    proofImage: string;
+    proofImage2?: string | null;
+    message: string;
+  }): Promise<WithdrawalProof>;
   getWithdrawalProofs(status?: WithdrawalProofStatus | "all", limit?: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser })[]>;
   getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined>;
   approvePendingWithdrawalProof(
@@ -1051,7 +1056,12 @@ export class DatabaseStorage implements IStorage {
     return shareReport;
   }
 
-  async createWithdrawalProof(data: { userId: number; proofImage: string; message: string }): Promise<WithdrawalProof> {
+  async createWithdrawalProof(data: {
+    userId: number;
+    proofImage: string;
+    proofImage2?: string | null;
+    message: string;
+  }): Promise<WithdrawalProof> {
     const [proof] = await db.insert(withdrawalProofs).values(data).returning();
     return proof;
   }

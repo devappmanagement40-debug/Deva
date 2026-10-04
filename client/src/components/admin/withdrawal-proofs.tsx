@@ -11,6 +11,7 @@ type AdminProof = {
   id: number;
   userId: number;
   message: string;
+  imageCount: 1 | 2;
   status: string;
   shareBonusXof: number;
   createdAt: string;
@@ -37,7 +38,7 @@ export default function AdminWithdrawalProofs() {
   const locale = localeForLang(lang);
   const [status, setStatus] = useState<ReviewStatus>("pending");
   const [bonusAmounts, setBonusAmounts] = useState<Record<number, string>>({});
-  const [openImage, setOpenImage] = useState<number | null>(null);
+  const [openImage, setOpenImage] = useState<{ id: number; imageNumber: number } | null>(null);
 
   const proofs = useQuery<AdminProof[]>({
     queryKey: ["/api/admin/withdrawal-proofs", status],
@@ -153,15 +154,29 @@ export default function AdminWithdrawalProofs() {
                 <span data-no-static-translation>{formatDate(proof.createdAt, locale)}</span>
               </div>
               <p className="admin-proof-card__message" data-no-static-translation>{proof.message}</p>
-              <button
-                type="button"
-                className="admin-proof-card__image-button"
-                onClick={() => setOpenImage(proof.id)}
-                data-testid={`button-view-withdrawal-proof-${proof.id}`}
-              >
-                <img src={`/api/admin/withdrawal-proofs/${proof.id}/image`} alt="Capture de preuve de retrait" loading="lazy" />
-                <span><ImageIcon size={15} /> Agrandir la capture</span>
-              </button>
+              <div className={`admin-proof-card__images ${proof.imageCount > 1 ? "is-multiple" : ""}`}>
+                {Array.from({ length: proof.imageCount }, (_, imageIndex) => {
+                  const imageNumber = imageIndex + 1;
+                  return (
+                    <button
+                      key={imageNumber}
+                      type="button"
+                      className="admin-proof-card__image-button"
+                      onClick={() => setOpenImage({ id: proof.id, imageNumber })}
+                      data-testid={imageNumber === 1
+                        ? `button-view-withdrawal-proof-${proof.id}`
+                        : `button-view-withdrawal-proof-${proof.id}-2`}
+                    >
+                      <img
+                        src={`/api/admin/withdrawal-proofs/${proof.id}/image?image=${imageNumber}`}
+                        alt="Capture de preuve de retrait"
+                        loading="lazy"
+                      />
+                      <span><ImageIcon size={15} /> Agrandir la capture</span>
+                    </button>
+                  );
+                })}
+              </div>
               {proof.status === "pending" ? (
                 <div className="admin-proof-card__actions">
                   <label className="admin-proof-card__amount">
@@ -228,7 +243,10 @@ export default function AdminWithdrawalProofs() {
       {openImage !== null && (
         <div className="admin-proof-lightbox" role="dialog" aria-modal="true" aria-label="Capture de preuve">
           <button type="button" onClick={() => setOpenImage(null)} aria-label="Fermer la capture"><X size={20} /></button>
-          <img src={`/api/admin/withdrawal-proofs/${openImage}/image`} alt="Capture de preuve de retrait" />
+          <img
+            src={`/api/admin/withdrawal-proofs/${openImage.id}/image?image=${openImage.imageNumber}`}
+            alt="Capture de preuve de retrait"
+          />
         </div>
       )}
     </section>

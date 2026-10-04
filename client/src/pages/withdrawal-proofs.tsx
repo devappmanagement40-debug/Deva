@@ -11,9 +11,15 @@ import "./withdrawal-proofs.css";
 type ProofFeedItem = {
   id: number;
   message: string;
+  imageCount: 1 | 2;
   shareBonusXof: number;
   createdAt: string;
   maskedPhone: string;
+};
+
+type SelectedProofImage = {
+  dataUrl: string;
+  name: string;
 };
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -49,10 +55,9 @@ export default function WithdrawalProofsPage() {
   const numberFormat = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
   const imageInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
-  const [proof, setProof] = useState<string | null>(null);
-  const [proofName, setProofName] = useState("");
+  const [proofImages, setProofImages] = useState<SelectedProofImage[]>([]);
   const [formOpen, setFormOpen] = useState(false);
-  const [selectedProof, setSelectedProof] = useState<ProofFeedItem | null>(null);
+  const [selectedProof, setSelectedProof] = useState<{ item: ProofFeedItem; imageNumber: number } | null>(null);
   const proofDialogRef = useRef<HTMLDialogElement>(null);
 
   const feed = useQuery<ProofFeedItem[]>({
@@ -68,7 +73,7 @@ export default function WithdrawalProofsPage() {
   }, [selectedProof]);
 
   const submitProof = useMutation({
-    mutationFn: async (payload: { message: string; proof: string }) => {
+    mutationFn: async (payload: { message: string; proof: string; proof2?: string }) => {
       const response = await apiRequest("POST", "/api/withdrawal-proofs", payload);
       return response.json() as Promise<{ id: number; status: "pending" }>;
     },
@@ -79,8 +84,7 @@ export default function WithdrawalProofsPage() {
         description: "Elle sera visible par les autres membres après validation par l’administration.",
       });
       setMessage("");
-      setProof(null);
-      setProofName("");
+      setProofImages([]);
       setFormOpen(false);
     },
     onError: () => toast({
@@ -94,6 +98,14 @@ export default function WithdrawalProofsPage() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
+    if (proofImages.length >= 2) {
+      toast({
+        title: "Maximum de captures atteint",
+        description: "Maximum 2 captures par partage.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       toast({
         title: "Format non pris en charge",
@@ -111,8 +123,8 @@ export default function WithdrawalProofsPage() {
       return;
     }
     try {
-      setProof(await readImage(file));
-      setProofName(file.name);
+      const dataUrl = await readImage(file);
+      setProofImages((current) => current.length >= 2 ? current : [...current, { dataUrl, name: file.name }]);
     } catch {
       toast({
         title: "Image illisible",
@@ -125,15 +137,19 @@ export default function WithdrawalProofsPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || !proof) {
+    if (!trimmedMessage || proofImages.length === 0) {
       toast({
         title: "Informations manquantes",
-        description: "Ajoutez un message et une capture de votre retrait.",
+        description: "Ajoutez un message et au moins une capture de votre retrait.",
         variant: "destructive",
       });
       return;
     }
-    submitProof.mutate({ message: trimmedMessage, proof });
+    submitProof.mutate({
+      message: trimmedMessage,
+      proof: proofImages[0].dataUrl,
+      proof2: proofImages[1]?.dataUrl,
+    });
   };
 
   return (
@@ -206,26 +222,44 @@ export default function WithdrawalProofsPage() {
                   onChange={chooseImage}
                   data-testid="input-withdrawal-proof-image"
                 />
-                <button
-                  type="button"
-                  className={`withdrawal-proof-upload ${proof ? "has-image" : ""}`}
-                  onClick={() => imageInput.current?.click()}
-                  data-testid="button-upload-withdrawal-proof"
-                >
-                  {proof ? (
-                    <>
-                      <img src={proof} alt="Aperçu de la preuve sélectionnée" />
-                      <span><strong>Image prête</strong><small data-no-static-translation>{proofName}</small></span>
-                      <CheckCircle2 size={22} strokeWidth={2.8} />
-                    </>
-                  ) : (
-                    <>
+                <div className="withdrawal-proof-form__images">
+                  {proofImages.map((image, index) => (
+                    <div className="withdrawal-proof-image-preview" key={`${image.name}-${index}`}>
+                      <img src={image.dataUrl} alt="Aperçu de la preuve sélectionnée" />
+                      <span>
+                        <strong>{index === 0 ? "Capture 1" : "Capture 2"}</strong>
+                        <small data-no-static-translation>{image.name}</small>
+                      </span>
+                      <CheckCircle2 size={20} strokeWidth={2.8} />
+                      <button
+                        type="button"
+                        onClick={() => setProofImages((current) => current.filter((_, imageIndex) => imageIndex !== index))}
+                        aria-label="Supprimer cette capture"
+                        disabled={submitProof.isPending}
+                        data-testid={`button-remove-withdrawal-proof-image-${index + 1}`}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {proofImages.length < 2 && (
+                    <button
+                      type="button"
+                      className="withdrawal-proof-upload"
+                      onClick={() => imageInput.current?.click()}
+                      disabled={submitProof.isPending}
+                      data-testid="button-upload-withdrawal-proof"
+                    >
                       <ImagePlus size={23} strokeWidth={2.8} />
-                      <span><strong>Ajouter une capture</strong><small>PNG, JPEG ou WebP · 5 Mo maximum</small></span>
+                      <span>
+                        <strong>{proofImages.length === 0 ? "Ajouter une capture" : "Ajouter une autre capture"}</strong>
+                        <small>PNG, JPEG ou WebP · 5 Mo maximum</small>
+                      </span>
                       <Camera size={20} strokeWidth={2.8} />
-                    </>
+                    </button>
                   )}
-                </button>
+                </div>
+                <p className="withdrawal-proof-upload-limit">Maximum 2 captures par partage.</p>
                 <p className="withdrawal-proof-approval-note">
                   <ShieldCheck size={18} strokeWidth={2.7} />
                   Votre preuve ne sera visible par les autres membres qu’après validation par l’administration.
@@ -287,21 +321,31 @@ export default function WithdrawalProofsPage() {
                   </div>
                   <div className="withdrawal-proof-card__content">
                     <p data-no-static-translation>{item.message}</p>
-                     <button
-                       type="button"
-                       className="withdrawal-proof-card__image-button"
-                       onClick={() => setSelectedProof(item)}
-                       aria-label="Agrandir la capture"
-                       data-testid={`button-view-withdrawal-proof-${item.id}`}
-                     >
-                      <img
-                        src={`/api/withdrawal-proofs/${item.id}/image`}
-                        alt="Capture de retrait partagée"
-                        loading={index > 1 ? "lazy" : "eager"}
-                      />
-                       <span className="withdrawal-proof-card__image-action"><Expand size={13} strokeWidth={2.6} /> Agrandir</span>
-                       <span className="withdrawal-proof-card__image-caption">Capture de retrait</span>
-                     </button>
+                      <div className={`withdrawal-proof-card__images ${item.imageCount > 1 ? "is-multiple" : ""}`}>
+                        {Array.from({ length: item.imageCount }, (_, imageIndex) => {
+                          const imageNumber = imageIndex + 1;
+                          return (
+                            <button
+                              key={imageNumber}
+                              type="button"
+                              className="withdrawal-proof-card__image-button"
+                              onClick={() => setSelectedProof({ item, imageNumber })}
+                              aria-label="Agrandir la capture"
+                              data-testid={imageNumber === 1
+                                ? `button-view-withdrawal-proof-${item.id}`
+                                : `button-view-withdrawal-proof-${item.id}-2`}
+                            >
+                              <img
+                                src={`/api/withdrawal-proofs/${item.id}/image?image=${imageNumber}`}
+                                alt="Capture de retrait partagée"
+                                loading={index > 1 ? "lazy" : "eager"}
+                              />
+                              <span className="withdrawal-proof-card__image-action"><Expand size={13} strokeWidth={2.6} /> Agrandir</span>
+                              <span className="withdrawal-proof-card__image-caption">{imageNumber === 1 ? "Capture 1" : "Capture 2"}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                   </div>
                   {Number(item.shareBonusXof) > 0 && (
                     <div className="withdrawal-proof-card__bonus">
@@ -332,7 +376,7 @@ export default function WithdrawalProofsPage() {
                <div className="withdrawal-proof-lightbox__header">
                  <div>
                    <h2 id="withdrawal-proof-lightbox-title">Capture de retrait</h2>
-                   <span data-no-static-translation>{selectedProof.maskedPhone}</span>
+                    <span data-no-static-translation>{selectedProof.item.maskedPhone}</span>
                  </div>
                  <button
                    type="button"
@@ -344,10 +388,10 @@ export default function WithdrawalProofsPage() {
                    <X size={20} strokeWidth={2.6} />
                  </button>
                </div>
-               <img
-                 src={`/api/withdrawal-proofs/${selectedProof.id}/image`}
-                 alt="Capture de retrait partagée"
-               />
+                <img
+                  src={`/api/withdrawal-proofs/${selectedProof.item.id}/image?image=${selectedProof.imageNumber}`}
+                  alt="Capture de retrait partagée"
+                />
                <p>Appuyez sur Échap ou sur le fond sombre pour fermer.</p>
              </>
            )}
