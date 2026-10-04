@@ -295,6 +295,11 @@ export default function AccountPage() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const copy = COPY[lang];
+  const depositAmount = Number(user?.balance);
+  const earningsAmount = Number(user?.totalEarnings);
+  const displayedBalance =
+    (Number.isFinite(depositAmount) ? depositAmount : 0) +
+    (Number.isFinite(earningsAmount) ? earningsAmount : 0);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [adminPin, setAdminPin] = useState("");
@@ -504,7 +509,7 @@ export default function AccountPage() {
           <section className="ielp-account-balance-card" aria-label={copy.balance}>
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
-              <strong>{(Number(user.balance) || 0).toLocaleString()} FCFA</strong>
+              <strong>{displayedBalance.toLocaleString()} FCFA</strong>
             </div>
             <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
               {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (
