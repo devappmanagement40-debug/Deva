@@ -3,11 +3,10 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, CreditCard, Loader2, ShieldCheck, Wifi } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, CreditCard, Loader2, ShieldCheck, Wifi } from "lucide-react";
 import { getContent } from "@/lib/content";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
-import withdrawalHero from "@/assets/images/withdrawal-hero-reference.png";
 
 interface WalletData {
   id: number;
@@ -280,36 +279,44 @@ export default function WithdrawalPage() {
 
   return (
     <main
-      className="ielp-withdrawal-page min-h-screen w-full overflow-clip"
+      className="ielp-withdrawal-page flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden"
       style={{ maxWidth: 480, margin: "0 auto", background: "#f5f5f5", color: "#202124" }}
     >
-      <section className="relative w-full" style={{ aspectRatio: "720 / 404" }}>
-        <img
-          src={withdrawalHero}
-          alt=""
-          className="block h-full w-full object-cover"
-          aria-hidden="true"
-        />
+      <header
+        className="ielp-withdrawal-header sticky top-0 z-20 flex shrink-0 items-center gap-3 border-b border-[#e5e5e5] bg-white px-4 shadow-sm"
+        style={{
+          minHeight: "calc(64px + env(safe-area-inset-top))",
+          paddingTop: "env(safe-area-inset-top)",
+        }}
+      >
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="absolute left-[4%] top-[7.5%] flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[#653de9] shadow-md transition active:scale-95"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#653de9] transition hover:bg-[#f4f1ff] active:scale-95"
           aria-label="Retour au compte"
           data-testid="button-withdrawal-back"
         >
           <ChevronLeft className="h-7 w-7" strokeWidth={2.2} aria-hidden="true" />
         </button>
+        <div className="min-w-0 flex-1 text-center">
+          <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-[#85818f]">DIAMANT</span>
+          <h1 className="mt-0.5 truncate text-[18px] font-semibold leading-tight text-[#202124]">{t.withdrawTitle}</h1>
+        </div>
         <button
           type="button"
           onClick={() => navigate("/withdrawal-history")}
-          className="absolute"
-          style={{ right: "3.4%", top: "7.5%", width: "14%", height: "29%" }}
-          aria-label="Voir l’historique des retraits"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[#653de9] transition hover:bg-[#f4f1ff] active:scale-95"
+          aria-label={t.withdrawalHistory}
           data-testid="button-withdrawal-history"
-        />
-      </section>
+        >
+          <Clock3 className="h-5 w-5" strokeWidth={2.2} aria-hidden="true" />
+        </button>
+      </header>
 
-      <section className="px-5 pt-[29px] pb-8">
+      <section
+        className="ielp-withdrawal-content min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-8"
+        style={{ paddingBottom: "calc(24px + env(safe-area-inset-bottom))" }}
+      >
         <p className="font-normal" style={{ fontSize: 20, lineHeight: 1.2 }}>
           Mon solde
         </p>
