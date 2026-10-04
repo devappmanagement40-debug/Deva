@@ -1029,7 +1029,7 @@ const fr: Translations = {
     wheelResultLossMessage:"Votre tour a été utilisé, mais vous n'avez remporté aucun gain. Vous pourrez rejouer avec un prochain tour.",
     wheelResultNoSpinsTitle:   "Aucun tour disponible",
     wheelResultNoSpinsMessage: "Vous n'avez aucun tour à jouer. Achetez un produit payant ou faites acheter un produit par un filleul pour recevoir de nouveaux tours.",
-    wheelResultConfirm:    "OK",
+    wheelResultConfirm:    "Fermer",
     wheelErrUnavailable:"Le tirage est indisponible",
     wheelRulesBtn:      "Règles",
     wheelSaveBtn:       "Historique",

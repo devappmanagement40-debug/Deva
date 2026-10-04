@@ -357,7 +357,7 @@ export const ENGLISH_TRANSLATIONS = {
     wheelResultLossMessage:"Your spin was used, but you did not win a prize. You can try again with a future spin.",
     wheelResultNoSpinsTitle:   "No spins available",
     wheelResultNoSpinsMessage: "You have no spins to play. Buy a paid product or have a direct referral purchase one to receive more spins.",
-    wheelResultConfirm:    "OK",
+    wheelResultConfirm:    "Close",
     wheelErrUnavailable:"The draw is unavailable",
     wheelRulesBtn:      "Rules",
     wheelSaveBtn:       "History",
