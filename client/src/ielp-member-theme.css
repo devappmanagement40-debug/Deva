@@ -496,6 +496,14 @@ body.ielp-route-theme .ielp-deposit-main {
   background: linear-gradient(180deg, #07113a 0%, #050923 100%) !important;
 }
 
+.pwa-standalone .ielp-deposit-main {
+  padding-bottom: 0 !important;
+}
+
+.pwa-standalone .ielp-deposit-main__content {
+  padding-bottom: 8px !important;
+}
+
 body.ielp-route-theme .ielp-deposit-main__header {
   background: rgba(5, 9, 35, .98);
   border-bottom: 1px solid rgba(178, 202, 255, .16);

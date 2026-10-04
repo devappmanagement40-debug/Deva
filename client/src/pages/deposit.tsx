@@ -954,7 +954,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       };
 
   return (
-    <main className="ielp-deposit-page ielp-deposit-main min-h-screen pb-24">
+    <main className="ielp-deposit-page ielp-deposit-main min-h-screen pb-16">
       <header className="ielp-deposit-main__header flex h-[76px] items-center gap-3 px-4">
         <Link href="/">
           <button
@@ -982,7 +982,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         </Link>
       </header>
 
-      <div className="ielp-deposit-main__content mx-auto w-full max-w-xl space-y-4 px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-4">
+      <div className="ielp-deposit-main__content mx-auto w-full max-w-xl space-y-4 px-4 pb-[calc(8px+env(safe-area-inset-bottom))] pt-4">
         <section className="ielp-deposit-main__card rounded-[20px] border px-4 pb-4 pt-4">
           <SectionTitle>Recharge amount</SectionTitle>
           <label className="ielp-deposit-main__amount flex h-[54px] items-center gap-3 rounded-[13px] border px-4">

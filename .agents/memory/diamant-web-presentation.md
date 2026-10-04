@@ -11,11 +11,11 @@ Treat DIAMANT as mobile-first: keep its four-item bottom navigation fixed in DIA
 
 ## Stable deposit interactions
 
-Keep the deposit page visually stationary when buttons are tapped; do not scale or translate its controls during press animations.
+Keep the deposit page visually stationary when buttons are tapped; do not scale or translate its controls during press animations. Keep only the bottom clearance needed for the fixed navigation and safe area; avoid stacked excess padding after the final deposit section.
 
-**Why:** the user explicitly said the deposit page should not move or bounce when tapped.
+**Why:** the user explicitly said the deposit page should not move or bounce when tapped and later asked to reduce the large blank space at its bottom.
 
-**How to apply:** Scope no-transform press behavior to deposit-page buttons so other app interactions remain unchanged.
+**How to apply:** Scope no-transform press behavior to deposit-page buttons so other app interactions remain unchanged. Account for the app shell's PWA navigation reserve before adding page-level bottom padding.
 
 ## Home product carousel and information cards
 
