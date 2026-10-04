@@ -1,6 +1,14 @@
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import newBannerImg from "@assets/piedestal-realiste-trophees-gobelets-metal-composition-rubans-_1785144220204.jpg";
+import rewardLevel01 from "@assets/generated_images/diamant-referral-reward-01.webp";
+import rewardLevel02 from "@assets/generated_images/diamant-referral-reward-02.webp";
+import rewardLevel03 from "@assets/generated_images/diamant-referral-reward-03.webp";
+import rewardLevel04 from "@assets/generated_images/diamant-referral-reward-04.webp";
+import rewardLevel05 from "@assets/generated_images/diamant-referral-reward-05.webp";
+import rewardLevel06 from "@assets/generated_images/diamant-referral-reward-06.webp";
+import rewardLevel07 from "@assets/generated_images/diamant-referral-reward-07.webp";
+import rewardLevel08 from "@assets/generated_images/diamant-referral-reward-08.webp";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, CheckCircle2, Users, Trophy } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
@@ -53,6 +61,16 @@ export default function SalaryBonusPage() {
   if (!user) return null;
 
   const currency = "XOF";
+  const rewardIllustrations = [
+    rewardLevel01,
+    rewardLevel02,
+    rewardLevel03,
+    rewardLevel04,
+    rewardLevel05,
+    rewardLevel06,
+    rewardLevel07,
+    rewardLevel08,
+  ];
   const activeMembers = tasks.length > 0 ? ((tasks[0] as any).currentInvites || 0) : 0;
   const totalClaimed = (tasks as any[])
     .filter((tk) => tk.isCompleted)
@@ -143,52 +161,52 @@ export default function SalaryBonusPage() {
                 className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100"
                 data-testid={`reward-card-${index + 1}`}
               >
-                {/* Card header */}
+                {/* Compact header with a distinct illustration for each reward level */}
                 <div
-                  className="px-4 py-3 flex items-center justify-between"
+                  className="px-3 py-2 flex items-center justify-between gap-2"
                   style={{ background: headerGradient }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">🎁</span>
-                    <span className="text-white font-bold text-base">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <img
+                      src={rewardIllustrations[index % rewardIllustrations.length]}
+                      alt=""
+                      className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white/30 shadow-sm"
+                    />
+                    <span className="text-white font-bold text-sm sm:text-base leading-tight">
                       {t.salaryRewardLabel} {index + 1}
                     </span>
                   </div>
                   {task.isCompleted ? (
-                    <span className="flex items-center gap-1 bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="flex items-center gap-1 bg-white/20 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full shrink-0">
                       <CheckCircle2 className="w-3 h-3" />
                       {t.salaryClaimed}
                     </span>
                   ) : task.canClaim ? (
-                    <span className="bg-white/20 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                    <span className="bg-white/20 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full shrink-0">
                       {t.salaryUnlocked}
                     </span>
                   ) : null}
                 </div>
 
                 {/* Card body */}
-                <div className="px-4 py-4">
-
-                  {/* Amount */}
-                  <div className="text-center mb-4">
-                    <p className="text-4xl font-extrabold" style={{ color: "#1d4ed8" }}>
-                      {(task.reward || 0).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-400 font-medium mt-0.5">{currency}</p>
-                  </div>
-
-                  {/* Progress label */}
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-gray-500 text-xs font-medium">
-                      {t.salaryProgress}
-                    </span>
-                    <span className="font-bold text-sm text-gray-800">
-                      {progress}/{required}
-                    </span>
+                <div className="px-3.5 py-3">
+                  <div className="flex items-end justify-between gap-3 mb-2">
+                    <div className="flex items-baseline gap-1.5 min-w-0">
+                      <p className="text-2xl sm:text-[28px] leading-none font-extrabold tracking-tight" style={{ color: "#1d4ed8" }}>
+                        {(task.reward || 0).toLocaleString()}
+                      </p>
+                      <span className="text-[11px] text-gray-400 font-semibold">{currency}</span>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-gray-500 text-[10px] font-medium leading-tight">{t.salaryProgress}</p>
+                      <p className="font-bold text-sm text-gray-800 leading-tight">
+                        {progress}/{required}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Animated progress bar */}
-                  <div className="w-full h-3 rounded-full bg-gray-100 overflow-hidden mb-4">
+                  <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden mb-2.5">
                     <div
                       className="h-full rounded-full transition-all duration-700 ease-out"
                       style={{ width: `${pct}%`, background: barGradient }}
@@ -197,13 +215,13 @@ export default function SalaryBonusPage() {
 
                   {/* CTA */}
                   {task.isCompleted ? (
-                    <div className="w-full py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 font-bold text-sm flex items-center justify-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
+                    <div className="w-full min-h-[40px] py-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                       {t.salaryClaimed}
                     </div>
                   ) : task.canClaim ? (
                     <button
-                      className="w-full py-3 rounded-xl text-white font-bold text-sm transition-opacity disabled:opacity-60"
+                      className="w-full min-h-[40px] py-2 rounded-lg text-white font-bold text-xs transition-opacity disabled:opacity-60"
                       style={{ background: "linear-gradient(135deg, #d97706, #b45309)" }}
                       disabled={isThisClaiming}
                       onClick={() => {
@@ -215,7 +233,7 @@ export default function SalaryBonusPage() {
                     </button>
                   ) : (
                     <button
-                      className="w-full py-3 rounded-xl bg-gray-100 text-gray-400 font-semibold text-sm cursor-not-allowed"
+                      className="w-full min-h-[40px] py-2 rounded-lg bg-gray-100 text-gray-400 font-semibold text-xs cursor-not-allowed"
                       disabled
                     >
                       {t.salaryMissing.replace("{0}", String(missing))}

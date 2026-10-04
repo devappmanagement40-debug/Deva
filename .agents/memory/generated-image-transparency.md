@@ -7,4 +7,4 @@ An image-generation request for transparency can still produce an opaque PNG wit
 
 **Why:** A faux transparency grid remains visible when the image is composited into an app icon or illustration.
 
-**How to apply:** Inspect the PNG's alpha channel and sample its edge pixels before importing it. If the background is an edge-connected, nearly uniform pattern, create transparency and review the result at its actual display size.
+**How to apply:** Inspect the PNG's alpha channel and sample its edge pixels before importing it. If a pattern is baked into RGB, do not color-key metallic or reflective subjects because matching highlights may disappear. If precise background removal is unavailable, regenerate with an intentional solid background and use it as a full image tile; inspect the result at its actual display size.
