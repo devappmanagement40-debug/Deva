@@ -114,13 +114,11 @@ export default function OrdersPage() {
                         <p className="text-red-500 font-bold text-xs">
                           {rebrandText(up.product?.name || t.noProducts)}
                         </p>
-                        <span className={`px-1.5 py-0.5 text-[10px] font-semibold rounded ${
-                          productIsActive
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {productIsActive ? t.ordersStatusActive : t.ordersStatusDone}
-                        </span>
+                        {!productIsActive && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-gray-100 text-gray-600">
+                            {t.ordersStatusDone}
+                          </span>
+                        )}
                       </div>
 
                       <div className="space-y-0.5 text-[11px]">
