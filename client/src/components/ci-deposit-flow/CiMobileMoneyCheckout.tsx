@@ -73,7 +73,7 @@ const COPY = {
       "Votre demande restera en attente. Le dépôt sera crédité uniquement après vérification par l’administration.",
     secureHeading: "Paiement sécurisé",
     secureBody:
-      "Vos informations sont protégées. Le transfert sera vérifié manuellement avant tout crédit.",
+      "Vos informations sont protégées. Si toutes les informations requises sont correctes, votre demande sera transmise automatiquement pour validation avant crédit.",
     back: "Fermer le paiement",
     missingOwner: "Non renseigné",
     copyFailed: "Impossible de copier le numéro.",
@@ -122,7 +122,7 @@ const COPY = {
       "Your request will remain pending. The deposit is credited only after administration review.",
     secureHeading: "Secure payment",
     secureBody:
-      "Your information is protected. The transfer will be checked manually before any credit.",
+      "Your information is protected. If all required details are correct, your request will be sent automatically for approval before the deposit is credited.",
     back: "Close payment",
     missingOwner: "Not provided",
     copyFailed: "Could not copy the number.",
