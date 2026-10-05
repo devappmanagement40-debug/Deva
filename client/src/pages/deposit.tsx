@@ -176,7 +176,12 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     (country) => country.code.toUpperCase() === mobileMoneyCountryCode?.toUpperCase(),
   );
 
-  const { data: mobileMoneyOperators = [], isLoading: operatorsLoading, isError: operatorsError } = useQuery<PaymentNumber[]>({
+  const {
+    data: mobileMoneyOperators = [],
+    isLoading: operatorsLoading,
+    isFetching: operatorsFetching,
+    isError: operatorsError,
+  } = useQuery<PaymentNumber[]>({
     queryKey: ["/api/payment-numbers", mobileMoneyCountryCode],
     queryFn: async () => {
       if (!mobileMoneyCountryCode) return [];
@@ -190,6 +195,29 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     enabled: view === "mobile-money" && Boolean(mobileMoneyCountryCode),
     staleTime: 0,
   });
+
+  useEffect(() => {
+    if (
+      view !== "mobile-money" ||
+      mobileMoneyCountryCode?.trim().toUpperCase() !== "CI" ||
+      selectedOperator ||
+      operatorsLoading ||
+      operatorsFetching ||
+      operatorsError ||
+      mobileMoneyOperators.length !== 1
+    ) {
+      return;
+    }
+    setSelectedOperator(mobileMoneyOperators[0]);
+  }, [
+    view,
+    mobileMoneyCountryCode,
+    selectedOperator,
+    operatorsLoading,
+    operatorsFetching,
+    operatorsError,
+    mobileMoneyOperators,
+  ]);
 
   useEffect(() => {
     if (user?.fullName) setPayerName((current) => current || user.fullName);
@@ -802,6 +830,13 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             setMobileTransactionId("");
             setProof(null);
             setProofName("");
+            if (
+              mobileMoneyCountryCode?.trim().toUpperCase() === "CI" &&
+              mobileMoneyOperators.length === 1
+            ) {
+              setMobileMoneyCountryCode(null);
+              setView("main");
+            }
           }}
           onContinueToPayment={() => setPayerPhone(ciPhoneDigits)}
           onSubmitForReview={submitMobileMoneyDeposit}
@@ -845,45 +880,58 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
           {!selectedOperator ? (
             <section className="mt-4 rounded-2xl border border-[#dcebe0] bg-white p-4 shadow-[0_10px_28px_rgba(0,70,30,.06)]">
-              <h2 className="text-[16px] font-semibold text-[#173f26]">Choisissez un opérateur Mobile Money</h2>
-              <p className="mt-1 text-[13px] text-[#6b7d70]">
-                <span>Les opérateurs disponibles sont configurés pour </span>
-                {mobileMoneyCountry?.name || "le pays sélectionné"}.
-              </p>
-              {operatorsLoading ? (
-                <div role="status" className="mt-4 flex items-center gap-2 text-sm text-[#6b7d70]">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des opérateurs…
+              {mobileMoneyCountryCode?.trim().toUpperCase() === "CI" &&
+              !operatorsError &&
+              (operatorsLoading || operatorsFetching || mobileMoneyOperators.length === 1) ? (
+                <div role="status" className="flex items-center gap-2 text-sm text-[#6b7d70]">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {mobileMoneyOperators.length === 1
+                    ? "Ouverture du moyen de paiement…"
+                    : "Chargement des opérateurs…"}
                 </div>
-              ) : operatorsError ? (
-                <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Impossible de charger les opérateurs disponibles. Réessayez.</p>
-              ) : mobileMoneyOperators.length === 0 ? (
-                <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-                  <span>Aucun numéro Mobile Money actif n’est configuré pour </span>
-                  {mobileMoneyCountry?.name || "ce pays"} <span>pour le moment.</span>
-                </p>
               ) : (
-                <div className="mt-4 space-y-2">
-                  {mobileMoneyOperators.map((operator) => (
-                    <button
-                      key={operator.id}
-                      type="button"
-                      onClick={() => setSelectedOperator(operator)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-[#e1eee4] p-3 text-left transition hover:bg-[#f7fcf8] active:scale-[.99]"
-                      data-testid={`button-mobile-operator-${operator.id}`}
-                    >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e4f6e9] text-[#087a38]">
-                        {operator.logoUrl
-                          ? <img src={operator.logoUrl} alt="" className="h-full w-full object-contain" />
-                          : <Phone size={19} />}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-semibold text-[#183c25]">{operator.operatorName}</span>
-                        <span className="mt-0.5 block truncate text-[12px] text-[#789082]">{operator.phone}</span>
-                      </span>
-                      <ChevronRight size={18} className="shrink-0 text-[#789b83]" />
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <h2 className="text-[16px] font-semibold text-[#173f26]">Choisissez un opérateur Mobile Money</h2>
+                  <p className="mt-1 text-[13px] text-[#6b7d70]">
+                    <span>Les opérateurs disponibles sont configurés pour </span>
+                    {mobileMoneyCountry?.name || "le pays sélectionné"}.
+                  </p>
+                  {operatorsLoading ? (
+                    <div role="status" className="mt-4 flex items-center gap-2 text-sm text-[#6b7d70]">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Chargement des opérateurs…
+                    </div>
+                  ) : operatorsError ? (
+                    <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">Impossible de charger les opérateurs disponibles. Réessayez.</p>
+                  ) : mobileMoneyOperators.length === 0 ? (
+                    <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+                      <span>Aucun numéro Mobile Money actif n’est configuré pour </span>
+                      {mobileMoneyCountry?.name || "ce pays"} <span>pour le moment.</span>
+                    </p>
+                  ) : (
+                    <div className="mt-4 space-y-2">
+                      {mobileMoneyOperators.map((operator) => (
+                        <button
+                          key={operator.id}
+                          type="button"
+                          onClick={() => setSelectedOperator(operator)}
+                          className="flex w-full items-center gap-3 rounded-xl border border-[#e1eee4] p-3 text-left transition hover:bg-[#f7fcf8] active:scale-[.99]"
+                          data-testid={`button-mobile-operator-${operator.id}`}
+                        >
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#e4f6e9] text-[#087a38]">
+                            {operator.logoUrl
+                              ? <img src={operator.logoUrl} alt="" className="h-full w-full object-contain" />
+                              : <Phone size={19} />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-semibold text-[#183c25]">{operator.operatorName}</span>
+                            <span className="mt-0.5 block truncate text-[12px] text-[#789082]">{operator.phone}</span>
+                          </span>
+                          <ChevronRight size={18} className="shrink-0 text-[#789b83]" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </section>
           ) : (
