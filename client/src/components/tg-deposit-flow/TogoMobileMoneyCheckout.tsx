@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PaymentNumber } from "@shared/schema";
 import { renderTogoUssdTemplate } from "@shared/togo-ussd";
+import { getTogoPhoneDigits } from "@/lib/togo-phone";
 import { useToast } from "@/hooks/use-toast";
 import {
   TogoPhoneStep,
@@ -27,12 +28,6 @@ type TogoMobileMoneyCheckoutProps = {
   onClose(): void;
   onSubmit(operator: PaymentNumber, payerPhoneDigits: string): void;
 };
-
-function getTogoPhoneDigits(value: string): string {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 11 && digits.startsWith("228")) return digits.slice(3);
-  return digits.length === 8 ? digits : "";
-}
 
 function copyFallback(value: string): boolean {
   const textarea = document.createElement("textarea");
