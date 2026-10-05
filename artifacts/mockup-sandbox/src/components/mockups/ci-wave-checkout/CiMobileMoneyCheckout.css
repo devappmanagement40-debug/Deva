@@ -31,8 +31,7 @@
   mix-blend-mode: soft-light;
 }
 
-.ci-wave-screen,
-.ci-wave-details {
+.ci-wave-screen {
   position: relative;
   z-index: 1;
 }
