@@ -84,7 +84,10 @@ export default function SalaryBonusPage() {
         </p>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-10 px-4 pt-4 space-y-3">
+      <div
+        className="flex-1 overflow-y-auto px-4 pt-4 space-y-3"
+        style={{ paddingBottom: "calc(96px + env(safe-area-inset-bottom, 0px))" }}
+      >
 
         {/* ── Reward cards ── */}
         {isLoading ? null : (
