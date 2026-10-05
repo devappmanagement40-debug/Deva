@@ -1,4 +1,5 @@
 const TMONEY_LOGO_URL = "/images/operators/tmoney.svg";
+const MOOV_LOGO_URL = "/images/operators/moov.webp";
 
 export function getTogoOperatorLogoUrl(operatorName: string): string | null {
   const normalizedName = operatorName
@@ -14,6 +15,10 @@ export function getTogoOperatorLogoUrl(operatorName: string): string | null {
     normalizedName.includes("yas")
   ) {
     return TMONEY_LOGO_URL;
+  }
+
+  if (normalizedName.includes("moov")) {
+    return MOOV_LOGO_URL;
   }
 
   return null;

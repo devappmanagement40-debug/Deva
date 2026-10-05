@@ -405,7 +405,7 @@ export default function AdminPaymentNumbers() {
               )}
               {showTogoPaymentSettings && !form.logoUrl.trim() && getTogoOperatorLogoUrl(form.operatorName) && (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Le logo TMoney local est utilisé par défaut pour TMoney/Togocom. Ajoutez une URL pour le remplacer.
+                  Les logos TMoney et Moov Money locaux sont utilisés par défaut. Ajoutez une URL pour les remplacer.
                 </p>
               )}
             </div>
