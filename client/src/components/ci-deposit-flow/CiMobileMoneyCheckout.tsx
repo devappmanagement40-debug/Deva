@@ -442,9 +442,7 @@ export function CiMobileMoneyCheckout({
 
                 {activePaymentMethod === "qr" && safePaymentQrDataUrl && (
                   <section className="ci-wave-qr" aria-label={copy.qrHeading}>
-                    <strong>{copy.qrHeading}</strong>
                     <img src={safePaymentQrDataUrl} alt={copy.qrHeading} />
-                    <p>{copy.qrHint}</p>
                   </section>
                 )}
               </div>
