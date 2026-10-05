@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
 import PaymentQrUploader from "@/components/admin/payment-qr-uploader";
 import { isPaymentQrDataUrl } from "@/lib/payment-qr-image";
+import { getTogoOperatorLogoUrl } from "@/lib/togo-operator-logo";
 import { Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff, ExternalLink } from "lucide-react";
 import type { PaymentNumber } from "@shared/schema";
 
@@ -178,6 +179,11 @@ export default function AdminPaymentNumbers() {
   const showTogoPaymentSettings = (
     manualCountry ? manualCountryInput : form.country
   ).trim().toUpperCase() === "TG";
+  const formLogoUrl =
+    form.logoUrl.trim() ||
+    (showTogoPaymentSettings
+      ? getTogoOperatorLogoUrl(form.operatorName)
+      : null);
 
   return (
     <div className="space-y-4">
@@ -208,12 +214,18 @@ export default function AdminPaymentNumbers() {
               <Badge variant="secondary">{nums.length}</Badge>
             </div>
             <div className="space-y-2 ml-2">
-              {nums.map((num) => (
+              {nums.map((num) => {
+                const logoUrl =
+                  num.logoUrl?.trim() ||
+                  (num.country.trim().toUpperCase() === "TG"
+                    ? getTogoOperatorLogoUrl(num.operatorName)
+                    : null);
+                return (
                 <Card key={num.id} className={num.isActive ? "" : "opacity-60"}>
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      {num.logoUrl ? (
-                        <img src={num.logoUrl} alt={num.operatorName} className="w-12 h-12 rounded-xl object-contain border border-border" />
+                      {logoUrl ? (
+                        <img src={logoUrl} alt={num.operatorName} className="w-12 h-12 rounded-xl object-contain border border-border" />
                       ) : (
                         <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
                           <Phone className="w-6 h-6 text-muted-foreground" />
@@ -279,7 +291,8 @@ export default function AdminPaymentNumbers() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))
@@ -387,8 +400,13 @@ export default function AdminPaymentNumbers() {
               <label className="text-sm font-medium">URL du logo <span className="text-muted-foreground font-normal">(optionnel)</span></label>
               <Input value={form.logoUrl} onChange={(e) => setForm(f => ({ ...f, logoUrl: e.target.value }))}
                 placeholder="https://..." className="mt-1" data-testid="input-logo-url" />
-              {form.logoUrl && (
-                <img src={form.logoUrl} alt="logo" className="mt-2 h-10 object-contain rounded-lg border border-border" onError={(e) => (e.currentTarget.style.display = "none")} />
+              {formLogoUrl && (
+                <img src={formLogoUrl} alt="logo" className="mt-2 h-10 object-contain rounded-lg border border-border" onError={(e) => (e.currentTarget.style.display = "none")} />
+              )}
+              {showTogoPaymentSettings && !form.logoUrl.trim() && getTogoOperatorLogoUrl(form.operatorName) && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Le logo TMoney local est utilisé par défaut pour TMoney/Togocom. Ajoutez une URL pour le remplacer.
+                </p>
               )}
             </div>
             {showCiPaymentSettings && (

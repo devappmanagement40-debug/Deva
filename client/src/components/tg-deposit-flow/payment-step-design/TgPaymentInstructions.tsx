@@ -6,6 +6,7 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import { resolveTogoOperatorLogoUrl } from "@/lib/togo-operator-logo";
 import "./TgPaymentInstructions.css";
 
 export type TgCopyField = "accountNumber" | "ussdCode";
@@ -101,9 +102,15 @@ export function TgPaymentInstructions({
   const operatorNameLower = operatorName.toLowerCase();
   const operatorFallback = operatorNameLower.includes("moov")
     ? "Moov"
-    : operatorNameLower.includes("yas") || operatorNameLower.includes("togocel") || operatorNameLower.includes("tmoney")
+    : operatorNameLower.includes("tmoney") || operatorNameLower.includes("togocom")
+      ? "TMoney"
+      : operatorNameLower.includes("yas") || operatorNameLower.includes("togocel")
       ? "Yas"
       : operatorName.slice(0, 2).toUpperCase();
+  const resolvedOperatorLogoUrl = resolveTogoOperatorLogoUrl(
+    operatorName,
+    operatorLogoUrl,
+  );
 
   return (
     <main className="tg-payment-step">
@@ -166,8 +173,8 @@ export function TgPaymentInstructions({
 
           <div className="tg-payment-value-row">
             <div className="tg-payment-value tg-payment-number">
-              {operatorLogoUrl ? (
-                <img className="tg-payment-operator-logo" src={operatorLogoUrl} alt="" />
+              {resolvedOperatorLogoUrl ? (
+                <img className="tg-payment-operator-logo" src={resolvedOperatorLogoUrl} alt="" />
               ) : (
                 <span className="tg-payment-yas-mark" aria-hidden="true">
                   {operatorFallback}

@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { resolveTogoOperatorLogoUrl } from "@/lib/togo-operator-logo";
 import "./TogoPhoneStep.css";
 
 export type TogoPhoneOperator = {
@@ -177,9 +178,15 @@ export function TogoPhoneStep({
               const lowerName = operator.name.toLowerCase();
               const fallbackName = lowerName.includes("moov")
                 ? "Moov"
-                : lowerName.includes("yas") || lowerName.includes("togocel") || lowerName.includes("tmoney")
+                : lowerName.includes("tmoney") || lowerName.includes("togocom")
+                  ? "TMoney"
+                  : lowerName.includes("yas") || lowerName.includes("togocel")
                   ? "Yas"
                   : operator.name.slice(0, 2).toUpperCase();
+              const logoUrl = resolveTogoOperatorLogoUrl(
+                operator.name,
+                operator.logoUrl,
+              );
               return (
                 <button
                   className={`tg-phone-step__operator${selected ? " is-selected" : ""}`}
@@ -189,8 +196,8 @@ export function TogoPhoneStep({
                   aria-pressed={selected}
                   disabled={disabled || loading}
                 >
-                  {operator.logoUrl ? (
-                    <img src={operator.logoUrl} alt="" />
+                  {logoUrl ? (
+                    <img src={logoUrl} alt="" />
                   ) : (
                     <span className="tg-phone-step__operator-fallback" aria-hidden="true">
                       {fallbackName}
