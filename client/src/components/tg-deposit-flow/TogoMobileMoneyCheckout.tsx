@@ -19,6 +19,7 @@ type TogoMobileMoneyCheckoutProps = {
   operators: PaymentNumber[];
   loadingOperators: boolean;
   operatorsError?: string | null;
+  previewOnly?: boolean;
   submitting: boolean;
   language: string;
   onPhoneChange(value: string): void;
@@ -52,6 +53,7 @@ export default function TogoMobileMoneyCheckout({
   operators,
   loadingOperators,
   operatorsError,
+  previewOnly = false,
   submitting,
   language,
   onPhoneChange,
@@ -120,7 +122,7 @@ export default function TogoMobileMoneyCheckout({
 
   const handleNext = () => {
     if (!selectedOperator) return;
-    if (!ussdCode) {
+    if (!ussdCode && !previewOnly) {
       setInstructionError(
         isEnglish
           ? "Payment instructions are incomplete. Please contact support."
@@ -155,7 +157,7 @@ export default function TogoMobileMoneyCheckout({
     }
   };
 
-  if (step === "payment" && selectedOperator && ussdCode) {
+  if (step === "payment" && selectedOperator && (ussdCode || previewOnly)) {
     return (
       <TgPaymentInstructions
         amount={amountXof}
@@ -168,7 +170,7 @@ export default function TogoMobileMoneyCheckout({
         }
         badge={selectedOperator.paymentBadgeLabel?.trim() || "CARTE MARCHAND"}
         accountNumber={selectedOperator.phone}
-        ussdCode={ussdCode}
+        ussdCode={ussdCode || ""}
         ownerName={selectedOperator.ownerName}
         payerPhone={phoneDigits}
         copiedState={copiedState}
@@ -178,7 +180,9 @@ export default function TogoMobileMoneyCheckout({
         onToggleLanguage={onToggleLanguage}
         onCopy={handleCopy}
         onEditPhone={() => setStep("phone")}
-        onComplete={() => onSubmit(selectedOperator, phoneDigits)}
+        onComplete={() => {
+          if (!previewOnly) onSubmit(selectedOperator, phoneDigits);
+        }}
       />
     );
   }
