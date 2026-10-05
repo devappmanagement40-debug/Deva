@@ -7,7 +7,7 @@
   min-height: 100dvh;
   overflow-x: clip;
   color: #33383d;
-  background: #e69556;
+  background: #0c1339;
   font-family: inherit;
 }
 
@@ -98,14 +98,14 @@
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
 }
 
 .ci-wave-brand {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   color: #245a91;
 }
 
@@ -116,10 +116,11 @@
 
 .ci-wave-brand span {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 850;
-  letter-spacing: 0.13em;
+  letter-spacing: 0.08em;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ci-wave-country {
@@ -127,8 +128,8 @@
   flex: 0 0 auto;
   min-height: 30px;
   align-items: center;
-  gap: 5px;
-  padding: 4px 8px;
+  gap: 4px;
+  padding: 4px 6px;
   border-radius: 8px;
   color: #59616a;
   background: #f8f9fa;
@@ -183,6 +184,62 @@
 
 .ci-wave-language svg {
   color: #20a6c8;
+}
+
+@media (max-width: 360px) {
+  .ci-wave-header {
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .ci-wave-identity {
+    gap: 4px;
+  }
+
+  .ci-wave-brand {
+    gap: 3px;
+  }
+
+  .ci-wave-brand svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .ci-wave-brand span {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+
+  .ci-wave-country {
+    padding: 4px;
+  }
+
+  .ci-wave-country img {
+    width: 18px;
+    height: 13px;
+  }
+
+  .ci-wave-country span {
+    display: none;
+  }
+
+  .ci-wave-timer {
+    min-width: 54px;
+    padding: 0 4px;
+    font-size: 14px;
+  }
+
+  .ci-wave-language {
+    min-height: 32px;
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .ci-wave-language svg {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 .ci-wave-amount {
