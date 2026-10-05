@@ -93,6 +93,8 @@ export function MobileMoneyDepositVerification({
     : String(amountXof);
 
   useEffect(() => {
+    if (!isPending) return;
+
     const deadline = Date.now() + VERIFICATION_SECONDS * 1000;
     let intervalId: number | undefined;
     const updateCountdown = () => {
@@ -104,7 +106,7 @@ export function MobileMoneyDepositVerification({
     intervalId = window.setInterval(updateCountdown, 1000);
     updateCountdown();
     return () => window.clearInterval(intervalId);
-  }, [attempt]);
+  }, [attempt, isPending]);
 
   const retryVerification = async () => {
     if (isRetrying) return;

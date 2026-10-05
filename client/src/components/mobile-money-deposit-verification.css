@@ -3,6 +3,7 @@
   --mmv-orange: #ee9a59;
   --mmv-panel: #efa368;
   --mmv-blue: #1f8eeb;
+  --mmv-success-green: #00c853;
   --mmv-border: #e8e8eb;
   --mmv-ink: #33383d;
   isolation: isolate;
@@ -186,8 +187,8 @@
 }
 
 .mmv-result-icon--approved {
-  background: var(--mmv-blue);
-  box-shadow: 0 0 0 6px rgba(31, 142, 235, 0.14);
+  background: var(--mmv-success-green);
+  box-shadow: 0 0 0 6px rgba(0, 200, 83, 0.16);
 }
 
 .mmv-result-icon--rejected {
