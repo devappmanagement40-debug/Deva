@@ -63,14 +63,14 @@ const COPY = {
     submitting: "Envoi en cours…",
     secureHeading: "Paiement sécurisé",
     secureBody:
-      "Après le transfert, indiquez sa référence pour transmettre votre demande à l’administration. Le dépôt restera en attente de vérification.",
+      "Après le transfert, saisissez la référence indiquée sur le reçu pour finaliser votre demande.",
     back: "Fermer le paiement",
     openNew: "S’ouvre dans un nouvel onglet",
     paymentDetails: "Instructions de paiement",
     languageButton: "ENGLISH",
     timeRemaining: "Temps restant",
     backToPhone: "Modifier mon numéro",
-    reviewNote: "Votre demande sera transmise à l’administration pour vérification. Le dépôt restera en attente et ne sera pas crédité automatiquement.",
+    reviewNote: "Votre dépôt sera crédité après vérification de la référence.",
   },
   en: {
     exactAmount: "Payment amount",
@@ -99,14 +99,14 @@ const COPY = {
     submitting: "Sending…",
     secureHeading: "Secure payment",
     secureBody:
-      "After the transfer, enter its reference to send your request to administration. The deposit will remain pending review.",
+      "After the transfer, enter the reference shown on your receipt to complete your request.",
     back: "Close payment",
     openNew: "Opens in a new tab",
     paymentDetails: "Payment instructions",
     languageButton: "FRANÇAIS",
     timeRemaining: "Time remaining",
     backToPhone: "Edit my phone number",
-    reviewNote: "Your request will be sent to administration for review. The deposit will remain pending and will not be credited automatically.",
+    reviewNote: "Your deposit will be credited after the reference has been verified.",
   },
 } as const;
 

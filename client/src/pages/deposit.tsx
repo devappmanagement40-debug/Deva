@@ -299,7 +299,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
       toast({
         title: "Demande de dépôt envoyée",
-        description: "Le paiement Mobile Money sera vérifié par l’administration.",
+        description: "Votre dépôt sera crédité après confirmation du paiement Mobile Money.",
       });
       setView("main");
       setSelectedOperator(null);
