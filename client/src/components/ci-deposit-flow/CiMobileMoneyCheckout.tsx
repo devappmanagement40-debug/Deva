@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.png";
 import {
@@ -80,6 +80,7 @@ const COPY = {
     openNew: "S’ouvre dans un nouvel onglet",
     paymentDetails: "Instructions de paiement",
     languageButton: "ENGLISH",
+    timeRemaining: "Temps restant",
     copyTitle: "Informations pour le suivi",
     phoneInvalid: "Saisissez les 10 chiffres de votre numéro ivoirien après +225.",
   },
@@ -128,10 +129,13 @@ const COPY = {
     openNew: "Opens in a new tab",
     paymentDetails: "Payment instructions",
     languageButton: "FRANÇAIS",
+    timeRemaining: "Time remaining",
     copyTitle: "Transfer details",
     phoneInvalid: "Enter the 10 digits of your Côte d’Ivoire number after +225.",
   },
 } as const;
+
+const PAYMENT_WINDOW_MS = 30 * 60 * 1000;
 
 export function CiMobileMoneyCheckout({
   amountXof,
@@ -147,10 +151,15 @@ export function CiMobileMoneyCheckout({
   language,
 }: CiMobileMoneyCheckoutProps) {
   const [logoFailed, setLogoFailed] = useState(false);
+  const [secondsRemaining, setSecondsRemaining] = useState(
+    Math.floor(PAYMENT_WINDOW_MS / 1000),
+  );
   const phoneInputRef = useRef<HTMLInputElement>(null);
+  const paymentDeadlineRef = useRef(Date.now() + PAYMENT_WINDOW_MS);
 
   const isEnglish = language.toLowerCase().startsWith("en");
   const copy = isEnglish ? COPY.en : COPY.fr;
+  const formattedTimeRemaining = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
   const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
     ? waveMobileMoneyLogo
     : operatorLogoUrl;
@@ -160,6 +169,21 @@ export function CiMobileMoneyCheckout({
       }).format(amountXof)
     : String(amountXof);
   const displayCurrency = currency.toUpperCase() === "XOF" ? "FCFA" : currency;
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const nextSeconds = Math.max(
+        0,
+        Math.ceil((paymentDeadlineRef.current - Date.now()) / 1000),
+      );
+      setSecondsRemaining(nextSeconds);
+      if (nextSeconds === 0) window.clearInterval(intervalId);
+    };
+
+    const intervalId = window.setInterval(updateCountdown, 1000);
+    updateCountdown();
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   const handleSubmit = () => {
     if (payerPhoneDigits.length !== 10) {
@@ -184,14 +208,24 @@ export function CiMobileMoneyCheckout({
 
         <section className="ci-wave-card" aria-label={copy.paymentDetails}>
           <header className="ci-wave-header">
-            <div className="ci-wave-brand" aria-label="DIAMANT">
-              <Gem size={21} strokeWidth={2.4} aria-hidden="true" />
-              <span>DIAMANT</span>
+            <div className="ci-wave-identity">
+              <div className="ci-wave-brand" aria-label="DIAMANT">
+                <Gem size={21} strokeWidth={2.4} aria-hidden="true" />
+                <span>DIAMANT</span>
+              </div>
+              <div className="ci-wave-country" aria-label="Côte d’Ivoire">
+                <img src={ciFlagAsset} alt="" />
+                <span>CI</span>
+              </div>
             </div>
-            <div className="ci-wave-country" aria-label="Côte d’Ivoire">
-              <img src={ciFlagAsset} alt="" />
-              <span>CI</span>
-            </div>
+            <span
+              className="ci-wave-timer"
+              role="timer"
+              aria-label={`${copy.timeRemaining}: ${formattedTimeRemaining}`}
+              aria-live="off"
+            >
+              {formattedTimeRemaining}
+            </span>
             <button
               className="ci-wave-language"
               type="button"

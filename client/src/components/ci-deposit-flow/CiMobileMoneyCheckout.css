@@ -94,6 +94,13 @@
   margin-bottom: 15px;
 }
 
+.ci-wave-identity {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
 .ci-wave-brand {
   display: inline-flex;
   min-width: 0;
@@ -117,6 +124,7 @@
 
 .ci-wave-country {
   display: inline-flex;
+  flex: 0 0 auto;
   min-height: 30px;
   align-items: center;
   gap: 5px;
@@ -138,6 +146,22 @@
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
+.ci-wave-timer {
+  display: grid;
+  min-width: 62px;
+  min-height: 31px;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: #e79a5c;
+  background: #fff;
+  box-shadow: 0 2px 9px rgba(50, 50, 50, 0.12);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  line-height: 1;
+}
+
 .ci-wave-language {
   display: inline-flex;
   min-height: 34px;
@@ -153,6 +177,7 @@
   font: inherit;
   font-size: 10px;
   font-weight: 800;
+  white-space: nowrap;
   cursor: pointer;
 }
 
