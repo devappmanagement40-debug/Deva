@@ -1,20 +1,18 @@
 .mmv-page {
-  --mmv-page-bg: #f3f8f4;
-  --mmv-green: #087a38;
-  --mmv-accent: #32c95b;
-  --mmv-light-green: #e4f6e9;
-  --mmv-border: #dcebe0;
-  --mmv-soft-bg: #f8fcf9;
-  --mmv-ink: #173f26;
+  --mmv-page-bg: #0c1339;
+  --mmv-orange: #ee9a59;
+  --mmv-panel: #efa368;
+  --mmv-blue: #1f8eeb;
+  --mmv-border: #e8e8eb;
+  --mmv-ink: #33383d;
   isolation: isolate;
   position: relative;
   display: flex;
   min-height: 100dvh;
-  flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   overflow-x: hidden;
-  padding: 0 0 max(28px, env(safe-area-inset-bottom));
+  padding: max(45px, env(safe-area-inset-top)) 10px max(20px, env(safe-area-inset-bottom));
   color: var(--mmv-ink);
   background: var(--mmv-page-bg);
   font-family: inherit;
@@ -26,159 +24,170 @@
   box-sizing: border-box;
 }
 
-.mmv-amount,
 .mmv-card {
-  width: min(calc(100% - 32px), 500px);
+  width: min(100%, 439px);
+}
+
+.mmv-close {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  right: 9px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-radius: 50%;
+  color: #73777b;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 1px 4px rgba(77, 54, 39, 0.2);
+  cursor: pointer;
+}
+
+.mmv-close:hover {
+  color: #222;
 }
 
 .mmv-header {
-  display: flex;
+  display: grid;
   width: 100%;
-  min-height: 78px;
+  min-height: 36px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 16px;
-  padding: 0 max(16px, calc((100% - 500px) / 2));
-  color: #fff;
-  background: var(--mmv-green);
-  box-shadow: 0 2px 8px rgba(0, 75, 35, 0.2);
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
 .mmv-brand {
   display: flex;
+  grid-column: 1;
   min-width: 0;
   align-items: center;
-  gap: 9px;
-  color: #fff;
-  font-size: 14px;
+  gap: 4px;
+  color: #245a91;
+  font-size: 10px;
   font-weight: 850;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.08em;
 }
 
 .mmv-brand > svg {
-  width: 24px;
-  height: 24px;
   flex: 0 0 auto;
-  color: #bdeecb;
+  color: #7654d7;
 }
 
 .mmv-brand-subtitle {
   overflow: hidden;
-  padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.25);
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 10px;
+  padding-left: 6px;
+  border-left: 1px solid #e3e4e7;
+  color: #8a7566;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .mmv-language {
-  min-height: 40px;
+  display: inline-flex;
+  grid-column: 3;
+  min-height: 34px;
   flex: 0 0 auto;
-  padding: 0 13px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  align-items: center;
+  justify-self: end;
+  gap: 6px;
+  padding: 0 9px;
+  border: 0;
   border-radius: 999px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.08);
+  color: #e59a5d;
+  background: #fff;
+  box-shadow: 0 3px 13px rgba(50, 50, 50, 0.12);
   font: inherit;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease;
 }
 
-.mmv-language:hover {
-  border-color: rgba(255, 255, 255, 0.58);
-  background: rgba(255, 255, 255, 0.14);
+.mmv-language svg {
+  color: #20a6c8;
 }
 
 .mmv-amount {
   display: flex;
-  min-height: 88px;
+  min-height: 56px;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-  padding: 15px 19px;
-  border: 1px solid var(--mmv-border);
-  border-radius: 15px;
-  color: var(--mmv-ink);
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(0, 70, 30, 0.05);
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 9px 15px;
+  border-radius: 9px;
+  background: #f8f9fa;
 }
 
-.mmv-amount > div {
-  display: grid;
-  gap: 5px;
-}
-
-.mmv-amount > div > span {
-  color: #698173;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.mmv-amount > span {
+  color: #676b70;
+  font-size: 14px;
+  font-weight: 650;
 }
 
 .mmv-amount strong {
-  color: var(--mmv-green);
-  font-size: clamp(22px, 5vw, 27px);
-  font-variant-numeric: tabular-nums;
-  font-weight: 850;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border: 1px solid #ececee;
+  border-radius: 6px;
+  color: #e79a5c;
+  background: #fbfbfc;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .mmv-time-pill {
-  display: inline-flex;
-  min-height: 38px;
+  display: grid;
+  grid-column: 2;
+  min-width: 62px;
+  min-height: 31px;
   flex: 0 0 auto;
-  align-items: center;
-  gap: 7px;
-  padding: 0 12px;
-  border: 1px solid #cfe5d5;
-  border-radius: 10px;
-  color: var(--mmv-green);
-  background: var(--mmv-light-green);
-  font-size: 14px;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 6px;
+  color: #e79a5c;
+  background: #fff;
+  box-shadow: 0 2px 9px rgba(50, 50, 50, 0.12);
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
   font-weight: 850;
-}
-
-.mmv-time-pill svg {
-  color: var(--mmv-green);
+  line-height: 1;
 }
 
 .mmv-card {
-  padding: clamp(24px, 5vw, 34px) clamp(18px, 5vw, 32px) 25px;
-  border: 1px solid var(--mmv-border);
-  border-bottom: 4px solid var(--mmv-accent);
-  border-radius: 20px;
+  padding: 14px 18px 17px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 12px;
   background: #fff;
-  box-shadow: 0 10px 28px rgba(0, 70, 30, 0.08);
+  box-shadow: 0 9px 25px rgba(112, 62, 31, 0.14);
   animation: mmv-card-enter 280ms ease-out both;
 }
 
 .mmv-result-icon {
   display: grid;
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   place-items: center;
-  margin: 0 auto 15px;
+  margin: 18px auto 14px;
   border-radius: 50%;
   color: #fff;
-  background: var(--mmv-green);
-  box-shadow: 0 0 0 7px var(--mmv-light-green);
+  background: var(--mmv-panel);
+  box-shadow: 0 0 0 6px rgba(238, 154, 89, 0.16);
 }
 
-.mmv-result-icon--pending,
+.mmv-result-icon--pending {
+  background: var(--mmv-panel);
+}
+
 .mmv-result-icon--approved {
-  background: var(--mmv-green);
-  box-shadow: 0 0 0 7px var(--mmv-light-green);
+  background: var(--mmv-blue);
+  box-shadow: 0 0 0 6px rgba(31, 142, 235, 0.14);
 }
 
 .mmv-result-icon--rejected {
@@ -187,9 +196,9 @@
 }
 
 .mmv-title {
-  margin: 0 0 23px;
+  margin: 0 0 18px;
   color: var(--mmv-ink);
-  font-size: clamp(21px, 5vw, 25px);
+  font-size: clamp(19px, 5vw, 22px);
   font-weight: 800;
   letter-spacing: -0.025em;
   line-height: 1.2;
@@ -200,11 +209,11 @@
   display: grid;
   gap: 0;
   margin: 0;
-  padding: 5px 15px;
-  border: 1px solid var(--mmv-border);
-  border-radius: 13px;
+  padding: 5px 13px;
+  border: 1px solid #e8e8eb;
+  border-radius: 9px;
   color: var(--mmv-ink);
-  background: var(--mmv-soft-bg);
+  background: #f8f9fa;
   font-size: 14px;
   line-height: 1.4;
 }
@@ -219,11 +228,11 @@
 }
 
 .mmv-details > div + div {
-  border-top: 1px solid #e5efe7;
+  border-top: 1px solid #e8e8eb;
 }
 
 .mmv-details dt {
-  color: #698173;
+  color: #667085;
   font-size: 12px;
   font-weight: 700;
 }
@@ -237,7 +246,7 @@
 }
 
 .mmv-details .mmv-transaction-id {
-  color: var(--mmv-ink);
+  color: #35415b;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
@@ -245,25 +254,28 @@
 
 .mmv-pending {
   display: grid;
-  justify-items: center;
-  gap: 7px;
-  margin-top: 20px;
-  color: var(--mmv-green);
-  text-align: center;
+  justify-items: start;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(112deg, #238fe8 0%, #1679d8 100%);
+  box-shadow: 0 4px 10px rgba(33, 108, 183, 0.23);
 }
 
 .mmv-pending-line {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .mmv-pending-line > svg {
   flex: 0 0 auto;
-  color: var(--mmv-accent);
+  color: #fff;
 }
 
 .mmv-spinner {
@@ -279,9 +291,21 @@
   line-height: 1.5;
 }
 
+.mmv-pending > p {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+}
+
 .mmv-inline-error {
   max-width: 100%;
   color: #a33c35;
+}
+
+.mmv-pending .mmv-inline-error {
+  width: 100%;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 
 .mmv-expired {
@@ -295,16 +319,16 @@
   grid-template-columns: 21px minmax(0, 1fr);
   align-items: start;
   gap: 10px;
-  padding: 13px;
-  border: 1px solid #cfe5d5;
-  border-radius: 12px;
-  color: var(--mmv-ink);
-  background: var(--mmv-soft-bg);
+  padding: 11px;
+  border: 1px solid #f0d4b2;
+  border-radius: 7px;
+  color: #734716;
+  background: #fff6e9;
 }
 
 .mmv-expired-message > svg {
   margin-top: 1px;
-  color: var(--mmv-green);
+  color: #bd7626;
 }
 
 .mmv-expired-message strong {
@@ -316,24 +340,28 @@
 .mmv-retry {
   display: flex;
   width: 100%;
-  min-height: 50px;
+  min-height: 45px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 3px;
   color: #fff;
-  background: var(--mmv-green);
-  box-shadow: 0 4px 10px rgba(0, 75, 35, 0.18);
+  background: var(--mmv-orange);
+  box-shadow: 0 4px 8px rgba(128, 72, 36, 0.28);
   font: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
-  transition: filter 160ms ease, transform 160ms ease;
+  transition: filter 150ms ease, transform 150ms ease;
 }
 
 .mmv-retry:hover:not(:disabled) {
-  background: #066c32;
+  filter: brightness(0.97);
+}
+
+.mmv-retry:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .mmv-retry:disabled {
@@ -357,9 +385,9 @@
 }
 
 .mmv-terminal--approved {
-  border-color: #cfe5d5;
-  color: var(--mmv-green);
-  background: var(--mmv-soft-bg);
+  border-color: #cce1f4;
+  color: #145f9a;
+  background: #eff7ff;
 }
 
 .mmv-terminal--rejected {
@@ -368,33 +396,8 @@
   background: #fff2f1;
 }
 
-.mmv-return {
-  display: flex;
-  width: 100%;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  margin: 17px 0 0;
-  padding: 8px 14px;
-  border: 1px solid var(--mmv-border);
-  border-radius: 10px;
-  color: var(--mmv-green);
-  background: var(--mmv-light-green);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 750;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 160ms ease, border-color 160ms ease;
-}
-
-.mmv-return:hover {
-  border-color: #b6dcc1;
-  background: #d9f0df;
-}
-
 .mmv-page button:focus-visible {
-  outline: 3px solid var(--mmv-accent);
+  outline: 3px solid rgba(28, 139, 229, 0.48);
   outline-offset: 3px;
 }
 
@@ -417,55 +420,54 @@
 }
 
 @media (max-width: 420px) {
-  .mmv-page {
-    justify-content: flex-start;
-  }
-
   .mmv-brand {
-    gap: 7px;
-    font-size: 12px;
-  }
-
-  .mmv-brand-subtitle {
-    padding-left: 7px;
+    gap: 4px;
     font-size: 9px;
   }
 
+  .mmv-brand-subtitle {
+    max-width: 74px;
+    padding-left: 5px;
+    font-size: 7px;
+  }
+
   .mmv-language {
-    min-height: 38px;
-    padding: 0 10px;
+    min-height: 32px;
+    gap: 4px;
+    padding: 0 7px;
+    font-size: 9px;
   }
 
   .mmv-amount {
-    min-height: 78px;
-    padding: 12px 14px;
+    min-height: 54px;
+    padding: 8px 10px;
   }
 
   .mmv-card {
-    border-radius: 17px;
+    border-radius: 12px;
   }
 }
 
 @media (max-width: 350px) {
   .mmv-brand-subtitle {
-    max-width: 104px;
+    max-width: 48px;
   }
 
   .mmv-amount {
-    gap: 8px;
-    padding-right: 11px;
-    padding-left: 11px;
+    gap: 5px;
+    padding-right: 8px;
+    padding-left: 8px;
   }
 
   .mmv-time-pill {
-    gap: 5px;
-    padding: 0 8px;
+    min-width: 50px;
+    padding: 0 6px;
     font-size: 13px;
   }
 
   .mmv-card {
-    padding-right: 15px;
-    padding-left: 15px;
+    padding-right: 14px;
+    padding-left: 14px;
   }
 
   .mmv-details > div {

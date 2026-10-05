@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, CircleAlert, Clock3, Gem, Loader2, X } from "lucide-react";
+import { Check, CircleAlert, Gem, Globe2, Loader2, X } from "lucide-react";
 import "./mobile-money-deposit-verification.css";
 
 type MobileMoneyDepositVerificationProps = {
@@ -84,7 +84,8 @@ export function MobileMoneyDepositVerification({
   const isRejected = ["rejected", "failed", "cancelled", "canceled"].includes(normalizedStatus);
   const isPending = !isApproved && !isRejected;
   const verificationTime = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
-  const displayCurrency = currency.trim().toUpperCase() || "XOF";
+  const normalizedCurrency = currency.trim().toUpperCase() || "XOF";
+  const displayCurrency = normalizedCurrency === "XOF" ? "FCFA" : normalizedCurrency;
   const formattedAmount = Number.isFinite(amountXof)
     ? new Intl.NumberFormat(isEnglish ? "en-US" : "fr-FR", {
         maximumFractionDigits: 0,
@@ -127,43 +128,50 @@ export function MobileMoneyDepositVerification({
 
   return (
     <main className="mmv-page" aria-label={copy.brandSubtitle}>
-      <header className="mmv-header">
-        <div className="mmv-brand">
-          <Gem size={22} strokeWidth={2.4} aria-hidden="true" />
-          <span>DIAMANT</span>
-          <span className="mmv-brand-subtitle">{copy.brandSubtitle}</span>
-        </div>
-        {onToggleLanguage && (
-          <button
-            className="mmv-language"
-            type="button"
-            onClick={onToggleLanguage}
-            aria-label={isEnglish ? "Switch to French" : "Passer en anglais"}
-          >
-            {copy.languageButton}
-          </button>
-        )}
-      </header>
-
-      <section className="mmv-amount" aria-label={`${copy.amount}: ${formattedAmount} ${displayCurrency}`}>
-        <div>
-          <span>{copy.amount}</span>
-          <strong>{formattedAmount} {displayCurrency}</strong>
-        </div>
-        {!isApproved && !isRejected && (
-          <span
-            className="mmv-time-pill"
-            role="timer"
-            aria-label={`${copy.verificationInProgress} · ${verificationTime}`}
-            aria-live="off"
-          >
-            <Clock3 size={15} aria-hidden="true" />
-            {verificationTime}
-          </span>
-        )}
-      </section>
+      <button
+        className="mmv-close"
+        type="button"
+        onClick={onReturn}
+        aria-label={copy.returnToDeposits}
+      >
+        <X size={20} aria-hidden="true" />
+      </button>
 
       <section className="mmv-card" aria-labelledby="mmv-status-title">
+        <header className="mmv-header">
+          <div className="mmv-brand">
+            <Gem size={21} strokeWidth={2.4} aria-hidden="true" />
+            <span>DIAMANT</span>
+            <span className="mmv-brand-subtitle">{copy.brandSubtitle}</span>
+          </div>
+          {!isApproved && !isRejected && (
+            <span
+              className="mmv-time-pill"
+              role="timer"
+              aria-label={`${copy.verificationInProgress} · ${verificationTime}`}
+              aria-live="off"
+            >
+              {verificationTime}
+            </span>
+          )}
+          {onToggleLanguage && (
+            <button
+              className="mmv-language"
+              type="button"
+              onClick={onToggleLanguage}
+              aria-label={isEnglish ? "Switch to French" : "Passer en anglais"}
+            >
+              <Globe2 size={17} aria-hidden="true" />
+              <span>{copy.languageButton}</span>
+            </button>
+          )}
+        </header>
+
+        <section className="mmv-amount" aria-label={`${copy.amount}: ${displayCurrency} ${formattedAmount}`}>
+          <span>{copy.amount}</span>
+          <strong>{displayCurrency} {formattedAmount}</strong>
+        </section>
+
         <div
           className={`mmv-result-icon${isApproved ? " mmv-result-icon--approved" : isRejected ? " mmv-result-icon--rejected" : " mmv-result-icon--pending"}`}
           aria-hidden="true"
@@ -176,10 +184,6 @@ export function MobileMoneyDepositVerification({
           <div>
             <dt>{copy.operator}</dt>
             <dd>{operatorName}</dd>
-          </div>
-          <div>
-            <dt>{copy.amount}</dt>
-            <dd>{formattedAmount} {displayCurrency}</dd>
           </div>
           <div>
             <dt>{copy.transactionId}</dt>
@@ -238,9 +242,6 @@ export function MobileMoneyDepositVerification({
           </div>
         )}
 
-        <button className="mmv-return" type="button" onClick={onReturn}>
-          {copy.returnToDeposits}
-        </button>
       </section>
     </main>
   );
