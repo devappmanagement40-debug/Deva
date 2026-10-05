@@ -1543,26 +1543,8 @@ ol[data-radix-toast-viewport] li * {
   }
 }
 
-@keyframes diamant-floating-checkin {
-  0%, 100% {
-    transform: translate3d(0, 0, 0);
-  }
-  50% {
-    transform: translate3d(0, -8px, 0);
-  }
-}
-
-.floating-checkin-button {
-  animation: diamant-floating-checkin 1.8s ease-in-out infinite;
-  will-change: transform;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .ielp-home-notice__clip span {
-    animation: none;
-  }
-
-  .floating-checkin-button {
     animation: none;
   }
 }
