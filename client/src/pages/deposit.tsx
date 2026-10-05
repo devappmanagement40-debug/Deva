@@ -8,6 +8,7 @@ import { formatDepositGuidanceContent } from "@/lib/deposit-guidance";
 import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
+import { getTogoDevelopmentPreviewOperators } from "@/lib/togo-preview-operators";
 import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyCheckout";
 import TogoMobileMoneyCheckout from "@/components/tg-deposit-flow/TogoMobileMoneyCheckout";
 import MobileMoneyDepositVerification from "@/components/mobile-money-deposit-verification";
@@ -204,6 +205,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const mobileMoneyCountry = mobileDepositCountries.find(
     (country) => country.code.toUpperCase() === mobileMoneyCountryCode?.toUpperCase(),
   );
+  const isTogoDevelopmentPreview =
+    import.meta.env.DEV &&
+    mobileMoneyCountryCode?.trim().toUpperCase() === "TG";
 
   const {
     data: mobileMoneyOperators = [],
@@ -215,7 +219,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     queryFn: () => mobileMoneyCountryCode
       ? fetchMobileMoneyOperators(mobileMoneyCountryCode)
       : Promise.resolve([]),
-    enabled: view === "mobile-money" && Boolean(mobileMoneyCountryCode),
+    enabled:
+      view === "mobile-money" &&
+      Boolean(mobileMoneyCountryCode) &&
+      !isTogoDevelopmentPreview,
     staleTime: mobileMoneyCountryCode?.trim().toUpperCase() === "CI" ? 15_000 : 0,
   });
 
@@ -521,15 +528,22 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
   const openMobileMoney = async (countryCode?: string) => {
     if (!countryCode) return;
+    const normalizedCountryCode = countryCode.trim().toUpperCase();
     setDepositVerification(null);
     setMobileMoneyCountryCode(countryCode);
     setSelectedOperator(null);
     setPayerName(user?.fullName || "");
-    setPayerPhone(countryCode.trim().toUpperCase() === "CI" ? "" : (user?.phone || ""));
+    setPayerPhone(
+      normalizedCountryCode === "CI"
+        ? ""
+        : normalizedCountryCode === "TG" && import.meta.env.DEV
+          ? "00000000"
+          : (user?.phone || ""),
+    );
     setMobileTransactionId("");
     setProof(null);
     setProofName("");
-    if (countryCode.trim().toUpperCase() === "CI") {
+    if (normalizedCountryCode === "CI") {
       setIsOpeningMobileMoney(true);
       try {
         const operators = await fetchMobileMoneyOperators(countryCode);
@@ -595,6 +609,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     operator: PaymentNumber,
     payerPhoneDigits: string,
   ) => {
+    if (import.meta.env.DEV && operator.id < 0) return;
     if (payerPhoneDigits.replace(/\D/g, "").length !== 8) {
       toast({
         title: "Numéro de téléphone invalide",
@@ -994,11 +1009,18 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       <TogoMobileMoneyCheckout
         amountXof={Number(amount)}
         payerPhone={payerPhone}
-        operators={mobileMoneyOperators}
-        loadingOperators={operatorsLoading || operatorsFetching}
-        operatorsError={operatorsError
-          ? "Impossible de charger les opérateurs de paiement du Togo. Réessayez."
-          : null}
+        operators={isTogoDevelopmentPreview
+          ? getTogoDevelopmentPreviewOperators(mobileMoneyOperators)
+          : mobileMoneyOperators}
+        loadingOperators={isTogoDevelopmentPreview
+          ? false
+          : operatorsLoading || operatorsFetching}
+        operatorsError={isTogoDevelopmentPreview
+          ? null
+          : operatorsError
+            ? "Impossible de charger les opérateurs de paiement du Togo. Réessayez."
+            : null}
+        previewOnly={isTogoDevelopmentPreview}
         submitting={createMobileMoneyDeposit.isPending}
         language={lang}
         onPhoneChange={setPayerPhone}
