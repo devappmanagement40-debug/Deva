@@ -34,9 +34,6 @@
 .ci-wave-screen {
   position: relative;
   z-index: 1;
-}
-
-.ci-wave-screen {
   display: flex;
   min-height: 100dvh;
   align-items: center;
@@ -46,6 +43,7 @@
 
 .ci-wave-screen--payment {
   align-items: flex-start;
+  padding-top: 25px;
 }
 
 .ci-wave-close {
@@ -188,62 +186,6 @@
 
 .ci-wave-language svg {
   color: #20a6c8;
-}
-
-@media (max-width: 360px) {
-  .ci-wave-header {
-    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
-    gap: 4px;
-  }
-
-  .ci-wave-identity {
-    gap: 4px;
-  }
-
-  .ci-wave-brand {
-    gap: 3px;
-  }
-
-  .ci-wave-brand svg {
-    width: 17px;
-    height: 17px;
-  }
-
-  .ci-wave-brand span {
-    font-size: 9px;
-    letter-spacing: 0.04em;
-  }
-
-  .ci-wave-country {
-    padding: 4px;
-  }
-
-  .ci-wave-country img {
-    width: 18px;
-    height: 13px;
-  }
-
-  .ci-wave-country span {
-    display: none;
-  }
-
-  .ci-wave-timer {
-    min-width: 54px;
-    padding: 0 4px;
-    font-size: 14px;
-  }
-
-  .ci-wave-language {
-    min-height: 32px;
-    gap: 4px;
-    padding: 0 6px;
-    font-size: 9px;
-  }
-
-  .ci-wave-language svg {
-    width: 15px;
-    height: 15px;
-  }
 }
 
 .ci-wave-amount {
@@ -416,7 +358,7 @@
 }
 
 .ci-wave-submit:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.7;
 }
 
@@ -453,728 +395,322 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
-  font-weight: 800;
 }
 
-.ci-wave-details {
-  width: calc(100% - 20px);
-  max-width: 439px;
-  margin: 0 auto 36px;
+.ci-wave-stage-two {
+  padding-top: 8px;
 }
 
-.ci-wave-details-card {
-  padding: 19px;
-  border: 1px solid rgba(255, 255, 255, 0.82);
-  border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 9px 25px rgba(112, 62, 31, 0.14);
-}
-
-.ci-wave-details-heading {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-}
-
-.ci-wave-details-icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 10px;
-  color: #1689b1;
-  background: #e9f6fb;
-}
-
-.ci-wave-details-heading h1 {
-  margin: 0;
-  color: #30383e;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.ci-wave-details-heading p {
-  margin: 3px 0 0;
-  color: #737b82;
-  font-size: 12px;
-}
-
-.ci-wave-instructions {
-  margin: 13px 0 0;
-  color: #626b73;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.ci-wave-recipient {
-  margin-top: 14px;
-  padding: 13px;
-  border: 1px solid #e9e5e2;
-  border-radius: 11px;
-  background: #fff;
-}
-
-.ci-wave-recipient-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #747c82;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.ci-wave-recipient-head button {
+.ci-wave-back-step {
   display: inline-flex;
-  min-height: 32px;
+  min-height: 27px;
   align-items: center;
-  justify-content: center;
   gap: 5px;
-  padding: 5px 9px;
-  border: 1px solid #eed5c1;
-  border-radius: 8px;
-  color: #b36534;
-  background: #fffaf6;
+  padding: 0;
+  border: 0;
+  color: #647184;
+  background: transparent;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
 
-.ci-wave-recipient-phone {
-  display: block;
-  margin-top: 7px;
-  color: #282e34;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  overflow-wrap: anywhere;
+.ci-wave-back-step:hover {
+  color: #1b76c8;
 }
 
-.ci-wave-owner {
-  display: block;
-  margin-top: 3px;
-  color: #727a82;
-  font-size: 12px;
+.ci-wave-stage-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 5px 0 10px;
 }
 
-.ci-wave-copy-error {
-  display: block;
-  margin-top: 7px;
-  color: #b64e43;
+.ci-wave-stage-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
+  color: #0788b7;
+  background: #e5f8fc;
+}
+
+.ci-wave-stage-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ci-wave-stage-heading > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ci-wave-stage-heading strong {
+  color: #303841;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.ci-wave-stage-heading small {
+  color: #747d88;
   font-size: 11px;
+  line-height: 1.35;
+}
+
+.ci-wave-transfer-banner {
+  display: grid;
+  min-height: 59px;
+  grid-template-columns: 37px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--ci-wave-panel);
+}
+
+.ci-wave-transfer-logo {
+  display: grid;
+  width: 37px;
+  height: 37px;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  color: #087c9c;
+  background: #fff;
+}
+
+.ci-wave-transfer-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ci-wave-transfer-banner > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.ci-wave-transfer-banner strong {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.ci-wave-transfer-banner small {
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .ci-wave-launch {
   display: flex;
-  min-height: 46px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-  border-radius: 5px;
+  gap: 9px;
+  margin-top: 8px;
+  border-radius: 6px;
   color: #fff;
-  background: #168db2;
-  box-shadow: 0 4px 10px rgba(20, 117, 149, 0.18);
+  background: var(--ci-wave-blue);
+  box-shadow: 0 3px 8px rgba(35, 119, 190, 0.2);
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 800;
   text-decoration: none;
+  transition: filter 150ms ease, transform 150ms ease;
 }
 
 .ci-wave-launch:hover {
-  background: #107b9c;
+  filter: brightness(0.96);
 }
 
-.ci-wave-config-note {
+.ci-wave-launch:active {
+  transform: translateY(1px);
+}
+
+.ci-wave-payment-unavailable {
   display: flex;
+  min-height: 46px;
   align-items: flex-start;
-  gap: 9px;
-  margin-top: 12px;
-  padding: 11px 12px;
-  border: 1px solid #d8e9f3;
-  border-left: 4px solid #e99a5e;
-  border-radius: 9px;
-  color: #246485;
-  background: #edf7fc;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.ci-wave-config-note svg {
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: #df884b;
-}
-
-.ci-wave-qr-panel {
-  margin-top: 14px;
-  padding: 12px;
-  border: 1px solid #e7e9eb;
-  border-radius: 11px;
-  background: #fdfdfd;
-}
-
-.ci-wave-qr-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: #5d6870;
-}
-
-.ci-wave-qr-heading h2 {
-  margin: 0;
-  color: #41484e;
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.ci-wave-qr-heading p {
-  margin: 4px 0 0;
-  color: #727a82;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 11px;
+  border: 1px solid #f2d3aa;
+  border-radius: 7px;
+  color: #805322;
+  background: #fff7eb;
   font-size: 11px;
+  font-weight: 650;
   line-height: 1.4;
 }
 
-.ci-wave-qr {
-  display: block;
-  width: min(100%, 190px);
-  aspect-ratio: 1;
-  margin: 12px auto 0;
-  object-fit: contain;
-}
-
-.ci-wave-qr-unavailable {
-  display: grid;
-  min-height: 96px;
-  justify-items: center;
-  gap: 5px;
-  margin-top: 10px;
-  padding: 13px;
-  border: 1px dashed #e3c7b4;
-  border-radius: 9px;
-  color: #6f747a;
-  background: #fffaf6;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.ci-wave-qr-unavailable svg {
-  color: #d78b54;
-}
-
-.ci-wave-qr-unavailable small {
-  color: #777e83;
-  font-size: 11px;
-  font-weight: 400;
+.ci-wave-payment-unavailable svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
 }
 
 .ci-wave-reference {
-  margin-top: 19px;
-  padding-top: 17px;
-  border-top: 1px solid #ececee;
+  display: grid;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.ci-wave-reference label {
+  display: grid;
+  gap: 2px;
 }
 
 .ci-wave-reference-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  color: #41474e;
-  font-size: 13px;
-  font-weight: 750;
+  gap: 8px;
+  color: #424951;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .ci-wave-reference-label strong {
-  color: #c96d3d;
+  color: #ce644f;
   font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-weight: 750;
 }
 
 .ci-wave-reference-hint {
-  display: block;
-  margin: 6px 0 9px;
-  color: #727a82;
-  font-size: 12px;
-  line-height: 1.5;
+  color: #79818a;
+  font-size: 10px;
+  line-height: 1.35;
 }
 
-.ci-wave-reference > input {
+.ci-wave-reference input {
   width: 100%;
-  min-height: 48px;
-  padding: 11px 12px;
-  border: 1px solid #dedfe1;
-  border-radius: 8px;
-  outline: 0;
-  color: #30363b;
+  min-height: 41px;
+  padding: 9px 11px;
+  border: 1px solid #dfc6b4;
+  border-radius: 6px;
+  outline: none;
+  color: #323b44;
   background: #fff;
   font: inherit;
-  font-size: 14px;
+  font-size: 13px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.ci-wave-reference > input:focus {
-  border-color: #dd8f55;
-  box-shadow: 0 0 0 3px rgba(220, 141, 81, 0.16);
+.ci-wave-reference input::placeholder {
+  color: #9ba2aa;
 }
 
-.ci-wave-proof {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-  padding: 11px;
-  border: 1px dashed #d9c9bd;
-  border-radius: 9px;
-  color: #8c5d3f;
-  background: #fffaf6;
-  text-align: left;
-  font: inherit;
-  cursor: pointer;
-}
-
-.ci-wave-proof > span {
-  min-width: 0;
-  flex: 1;
-}
-
-.ci-wave-proof strong,
-.ci-wave-proof small {
-  display: block;
-}
-
-.ci-wave-proof strong {
-  color: #5d5149;
-  font-size: 12px;
-}
-
-.ci-wave-proof small {
-  overflow: hidden;
-  margin-top: 3px;
-  color: #84878a;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.ci-wave-reference input:focus {
+  border-color: #df965e;
+  box-shadow: 0 0 0 3px rgba(238, 154, 89, 0.15);
 }
 
 .ci-wave-review-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 13px 0 0;
-  color: #71777d;
-  font-size: 11px;
-  line-height: 1.5;
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding: 8px 9px;
+  border-radius: 7px;
+  color: #fff;
+  background: #2588db;
+  font-size: 10px;
+  line-height: 1.4;
 }
 
 .ci-wave-review-note svg {
-  flex: 0 0 auto;
   margin-top: 1px;
-  color: #168db2;
 }
 
 .ci-wave-submit-details {
-  margin-top: 15px;
-}
-
-.ci-wave-stage-two {
-  padding-top: 14px;
-}
-
-.ci-wave-back-step {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 12px;
-  padding: 0 9px;
-  border: 1px solid #ead9cb;
-  border-radius: 7px;
-  color: #9b5b32;
-  background: #fffaf6;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ci-wave-stage-heading {
-  display: grid;
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 13px;
-}
-
-.ci-wave-stage-mark {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 10px;
-  color: #fff;
-  background: #17b9dc;
-}
-
-.ci-wave-stage-mark img,
-.ci-wave-transfer-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.ci-wave-stage-heading > span:last-child {
-  display: grid;
-  gap: 3px;
-}
-
-.ci-wave-stage-heading strong {
-  color: #30383e;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.ci-wave-stage-heading small {
-  color: #737b82;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.ci-wave-transfer-amount {
-  display: flex;
-  min-height: 52px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 9px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  background: #f8f9fa;
-}
-
-.ci-wave-transfer-amount > span {
-  color: #676b70;
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.ci-wave-transfer-amount strong {
-  color: #e79a5c;
-  font-size: 16px;
-  font-weight: 850;
-  white-space: nowrap;
-}
-
-.ci-wave-recipient {
-  margin-top: 12px;
-  padding: 12px;
-  border: 1px solid #e9e5e2;
-  border-radius: 9px;
-  background: #fff;
-}
-
-.ci-wave-recipient-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  color: #747c82;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.ci-wave-recipient-head button {
-  display: inline-flex;
-  min-height: 30px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 4px 8px;
-  border: 1px solid #eed5c1;
-  border-radius: 7px;
-  color: #b36534;
-  background: #fffaf6;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.ci-wave-recipient-head button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.ci-wave-recipient-phone {
-  display: block;
-  margin-top: 6px;
-  color: #282e34;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  overflow-wrap: anywhere;
-}
-
-.ci-wave-owner {
-  display: block;
-  margin-top: 3px;
-  color: #727a82;
-  font-size: 11px;
-}
-
-.ci-wave-copy-error {
-  display: block;
-  margin-top: 7px;
-  color: #b64e43;
-  font-size: 11px;
-}
-
-.ci-wave-payment-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  margin-top: 14px;
-  padding: 5px;
-  border-radius: 9px;
-  background: #f2f2f3;
-}
-
-.ci-wave-payment-tabs button {
-  display: flex;
-  min-height: 42px;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 6px;
-  border: 0;
-  border-radius: 7px;
-  color: #697078;
-  background: transparent;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 720;
-  cursor: pointer;
-}
-
-.ci-wave-payment-tabs button[aria-selected="true"] {
-  color: #fff;
-  background: var(--ci-wave-orange);
-  box-shadow: 0 3px 8px rgba(170, 95, 45, 0.18);
-}
-
-.ci-wave-payment-panel {
-  margin-top: 12px;
-}
-
-.ci-wave-transfer-banner {
-  display: grid;
-  justify-items: center;
+  min-height: 43px;
   margin-top: 1px;
-  padding: 15px 13px;
-  border: 1px solid #e7b080;
-  border-radius: 10px;
-  color: #fff;
-  background: #ee9b58;
-  text-align: center;
-}
-
-.ci-wave-transfer-logo {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  overflow: hidden;
-  margin-bottom: 7px;
-  border-radius: 11px;
-  color: #168db2;
-  background: #fff;
-}
-
-.ci-wave-transfer-banner strong {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.ci-wave-transfer-banner p {
-  margin: 6px 0 0;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.ci-wave-launch {
-  display: flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 11px;
-  padding: 10px 12px;
-  border-radius: 4px;
-  color: #fff;
-  background: #168db2;
-  box-shadow: 0 4px 10px rgba(20, 117, 149, 0.18);
-  font-size: 13px;
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.ci-wave-launch:hover {
-  background: #107b9c;
-}
-
-.ci-wave-config-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 10px 11px;
-  border: 1px solid #d8e9f3;
-  border-left: 4px solid #e99a5e;
-  border-radius: 8px;
-  color: #246485;
-  background: #edf7fc;
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.ci-wave-config-note svg {
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: #df884b;
-}
-
-.ci-wave-qr-panel {
-  display: grid;
-  min-height: 190px;
-  place-items: center;
-  margin-top: 10px;
-  padding: 10px;
-  border: 1px solid #e7e9eb;
-  border-radius: 10px;
-  background: #fdfdfd;
-}
-
-.ci-wave-qr {
-  display: block;
-  width: min(100%, 220px);
-  aspect-ratio: 1;
-  object-fit: contain;
-}
-
-.ci-wave-qr-unavailable {
-  display: grid;
-  width: 100%;
-  min-height: 160px;
-  align-content: center;
-  justify-items: center;
-  gap: 6px;
-  padding: 14px;
-  border: 1px dashed #e3c7b4;
-  border-radius: 8px;
-  color: #6f747a;
-  background: #fffaf6;
-  text-align: center;
-  font-size: 12px;
-}
-
-.ci-wave-qr-unavailable svg {
-  color: #d78b54;
-}
-
-.ci-wave-qr-unavailable strong {
-  color: #474d53;
-  font-size: 13px;
-}
-
-.ci-wave-qr-unavailable small {
-  color: #727a82;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.ci-wave-save-qr {
-  display: flex;
-  width: 100%;
-  min-height: 44px;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 9px;
-  padding: 9px 12px;
-  border: 0;
-  border-radius: 4px;
-  color: #fff;
-  background: #398f54;
-  box-shadow: 0 4px 9px rgba(38, 120, 65, 0.2);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.ci-wave-save-qr:hover {
-  background: #2e7e48;
-}
-
-.ci-wave-qr-save-hint {
-  margin: 7px 0 0;
-  color: #747c82;
-  font-size: 11px;
-  line-height: 1.45;
-  text-align: center;
-}
-
-.ci-wave-stage-two .ci-wave-reference {
-  margin-top: 15px;
-  padding-top: 14px;
-}
-
-.ci-wave-stage-two .ci-wave-reference > input {
-  min-height: 45px;
-}
-
-.ci-wave-stage-two .ci-wave-proof {
-  margin-top: 10px;
-}
-
-.ci-wave-stage-two .ci-wave-review-note {
-  color: #246485;
-}
-
-.ci-wave-checkout .ci-wave-back-step:focus-visible,
-.ci-wave-checkout .ci-wave-recipient-head button:focus-visible,
-.ci-wave-checkout .ci-wave-payment-tabs button:focus-visible,
-.ci-wave-checkout .ci-wave-save-qr:focus-visible {
-  outline: 3px solid rgba(20, 141, 178, 0.55);
-  outline-offset: 2px;
+  border-radius: 5px;
 }
 
 .ci-wave-checkout button:focus-visible,
 .ci-wave-checkout a:focus-visible,
 .ci-wave-checkout input:focus-visible {
-  outline: 3px solid rgba(20, 141, 178, 0.55);
+  outline: 3px solid rgba(28, 139, 229, 0.48);
   outline-offset: 2px;
 }
 
-@media (max-height: 680px) {
-  .ci-wave-screen {
-    align-items: flex-start;
-    padding-top: 46px;
+@media (max-width: 360px) {
+  .ci-wave-header {
+    grid-template-columns: minmax(0, 1fr) 54px minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .ci-wave-identity {
+    gap: 4px;
+  }
+
+  .ci-wave-brand {
+    gap: 3px;
+  }
+
+  .ci-wave-brand svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .ci-wave-brand span {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+
+  .ci-wave-country {
+    padding: 4px;
+  }
+
+  .ci-wave-country img {
+    width: 18px;
+    height: 13px;
+  }
+
+  .ci-wave-country span {
+    display: none;
+  }
+
+  .ci-wave-timer {
+    min-width: 54px;
+    padding: 0 4px;
+    font-size: 14px;
+  }
+
+  .ci-wave-language {
+    min-height: 32px;
+    gap: 4px;
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .ci-wave-language svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .ci-wave-card {
+    padding-right: 14px;
+    padding-left: 14px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ci-wave-card {
+    animation: none;
+  }
+
   .ci-wave-checkout *,
   .ci-wave-checkout *::before,
   .ci-wave-checkout *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

@@ -820,30 +820,16 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       ciPhoneDigits,
     );
     return (
-      <>
-        <input
-          ref={proofInput}
-          className="sr-only"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={chooseProof}
-          tabIndex={-1}
-        />
         <CiMobileMoneyCheckout
           amountXof={Number(amount)}
           currency={CURRENCY}
           operatorName={selectedOperator.operatorName}
-          operatorPhone={selectedOperator.phone}
-          operatorOwnerName={selectedOperator.ownerName}
           operatorLogoUrl={selectedOperator.logoUrl}
           paymentUrl={paymentUrl}
-          paymentQrDataUrl={selectedOperator.paymentQrDataUrl}
           payerPhoneDigits={ciPhoneDigits}
           onPayerPhoneDigitsChange={(value) => setPayerPhone(value)}
           transactionId={mobileTransactionId}
           onTransactionIdChange={setMobileTransactionId}
-          proofName={proofName}
-          onPickProof={() => proofInput.current?.click()}
           isSubmitting={createMobileMoneyDeposit.isPending}
           onBack={() => {
             setSelectedOperator(null);
@@ -862,7 +848,6 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           language={lang}
           onToggleLanguage={() => setLang(lang.toLowerCase().startsWith("en") ? "fr" : "en")}
         />
-      </>
     );
   }
 

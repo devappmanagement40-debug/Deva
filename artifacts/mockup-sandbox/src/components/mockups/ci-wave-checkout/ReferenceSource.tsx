@@ -1,18 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.png";
-import QRCode from "qrcode";
 import {
   ArrowLeft,
-  ArrowUpRight,
   Check,
   CircleAlert,
-  Copy,
-  Download,
   ExternalLink,
   Gem,
   Globe2,
-  ImagePlus,
   LockKeyhole,
   ShieldCheck,
   Smartphone,
@@ -24,17 +19,12 @@ export type CiMobileMoneyCheckoutProps = {
   amountXof: number;
   currency: string;
   operatorName: string;
-  operatorPhone: string;
-  operatorOwnerName: string;
   operatorLogoUrl?: string | null;
   paymentUrl?: string | null;
-  paymentQrDataUrl?: string | null;
   payerPhoneDigits: string;
   onPayerPhoneDigitsChange(value: string): void;
   transactionId: string;
   onTransactionIdChange(value: string): void;
-  proofName: string;
-  onPickProof(): void;
   isSubmitting: boolean;
   onBack(): void;
   onSubmitForReview(): void;
@@ -44,7 +34,6 @@ export type CiMobileMoneyCheckoutProps = {
 };
 
 type CheckoutStep = "phone" | "payment";
-type PaymentTab = "app" | "qr";
 
 const COPY = {
   fr: {
@@ -53,62 +42,28 @@ const COPY = {
     phonePlaceholder: "Veuillez entrer le numéro de portefeuille…",
     phoneHint:
       "Veuillez saisir correctement votre numéro de portefeuille de paiement à 10 chiffres pour que votre paiement arrive avec précision",
-    recipient: "Compte destinataire",
-    owner: "Titulaire du compte",
-    copy: "Copier",
-    copied: "Copié",
-    appHeading: "Payer avec Wave",
-    appInstructions:
-      "Envoyez le montant affiché au compte Wave ci-dessous, puis indiquez la référence de la transaction.",
     launch: "Ouvrir Wave",
-    launchUnavailable: "Lien de paiement non configuré",
-    qrHeading: "Code QR de paiement",
-    scanInstructions: "Scannez ce code avec votre application Wave.",
-    qrUnavailable: "Code QR non configuré",
-    configureLink:
-      "Le lien de paiement n’est pas configuré. Vous pouvez effectuer un transfert manuel vers le compte indiqué.",
-    configureQr: "Aucun code QR de paiement n’est configuré.",
-    manualTransfer:
-      "Effectuez le transfert uniquement vers le numéro destinataire affiché ici.",
-    reference: "Référence de la transaction",
+    stageTitle: "Effectuez votre transfert",
+    stageIntro: "Payez avec Wave, puis indiquez la référence de votre transaction.",
+    paymentUnavailable: "Le lien de paiement Wave n’est pas configuré. Vous ne pouvez pas poursuivre ce dépôt pour le moment.",
+    paymentInstructions: "Après le paiement, saisissez le numéro de transaction affiché sur votre reçu.",
+    reference: "Numéro de transaction",
     referenceHint: "Saisissez la référence indiquée sur le reçu de votre transfert.",
     referencePlaceholder: "Ex. : référence du reçu",
     required: "Obligatoire",
-    proof: "Justificatif (facultatif)",
-    chooseProof: "Ajouter une capture d’écran",
-    replaceProof: "Remplacer le justificatif",
-    noProof: "Aucun fichier ajouté",
     submit: "Soumettre",
-    submitDetails: "Transmettre à l’administration",
+    submitDetails: "Envoyer la référence pour vérification",
     submitting: "Envoi en cours…",
-    submitHint:
-      "Votre demande restera en attente. Le dépôt sera crédité uniquement après vérification par l’administration.",
     secureHeading: "Paiement sécurisé",
     secureBody:
       "Après le transfert, indiquez sa référence pour transmettre votre demande à l’administration. Le dépôt restera en attente de vérification.",
     back: "Fermer le paiement",
-    missingOwner: "Non renseigné",
-    copyFailed: "Impossible de copier le numéro.",
     openNew: "S’ouvre dans un nouvel onglet",
     paymentDetails: "Instructions de paiement",
     languageButton: "ENGLISH",
     timeRemaining: "Temps restant",
-    copyTitle: "Informations pour le suivi",
-    phoneInvalid: "Saisissez les 10 chiffres de votre numéro ivoirien après +225.",
-    continue: "Continuer",
-    stageTitle: "Effectuez votre transfert",
-    stageIntro: "Envoyez le montant indiqué avec Wave, puis renseignez la référence du reçu.",
     backToPhone: "Modifier mon numéro",
-    appTab: "Ouvrir Wave",
-    qrTab: "Code QR",
-    transferAmount: "Montant à transférer",
-    appBody: "Ouvrez Wave et suivez les instructions de paiement affichées ici.",
-    paymentUnavailable: "Les instructions de paiement Wave ne sont pas configurées. Réessayez plus tard ou contactez l’assistance.",
-    recipientUnavailable: "Numéro non configuré",
-    saveQr: "Enregistrer le code QR",
-    qrSavedHint: "Enregistrez le code QR sur votre appareil pour le scanner plus tard.",
     reviewNote: "Votre demande sera transmise à l’administration pour vérification. Le dépôt restera en attente et ne sera pas crédité automatiquement.",
-    submitForReview: "Envoyer la référence pour vérification",
     previewAcknowledgement: "Aperçu uniquement : la référence serait envoyée à l’administration pour vérification.",
     previewDone: "Aperçu terminé",
   },
@@ -118,62 +73,28 @@ const COPY = {
     phonePlaceholder: "Enter your wallet phone number…",
     phoneHint:
       "Enter the correct 10-digit payment wallet number so your payment can be identified accurately.",
-    recipient: "Recipient account",
-    owner: "Account holder",
-    copy: "Copy",
-    copied: "Copied",
-    appHeading: "Pay with Wave",
-    appInstructions:
-      "Send the amount shown to the Wave account below, then enter the transaction reference.",
     launch: "Open Wave",
-    launchUnavailable: "Payment link not configured",
-    qrHeading: "Payment QR code",
-    scanInstructions: "Scan this code with your Wave app.",
-    qrUnavailable: "QR code not configured",
-    configureLink:
-      "The payment link is not configured. You can make a manual transfer to the account shown.",
-    configureQr: "No payment QR code is configured.",
-    manualTransfer:
-      "Send the transfer only to the recipient number shown here.",
-    reference: "Transaction reference",
+    stageTitle: "Make your transfer",
+    stageIntro: "Pay with Wave, then enter your transaction reference.",
+    paymentUnavailable: "The Wave payment link is not configured. You cannot continue this deposit right now.",
+    paymentInstructions: "After payment, enter the transaction number shown on your receipt.",
+    reference: "Transaction number",
     referenceHint: "Enter the reference shown on your transfer receipt.",
     referencePlaceholder: "e.g. receipt reference",
     required: "Required",
-    proof: "Proof of payment (optional)",
-    chooseProof: "Add a screenshot",
-    replaceProof: "Replace proof",
-    noProof: "No file added",
     submit: "Submit",
-    submitDetails: "Send for admin review",
+    submitDetails: "Send reference for review",
     submitting: "Sending…",
-    submitHint:
-      "Your request will remain pending. The deposit is credited only after administration review.",
     secureHeading: "Secure payment",
     secureBody:
       "After the transfer, enter its reference to send your request to administration. The deposit will remain pending review.",
     back: "Close payment",
-    missingOwner: "Not provided",
-    copyFailed: "Could not copy the number.",
     openNew: "Opens in a new tab",
     paymentDetails: "Payment instructions",
     languageButton: "FRANÇAIS",
     timeRemaining: "Time remaining",
-    copyTitle: "Transfer details",
-    phoneInvalid: "Enter the 10 digits of your Côte d’Ivoire number after +225.",
-    continue: "Continue",
-    stageTitle: "Make your transfer",
-    stageIntro: "Send the amount shown with Wave, then enter the reference from your receipt.",
     backToPhone: "Edit my phone number",
-    appTab: "Open Wave",
-    qrTab: "QR code",
-    transferAmount: "Transfer amount",
-    appBody: "Open Wave and follow the payment instructions shown here.",
-    paymentUnavailable: "Wave payment instructions are not configured. Try again later or contact support.",
-    recipientUnavailable: "Number not configured",
-    saveQr: "Save QR code",
-    qrSavedHint: "Save the QR code to your device and scan it later.",
     reviewNote: "Your request will be sent to administration for review. The deposit will remain pending and will not be credited automatically.",
-    submitForReview: "Send reference for review",
     previewAcknowledgement: "Preview only: the reference would be sent to administration for review.",
     previewDone: "Preview complete",
   },
@@ -194,17 +115,12 @@ export function CiMobileMoneyCheckout({
   amountXof,
   currency,
   operatorName,
-  operatorPhone,
-  operatorOwnerName,
   operatorLogoUrl,
   paymentUrl,
-  paymentQrDataUrl,
   payerPhoneDigits,
   onPayerPhoneDigitsChange,
   transactionId,
   onTransactionIdChange,
-  proofName,
-  onPickProof,
   isSubmitting,
   onBack,
   onSubmitForReview,
@@ -213,10 +129,6 @@ export function CiMobileMoneyCheckout({
   language,
 }: CiMobileMoneyCheckoutProps) {
   const [step, setStep] = useState<CheckoutStep>("phone");
-  const [paymentTab, setPaymentTab] = useState<PaymentTab>("app");
-  const [generatedQr, setGeneratedQr] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(
     Math.floor(PAYMENT_WINDOW_MS / 1000),
@@ -230,11 +142,6 @@ export function CiMobileMoneyCheckout({
   const safePaymentUrl = trimmedPaymentUrl && isSafePaymentUrl(trimmedPaymentUrl)
     ? trimmedPaymentUrl
     : "";
-  const configuredQr = paymentQrDataUrl?.trim() ?? "";
-  const qrSource = /^data:image\/(?:png|jpeg|webp);/i.test(configuredQr)
-    ? configuredQr
-    : "";
-  const displayedQr = qrSource || generatedQr;
   const formattedTimeRemaining = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
   const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
     ? waveMobileMoneyLogo
@@ -245,28 +152,6 @@ export function CiMobileMoneyCheckout({
       }).format(amountXof)
     : String(amountXof);
   const displayCurrency = currency.toUpperCase() === "XOF" ? "FCFA" : currency;
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!safePaymentUrl || qrSource) {
-      setGeneratedQr("");
-      return () => {
-        cancelled = true;
-      };
-    }
-    void QRCode.toDataURL(safePaymentUrl, {
-      errorCorrectionLevel: "M",
-      margin: 2,
-      width: 320,
-    }).then((dataUrl) => {
-      if (!cancelled) setGeneratedQr(dataUrl);
-    }).catch(() => {
-      if (!cancelled) setGeneratedQr("");
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [safePaymentUrl, qrSource]);
 
   useEffect(() => {
     const updateCountdown = () => {
@@ -290,44 +175,11 @@ export function CiMobileMoneyCheckout({
       return;
     }
     setStep("payment");
-    setPaymentTab(!safePaymentUrl && displayedQr ? "qr" : "app");
   };
 
-  const copyRecipient = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(operatorPhone);
-      } else {
-        const field = document.createElement("textarea");
-        field.value = operatorPhone;
-        field.setAttribute("readonly", "");
-        field.style.position = "fixed";
-        field.style.opacity = "0";
-        document.body.appendChild(field);
-        field.select();
-        const success = document.execCommand("copy");
-        field.remove();
-        if (!success) throw new Error("Clipboard unavailable");
-      }
-      setCopied(true);
-      setCopyError(false);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopyError(true);
-      setCopied(false);
-    }
-  };
-
-  const saveQr = () => {
-    if (!displayedQr) return;
-    const link = document.createElement("a");
-    link.href = displayedQr;
-    const qrFormat = displayedQr.match(/^data:image\/(png|jpeg|webp);/i)?.[1]?.toLowerCase();
-    link.download = `diamant-wave-qr.${qrFormat === "jpeg" ? "jpg" : qrFormat || "png"}`;
-    link.rel = "noopener";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const handleSubmitForReview = () => {
+    if (!transactionId.trim() || isSubmitting || previewAcknowledgement) return;
+    onSubmitForReview();
   };
 
   return (
@@ -479,104 +331,33 @@ export function CiMobileMoneyCheckout({
                 </span>
               </div>
 
-              <div className="ci-wave-transfer-amount">
-                <span>{copy.transferAmount}</span>
-                <strong>{displayCurrency} {formattedAmount}</strong>
+              <div className="ci-wave-transfer-banner">
+                <span className="ci-wave-transfer-logo" aria-hidden="true">
+                  {displayedOperatorLogo && !logoFailed
+                    ? <img src={displayedOperatorLogo} alt="" onError={() => setLogoFailed(true)} />
+                    : <Smartphone size={23} />}
+                </span>
+                <span>
+                  <strong>{operatorName || "Wave"}</strong>
+                  <small>{copy.paymentInstructions}</small>
+                </span>
               </div>
 
-              <div className="ci-wave-recipient">
-                <div className="ci-wave-recipient-head">
-                  <span>{copy.recipient} · {operatorName || "Wave"}</span>
-                  <button type="button" onClick={() => void copyRecipient()} disabled={!operatorPhone.trim()}>
-                    {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-                    {copied ? copy.copied : copy.copy}
-                  </button>
-                </div>
-                <strong className="ci-wave-recipient-phone">{operatorPhone || copy.recipientUnavailable}</strong>
-                <span className="ci-wave-owner">{copy.owner}: {operatorOwnerName || copy.missingOwner}</span>
-                {copyError && <span className="ci-wave-copy-error" role="status">{copy.copyFailed}</span>}
-              </div>
-
-              <div className="ci-wave-payment-tabs" role="tablist" aria-label={copy.paymentDetails}>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={paymentTab === "app"}
-                  aria-controls="ci-wave-app-panel"
-                  id="ci-wave-app-tab"
-                  onClick={() => setPaymentTab("app")}
+              {safePaymentUrl ? (
+                <a
+                  className="ci-wave-launch"
+                  href={safePaymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${copy.launch}. ${copy.openNew}`}
                 >
-                  <ExternalLink size={15} aria-hidden="true" />
-                  {copy.appTab}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={paymentTab === "qr"}
-                  aria-controls="ci-wave-qr-panel"
-                  id="ci-wave-qr-tab"
-                  onClick={() => setPaymentTab("qr")}
-                >
-                  <Smartphone size={15} aria-hidden="true" />
-                  {copy.qrTab}
-                </button>
-              </div>
-
-              {paymentTab === "app" ? (
-                <div className="ci-wave-payment-panel" role="tabpanel" id="ci-wave-app-panel" aria-labelledby="ci-wave-app-tab">
-                  <div className="ci-wave-transfer-banner">
-                    <span className="ci-wave-transfer-logo" aria-hidden="true">
-                      {displayedOperatorLogo && !logoFailed
-                        ? <img src={displayedOperatorLogo} alt="" onError={() => setLogoFailed(true)} />
-                        : <Smartphone size={23} />}
-                    </span>
-                    <strong>{copy.appHeading}</strong>
-                    <p>{copy.appBody}</p>
-                  </div>
-                  {safePaymentUrl ? (
-                    <a
-                      className="ci-wave-launch"
-                      href={safePaymentUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${copy.launch}. ${copy.openNew}`}
-                    >
-                      <ExternalLink size={17} aria-hidden="true" />
-                      {copy.launch}
-                    </a>
-                  ) : (
-                    <div className="ci-wave-config-note" role="status">
-                      <CircleAlert size={17} aria-hidden="true" />
-                      <span>{copy.paymentUnavailable}</span>
-                    </div>
-                  )}
-                </div>
+                  <ExternalLink size={17} aria-hidden="true" />
+                  {copy.launch}
+                </a>
               ) : (
-                <div className="ci-wave-payment-panel" role="tabpanel" id="ci-wave-qr-panel" aria-labelledby="ci-wave-qr-tab">
-                  <div className="ci-wave-config-note">
-                    <CircleAlert size={17} aria-hidden="true" />
-                    <span>{copy.scanInstructions}</span>
-                  </div>
-                  <div className="ci-wave-qr-panel">
-                    {displayedQr ? (
-                      <img className="ci-wave-qr" src={displayedQr} alt={`${copy.qrHeading} · ${operatorName}`} />
-                    ) : (
-                      <div className="ci-wave-qr-unavailable" role="status">
-                        <ImagePlus size={25} aria-hidden="true" />
-                        <strong>{copy.qrUnavailable}</strong>
-                        <small>{copy.paymentUnavailable}</small>
-                      </div>
-                    )}
-                  </div>
-                  {displayedQr && (
-                    <>
-                      <button className="ci-wave-save-qr" type="button" onClick={saveQr}>
-                        <Download size={18} aria-hidden="true" />
-                        {copy.saveQr}
-                      </button>
-                      <p className="ci-wave-qr-save-hint">{copy.qrSavedHint}</p>
-                    </>
-                  )}
+                <div className="ci-wave-payment-unavailable" role="status">
+                  <CircleAlert size={17} aria-hidden="true" />
+                  <span>{copy.paymentUnavailable}</span>
                 </div>
               )}
 
@@ -598,14 +379,6 @@ export function CiMobileMoneyCheckout({
                   placeholder={copy.referencePlaceholder}
                   required
                 />
-                <button className="ci-wave-proof" type="button" onClick={onPickProof}>
-                  <ImagePlus size={18} aria-hidden="true" />
-                  <span>
-                    <strong>{proofName ? copy.replaceProof : copy.chooseProof}</strong>
-                    <small>{proofName || copy.noProof}</small>
-                  </span>
-                  <ArrowUpRight size={16} aria-hidden="true" />
-                </button>
                 <p className="ci-wave-review-note">
                   <ShieldCheck size={16} aria-hidden="true" />
                   <span>{copy.reviewNote}</span>
@@ -619,11 +392,11 @@ export function CiMobileMoneyCheckout({
                 <button
                   className="ci-wave-submit ci-wave-submit-details"
                   type="button"
-                  onClick={onSubmitForReview}
+                  onClick={handleSubmitForReview}
                   disabled={!transactionId.trim() || isSubmitting || previewAcknowledgement}
                   aria-busy={isSubmitting}
                 >
-                  {isSubmitting ? copy.submitting : previewAcknowledgement ? copy.previewDone : copy.submitForReview}
+                  {isSubmitting ? copy.submitting : previewAcknowledgement ? copy.previewDone : copy.submitDetails}
                 </button>
               </div>
             </section>
