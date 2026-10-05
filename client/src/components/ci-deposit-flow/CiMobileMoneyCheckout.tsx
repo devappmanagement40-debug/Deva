@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.png";
 import { isPaymentQrDataUrl } from "@/lib/payment-qr-image";
+import { wavePaymentUrlForAmount } from "@/lib/wave-payment-url";
 import {
   ArrowLeft,
   Check,
@@ -115,15 +116,6 @@ const PAYMENT_WINDOW_MS = 30 * 60 * 1000;
 type CheckoutStep = "phone" | "payment";
 type PaymentMethod = "link" | "qr";
 
-function isSafePaymentUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "https:" || parsed.protocol === "wave:";
-  } catch {
-    return false;
-  }
-}
-
 export function CiMobileMoneyCheckout({
   amountXof,
   currency,
@@ -154,9 +146,7 @@ export function CiMobileMoneyCheckout({
   const isEnglish = language.toLowerCase().startsWith("en");
   const copy = isEnglish ? COPY.en : COPY.fr;
   const trimmedPaymentUrl = paymentUrl?.trim() ?? "";
-  const safePaymentUrl = trimmedPaymentUrl && isSafePaymentUrl(trimmedPaymentUrl)
-    ? trimmedPaymentUrl
-    : "";
+  const safePaymentUrl = wavePaymentUrlForAmount(trimmedPaymentUrl, amountXof) ?? "";
   const safePaymentQrDataUrl = isPaymentQrDataUrl(paymentQrDataUrl)
     ? paymentQrDataUrl
     : "";
