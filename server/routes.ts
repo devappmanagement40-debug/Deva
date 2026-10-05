@@ -9,7 +9,7 @@ import {
 } from "@shared/task-validation";
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
-import { PRODUCT_TYPES, registerSchema, loginSchema } from "@shared/schema";
+import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
 import { isCountryCode } from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
@@ -76,6 +76,43 @@ function normalizePublicSettings(settings: Record<string, string>): Record<strin
     normalized[key] = normalizeTelegramLink(normalized[key]);
   }
   return normalized;
+}
+
+const MAX_PAYMENT_QR_DATA_URL_LENGTH = 1_400_000;
+const PAYMENT_QR_DATA_URL_PATTERN = /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+
+function parseOptionalPaymentUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  if (typeof value !== "string" || value.trim().length > 2048) {
+    throw new Error("Le lien de paiement est invalide ou trop long.");
+  }
+
+  const normalized = value.trim();
+  const testUrl = normalized.replace(/\{(?:amount|phone|currency)\}/g, "1000");
+  let parsed: URL;
+  try {
+    parsed = new URL(testUrl);
+  } catch {
+    throw new Error("Saisissez un lien de paiement valide.");
+  }
+  if (!["https:", "wave:"].includes(parsed.protocol)) {
+    throw new Error("Le lien de paiement doit utiliser HTTPS ou le lien officiel Wave.");
+  }
+  return normalized;
+}
+
+function parseOptionalPaymentQrDataUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === "") return null;
+  if (
+    typeof value !== "string" ||
+    value.length > MAX_PAYMENT_QR_DATA_URL_LENGTH ||
+    !PAYMENT_QR_DATA_URL_PATTERN.test(value)
+  ) {
+    throw new Error("Le QR doit être une image JPG, PNG ou WebP valide de 1 Mo maximum.");
+  }
+  return value;
 }
 
 const spinWheelRankingConfigSchema = z.object({
@@ -1100,14 +1137,24 @@ export async function registerRoutes(
 
   app.post("/api/admin/payment-numbers", requireAdmin, async (req, res) => {
     try {
-      const { ownerName, phone, operatorName, country, channelId, logoUrl, isActive } = req.body;
+      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentUrl, paymentQrDataUrl, isActive } = req.body;
       if (!ownerName || !phone || !operatorName || !country) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
+      }
+      const normalizedPaymentUrl = parseOptionalPaymentUrl(paymentUrl);
+      const normalizedPaymentQrDataUrl = parseOptionalPaymentQrDataUrl(paymentQrDataUrl);
+      if (
+        String(country).trim().toUpperCase() !== "CI" &&
+        (normalizedPaymentUrl || normalizedPaymentQrDataUrl)
+      ) {
+        return res.status(400).json({ message: "Le lien et le QR de paiement ne sont disponibles ici que pour la Côte d’Ivoire." });
       }
       const num = await storage.createPaymentNumber({
         ownerName, phone, operatorName, country,
         channelId: channelId ? parseInt(channelId) : null,
         logoUrl: logoUrl || null,
+        paymentUrl: normalizedPaymentUrl || null,
+        paymentQrDataUrl: normalizedPaymentQrDataUrl || null,
         isActive: isActive !== false,
         createdBy: req.session.userId,
       });
@@ -1120,12 +1167,46 @@ export async function registerRoutes(
   app.put("/api/admin/payment-numbers/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string);
-      const { ownerName, phone, operatorName, country, channelId, logoUrl, isActive } = req.body;
-      const num = await storage.updatePaymentNumber(id, {
-        ownerName, phone, operatorName, country,
-        channelId: channelId ? parseInt(channelId) : null,
-        logoUrl, isActive,
-      });
+      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentUrl, paymentQrDataUrl, isActive } = req.body;
+      const existing = (await storage.getPaymentNumbers()).find((item) => item.id === id);
+      if (!existing) return res.status(404).json({ message: "Numéro de paiement introuvable." });
+
+      const normalizedPaymentUrl = parseOptionalPaymentUrl(paymentUrl);
+      const normalizedPaymentQrDataUrl = parseOptionalPaymentQrDataUrl(paymentQrDataUrl);
+      const effectiveCountry = typeof country === "string" ? country.trim().toUpperCase() : existing.country.trim().toUpperCase();
+      const effectivePaymentUrl = normalizedPaymentUrl === undefined ? existing.paymentUrl : normalizedPaymentUrl;
+      const effectivePaymentQrDataUrl = normalizedPaymentQrDataUrl === undefined
+        ? existing.paymentQrDataUrl
+        : normalizedPaymentQrDataUrl;
+      if (
+        effectiveCountry !== "CI" &&
+        (effectivePaymentUrl || effectivePaymentQrDataUrl)
+      ) {
+        return res.status(400).json({ message: "Le lien et le QR de paiement ne sont disponibles ici que pour la Côte d’Ivoire." });
+      }
+
+      const updateData: Partial<PaymentNumber> = {};
+      if (ownerName !== undefined) updateData.ownerName = ownerName;
+      if (phone !== undefined) updateData.phone = phone;
+      if (operatorName !== undefined) updateData.operatorName = operatorName;
+      if (country !== undefined) updateData.country = country;
+      if (channelId !== undefined) {
+        if (channelId === null || channelId === "") {
+          updateData.channelId = null;
+        } else {
+          const parsedChannelId = Number(channelId);
+          if (!Number.isSafeInteger(parsedChannelId) || parsedChannelId <= 0) {
+            return res.status(400).json({ message: "Canal de paiement invalide." });
+          }
+          updateData.channelId = parsedChannelId;
+        }
+      }
+      if (logoUrl !== undefined) updateData.logoUrl = logoUrl || null;
+      if (normalizedPaymentUrl !== undefined) updateData.paymentUrl = normalizedPaymentUrl;
+      if (normalizedPaymentQrDataUrl !== undefined) updateData.paymentQrDataUrl = normalizedPaymentQrDataUrl;
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      const num = await storage.updatePaymentNumber(id, updateData);
       res.json(num);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1615,6 +1696,21 @@ export async function registerRoutes(
       if (!depositCountry || depositCountry.autoPaymentEnabled) {
         return res.status(400).json({ message: "Ce canal Mobile Money n’est plus disponible." });
       }
+      if (
+        depositCountry.code.trim().toUpperCase() === "CI" &&
+        !/^\+225\d{10}$/.test(cleanAccountNumber.replace(/[\s()-]/g, ""))
+      ) {
+        return res.status(400).json({ message: "Saisissez un numéro ivoirien valide de 10 chiffres après +225." });
+      }
+      if (depositCountry.code.trim().toUpperCase() === "CI") {
+        if (depositReference.length > 180) {
+          return res.status(400).json({ message: "L’identifiant de transaction ne peut pas dépasser 180 caractères." });
+        }
+        const existingReference = await storage.getDepositByReference(depositReference);
+        if (existingReference) {
+          return res.status(409).json({ message: "Cet identifiant de transaction a déjà été déclaré ou traité." });
+        }
+      }
 
       let resolvedChannelName: string | null = null;
       let resolvedPaymentMethod = requestedPaymentMethod;
@@ -1661,7 +1757,9 @@ export async function registerRoutes(
         accountNumber: cleanAccountNumber,
         country: depositCountry.code,
         paymentMethod: resolvedPaymentMethod,
-        paymentChannelId: paymentChannelId && Number(paymentChannelId) > 0 ? Number(paymentChannelId) : null,
+        paymentChannelId: depositCountry.code.trim().toUpperCase() === "CI"
+          ? selectedOperator.channelId || null
+          : paymentChannelId && Number(paymentChannelId) > 0 ? Number(paymentChannelId) : null,
         paymentNumberId: parsedPaymentNumberId,
         channelName: resolvedChannelName,
         screenshot: screenshot || null,

@@ -314,6 +314,8 @@ export const paymentNumbers = pgTable("payment_numbers", {
   country: text("country").notNull(),
   channelId: integer("channel_id"),        // FK → deposit_channels.id (soft, nullable)
   logoUrl: text("logo_url"),
+  paymentUrl: text("payment_url"),
+  paymentQrDataUrl: text("payment_qr_data_url"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   createdBy: integer("created_by"),

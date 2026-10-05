@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
+import { readPaymentQrDataUrl } from "@/lib/payment-asset";
 import {
   Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff,
   ChevronDown, ChevronUp, Settings,
@@ -21,7 +22,15 @@ interface Country {
 
 /* ─── Empty forms ─────────────────────────── */
 const emptyCh = { name: "", description: "", country: "", isActive: true, sortOrder: 0 };
-const emptyOp = { ownerName: "", phone: "", operatorName: "", logoUrl: "", isActive: true };
+const emptyOp = {
+  ownerName: "",
+  phone: "",
+  operatorName: "",
+  logoUrl: "",
+  paymentUrl: "",
+  paymentQrDataUrl: "",
+  isActive: true,
+};
 
 /* ═══════════════════════════════════════════════════════════════════
    OPERATOR sub-panel (inside a channel card)
@@ -31,6 +40,7 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
   const [showAdd, setShowAdd] = useState(false);
   const [editOp, setEditOp] = useState<PaymentNumber | null>(null);
   const [form, setForm] = useState(emptyOp);
+  const showCiPaymentSettings = channel.country.trim().toUpperCase() === "CI";
 
   const { data: operators = [], isLoading } = useQuery<PaymentNumber[]>({
     queryKey: [`/api/deposit-channels/${channel.id}/operators`],
@@ -84,8 +94,30 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
 
   const openEdit = (op: PaymentNumber) => {
     setEditOp(op);
-    setForm({ ownerName: op.ownerName, phone: op.phone, operatorName: op.operatorName, logoUrl: op.logoUrl || "", isActive: op.isActive });
+    setForm({
+      ownerName: op.ownerName,
+      phone: op.phone,
+      operatorName: op.operatorName,
+      logoUrl: op.logoUrl || "",
+      paymentUrl: op.paymentUrl || "",
+      paymentQrDataUrl: op.paymentQrDataUrl || "",
+      isActive: op.isActive,
+    });
     setShowAdd(true);
+  };
+
+  const choosePaymentQr = async (file?: File) => {
+    if (!file) return;
+    try {
+      const paymentQrDataUrl = await readPaymentQrDataUrl(file);
+      setForm((current) => ({ ...current, paymentQrDataUrl }));
+    } catch (error) {
+      toast({
+        title: "QR invalide",
+        description: error instanceof Error ? error.message : "Impossible de charger cette image.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -163,6 +195,44 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
               <Input placeholder="https://…" value={form.logoUrl}
                 onChange={e => setForm(f => ({ ...f, logoUrl: e.target.value }))} />
             </div>
+            {showCiPaymentSettings && (
+              <section className="space-y-3 rounded-lg border p-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Lien officiel Wave / Allpay (facultatif)</label>
+                  <Input
+                    placeholder="https://… ou wave://…"
+                    value={form.paymentUrl}
+                    onChange={e => setForm(f => ({ ...f, paymentUrl: e.target.value }))}
+                    data-testid="input-channel-payment-url"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Utilisé pour ouvrir le paiement et générer un QR si aucune image n’est importée. Balises facultatives : {"{amount}"}, {"{phone}"}, {"{currency}"}.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">QR marchand officiel (facultatif)</label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={event => {
+                      void choosePaymentQr(event.currentTarget.files?.[0]);
+                      event.currentTarget.value = "";
+                    }}
+                    className="mt-1 block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border-0 file:bg-secondary file:px-2 file:py-1.5 file:text-xs file:font-medium file:text-foreground"
+                    data-testid="input-channel-payment-qr"
+                  />
+                  {form.paymentQrDataUrl && (
+                    <div className="mt-2 flex items-center gap-3">
+                      <img src={form.paymentQrDataUrl} alt="Aperçu du QR marchand" className="h-20 w-20 rounded border bg-white object-contain p-1" />
+                      <Button type="button" size="sm" variant="outline" onClick={() => setForm(f => ({ ...f, paymentQrDataUrl: "" }))}>
+                        Retirer le QR
+                      </Button>
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">JPG, PNG ou WebP, 1 Mo maximum. Utilisez le QR du compte DIAMANT.</p>
+                </div>
+              </section>
+            )}
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.isActive}
                 onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} />

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
+import { readPaymentQrDataUrl } from "@/lib/payment-asset";
 import { Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff } from "lucide-react";
 import type { PaymentNumber } from "@shared/schema";
 
@@ -21,7 +22,16 @@ interface Country {
   isActive: boolean;
 }
 
-const emptyForm = { ownerName: "", phone: "", operatorName: "", country: "", logoUrl: "", isActive: true };
+const emptyForm = {
+  ownerName: "",
+  phone: "",
+  operatorName: "",
+  country: "",
+  logoUrl: "",
+  paymentUrl: "",
+  paymentQrDataUrl: "",
+  isActive: true,
+};
 
 export default function AdminPaymentNumbers() {
   const { toast } = useToast();
@@ -105,7 +115,16 @@ export default function AdminPaymentNumbers() {
     const isKnown = countries.some(c => c.code === num.country);
     setManualCountry(!isKnown);
     setManualCountryInput(!isKnown ? num.country : "");
-    setForm({ ownerName: num.ownerName, phone: num.phone, operatorName: num.operatorName, country: isKnown ? num.country : "", logoUrl: num.logoUrl || "", isActive: num.isActive });
+    setForm({
+      ownerName: num.ownerName,
+      phone: num.phone,
+      operatorName: num.operatorName,
+      country: isKnown ? num.country : "",
+      logoUrl: num.logoUrl || "",
+      paymentUrl: num.paymentUrl || "",
+      paymentQrDataUrl: num.paymentQrDataUrl || "",
+      isActive: num.isActive,
+    });
     setShowForm(true);
   };
 
@@ -126,6 +145,24 @@ export default function AdminPaymentNumbers() {
   const getCountryName = (code: string) => {
     const found = countries.find(c => c.code === code);
     return found ? found.name : code;
+  };
+
+  const showCiPaymentSettings = (
+    manualCountry ? manualCountryInput : form.country
+  ).trim().toUpperCase() === "CI";
+
+  const choosePaymentQr = async (file?: File) => {
+    if (!file) return;
+    try {
+      const paymentQrDataUrl = await readPaymentQrDataUrl(file);
+      setForm((current) => ({ ...current, paymentQrDataUrl }));
+    } catch (error) {
+      toast({
+        title: "QR invalide",
+        description: error instanceof Error ? error.message : "Impossible de charger cette image.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -221,7 +258,14 @@ export default function AdminPaymentNumbers() {
                         setManualCountry(true);
                         setForm(f => ({ ...f, country: "" }));
                       } else {
-                        setForm(f => ({ ...f, country: e.target.value }));
+                        const country = e.target.value;
+                        setForm(f => ({
+                          ...f,
+                          country,
+                          ...(country.trim().toUpperCase() === "CI"
+                            ? {}
+                            : { paymentUrl: "", paymentQrDataUrl: "" }),
+                        }));
                       }
                     }}
                     className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground"
@@ -240,7 +284,13 @@ export default function AdminPaymentNumbers() {
                 <div className="flex gap-2 mt-1">
                   <Input
                     value={manualCountryInput}
-                    onChange={(e) => setManualCountryInput(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase();
+                      setManualCountryInput(value);
+                      if (value.trim() !== "CI") {
+                        setForm(f => ({ ...f, paymentUrl: "", paymentQrDataUrl: "" }));
+                      }
+                    }}
                     placeholder="Code pays (ex: GA, SN...)"
                     maxLength={3}
                     className="flex-1"
@@ -279,6 +329,45 @@ export default function AdminPaymentNumbers() {
                 <img src={form.logoUrl} alt="logo" className="mt-2 h-10 object-contain rounded-lg border border-border" onError={(e) => (e.currentTarget.style.display = "none")} />
               )}
             </div>
+            {showCiPaymentSettings && (
+              <section className="space-y-3 rounded-lg border border-border p-3">
+                <div>
+                  <label className="text-sm font-medium">Lien officiel Wave / Allpay <span className="text-muted-foreground font-normal">(facultatif)</span></label>
+                  <Input
+                    value={form.paymentUrl}
+                    onChange={(e) => setForm(f => ({ ...f, paymentUrl: e.target.value }))}
+                    placeholder="https://… ou wave://…"
+                    className="mt-1"
+                    data-testid="input-ci-payment-url"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Ce lien sert au bouton d’ouverture et au QR généré sans image importée. Balises facultatives : {"{amount}"}, {"{phone}"}, {"{currency}"}.
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">QR marchand de Côte d’Ivoire <span className="text-muted-foreground font-normal">(facultatif)</span></label>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(event) => {
+                      void choosePaymentQr(event.currentTarget.files?.[0]);
+                      event.currentTarget.value = "";
+                    }}
+                    className="mt-1 block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground"
+                    data-testid="input-ci-payment-qr"
+                  />
+                  {form.paymentQrDataUrl && (
+                    <div className="mt-2 flex items-center gap-3">
+                      <img src={form.paymentQrDataUrl} alt="Aperçu du QR marchand" className="h-20 w-20 rounded border bg-white object-contain p-1" />
+                      <Button type="button" variant="outline" size="sm" onClick={() => setForm(f => ({ ...f, paymentQrDataUrl: "" }))}>
+                        Retirer le QR
+                      </Button>
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">Image JPG, PNG ou WebP, 1 Mo maximum. N’importez que le QR officiel du compte marchand DIAMANT.</p>
+                </div>
+              </section>
+            )}
             <div className="flex items-center gap-2">
               <input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => setForm(f => ({ ...f, isActive: e.target.checked }))} />
               <label htmlFor="isActive" className="text-sm font-medium">Actif (visible aux utilisateurs)</label>

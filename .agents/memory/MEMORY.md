@@ -1,7 +1,7 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Country selection and markets](rdc-only-market.md) — authentication follows active country settings; deposits use active configured country channels while preserving XOF/USDT rules.
+- [Country selection and markets](rdc-only-market.md) — active-country rules remain; CI Mobile Money uses admin-configured details and manual review without changing other markets.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — use Wave for CI and TMoney/Moov for TG withdrawals, separate from deposit channels; preserve the full-payout rule.
 - [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — rate is XOF ÷ 650; credits stay XOF, the rate stays hidden, and deposit guidance follows admin settings.

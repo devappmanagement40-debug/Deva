@@ -8,6 +8,7 @@ import { formatDepositGuidanceContent } from "@/lib/deposit-guidance";
 import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
+import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyCheckout";
 import type { Country, PaymentNumber } from "@shared/schema";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
@@ -34,6 +35,36 @@ function getCountryFlagEmoji(countryCode: string): string | null {
   return Array.from(normalized, (letter) =>
     String.fromCodePoint(letter.charCodeAt(0) + 127397),
   ).join("");
+}
+
+function getCoteDIvoirePhoneDigits(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  const national = digits.length > 10 && digits.startsWith("225")
+    ? digits.slice(-10)
+    : digits;
+  return national.slice(0, 10);
+}
+
+function resolveCiPaymentUrl(
+  template: string | null | undefined,
+  amountXof: number,
+  phoneDigits: string,
+): string | null {
+  if (!template?.trim()) return null;
+  const values = {
+    amount: String(amountXof),
+    phone: `+225${phoneDigits}`,
+    currency: CURRENCY,
+  };
+  const resolved = template.trim().replace(/\{(amount|phone|currency)\}/g, (_match, key: keyof typeof values) =>
+    encodeURIComponent(values[key]),
+  );
+  try {
+    const url = new URL(resolved);
+    return ["https:", "wave:"].includes(url.protocol) ? resolved : null;
+  } catch {
+    return null;
+  }
 }
 
 type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "issue";
@@ -233,8 +264,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       }
       const response = await apiRequest("POST", "/api/deposits", {
         amount: Number(amount),
-        accountName: payerName.trim(),
-        accountNumber: payerPhone.trim(),
+        accountName: payerName.trim() || (
+          mobileMoneyCountryCode?.trim().toUpperCase() === "CI"
+            ? `+225${getCoteDIvoirePhoneDigits(payerPhone)}`
+            : ""
+        ),
+        accountNumber: mobileMoneyCountryCode?.trim().toUpperCase() === "CI"
+          ? `+225${getCoteDIvoirePhoneDigits(payerPhone)}`
+          : payerPhone.trim(),
         country: mobileMoneyCountryCode,
         paymentMethod: selectedOperator.operatorName,
         depositChannelId: selectedOperator.channelId,
@@ -407,10 +444,22 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       toast({ title: "Choisissez un opérateur Mobile Money", variant: "destructive" });
       return;
     }
-    if (!payerName.trim() || !payerPhone.trim() || !mobileTransactionId.trim()) {
+    const isCoteDIvoire = mobileMoneyCountryCode?.trim().toUpperCase() === "CI";
+    const payerPhoneValue = isCoteDIvoire ? getCoteDIvoirePhoneDigits(payerPhone) : payerPhone.trim();
+    if ((!payerName.trim() && !isCoteDIvoire) || !payerPhoneValue || !mobileTransactionId.trim()) {
       toast({
         title: "Informations manquantes",
-        description: "Renseignez le nom, le numéro utilisé pour payer et la référence de transaction.",
+        description: isCoteDIvoire
+          ? "Renseignez votre numéro ivoirien et l’identifiant de transaction."
+          : "Renseignez le nom, le numéro utilisé pour payer et la référence de transaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (isCoteDIvoire && payerPhoneValue.length !== 10) {
+      toast({
+        title: "Numéro de téléphone invalide",
+        description: "Saisissez les 10 chiffres de votre numéro ivoirien après +225.",
         variant: "destructive",
       });
       return;
@@ -708,6 +757,57 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           </section>
         </div>
       </main>
+    );
+  }
+
+  if (
+    view === "mobile-money" &&
+    mobileMoneyCountryCode?.trim().toUpperCase() === "CI" &&
+    selectedOperator
+  ) {
+    const ciPhoneDigits = getCoteDIvoirePhoneDigits(payerPhone);
+    const paymentUrl = resolveCiPaymentUrl(
+      selectedOperator.paymentUrl,
+      Number(amount),
+      ciPhoneDigits,
+    );
+    return (
+      <>
+        <input
+          ref={proofInput}
+          className="sr-only"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={chooseProof}
+          tabIndex={-1}
+        />
+        <CiMobileMoneyCheckout
+          amountXof={Number(amount)}
+          currency={CURRENCY}
+          operatorName={selectedOperator.operatorName}
+          operatorPhone={selectedOperator.phone}
+          operatorOwnerName={selectedOperator.ownerName}
+          operatorLogoUrl={selectedOperator.logoUrl}
+          paymentUrl={paymentUrl}
+          paymentQrDataUrl={selectedOperator.paymentQrDataUrl}
+          payerPhoneDigits={ciPhoneDigits}
+          onPayerPhoneDigitsChange={(value) => setPayerPhone(value)}
+          transactionId={mobileTransactionId}
+          onTransactionIdChange={setMobileTransactionId}
+          proofName={proofName}
+          onPickProof={() => proofInput.current?.click()}
+          isSubmitting={createMobileMoneyDeposit.isPending}
+          onBack={() => {
+            setSelectedOperator(null);
+            setMobileTransactionId("");
+            setProof(null);
+            setProofName("");
+          }}
+          onContinueToPayment={() => setPayerPhone(ciPhoneDigits)}
+          onSubmitForReview={submitMobileMoneyDeposit}
+          language={lang}
+        />
+      </>
     );
   }
 
