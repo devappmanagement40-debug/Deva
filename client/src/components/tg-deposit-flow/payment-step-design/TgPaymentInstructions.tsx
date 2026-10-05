@@ -1,3 +1,4 @@
+import { useId, useRef, useState } from "react";
 import {
   Check,
   CreditCard,
@@ -6,6 +7,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import {
+  TOGO_TRANSACTION_ID_MAX_LENGTH,
+  validateTogoTransactionId,
+} from "@shared/togo-transaction-id";
 import { resolveTogoOperatorLogoUrl } from "@/lib/togo-operator-logo";
 import "./TgPaymentInstructions.css";
 
@@ -22,6 +27,7 @@ export type TgPaymentInstructionsProps = {
   ussdCode: string;
   ownerName: string;
   payerPhone: string;
+  transactionId: string;
   copiedState: TgCopyField | null;
   submitting: boolean;
   language?: "fr" | "en";
@@ -29,7 +35,8 @@ export type TgPaymentInstructionsProps = {
   onToggleLanguage(): void;
   onCopy(value: string, field: TgCopyField): void;
   onEditPhone(): void;
-  onComplete(): void;
+  onTransactionIdChange(value: string): void;
+  onComplete(transactionId: string): void;
 };
 
 const COPY = {
@@ -41,6 +48,10 @@ const COPY = {
     owner: "Titulaire de la carte",
     verifyPhone: "Vérifiez votre numéro",
     phoneHint: "Si incorrect, modifiez-le.",
+    transactionIdLabel: "ID de transaction *",
+    transactionIdPlaceholder: "Saisissez l’ID après le paiement",
+    transactionIdRequired: "L’ID de transaction est obligatoire.",
+    transactionIdTooLong: "L’ID ne peut pas dépasser 180 caractères.",
     copy: "Copier",
     copied: "Copié",
     edit: "Éditer",
@@ -58,6 +69,10 @@ const COPY = {
     owner: "Account holder",
     verifyPhone: "Verify your number",
     phoneHint: "If it’s incorrect, edit it.",
+    transactionIdLabel: "Transaction ID *",
+    transactionIdPlaceholder: "Enter the ID after payment",
+    transactionIdRequired: "The transaction ID is required.",
+    transactionIdTooLong: "The ID cannot exceed 180 characters.",
     copy: "Copy",
     copied: "Copied",
     edit: "Edit",
@@ -88,6 +103,7 @@ export function TgPaymentInstructions({
   ussdCode,
   ownerName,
   payerPhone,
+  transactionId,
   copiedState,
   submitting,
   language = "fr",
@@ -95,8 +111,12 @@ export function TgPaymentInstructions({
   onToggleLanguage,
   onCopy,
   onEditPhone,
+  onTransactionIdChange,
   onComplete,
 }: TgPaymentInstructionsProps) {
+  const transactionIdFieldId = useId();
+  const transactionIdInputRef = useRef<HTMLInputElement>(null);
+  const [transactionIdAttempted, setTransactionIdAttempted] = useState(false);
   const copy = language === "en" ? COPY.en : COPY.fr;
   const timer = displayCountdown(countdown);
   const operatorNameLower = operatorName.toLowerCase();
@@ -111,6 +131,16 @@ export function TgPaymentInstructions({
     operatorName,
     operatorLogoUrl,
   );
+  const transactionIdValidation = validateTogoTransactionId(transactionId);
+  const transactionIdInvalid = !transactionIdValidation.ok;
+  const handleComplete = () => {
+    if (!transactionIdValidation.ok) {
+      setTransactionIdAttempted(true);
+      transactionIdInputRef.current?.focus();
+      return;
+    }
+    onComplete(transactionIdValidation.value);
+  };
 
   return (
     <main className="tg-payment-step">
@@ -250,10 +280,55 @@ export function TgPaymentInstructions({
           </div>
         </section>
 
+        <div className="tg-payment-transaction-field">
+          <label
+            className="tg-payment-transaction-label"
+            htmlFor={transactionIdFieldId}
+          >
+            {copy.transactionIdLabel}
+          </label>
+          <input
+            ref={transactionIdInputRef}
+            id={transactionIdFieldId}
+            className="tg-payment-transaction-input"
+            type="text"
+            value={transactionId}
+            placeholder={copy.transactionIdPlaceholder}
+            maxLength={TOGO_TRANSACTION_ID_MAX_LENGTH}
+            autoComplete="off"
+            required
+            aria-required="true"
+            aria-invalid={transactionIdAttempted && transactionIdInvalid}
+            aria-describedby={
+              transactionIdAttempted && transactionIdInvalid
+                ? `${transactionIdFieldId}-error`
+                : undefined
+            }
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              onTransactionIdChange(value);
+              if (validateTogoTransactionId(value).ok) {
+                setTransactionIdAttempted(false);
+              }
+            }}
+          />
+          {transactionIdAttempted && transactionIdInvalid && (
+            <p
+              className="tg-payment-transaction-error"
+              id={`${transactionIdFieldId}-error`}
+              role="alert"
+            >
+              {transactionIdValidation.reason === "too_long"
+                ? copy.transactionIdTooLong
+                : copy.transactionIdRequired}
+            </p>
+          )}
+        </div>
+
         <button
           className="tg-payment-complete"
           type="button"
-          onClick={onComplete}
+          onClick={handleComplete}
           disabled={submitting}
           aria-busy={submitting}
         >

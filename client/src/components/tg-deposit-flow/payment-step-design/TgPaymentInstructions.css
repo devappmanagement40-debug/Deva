@@ -344,13 +344,63 @@
   line-height: 1.25;
 }
 
+.tg-payment-transaction-field {
+  margin-top: 19px;
+}
+
+.tg-payment-transaction-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--tg-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tg-payment-transaction-input {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 13px;
+  border: 1px solid var(--tg-line);
+  border-radius: 14px;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 2px 9px rgb(19 38 61 / 10%);
+  color: var(--tg-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.tg-payment-transaction-input::placeholder {
+  color: #858c95;
+  font-weight: 400;
+  opacity: 1;
+}
+
+.tg-payment-transaction-input:focus {
+  border-color: var(--tg-blue);
+  box-shadow: 0 0 0 3px rgb(7 60 128 / 14%);
+}
+
+.tg-payment-transaction-input[aria-invalid="true"] {
+  border-color: #b33d2e;
+}
+
+.tg-payment-transaction-error {
+  margin: 6px 0 0;
+  color: #a23e2c;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .tg-payment-complete {
   display: flex;
   width: 100%;
   min-height: 57px;
   align-items: center;
   justify-content: center;
-  margin-top: 32px;
+  margin-top: 24px;
   padding: 10px 14px;
   border: 1px solid #1e5aa2;
   border-radius: 16px;

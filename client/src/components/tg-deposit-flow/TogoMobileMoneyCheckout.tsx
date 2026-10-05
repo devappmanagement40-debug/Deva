@@ -26,7 +26,11 @@ type TogoMobileMoneyCheckoutProps = {
   onPhoneChange(value: string): void;
   onToggleLanguage(): void;
   onClose(): void;
-  onSubmit(operator: PaymentNumber, payerPhoneDigits: string): void;
+  onSubmit(
+    operator: PaymentNumber,
+    payerPhoneDigits: string,
+    transactionId: string,
+  ): void;
 };
 
 function copyFallback(value: string): boolean {
@@ -61,6 +65,7 @@ export default function TogoMobileMoneyCheckout({
   const { toast } = useToast();
   const [step, setStep] = useState<"phone" | "payment">("phone");
   const [selectedOperatorId, setSelectedOperatorId] = useState<number | null>(null);
+  const [transactionId, setTransactionId] = useState("");
   const [instructionError, setInstructionError] = useState<string | null>(null);
   const [copiedState, setCopiedState] = useState<TgCopyField | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(PAYMENT_WINDOW_SECONDS);
@@ -168,6 +173,7 @@ export default function TogoMobileMoneyCheckout({
         ussdCode={ussdCode || ""}
         ownerName={selectedOperator.ownerName}
         payerPhone={phoneDigits}
+        transactionId={transactionId}
         copiedState={copiedState}
         submitting={submitting}
         language={uiLanguage}
@@ -175,8 +181,11 @@ export default function TogoMobileMoneyCheckout({
         onToggleLanguage={onToggleLanguage}
         onCopy={handleCopy}
         onEditPhone={() => setStep("phone")}
-        onComplete={() => {
-          if (!previewOnly) onSubmit(selectedOperator, phoneDigits);
+        onTransactionIdChange={setTransactionId}
+        onComplete={(submittedTransactionId) => {
+          if (!previewOnly) {
+            onSubmit(selectedOperator, phoneDigits, submittedTransactionId);
+          }
         }}
       />
     );
@@ -191,9 +200,14 @@ export default function TogoMobileMoneyCheckout({
       loading={loadingOperators}
       error={instructionError || operatorError}
       disabled={submitting}
-      onPhoneChange={onPhoneChange}
+      onPhoneChange={(value) => {
+        if (value !== payerPhone) setTransactionId("");
+        onPhoneChange(value);
+      }}
       onOperatorSelect={(id) => {
-        setSelectedOperatorId(Number(id));
+        const nextOperatorId = Number(id);
+        if (nextOperatorId !== selectedOperatorId) setTransactionId("");
+        setSelectedOperatorId(nextOperatorId);
         setInstructionError(null);
       }}
       onNext={handleNext}

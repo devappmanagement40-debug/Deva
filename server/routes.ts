@@ -11,6 +11,7 @@ import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
+import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import { isCountryCode } from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
@@ -1739,6 +1740,16 @@ export async function registerRoutes(
       const depositReference = typeof reference === "string" ? reference.trim() : "";
       const requestedDepositCountry = typeof country === "string" ? country.trim().toUpperCase() : "";
       const isTogoRequest = requestedDepositCountry === "TG";
+      if (isTogoRequest) {
+        const transactionIdValidation = validateTogoTransactionId(reference);
+        if (!transactionIdValidation.ok) {
+          return res.status(400).json({
+            message: transactionIdValidation.reason === "too_long"
+              ? "L’identifiant de transaction ne peut pas dépasser 180 caractères."
+              : "L’ID de transaction est obligatoire pour un dépôt au Togo.",
+          });
+        }
+      }
       if (!cleanAccountName || !cleanAccountNumber || !requestedPaymentMethod || !country || (!depositReference && !isTogoRequest)) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
@@ -1840,7 +1851,7 @@ export async function registerRoutes(
         channelName: resolvedChannelName,
         screenshot: screenshot || null,
         paymentMessage: paymentMessage || null,
-        reference: depositCountry.code.trim().toUpperCase() === "TG" ? null : depositReference,
+        reference: depositReference,
         status: "pending",
       });
 

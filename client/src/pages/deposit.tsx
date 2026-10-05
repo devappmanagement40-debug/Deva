@@ -13,6 +13,7 @@ import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyChe
 import TogoMobileMoneyCheckout from "@/components/tg-deposit-flow/TogoMobileMoneyCheckout";
 import MobileMoneyDepositVerification from "@/components/mobile-money-deposit-verification";
 import type { Country, PaymentNumber } from "@shared/schema";
+import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
 
@@ -115,6 +116,7 @@ type MobileMoneyVerification = {
 type TogoDepositSubmission = {
   operator: PaymentNumber;
   payerPhoneDigits: string;
+  transactionId: string;
 };
 
 type DepositVerificationStatus = {
@@ -355,7 +357,9 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         depositChannelId: operator.channelId,
         paymentChannelId: isTogo ? operator.channelId : undefined,
         paymentNumberId: operator.id,
-        reference: isTogo ? "" : mobileTransactionId.trim(),
+        reference: isTogo
+          ? (togoInput?.transactionId.trim() ?? "")
+          : mobileTransactionId.trim(),
         screenshot: proof,
       });
       if (!response.ok) {
@@ -374,7 +378,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           amountXof: Number(amount),
           operatorName: togoInput?.operator.operatorName || selectedOperator?.operatorName || "Mobile Money",
           transactionId: mobileMoneyCountryCode?.trim().toUpperCase() === "TG"
-            ? ""
+            ? (togoInput?.transactionId ?? "")
             : mobileTransactionId.trim(),
         });
         setView("mobile-money-verification");
@@ -608,12 +612,24 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const submitTogoMobileMoneyDeposit = (
     operator: PaymentNumber,
     payerPhoneDigits: string,
+    transactionId: string,
   ) => {
     if (import.meta.env.DEV && operator.id < 0) return;
     if (payerPhoneDigits.replace(/\D/g, "").length !== 8) {
       toast({
         title: "Numéro de téléphone invalide",
         description: "Saisissez les 8 chiffres de votre numéro togolais après +228.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const transactionIdValidation = validateTogoTransactionId(transactionId);
+    if (!transactionIdValidation.ok) {
+      toast({
+        title: "ID de transaction obligatoire",
+        description: transactionIdValidation.reason === "too_long"
+          ? "L’ID de transaction ne peut pas dépasser 180 caractères."
+          : "Saisissez l’ID de transaction reçu après le paiement.",
         variant: "destructive",
       });
       return;
@@ -626,7 +642,11 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       });
       return;
     }
-    createMobileMoneyDeposit.mutate({ operator, payerPhoneDigits });
+    createMobileMoneyDeposit.mutate({
+      operator,
+      payerPhoneDigits,
+      transactionId: transactionIdValidation.value,
+    });
   };
 
   const submitIssue = () => {
