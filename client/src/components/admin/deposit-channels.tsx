@@ -9,9 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
-import { readPaymentQrDataUrl } from "@/lib/payment-asset";
 import {
-  Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff,
+  Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff, ExternalLink,
   ChevronDown, ChevronUp, Settings,
 } from "lucide-react";
 import type { DepositChannel, PaymentNumber } from "@shared/schema";
@@ -28,9 +27,19 @@ const emptyOp = {
   operatorName: "",
   logoUrl: "",
   paymentUrl: "",
-  paymentQrDataUrl: "",
   isActive: true,
 };
+
+function getSafePaymentHref(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    return ["https:", "wave:"].includes(parsed.protocol) ? trimmed : null;
+  } catch {
+    return null;
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    OPERATOR sub-panel (inside a channel card)
@@ -105,24 +114,9 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
       operatorName: op.operatorName,
       logoUrl: op.logoUrl || "",
       paymentUrl: op.paymentUrl || "",
-      paymentQrDataUrl: op.paymentQrDataUrl || "",
       isActive: op.isActive,
     });
     setShowAdd(true);
-  };
-
-  const choosePaymentQr = async (file?: File) => {
-    if (!file) return;
-    try {
-      const paymentQrDataUrl = await readPaymentQrDataUrl(file);
-      setForm((current) => ({ ...current, paymentQrDataUrl }));
-    } catch (error) {
-      toast({
-        title: "QR invalide",
-        description: error instanceof Error ? error.message : "Impossible de charger cette image.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -139,33 +133,57 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
 
       {isLoading && <Skeleton className="h-10 w-full" />}
 
-      {operators.map(op => (
-        <div key={op.id} className="flex items-center gap-2 rounded-lg border px-3 py-2 bg-muted/30">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            {op.logoUrl
-              ? <img src={op.logoUrl} alt={op.operatorName} className="w-7 h-7 rounded-full object-contain" />
-              : <Phone className="w-4 h-4 text-primary" />}
+      {operators.map(op => {
+        const paymentHref = showCiPaymentSettings ? getSafePaymentHref(op.paymentUrl) : null;
+        return (
+          <div key={op.id} className="flex items-center gap-2 rounded-lg border px-3 py-2 bg-muted/30">
+            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              {op.logoUrl
+                ? <img src={op.logoUrl} alt={op.operatorName} className="w-7 h-7 rounded-full object-contain" />
+                : <Phone className="w-4 h-4 text-primary" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">{op.operatorName}</p>
+              <p className="text-xs text-muted-foreground truncate">{op.phone} · {op.ownerName}</p>
+              {showCiPaymentSettings && (
+                <div className="mt-1 break-all text-xs">
+                  {paymentHref ? (
+                    <a
+                      href={paymentHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={op.paymentUrl || undefined}
+                      className="inline-flex items-start gap-1 text-primary underline underline-offset-2"
+                      data-testid={`link-wave-payment-${op.id}`}
+                    >
+                      <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                      <span>{op.paymentUrl}</span>
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      {op.paymentUrl ? "Lien Wave invalide" : "Lien Wave non configuré"}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            <Badge variant={op.isActive ? "default" : "secondary"} className="text-xs shrink-0">
+              {op.isActive ? "Actif" : "Off"}
+            </Badge>
+            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+              onClick={() => toggleMutation.mutate(op)}>
+              {op.isActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => openEdit(op)}>
+              <Edit className="w-3.5 h-3.5" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-destructive"
+              onClick={() => { if (confirm("Supprimer cet opérateur ?")) deleteMutation.mutate(op.id); }}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate">{op.operatorName}</p>
-            <p className="text-xs text-muted-foreground truncate">{op.phone} · {op.ownerName}</p>
-          </div>
-          <Badge variant={op.isActive ? "default" : "secondary"} className="text-xs shrink-0">
-            {op.isActive ? "Actif" : "Off"}
-          </Badge>
-          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0"
-            onClick={() => toggleMutation.mutate(op)}>
-            {op.isActive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-          </Button>
-          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => openEdit(op)}>
-            <Edit className="w-3.5 h-3.5" />
-          </Button>
-          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-destructive"
-            onClick={() => { if (confirm("Supprimer cet opérateur ?")) deleteMutation.mutate(op.id); }}>
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
-        </div>
-      ))}
+        );
+      })}
 
       {operators.length === 0 && !isLoading && (
         <p className="text-xs text-muted-foreground text-center py-3 italic">
@@ -212,38 +230,16 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
             {showCiPaymentSettings && (
               <section className="space-y-3 rounded-lg border p-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground">Lien officiel Wave / Allpay (facultatif)</label>
+                    <label className="text-xs font-medium text-muted-foreground">Lien de paiement Wave</label>
                   <Input
-                    placeholder="https://… ou wave://…"
+                      placeholder="https://…"
                     value={form.paymentUrl}
                     onChange={e => setForm(f => ({ ...f, paymentUrl: e.target.value }))}
                     data-testid="input-channel-payment-url"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Utilisé pour ouvrir le paiement et générer un QR si aucune image n’est importée. Balises facultatives : {"{amount}"}, {"{phone}"}, {"{currency}"}.
+                      Ce lien est utilisé par le parcours de dépôt Wave en Côte d’Ivoire. Vous pouvez le modifier ici; les balises {"{amount}"}, {"{phone}"} et {"{currency}"} sont facultatives.
                   </p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">QR marchand officiel (facultatif)</label>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={event => {
-                      void choosePaymentQr(event.currentTarget.files?.[0]);
-                      event.currentTarget.value = "";
-                    }}
-                    className="mt-1 block w-full text-xs text-muted-foreground file:mr-2 file:rounded-md file:border-0 file:bg-secondary file:px-2 file:py-1.5 file:text-xs file:font-medium file:text-foreground"
-                    data-testid="input-channel-payment-qr"
-                  />
-                  {form.paymentQrDataUrl && (
-                    <div className="mt-2 flex items-center gap-3">
-                      <img src={form.paymentQrDataUrl} alt="Aperçu du QR marchand" className="h-20 w-20 rounded border bg-white object-contain p-1" />
-                      <Button type="button" size="sm" variant="outline" onClick={() => setForm(f => ({ ...f, paymentQrDataUrl: "" }))}>
-                        Retirer le QR
-                      </Button>
-                    </div>
-                  )}
-                  <p className="mt-1 text-xs text-muted-foreground">JPG, PNG ou WebP, 1 Mo maximum. Utilisez le QR du compte DIAMANT.</p>
                 </div>
               </section>
             )}
