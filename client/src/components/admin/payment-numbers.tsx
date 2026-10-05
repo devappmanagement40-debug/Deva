@@ -29,6 +29,9 @@ const emptyForm = {
   operatorName: "",
   country: "",
   logoUrl: "",
+  paymentRecipientLabel: "",
+  paymentBadgeLabel: "",
+  ussdTemplate: "",
   paymentUrl: "",
   paymentQrDataUrl: "",
   isActive: true,
@@ -70,6 +73,9 @@ export default function AdminPaymentNumbers() {
         paymentUrl: country === "CI" ? form.paymentUrl : "",
         paymentQrDataUrl: country === "CI" ? form.paymentQrDataUrl : "",
         operatorName: country === "CI" ? "Wave" : form.operatorName,
+        paymentRecipientLabel: country === "TG" ? form.paymentRecipientLabel : "",
+        paymentBadgeLabel: country === "TG" ? form.paymentBadgeLabel : "",
+        ussdTemplate: country === "TG" ? form.ussdTemplate : "",
       };
       if (!payload.country) throw new Error("Veuillez sélectionner ou saisir un pays");
       if (editTarget) {
@@ -137,6 +143,9 @@ export default function AdminPaymentNumbers() {
       operatorName: num.operatorName,
       country: isKnown ? num.country : "",
       logoUrl: num.logoUrl || "",
+      paymentRecipientLabel: num.paymentRecipientLabel || "",
+      paymentBadgeLabel: num.paymentBadgeLabel || "",
+      ussdTemplate: num.ussdTemplate || "",
       paymentUrl: num.paymentUrl || "",
       paymentQrDataUrl: num.paymentQrDataUrl || "",
       isActive: num.isActive,
@@ -166,6 +175,9 @@ export default function AdminPaymentNumbers() {
   const showCiPaymentSettings = (
     manualCountry ? manualCountryInput : form.country
   ).trim().toUpperCase() === "CI";
+  const showTogoPaymentSettings = (
+    manualCountry ? manualCountryInput : form.country
+  ).trim().toUpperCase() === "TG";
 
   return (
     <div className="space-y-4">
@@ -400,6 +412,43 @@ export default function AdminPaymentNumbers() {
                 />
               </section>
             )}
+            {showTogoPaymentSettings && (
+              <section className="space-y-3 rounded-lg border border-border p-3">
+                <div>
+                  <label className="text-sm font-medium">Libellé du destinataire</label>
+                  <Input
+                    value={form.paymentRecipientLabel}
+                    onChange={(e) => setForm(f => ({ ...f, paymentRecipientLabel: e.target.value }))}
+                    placeholder={form.operatorName || "Yas Togo (Togocel)"}
+                    className="mt-1"
+                    data-testid="input-tg-recipient-label"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Badge du compte</label>
+                  <Input
+                    value={form.paymentBadgeLabel}
+                    onChange={(e) => setForm(f => ({ ...f, paymentBadgeLabel: e.target.value }))}
+                    placeholder="CARTE MARCHAND"
+                    className="mt-1"
+                    data-testid="input-tg-payment-badge"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Modèle du code USSD</label>
+                  <Input
+                    value={form.ussdTemplate}
+                    onChange={(e) => setForm(f => ({ ...f, ussdTemplate: e.target.value }))}
+                    placeholder="*145*5*{amount}*{number}#"
+                    className="mt-1"
+                    data-testid="input-tg-ussd-template"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Obligatoire pour le Togo. Balises disponibles : {"{amount}"}, {"{number}"} (bénéficiaire), {"{phone}"} (client), {"{currency}"} et {"{operator}"}.
+                  </p>
+                </div>
+              </section>
+            )}
             <div className="flex items-center gap-2">
               <input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => setForm(f => ({ ...f, isActive: e.target.checked }))} />
               <label htmlFor="isActive" className="text-sm font-medium">Actif (visible aux utilisateurs)</label>
@@ -409,7 +458,7 @@ export default function AdminPaymentNumbers() {
               <Button
                 className="flex-1"
                 onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending || !form.ownerName || !form.phone || (!showCiPaymentSettings && !form.operatorName) || (!manualCountry && !form.country) || (manualCountry && !manualCountryInput.trim())}
+                disabled={saveMutation.isPending || !form.ownerName || !form.phone || (!showCiPaymentSettings && !form.operatorName) || (showTogoPaymentSettings && !form.ussdTemplate.trim()) || (!manualCountry && !form.country) || (manualCountry && !manualCountryInput.trim())}
                 data-testid="button-save-payment-number"
               >
                 {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (editTarget ? "Modifier" : "Ajouter")}

@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyCheckout";
+import TogoMobileMoneyCheckout from "@/components/tg-deposit-flow/TogoMobileMoneyCheckout";
 import MobileMoneyDepositVerification from "@/components/mobile-money-deposit-verification";
 import type { Country, PaymentNumber } from "@shared/schema";
 import tetherIcon from "@/assets/crypto/tether.png";
@@ -108,6 +109,11 @@ type MobileMoneyVerification = {
   amountXof: number;
   operatorName: string;
   transactionId: string;
+};
+
+type TogoDepositSubmission = {
+  operator: PaymentNumber;
+  payerPhoneDigits: string;
 };
 
 type DepositVerificationStatus = {
@@ -315,25 +321,34 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   });
 
   const createMobileMoneyDeposit = useMutation({
-    mutationFn: async () => {
-      if (!user || !selectedOperator || !mobileMoneyCountryCode) {
+    mutationFn: async (togoInput?: TogoDepositSubmission) => {
+      const operator = togoInput?.operator ?? selectedOperator;
+      const countryCode = mobileMoneyCountryCode?.trim().toUpperCase();
+      if (!user || !operator || !countryCode) {
         throw new Error("Choisissez un pays et un opérateur Mobile Money.");
       }
+      const isCoteDIvoire = countryCode === "CI";
+      const isTogo = countryCode === "TG";
+      const payerDigits = isCoteDIvoire
+        ? getCoteDIvoirePhoneDigits(payerPhone)
+        : isTogo
+          ? (togoInput?.payerPhoneDigits || "").replace(/\D/g, "").slice(0, 8)
+          : payerPhone.trim();
+      const payerAccountNumber = isCoteDIvoire
+        ? `+225${payerDigits}`
+        : isTogo
+          ? `+228${payerDigits}`
+          : payerPhone.trim();
       const response = await apiRequest("POST", "/api/deposits", {
         amount: Number(amount),
-        accountName: payerName.trim() || (
-          mobileMoneyCountryCode?.trim().toUpperCase() === "CI"
-            ? `+225${getCoteDIvoirePhoneDigits(payerPhone)}`
-            : ""
-        ),
-        accountNumber: mobileMoneyCountryCode?.trim().toUpperCase() === "CI"
-          ? `+225${getCoteDIvoirePhoneDigits(payerPhone)}`
-          : payerPhone.trim(),
-        country: mobileMoneyCountryCode,
-        paymentMethod: selectedOperator.operatorName,
-        depositChannelId: selectedOperator.channelId,
-        paymentNumberId: selectedOperator.id,
-        reference: mobileTransactionId.trim(),
+        accountName: payerName.trim() || (isCoteDIvoire || isTogo ? payerAccountNumber : ""),
+        accountNumber: payerAccountNumber,
+        country: countryCode,
+        paymentMethod: operator.operatorName,
+        depositChannelId: operator.channelId,
+        paymentChannelId: isTogo ? operator.channelId : undefined,
+        paymentNumberId: operator.id,
+        reference: isTogo ? "" : mobileTransactionId.trim(),
         screenshot: proof,
       });
       if (!response.ok) {
@@ -342,7 +357,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       }
       return response.json();
     },
-    onSuccess: (result) => {
+    onSuccess: (result, togoInput) => {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits/history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
       const depositId = Number(result?.deposit?.id);
@@ -350,8 +365,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         setDepositVerification({
           depositId,
           amountXof: Number(amount),
-          operatorName: selectedOperator?.operatorName || "Mobile Money",
-          transactionId: mobileTransactionId.trim(),
+          operatorName: togoInput?.operator.operatorName || selectedOperator?.operatorName || "Mobile Money",
+          transactionId: mobileMoneyCountryCode?.trim().toUpperCase() === "TG"
+            ? ""
+            : mobileTransactionId.trim(),
         });
         setView("mobile-money-verification");
         setSelectedOperator(null);
@@ -572,6 +589,29 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       return;
     }
     createMobileMoneyDeposit.mutate();
+  };
+
+  const submitTogoMobileMoneyDeposit = (
+    operator: PaymentNumber,
+    payerPhoneDigits: string,
+  ) => {
+    if (payerPhoneDigits.replace(/\D/g, "").length !== 8) {
+      toast({
+        title: "Numéro de téléphone invalide",
+        description: "Saisissez les 8 chiffres de votre numéro togolais après +228.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!operator.ussdTemplate?.trim()) {
+      toast({
+        title: "Paiement non configuré",
+        description: "Les instructions de cet opérateur doivent être configurées dans le panel administrateur.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createMobileMoneyDeposit.mutate({ operator, payerPhoneDigits });
   };
 
   const submitIssue = () => {
@@ -943,6 +983,37 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           language={lang}
           onToggleLanguage={() => setLang(lang.toLowerCase().startsWith("en") ? "fr" : "en")}
         />
+    );
+  }
+
+  if (
+    view === "mobile-money" &&
+    mobileMoneyCountryCode?.trim().toUpperCase() === "TG"
+  ) {
+    return (
+      <TogoMobileMoneyCheckout
+        amountXof={Number(amount)}
+        payerPhone={payerPhone}
+        operators={mobileMoneyOperators}
+        loadingOperators={operatorsLoading || operatorsFetching}
+        operatorsError={operatorsError
+          ? "Impossible de charger les opérateurs de paiement du Togo. Réessayez."
+          : null}
+        submitting={createMobileMoneyDeposit.isPending}
+        language={lang}
+        onPhoneChange={setPayerPhone}
+        onToggleLanguage={() => setLang(lang.toLowerCase().startsWith("en") ? "fr" : "en")}
+        onClose={() => {
+          setSelectedOperator(null);
+          setSelectedDepositMethod(null);
+          setMobileMoneyCountryCode(null);
+          setMobileTransactionId("");
+          setProof(null);
+          setProofName("");
+          setView("main");
+        }}
+        onSubmit={submitTogoMobileMoneyDeposit}
+      />
     );
   }
 

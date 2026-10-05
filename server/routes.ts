@@ -10,6 +10,7 @@ import {
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
+import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { isCountryCode } from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
@@ -1112,9 +1113,12 @@ export async function registerRoutes(
         return res.json([]);
       }
       const configuredOperators = await storage.getPaymentNumbersByCountry(paymentCountry.code);
-      const depositOperators = paymentCountry.code.trim().toUpperCase() === "CI"
+      const normalizedCountryCode = paymentCountry.code.trim().toUpperCase();
+      const depositOperators = normalizedCountryCode === "CI"
         ? configuredOperators.filter((operator) => operator.operatorName.trim().toLowerCase() === "wave")
-        : configuredOperators;
+        : normalizedCountryCode === "TG"
+          ? configuredOperators.filter((operator) => operator.isActive)
+          : configuredOperators;
       const operatorsWithActiveChannels = await Promise.all(depositOperators.map(async (operator) => {
         if (!operator.channelId) return operator;
         const channel = await storage.getDepositChannel(operator.channelId);
@@ -1140,12 +1144,19 @@ export async function registerRoutes(
 
   app.post("/api/admin/payment-numbers", requireAdmin, async (req, res) => {
     try {
-      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentUrl, paymentQrDataUrl, isActive } = req.body;
+      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentRecipientLabel,
+        paymentBadgeLabel, ussdTemplate, paymentUrl, paymentQrDataUrl, isActive } = req.body;
       if (!ownerName || !phone || !operatorName || !country) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
       const normalizedCountry = String(country).trim().toUpperCase();
       const normalizedOperatorName = String(operatorName).trim();
+      const normalizedUssdTemplate = typeof ussdTemplate === "string" ? ussdTemplate.trim() : "";
+      if (normalizedCountry === "TG" && !isValidTogoUssdTemplate(normalizedUssdTemplate)) {
+        return res.status(400).json({
+          message: "Le modèle USSD du Togo est obligatoire et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
+        });
+      }
       if (normalizedCountry === "CI" && normalizedOperatorName.toLowerCase() !== "wave") {
         return res.status(400).json({ message: "En Côte d’Ivoire, seul Wave est autorisé pour les dépôts." });
       }
@@ -1164,6 +1175,9 @@ export async function registerRoutes(
         country: normalizedCountry === "CI" ? "CI" : country,
         channelId: channelId ? parseInt(channelId) : null,
         logoUrl: logoUrl || null,
+        paymentRecipientLabel: normalizedCountry === "TG" ? String(paymentRecipientLabel || "").trim() || null : null,
+        paymentBadgeLabel: normalizedCountry === "TG" ? String(paymentBadgeLabel || "").trim() || null : null,
+        ussdTemplate: normalizedCountry === "TG" ? normalizedUssdTemplate : null,
         paymentUrl: normalizedPaymentUrl || null,
         paymentQrDataUrl: normalizedPaymentQrDataUrl || null,
         isActive: isActive !== false,
@@ -1178,7 +1192,8 @@ export async function registerRoutes(
   app.put("/api/admin/payment-numbers/:id", requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id as string);
-      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentUrl, paymentQrDataUrl, isActive } = req.body;
+      const { ownerName, phone, operatorName, country, channelId, logoUrl, paymentRecipientLabel,
+        paymentBadgeLabel, ussdTemplate, paymentUrl, paymentQrDataUrl, isActive } = req.body;
       const existing = (await storage.getPaymentNumbers()).find((item) => item.id === id);
       if (!existing) return res.status(404).json({ message: "Numéro de paiement introuvable." });
 
@@ -1188,6 +1203,18 @@ export async function registerRoutes(
       const effectiveOperatorName = typeof operatorName === "string"
         ? operatorName.trim()
         : existing.operatorName.trim();
+      const effectiveUssdTemplate = typeof ussdTemplate === "string"
+        ? ussdTemplate.trim()
+        : existing.ussdTemplate;
+      if (
+        effectiveCountry === "TG" &&
+        (country !== undefined || ussdTemplate !== undefined) &&
+        !isValidTogoUssdTemplate(effectiveUssdTemplate)
+      ) {
+        return res.status(400).json({
+          message: "Le modèle USSD du Togo est obligatoire et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
+        });
+      }
       if (
         effectiveCountry === "CI" &&
         (country !== undefined || operatorName !== undefined) &&
@@ -1223,6 +1250,9 @@ export async function registerRoutes(
         }
       }
       if (logoUrl !== undefined) updateData.logoUrl = logoUrl || null;
+      if (paymentRecipientLabel !== undefined) updateData.paymentRecipientLabel = String(paymentRecipientLabel || "").trim() || null;
+      if (paymentBadgeLabel !== undefined) updateData.paymentBadgeLabel = String(paymentBadgeLabel || "").trim() || null;
+      if (ussdTemplate !== undefined) updateData.ussdTemplate = String(ussdTemplate || "").trim() || null;
       if (normalizedPaymentUrl !== undefined) updateData.paymentUrl = normalizedPaymentUrl;
       if (normalizedPaymentQrDataUrl !== undefined) updateData.paymentQrDataUrl = normalizedPaymentQrDataUrl;
       if (isActive !== undefined) updateData.isActive = isActive;
@@ -1707,10 +1737,11 @@ export async function registerRoutes(
       const cleanAccountNumber = typeof accountNumber === "string" ? accountNumber.trim() : "";
       const requestedPaymentMethod = typeof paymentMethod === "string" ? paymentMethod.trim() : "";
       const depositReference = typeof reference === "string" ? reference.trim() : "";
-      if (!cleanAccountName || !cleanAccountNumber || !requestedPaymentMethod || !country || !depositReference) {
+      const requestedDepositCountry = typeof country === "string" ? country.trim().toUpperCase() : "";
+      const isTogoRequest = requestedDepositCountry === "TG";
+      if (!cleanAccountName || !cleanAccountNumber || !requestedPaymentMethod || !country || (!depositReference && !isTogoRequest)) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
-      const requestedDepositCountry = typeof country === "string" ? country.trim().toUpperCase() : "";
       const depositCountry = (await storage.getActiveCountries()).find(
         (availableCountry) => availableCountry.code.trim().toUpperCase() === requestedDepositCountry,
       );
@@ -1722,6 +1753,12 @@ export async function registerRoutes(
         !/^\+225\d{10}$/.test(cleanAccountNumber.replace(/[\s()-]/g, ""))
       ) {
         return res.status(400).json({ message: "Saisissez un numéro ivoirien valide de 10 chiffres après +225." });
+      }
+      if (
+        depositCountry.code.trim().toUpperCase() === "TG" &&
+        !/^\+228\d{8}$/.test(cleanAccountNumber.replace(/[\s()-]/g, ""))
+      ) {
+        return res.status(400).json({ message: "Saisissez un numéro togolais valide de 8 chiffres après +228." });
       }
       if (depositCountry.code.trim().toUpperCase() === "CI") {
         if (depositReference.length > 180) {
@@ -1749,6 +1786,18 @@ export async function registerRoutes(
       const selectedOperator = operators.find((operator) => operator.id === parsedPaymentNumberId);
       if (!selectedOperator) {
         return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
+      }
+      if (
+        depositCountry.code.trim().toUpperCase() === "TG" &&
+        !selectedOperator.isActive
+      ) {
+        return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
+      }
+      if (
+        depositCountry.code.trim().toUpperCase() === "TG" &&
+        !isValidTogoUssdTemplate(selectedOperator.ussdTemplate)
+      ) {
+        return res.status(400).json({ message: "Les instructions de paiement de cet opérateur ne sont pas configurées." });
       }
       if (
         depositCountry.code.trim().toUpperCase() === "CI" &&
@@ -1791,7 +1840,7 @@ export async function registerRoutes(
         channelName: resolvedChannelName,
         screenshot: screenshot || null,
         paymentMessage: paymentMessage || null,
-        reference: depositReference,
+        reference: depositCountry.code.trim().toUpperCase() === "TG" ? null : depositReference,
         status: "pending",
       });
 
