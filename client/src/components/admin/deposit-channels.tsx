@@ -54,7 +54,12 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const payload = { ...form, channelId: channel.id, country: channel.country };
+      const payload = {
+        ...form,
+        operatorName: showCiPaymentSettings ? "Wave" : form.operatorName,
+        channelId: channel.id,
+        country: channel.country,
+      };
       if (editOp) {
         await apiRequest("PUT", `/api/admin/payment-numbers/${editOp.id}`, payload);
       } else {
@@ -176,9 +181,18 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
           </DialogHeader>
           <div className="space-y-3 mt-2">
             <div>
-              <label className="text-xs font-medium text-muted-foreground">Nom de l'opérateur *</label>
-              <Input placeholder="MTN, Orange, Wave…" value={form.operatorName}
-                onChange={e => setForm(f => ({ ...f, operatorName: e.target.value }))} />
+              <label className="text-xs font-medium text-muted-foreground">
+                {showCiPaymentSettings ? "Opérateur de dépôt" : "Nom de l'opérateur *"}
+              </label>
+              {showCiPaymentSettings ? (
+                <>
+                  <Input value="Wave" disabled />
+                  <p className="mt-1 text-xs text-muted-foreground">En Côte d’Ivoire, les dépôts utilisent uniquement Wave.</p>
+                </>
+              ) : (
+                <Input placeholder="MTN, Orange, Wave…" value={form.operatorName}
+                  onChange={e => setForm(f => ({ ...f, operatorName: e.target.value }))} />
+              )}
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Numéro de compte *</label>
@@ -242,7 +256,9 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
               <Button variant="outline" className="flex-1" onClick={() => { setShowAdd(false); setEditOp(null); setForm(emptyOp); }}>
                 Annuler
               </Button>
-              <Button className="flex-1" disabled={saveMutation.isPending || !form.operatorName || !form.phone || !form.ownerName}
+              <Button
+                className="flex-1"
+                disabled={saveMutation.isPending || (!showCiPaymentSettings && !form.operatorName) || !form.phone || !form.ownerName}
                 onClick={() => saveMutation.mutate()}>
                 {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (editOp ? "Mettre à jour" : "Ajouter")}
               </Button>

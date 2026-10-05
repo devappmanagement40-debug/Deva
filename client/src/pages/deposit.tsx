@@ -45,6 +45,15 @@ function getCoteDIvoirePhoneDigits(value: string): string {
   return national.slice(0, 10);
 }
 
+async function fetchMobileMoneyOperators(countryCode: string): Promise<PaymentNumber[]> {
+  const response = await fetch(`/api/payment-numbers?country=${encodeURIComponent(countryCode)}`, {
+    credentials: "include",
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
+  return response.json();
+}
+
 function resolveCiPaymentUrl(
   template: string | null | undefined,
   amountXof: number,
@@ -156,6 +165,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [selectedDepositMethod, setSelectedDepositMethod] = useState<DepositMethodSelection | null>(null);
   const [mobileMoneyCountryCode, setMobileMoneyCountryCode] = useState<string | null>(null);
   const [selectedOperator, setSelectedOperator] = useState<PaymentNumber | null>(null);
+  const [isOpeningMobileMoney, setIsOpeningMobileMoney] = useState(false);
   const [payerName, setPayerName] = useState(user?.fullName || "");
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
   const [mobileTransactionId, setMobileTransactionId] = useState("");
@@ -183,41 +193,12 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     isError: operatorsError,
   } = useQuery<PaymentNumber[]>({
     queryKey: ["/api/payment-numbers", mobileMoneyCountryCode],
-    queryFn: async () => {
-      if (!mobileMoneyCountryCode) return [];
-      const response = await fetch(`/api/payment-numbers?country=${encodeURIComponent(mobileMoneyCountryCode)}`, {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
-      return response.json();
-    },
+    queryFn: () => mobileMoneyCountryCode
+      ? fetchMobileMoneyOperators(mobileMoneyCountryCode)
+      : Promise.resolve([]),
     enabled: view === "mobile-money" && Boolean(mobileMoneyCountryCode),
-    staleTime: 0,
+    staleTime: mobileMoneyCountryCode?.trim().toUpperCase() === "CI" ? 15_000 : 0,
   });
-
-  useEffect(() => {
-    if (
-      view !== "mobile-money" ||
-      mobileMoneyCountryCode?.trim().toUpperCase() !== "CI" ||
-      selectedOperator ||
-      operatorsLoading ||
-      operatorsFetching ||
-      operatorsError ||
-      mobileMoneyOperators.length !== 1
-    ) {
-      return;
-    }
-    setSelectedOperator(mobileMoneyOperators[0]);
-  }, [
-    view,
-    mobileMoneyCountryCode,
-    selectedOperator,
-    operatorsLoading,
-    operatorsFetching,
-    operatorsError,
-    mobileMoneyOperators,
-  ]);
 
   useEffect(() => {
     if (user?.fullName) setPayerName((current) => current || user.fullName);
@@ -455,7 +436,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     void copyText(String(cryptoPayment.payAmount), "amount");
   };
 
-  const openMobileMoney = (countryCode?: string) => {
+  const openMobileMoney = async (countryCode?: string) => {
     if (!countryCode) return;
     setMobileMoneyCountryCode(countryCode);
     setSelectedOperator(null);
@@ -464,6 +445,40 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     setMobileTransactionId("");
     setProof(null);
     setProofName("");
+    if (countryCode.trim().toUpperCase() === "CI") {
+      setIsOpeningMobileMoney(true);
+      try {
+        const operators = await queryClient.fetchQuery<PaymentNumber[]>({
+          queryKey: ["/api/payment-numbers", countryCode],
+          queryFn: () => fetchMobileMoneyOperators(countryCode),
+          staleTime: 15_000,
+        });
+        const waveOperators = operators.filter(
+          (operator) => operator.operatorName.trim().toLowerCase() === "wave",
+        );
+        if (waveOperators.length !== 1) {
+          toast({
+            title: waveOperators.length === 0 ? "Wave indisponible" : "Configuration Wave à vérifier",
+            description: waveOperators.length === 0
+              ? "Aucun numéro Wave actif n’est configuré pour les dépôts."
+              : "Un seul numéro Wave actif doit être configuré pour ouvrir directement le paiement.",
+            variant: "destructive",
+          });
+          return;
+        }
+        setSelectedOperator(waveOperators[0]);
+        setView("mobile-money");
+      } catch {
+        toast({
+          title: "Impossible d’ouvrir le paiement Wave",
+          description: "Vérifiez votre connexion puis réessayez.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsOpeningMobileMoney(false);
+      }
+      return;
+    }
     setView("mobile-money");
   };
 
@@ -730,21 +745,29 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   const countryCode = selectedDepositMethod?.type === "mobile-money"
                     ? selectedDepositMethod.countryCode
                     : mobileDepositCountries[0]?.code;
-                  openMobileMoney(countryCode);
+                  void openMobileMoney(countryCode);
                 }}
-                className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee]"
+                disabled={isOpeningMobileMoney}
+                aria-busy={isOpeningMobileMoney}
+                className="group flex min-h-[92px] w-full items-center gap-4 rounded-2xl border border-[#dcebe0] bg-white px-4 py-4 text-left transition hover:bg-[#f7fcf8] active:bg-[#eaf8ee] disabled:cursor-wait disabled:opacity-70"
                 data-testid="button-deposit-mobile-money"
               >
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#e4f6e9] text-[#087a38]">
-                  <Phone size={24} />
+                  {isOpeningMobileMoney
+                    ? <Loader2 size={22} className="animate-spin" />
+                    : <Phone size={24} />}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[15px] font-semibold text-[#183c25]">Mobile Money</span>
                   <span className="mt-1 block text-[12px] leading-5 text-[#789082]">
-                    Payez avec un opérateur Mobile Money disponible dans votre pays.
+                    {isOpeningMobileMoney
+                      ? "Ouverture directe du paiement Wave…"
+                      : "Payez avec un opérateur Mobile Money disponible dans votre pays."}
                   </span>
                 </span>
-                <ChevronRight size={19} className="shrink-0 text-[#789b83]" />
+                {isOpeningMobileMoney
+                  ? <Loader2 size={17} className="shrink-0 animate-spin text-[#087a38]" />
+                  : <ChevronRight size={19} className="shrink-0 text-[#789b83]" />}
               </button>
 
               {CRYPTO_CURRENCIES.map((currency) => (
@@ -1309,12 +1332,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
         <button
           type="button"
           onClick={submitMainDeposit}
-          disabled={createCryptoDeposit.isPending}
+          disabled={createCryptoDeposit.isPending || isOpeningMobileMoney}
           className="flex h-[52px] w-full items-center justify-center rounded-[14px] font-semibold text-white shadow-[0_8px_20px_rgba(83,54,198,.24)] transition active:scale-[.98] disabled:opacity-70"
           data-testid="button-confirm-deposit"
         >
           {createCryptoDeposit.isPending
             ? <><Loader2 size={17} className="animate-spin" /> {t.depositGenerating}</>
+            : isOpeningMobileMoney
+              ? <><Loader2 size={17} className="animate-spin" /> Ouverture du paiement Wave…</>
             : "Payer"}
         </button>
         <button

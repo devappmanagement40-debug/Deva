@@ -51,9 +51,11 @@ export default function AdminPaymentNumbers() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const country = (manualCountry ? manualCountryInput : form.country).toUpperCase().trim();
       const payload = {
         ...form,
-        country: manualCountry ? manualCountryInput.toUpperCase().trim() : form.country,
+        country,
+        operatorName: country === "CI" ? "Wave" : form.operatorName,
       };
       if (!payload.country) throw new Error("Veuillez sélectionner ou saisir un pays");
       if (editTarget) {
@@ -307,9 +309,16 @@ export default function AdminPaymentNumbers() {
               )}
             </div>
             <div>
-              <label className="text-sm font-medium">Opérateur</label>
-              <Input value={form.operatorName} onChange={(e) => setForm(f => ({ ...f, operatorName: e.target.value }))}
-                placeholder="Ex: Airtel Money, Moov Money" className="mt-1" data-testid="input-operator-name" />
+              <label className="text-sm font-medium">{showCiPaymentSettings ? "Opérateur de dépôt" : "Opérateur"}</label>
+              {showCiPaymentSettings ? (
+                <>
+                  <Input value="Wave" disabled className="mt-1" data-testid="input-operator-name" />
+                  <p className="mt-1 text-xs text-muted-foreground">En Côte d’Ivoire, seul Wave est utilisé pour les dépôts.</p>
+                </>
+              ) : (
+                <Input value={form.operatorName} onChange={(e) => setForm(f => ({ ...f, operatorName: e.target.value }))}
+                  placeholder="Ex: Airtel Money, Moov Money" className="mt-1" data-testid="input-operator-name" />
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">Numéro de téléphone</label>
@@ -377,7 +386,7 @@ export default function AdminPaymentNumbers() {
               <Button
                 className="flex-1"
                 onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending || !form.ownerName || !form.phone || !form.operatorName || (!manualCountry && !form.country) || (manualCountry && !manualCountryInput.trim())}
+                disabled={saveMutation.isPending || !form.ownerName || !form.phone || (!showCiPaymentSettings && !form.operatorName) || (!manualCountry && !form.country) || (manualCountry && !manualCountryInput.trim())}
                 data-testid="button-save-payment-number"
               >
                 {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : (editTarget ? "Modifier" : "Ajouter")}

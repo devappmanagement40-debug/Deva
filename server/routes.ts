@@ -1112,7 +1112,10 @@ export async function registerRoutes(
         return res.json([]);
       }
       const configuredOperators = await storage.getPaymentNumbersByCountry(paymentCountry.code);
-      const operatorsWithActiveChannels = await Promise.all(configuredOperators.map(async (operator) => {
+      const depositOperators = paymentCountry.code.trim().toUpperCase() === "CI"
+        ? configuredOperators.filter((operator) => operator.operatorName.trim().toLowerCase() === "wave")
+        : configuredOperators;
+      const operatorsWithActiveChannels = await Promise.all(depositOperators.map(async (operator) => {
         if (!operator.channelId) return operator;
         const channel = await storage.getDepositChannel(operator.channelId);
         return channel?.isActive && channel.country.toUpperCase() === paymentCountry.code.toUpperCase()
@@ -1141,16 +1144,24 @@ export async function registerRoutes(
       if (!ownerName || !phone || !operatorName || !country) {
         return res.status(400).json({ message: "Tous les champs sont requis" });
       }
+      const normalizedCountry = String(country).trim().toUpperCase();
+      const normalizedOperatorName = String(operatorName).trim();
+      if (normalizedCountry === "CI" && normalizedOperatorName.toLowerCase() !== "wave") {
+        return res.status(400).json({ message: "En Côte d’Ivoire, seul Wave est autorisé pour les dépôts." });
+      }
       const normalizedPaymentUrl = parseOptionalPaymentUrl(paymentUrl);
       const normalizedPaymentQrDataUrl = parseOptionalPaymentQrDataUrl(paymentQrDataUrl);
       if (
-        String(country).trim().toUpperCase() !== "CI" &&
+        normalizedCountry !== "CI" &&
         (normalizedPaymentUrl || normalizedPaymentQrDataUrl)
       ) {
         return res.status(400).json({ message: "Le lien et le QR de paiement ne sont disponibles ici que pour la Côte d’Ivoire." });
       }
       const num = await storage.createPaymentNumber({
-        ownerName, phone, operatorName, country,
+        ownerName,
+        phone,
+        operatorName: normalizedCountry === "CI" ? "Wave" : operatorName,
+        country: normalizedCountry === "CI" ? "CI" : country,
         channelId: channelId ? parseInt(channelId) : null,
         logoUrl: logoUrl || null,
         paymentUrl: normalizedPaymentUrl || null,
@@ -1174,6 +1185,16 @@ export async function registerRoutes(
       const normalizedPaymentUrl = parseOptionalPaymentUrl(paymentUrl);
       const normalizedPaymentQrDataUrl = parseOptionalPaymentQrDataUrl(paymentQrDataUrl);
       const effectiveCountry = typeof country === "string" ? country.trim().toUpperCase() : existing.country.trim().toUpperCase();
+      const effectiveOperatorName = typeof operatorName === "string"
+        ? operatorName.trim()
+        : existing.operatorName.trim();
+      if (
+        effectiveCountry === "CI" &&
+        (country !== undefined || operatorName !== undefined) &&
+        effectiveOperatorName.toLowerCase() !== "wave"
+      ) {
+        return res.status(400).json({ message: "En Côte d’Ivoire, seul Wave est autorisé pour les dépôts." });
+      }
       const effectivePaymentUrl = normalizedPaymentUrl === undefined ? existing.paymentUrl : normalizedPaymentUrl;
       const effectivePaymentQrDataUrl = normalizedPaymentQrDataUrl === undefined
         ? existing.paymentQrDataUrl
@@ -1188,8 +1209,8 @@ export async function registerRoutes(
       const updateData: Partial<PaymentNumber> = {};
       if (ownerName !== undefined) updateData.ownerName = ownerName;
       if (phone !== undefined) updateData.phone = phone;
-      if (operatorName !== undefined) updateData.operatorName = operatorName;
-      if (country !== undefined) updateData.country = country;
+      if (operatorName !== undefined) updateData.operatorName = effectiveCountry === "CI" ? "Wave" : operatorName;
+      if (country !== undefined) updateData.country = effectiveCountry === "CI" ? "CI" : country;
       if (channelId !== undefined) {
         if (channelId === null || channelId === "") {
           updateData.channelId = null;
@@ -1728,6 +1749,12 @@ export async function registerRoutes(
       const selectedOperator = operators.find((operator) => operator.id === parsedPaymentNumberId);
       if (!selectedOperator) {
         return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
+      }
+      if (
+        depositCountry.code.trim().toUpperCase() === "CI" &&
+        selectedOperator.operatorName.trim().toLowerCase() !== "wave"
+      ) {
+        return res.status(400).json({ message: "En Côte d’Ivoire, seul Wave est autorisé pour les dépôts." });
       }
       if (selectedOperator.operatorName.trim().toLowerCase() !== resolvedPaymentMethod.toLowerCase()) {
         return res.status(400).json({ message: "Le moyen de paiement ne correspond pas à l’opérateur choisi." });
