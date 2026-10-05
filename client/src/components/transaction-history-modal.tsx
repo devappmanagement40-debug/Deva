@@ -6,12 +6,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
+import { formatCurrency } from "@/lib/countries";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
 import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/components/history-receipt";
 
 interface TransactionHistoryModalProps {
   open: boolean;
   onClose: () => void;
+}
+
+function formatDate(date: string | Date) {
+  return new Date(date).toLocaleDateString(undefined, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
@@ -152,17 +163,21 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                 Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : transactions && transactions.length > 0 ? (
                 transactions.map((transaction) => (
-                  <ReceiptCard
-                    key={transaction.id}
-                    transaction={{
-                      id: transaction.id,
-                      kind: "activity",
-                      amount: transaction.amount,
-                      status: "completed",
-                      createdAt: transaction.createdAt as unknown as string,
-                      description: formatTransactionDescription(transaction.description, lang),
-                    }}
-                  />
+                  <article key={transaction.id} className="min-h-[92px] border-b border-white bg-[#f3f3f3] px-4 py-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[14px] font-medium text-[#202020]">T{transaction.id}</p>
+                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">
+                          {formatTransactionDescription(transaction.description, lang)}
+                        </p>
+                        <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
+                      </div>
+                      <p className={`shrink-0 text-[13px] ${Number(transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
+                        {Number(transaction.amount) < 0 ? "−" : "+"}
+                        {formatCurrency(Math.abs(Number(transaction.amount)), user.country)}
+                      </p>
+                    </div>
+                  </article>
                 ))
               ) : (
                 <div className="min-h-[92px] bg-white px-4 pt-3 text-center text-[14px] text-[#9a9a9a]">

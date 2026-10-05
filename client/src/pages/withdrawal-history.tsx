@@ -42,7 +42,7 @@ export default function WithdrawalHistoryPage() {
     <div className="min-h-screen bg-white">
       <HistoryPageHeader title={t.withdrawalHistory || "Historique des retraits"} backHref="/withdrawal" />
       <HistoryDecor>
-        <section aria-live="polite">
+        <section className="space-y-3" aria-live="polite">
           {isLoading ? (
             <ReceiptLoadingState />
           ) : receipts.length > 0 ? (
