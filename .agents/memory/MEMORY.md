@@ -29,4 +29,4 @@
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
 - [Supabase account migration](supabase-account-migration.md) — Replit PostgreSQL is the confirmed legacy source; Supabase is the working target; global settings and sessions stay separate.
-- [DIAMANT transaction receipts](diamant-transaction-receipts.md) — deposits use violet/blue receipts with the amount in a normal field row; preserve withdrawal and earnings layouts.
+- [DIAMANT transaction receipts](diamant-transaction-receipts.md) — deposit fields use violet text on white, with white reserved for the dark header; keep withdrawal and earnings layouts distinct.
