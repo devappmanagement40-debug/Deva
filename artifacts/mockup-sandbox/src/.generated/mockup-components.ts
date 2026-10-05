@@ -3,10 +3,10 @@ type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/diamant-service/Current.tsx": () => import("../components/mockups/diamant-service/Current.tsx"),
   "./components/mockups/diamant-service/Reference.tsx": () => import("../components/mockups/diamant-service/Reference.tsx"),
-  "./components/mockups/ielp-invest/Current.tsx": () => import("../components/mockups/ielp-invest/Current.tsx"),
-  "./components/mockups/ielp-invest/Reference.tsx": () => import("../components/mockups/ielp-invest/Reference.tsx"),
   "./components/mockups/ielp-account/Current.tsx": () => import("../components/mockups/ielp-account/Current.tsx"),
   "./components/mockups/ielp-account/Reference.tsx": () => import("../components/mockups/ielp-account/Reference.tsx"),
+  "./components/mockups/ielp-invest/Current.tsx": () => import("../components/mockups/ielp-invest/Current.tsx"),
+  "./components/mockups/ielp-invest/Reference.tsx": () => import("../components/mockups/ielp-invest/Reference.tsx"),
   "./components/mockups/ielp-team/Current.tsx": () => import("../components/mockups/ielp-team/Current.tsx"),
   "./components/mockups/ielp-team/Reference.tsx": () => import("../components/mockups/ielp-team/Reference.tsx"),
   "./components/mockups/purchase-dialog/Compact.tsx": () => import("../components/mockups/purchase-dialog/Compact.tsx"),
