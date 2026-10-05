@@ -11,6 +11,12 @@ import {
 import { db, pool } from "./db";
 import { eq, and, asc, desc, sql, gte, lt, lte, or, inArray, isNotNull, isNull, ne } from "drizzle-orm";
 import { DAILY_BONUS_COOLDOWN_MS, getDailyBonusHoursRemaining } from "./daily-bonus-policy";
+import {
+  canClaimTask,
+  countEligibleDirectReferrals,
+  formatTaskRewardAmount,
+} from "./task-rewards-policy";
+import type { AdminTaskCreateInput, AdminTaskUpdateInput } from "@shared/task-validation";
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 import {
@@ -20,6 +26,23 @@ import {
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
+
+export class TaskHasClaimsError extends Error {
+  constructor() {
+    super("Cette récompense a déjà été réclamée et doit être désactivée plutôt que supprimée.");
+    this.name = "TaskHasClaimsError";
+  }
+}
+
+export type TaskWithStatus = Task & {
+  isCompleted: boolean;
+  canClaim: boolean;
+  currentInvites: number;
+  claimedName: string | null;
+  claimedDescription: string | null;
+  claimedRequiredInvites: number | null;
+  claimedReward: number | null;
+};
 
 // Compares phone numbers regardless of local vs international MSISDN format
 // (e.g. "0150839909" vs "+22990150839909") by matching on the last 8 digits.
@@ -229,11 +252,11 @@ export interface IStorage {
   // Tasks
   getTasks(): Promise<Task[]>;
   getAllTasksAdmin(): Promise<Task[]>;
-  getTasksWithStatus(userId: number): Promise<(Task & { isCompleted: boolean; canClaim: boolean; currentInvites: number })[]>;
+  getTasksWithStatus(userId: number): Promise<TaskWithStatus[]>;
   claimTask(userId: number, taskId: number): Promise<number>;
-  createTask(data: Partial<Task>): Promise<Task>;
-  updateTask(id: number, data: Partial<Task>): Promise<Task>;
-  deleteTask(id: number): Promise<void>;
+  createTask(data: AdminTaskCreateInput): Promise<Task>;
+  updateTask(id: number, data: AdminTaskUpdateInput): Promise<Task | undefined>;
+  deleteTask(id: number): Promise<boolean>;
   
   // Transactions
   createTransaction(data: Partial<Transaction>): Promise<Transaction>;
@@ -2134,28 +2157,51 @@ export class DatabaseStorage implements IStorage {
 
   // Tasks
   async getTasks(): Promise<Task[]> {
-    return await db.select().from(tasks).where(eq(tasks.isActive, true)).orderBy(tasks.sortOrder);
+    return await db.select().from(tasks)
+      .where(eq(tasks.isActive, true))
+      .orderBy(asc(tasks.sortOrder), asc(tasks.id));
   }
 
   async getAllTasksAdmin(): Promise<Task[]> {
-    return await db.select().from(tasks).orderBy(tasks.sortOrder);
+    return await db.select().from(tasks).orderBy(asc(tasks.sortOrder), asc(tasks.id));
   }
 
-  async createTask(data: Partial<Task>): Promise<Task> {
-    const [task] = await db.insert(tasks).values(data as any).returning();
+  async createTask(data: AdminTaskCreateInput): Promise<Task> {
+    const [task] = await db.insert(tasks).values({ ...data, isActive: true }).returning();
     return task;
   }
 
-  async updateTask(id: number, data: Partial<Task>): Promise<Task> {
-    const [task] = await db.update(tasks).set(data as any).where(eq(tasks.id, id)).returning();
+  async updateTask(id: number, data: AdminTaskUpdateInput): Promise<Task | undefined> {
+    const [task] = await db.update(tasks).set(data).where(eq(tasks.id, id)).returning();
     return task;
   }
 
-  async deleteTask(id: number): Promise<void> {
-    await db.delete(tasks).where(eq(tasks.id, id));
+  async deleteTask(id: number): Promise<boolean> {
+    const [existingTask] = await db.select({ id: tasks.id })
+      .from(tasks)
+      .where(eq(tasks.id, id))
+      .limit(1);
+    if (!existingTask) return false;
+
+    const [existingClaim] = await db.select({ id: userTasks.id })
+      .from(userTasks)
+      .where(eq(userTasks.taskId, id))
+      .limit(1);
+    if (existingClaim) throw new TaskHasClaimsError();
+
+    try {
+      const [deletedTask] = await db.delete(tasks)
+        .where(eq(tasks.id, id))
+        .returning({ id: tasks.id });
+      return Boolean(deletedTask);
+    } catch (error: any) {
+      // The foreign key remains the final safeguard if a claim races with deletion.
+      if (error?.code === "23503") throw new TaskHasClaimsError();
+      throw error;
+    }
   }
 
-  async getTasksWithStatus(userId: number): Promise<(Task & { isCompleted: boolean; canClaim: boolean; currentInvites: number })[]> {
+  async getTasksWithStatus(userId: number): Promise<TaskWithStatus[]> {
     const allTasks = await this.getTasks();
     const user = await this.getUser(userId);
     if (!user) return [];
@@ -2166,32 +2212,41 @@ export class DatabaseStorage implements IStorage {
     // We do NOT use hasActiveProduct because it is also set for free products.
     let currentInvites = 0;
     if (level1Refs.length > 0) {
-      const eligibleIds = level1Refs
-        .filter(r => !r.isBanned)
-        .map(r => r.id);
-      if (eligibleIds.length > 0) {
+      const referralIds = level1Refs.map((referral) => referral.id);
+      if (referralIds.length > 0) {
         const rows = await db
           .selectDistinct({ userId: userProducts.userId })
           .from(userProducts)
           .innerJoin(products, eq(userProducts.productId, products.id))
           .where(and(
-            inArray(userProducts.userId, eligibleIds),
+            inArray(userProducts.userId, referralIds),
             eq(products.isFree, false),
             eq(userProducts.isActive, true),
           ));
-        currentInvites = rows.length;
+        currentInvites = countEligibleDirectReferrals(
+          level1Refs,
+          rows.map((row) => row.userId),
+        );
       }
     }
 
     const completedTasks = await db.select().from(userTasks).where(eq(userTasks.userId, userId));
-    const completedIds = new Set(completedTasks.map(t => t.taskId));
+    const claimsByTaskId = new Map(completedTasks.map((claim) => [claim.taskId, claim]));
 
-    return allTasks.map(task => ({
-      ...task,
-      isCompleted: completedIds.has(task.id),
-      canClaim: !completedIds.has(task.id) && currentInvites >= task.requiredInvites,
-      currentInvites: currentInvites,
-    }));
+    return allTasks.map((task) => {
+      const claim = claimsByTaskId.get(task.id);
+      const isCompleted = Boolean(claim);
+      return {
+        ...task,
+        isCompleted,
+        canClaim: canClaimTask(currentInvites, task.requiredInvites, isCompleted),
+        currentInvites,
+        claimedName: claim?.taskNameSnapshot ?? null,
+        claimedDescription: claim?.taskDescriptionSnapshot ?? null,
+        claimedRequiredInvites: claim?.requiredInvitesSnapshot ?? null,
+        claimedReward: claim?.rewardSnapshot ?? null,
+      };
+    });
   }
 
   async claimTask(userId: number, taskId: number): Promise<number> {
@@ -2204,11 +2259,14 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Invitations insuffisantes (${taskStatus.currentInvites}/${taskStatus.requiredInvites})`);
     }
 
-    const user = await this.getUser(userId);
-    if (!user) throw new Error("Utilisateur non trouvé");
-
+    let claimedReward = 0;
     try {
       await db.transaction(async (tx) => {
+        const [currentTask] = await tx.select().from(tasks)
+          .where(eq(tasks.id, taskId))
+          .for("update");
+        if (!currentTask || !currentTask.isActive) throw new Error("Tâche non trouvée");
+
         const existingClaim = await tx.select({ id: userTasks.id })
           .from(userTasks)
           .where(and(eq(userTasks.userId, userId), eq(userTasks.taskId, taskId)))
@@ -2218,24 +2276,35 @@ export class DatabaseStorage implements IStorage {
           throw new Error("Tâche déjà réclamée");
         }
 
+        if (!canClaimTask(taskStatus.currentInvites, currentTask.requiredInvites, false)) {
+          throw new Error(`Invitations insuffisantes (${taskStatus.currentInvites}/${currentTask.requiredInvites})`);
+        }
+
+        const rewardAmount = formatTaskRewardAmount(currentTask.reward);
         await tx.insert(userTasks).values({
           userId,
           taskId,
           rewardClaimed: true,
+          taskNameSnapshot: currentTask.name,
+          taskDescriptionSnapshot: currentTask.description,
+          requiredInvitesSnapshot: currentTask.requiredInvites,
+          rewardSnapshot: currentTask.reward,
         });
 
-        const currentEarnings = Number(user.totalEarnings || "0");
-        const newTotalEarnings = (Number.isFinite(currentEarnings) ? currentEarnings : 0) + taskStatus.reward;
-        await tx.update(users)
-          .set({ totalEarnings: newTotalEarnings.toFixed(2) })
-          .where(eq(users.id, userId));
+        const updatedUser = await tx.update(users)
+          .set({ totalEarnings: sql`${users.totalEarnings} + ${rewardAmount}::numeric` })
+          .where(eq(users.id, userId))
+          .returning({ id: users.id });
+        if (updatedUser.length === 0) throw new Error("Utilisateur non trouvé");
 
         await tx.insert(transactions).values({
           userId,
           type: "task_reward",
-          amount: taskStatus.reward.toString(),
-          description: `Récompense: ${taskStatus.name}`,
+          amount: rewardAmount,
+          description: `Récompense: ${currentTask.name}`,
         });
+
+        claimedReward = currentTask.reward;
       });
     } catch (error: any) {
       if (error?.code === "23505") {
@@ -2244,7 +2313,7 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
 
-    return taskStatus.reward;
+    return claimedReward;
   }
 
   // Transactions

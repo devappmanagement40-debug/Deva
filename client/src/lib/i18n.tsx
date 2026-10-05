@@ -300,6 +300,7 @@ export type Translations = {
   ordersRemainingLbl: string;
   ordersTotalEarnedLbl: string;
   ordersDateLbl: string;
+  ordersExpirationLbl: string;
   // invest page
   investConfirmDesc: string;
   investCycleDays: string;
@@ -905,6 +906,7 @@ const fr: Translations = {
     ordersRemainingLbl: "Jours restants",
     ordersTotalEarnedLbl:"Gains cumulés",
     ordersDateLbl:      "Date",
+    ordersExpirationLbl: "Date d’expiration",
     investConfirmDesc:  "Après l'achat, vos gains sont crédités automatiquement sur votre solde de gains à la fin du cycle. Aucune collecte manuelle n'est nécessaire.",
     investCycleDays:    "Cycle valide",
     investInsufficient: "Solde insuffisant, il manque {0}.",
@@ -1241,7 +1243,7 @@ const fr: Translations = {
     adminTaskCreated: "Tâche créée",
     adminTaskUpdated: "Tâche mise à jour",
     adminTaskDeleted: "Tâche supprimée",
-    adminTaskDeleteWarning: "Cette action est irréversible.",
+    adminTaskDeleteWarning: "Une récompense déjà réclamée ne peut pas être supprimée. Désactivez-la pour préserver l’historique.",
     adminTaskDelete: "Supprimer",
     adminNoTasks: "Aucune tâche",
     adminTaskCenterTitle: "Centre des tâches",

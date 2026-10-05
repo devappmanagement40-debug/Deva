@@ -1,7 +1,12 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import session from "express-session";
-import { storage } from "./storage";
+import { storage, TaskHasClaimsError } from "./storage";
+import {
+  adminTaskCreateSchema,
+  adminTaskUpdateSchema,
+  taskIdSchema,
+} from "@shared/task-validation";
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema } from "@shared/schema";
@@ -2250,7 +2255,9 @@ export async function registerRoutes(
 
   app.post("/api/tasks/:id/claim", requireAuth, async (req, res) => {
     try {
-      const taskId = parseInt(req.params.id as string);
+      const parsedId = taskIdSchema.safeParse(req.params.id);
+      if (!parsedId.success) return res.status(400).json({ message: "Identifiant de récompense invalide" });
+      const taskId = parsedId.data;
       const userId = req.session.userId!;
 
       const reward = await storage.claimTask(userId, taskId);
@@ -3354,19 +3361,15 @@ export async function registerRoutes(
 
   app.post("/api/admin/tasks", requireAdmin, async (req, res) => {
     try {
-      const { name, description, requiredInvites, reward, sortOrder } = req.body;
-      if (!name || !description || requiredInvites == null || reward == null) {
-        return res.status(400).json({ message: "Champs requis manquants" });
+      const parsed = adminTaskCreateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Les valeurs du palier sont invalides.",
+          errors: parsed.error.flatten(),
+        });
       }
-      const task = await storage.createTask({
-        name,
-        description,
-        requiredInvites: parseInt(requiredInvites),
-        reward: parseFloat(reward),
-        sortOrder: parseInt(sortOrder ?? 0),
-        isActive: true,
-      });
-      await storage.logAdminAction(req.session.userId!, "create_task", null, `Tâche "${name}" créée`);
+      const task = await storage.createTask(parsed.data);
+      await storage.logAdminAction(req.session.userId!, "create_task", null, `Tâche "${task.name}" créée`);
       res.json(task);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3375,12 +3378,18 @@ export async function registerRoutes(
 
   app.patch("/api/admin/tasks/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id as string);
-      const data = req.body;
-      if (data.requiredInvites != null) data.requiredInvites = parseInt(data.requiredInvites);
-      if (data.reward != null) data.reward = parseFloat(data.reward);
-      if (data.sortOrder != null) data.sortOrder = parseInt(data.sortOrder);
-      const task = await storage.updateTask(id, data);
+      const parsedId = taskIdSchema.safeParse(req.params.id);
+      if (!parsedId.success) return res.status(400).json({ message: "Identifiant de récompense invalide" });
+      const parsed = adminTaskUpdateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Les valeurs du palier sont invalides.",
+          errors: parsed.error.flatten(),
+        });
+      }
+      const id = parsedId.data;
+      const task = await storage.updateTask(id, parsed.data);
+      if (!task) return res.status(404).json({ message: "Récompense introuvable" });
       await storage.logAdminAction(req.session.userId!, "update_task", null, `Tâche ${id} modifiée`);
       res.json(task);
     } catch (error: any) {
@@ -3390,11 +3399,20 @@ export async function registerRoutes(
 
   app.delete("/api/admin/tasks/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id as string);
-      await storage.deleteTask(id);
+      const parsedId = taskIdSchema.safeParse(req.params.id);
+      if (!parsedId.success) return res.status(400).json({ message: "Identifiant de récompense invalide" });
+      const id = parsedId.data;
+      const deleted = await storage.deleteTask(id);
+      if (!deleted) return res.status(404).json({ message: "Récompense introuvable" });
       await storage.logAdminAction(req.session.userId!, "delete_task", null, `Tâche ${id} supprimée`);
       res.json({ success: true });
     } catch (error: any) {
+      if (error instanceof TaskHasClaimsError) {
+        return res.status(409).json({
+          code: "TASK_HAS_CLAIMS",
+          message: error.message,
+        });
+      }
       res.status(400).json({ message: error.message });
     }
   });

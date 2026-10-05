@@ -93,7 +93,12 @@ export default function SalaryBonusPage() {
         {isLoading ? null : (
           (tasks as any[]).map((task, index) => {
             const current = task.currentInvites || 0;
-            const required = task.requiredInvites || 1;
+            const required = task.isCompleted && task.claimedRequiredInvites != null
+              ? task.claimedRequiredInvites
+              : task.requiredInvites || 1;
+            const displayedReward = task.isCompleted && task.claimedReward != null
+              ? task.claimedReward
+              : task.reward || 0;
             const progress = Math.min(current, required);
             const pct = Math.min((progress / required) * 100, 100);
             const isThisClaiming = claimingId === task.id;
@@ -133,7 +138,7 @@ export default function SalaryBonusPage() {
                       <p className="mt-1 text-[12px] leading-snug text-gray-600 sm:text-[13px]">
                         {t.salaryRewardLabel} :{" "}
                         <span className="font-bold text-[#1d4ed8]">
-                          {currency} {(task.reward || 0).toLocaleString()}
+                          {currency} {displayedReward.toLocaleString()}
                         </span>
                       </p>
                       <div className="mt-2 flex items-center gap-2.5">

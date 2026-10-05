@@ -326,8 +326,8 @@ export async function seed() {
     console.log(`Products skipped — ${existingProducts.length} existing products preserved`);
   }
 
-  // Seed tasks — keep existing admin values and add missing reward levels up to 8.
-  const existingTasks = await db.select().from(tasks);
+  // Seed the initial catalog once. Afterward, admins are authoritative: intentional
+  // deletions must not be recreated on the next application start.
   const newRewardTasks = [
     { name: "🎁 Récompense 1", description: "3 membres actifs requis",  requiredInvites: 3,  reward: 1000,  sortOrder: 1 },
     { name: "🎁 Récompense 2", description: "10 membres actifs requis", requiredInvites: 10, reward: 3000,  sortOrder: 2 },
@@ -338,25 +338,22 @@ export async function seed() {
     { name: "🎁 Récompense 7", description: "300 membres actifs requis", requiredInvites: 300, reward: 240, sortOrder: 7 },
     { name: "🎁 Récompense 8", description: "500 membres actifs requis", requiredInvites: 500, reward: 500, sortOrder: 8 },
   ];
-  // Detect old structure (legacy task names like "Parrain Bronze")
-  const hasLegacyTasks = existingTasks.some(t => t.name.startsWith("Parrain "));
-  if (existingTasks.length === 0 || hasLegacyTasks) {
-    if (hasLegacyTasks) {
-      // Remove old tasks (user_tasks FK rows are preserved; only tasks without claims are removed cleanly)
-      await db.delete(tasks);
-    }
-    await db.insert(tasks).values(newRewardTasks);
-    console.log("Reward tasks seeded (8-reward structure)");
-  } else {
-    const existingSortOrders = new Set(existingTasks.map((task) => task.sortOrder));
-    const missingTasks = newRewardTasks.filter((task) => !existingSortOrders.has(task.sortOrder));
-    if (missingTasks.length > 0) {
-      await db.insert(tasks).values(missingTasks);
-      console.log(`Added ${missingTasks.length} missing reward tasks — existing task values preserved`);
+  const taskCatalogInitializedKey = "taskRewardsCatalogInitialized";
+  await db.transaction(async (tx) => {
+    const [initializationClaim] = await tx.insert(platformSettings)
+      .values({ key: taskCatalogInitializedKey, value: "true" })
+      .onConflictDoNothing()
+      .returning({ id: platformSettings.id });
+    if (!initializationClaim) return;
+
+    const existingTasks = await tx.select({ id: tasks.id }).from(tasks);
+    if (existingTasks.length === 0) {
+      await tx.insert(tasks).values(newRewardTasks);
+      console.log("Initial reward task catalog seeded");
     } else {
-      console.log(`Tasks skipped — ${existingTasks.length} existing tasks preserved`);
+      console.log(`Existing reward task catalog preserved (${existingTasks.length} tasks)`);
     }
-  }
+  });
 
   // ── Seed deposit channels CI (Canal 1 & Wave) ─────────────────────────────
   const existingDepositChannels = await db.select().from(depositChannels)

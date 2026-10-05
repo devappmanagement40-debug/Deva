@@ -51,7 +51,10 @@ export default function RewardsPage() {
   const currency = "XOF";
 
   const totalReward = tasks?.reduce((sum, t) => sum + t.reward, 0) || 0;
-  const claimedReward = tasks?.filter(t => t.isCompleted).reduce((sum: number, t: any) => sum + t.reward, 0) || 0;
+  const claimedReward = tasks?.filter(t => t.isCompleted).reduce(
+    (sum: number, task: any) => sum + (task.claimedReward ?? task.reward),
+    0,
+  ) || 0;
   const currentInvites = tasks?.[0]?.currentInvites || 0;
 
   return (
@@ -93,7 +96,18 @@ export default function RewardsPage() {
             </div>
           ) : (
             <div className="space-y-1.5">
-              {tasks?.map((task) => (
+              {tasks?.map((task) => {
+                const requiredInvites = task.isCompleted && task.claimedRequiredInvites != null
+                  ? task.claimedRequiredInvites
+                  : task.requiredInvites;
+                const displayedReward = task.isCompleted && task.claimedReward != null
+                  ? task.claimedReward
+                  : task.reward;
+                const displayedDescription = task.isCompleted && task.claimedDescription
+                  ? task.claimedDescription
+                  : task.description;
+
+                return (
                 <div
                   key={task.id}
                   className="bg-white rounded-lg shadow-sm border border-gray-100 flex items-center px-2.5 py-2 gap-2"
@@ -103,11 +117,11 @@ export default function RewardsPage() {
                     <Users className="w-3 h-3" style={{ color: "#2196F3" }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-semibold text-gray-800 leading-tight truncate">{displayCurrencyText(task.description)}</p>
-                    <p className="text-[10px] text-gray-400 leading-tight">{t.rewardsRewardLabel}: <span className="text-blue-500 font-semibold">{task.reward.toLocaleString()} {currency}</span></p>
+                    <p className="text-[11px] font-semibold text-gray-800 leading-tight truncate">{displayCurrencyText(displayedDescription)}</p>
+                    <p className="text-[10px] text-gray-400 leading-tight">{t.rewardsRewardLabel}: <span className="text-blue-500 font-semibold">{displayedReward.toLocaleString()} {currency}</span></p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] text-gray-400">{task.currentInvites}/{task.requiredInvites}</span>
+                    <span className="text-[10px] text-gray-400">{task.currentInvites}/{requiredInvites}</span>
                     {task.isCompleted ? (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-50 text-gray-600" data-testid={`task-completed-${task.id}`}>
                         {t.rewardsClaimed}
@@ -129,7 +143,8 @@ export default function RewardsPage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

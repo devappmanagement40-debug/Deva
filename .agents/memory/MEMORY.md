@@ -10,6 +10,7 @@
 - [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.
 - [TGOOD customer service hours](tgood-service-hours.md) — support availability and link activation follow the configured start/end hour window.
 - [TGOOD task rewards](tgood-task-rewards.md) — task rewards support decimal USDT amounts; startup adds missing levels without overwriting admin-configured values.
+- [DIAMANT task rewards](diamant-task-rewards.md) — task tiers are XOF and admin-managed; deletions persist, and claim-time values and credits stay historically fixed.
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — match the exact orange banner/calendar reference while keeping real history and reward rules.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first layout, fixed navigation, no removed floaters, and verified free-use photos in the account banner.

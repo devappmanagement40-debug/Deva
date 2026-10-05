@@ -93,6 +93,17 @@ export default function OrdersPage() {
               const purchaseDateTime = up.purchasedAt ? new Date(up.purchasedAt) : null;
               const purchaseDate = purchaseDateTime ? purchaseDateTime.toLocaleDateString() : '-';
               const purchaseTime = purchaseDateTime ? purchaseDateTime.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '-';
+              const cycleDays = Number(up.product?.cycleDays);
+              const expirationDateTime = purchaseDateTime
+                && Number.isFinite(purchaseDateTime.getTime())
+                && Number.isSafeInteger(cycleDays)
+                && cycleDays > 0
+                ? new Date(purchaseDateTime.getTime() + cycleDays * 24 * 60 * 60 * 1000)
+                : null;
+              const expirationDate = expirationDateTime?.toLocaleDateString() ?? "-";
+              const expirationTime = expirationDateTime
+                ? expirationDateTime.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+                : "";
 
               return (
                 <div
@@ -141,6 +152,9 @@ export default function OrdersPage() {
                         </p>
                         <p className="text-gray-600">
                           {t.ordersDateLbl}：<span className="text-gray-700 font-medium">{purchaseDate}</span> {purchaseTime}
+                        </p>
+                        <p className="text-gray-600">
+                          {t.ordersExpirationLbl}：<span className="text-gray-700 font-medium">{expirationDate}</span> {expirationTime}
                         </p>
                       </div>
                     </div>

@@ -13,6 +13,8 @@ interface TaskWithStatus extends Task {
   isCompleted: boolean;
   canClaim: boolean;
   currentInvites: number;
+  claimedRequiredInvites: number | null;
+  claimedReward: number | null;
 }
 
 const REWARD_GREEN = "#08b83a";
@@ -104,8 +106,14 @@ export default function TasksPage() {
             </div>
           ) : taskList.length > 0 ? (
             taskList.map((task, index) => {
+              const requiredInvites = task.isCompleted && task.claimedRequiredInvites !== null
+                ? task.claimedRequiredInvites
+                : task.requiredInvites;
+              const displayedReward = task.isCompleted && task.claimedReward !== null
+                ? task.claimedReward
+                : task.reward;
               const progress = Math.min(
-                task.currentInvites / Math.max(task.requiredInvites, 1),
+                task.currentInvites / Math.max(requiredInvites, 1),
                 1,
               );
               const isLast = index === taskList.length - 1;
@@ -137,12 +145,12 @@ export default function TasksPage() {
                   <div className="min-w-0 flex-1 self-stretch">
                     <div className="flex min-h-full flex-col justify-center">
                       <p className="truncate text-[17px] font-bold leading-tight text-[#161616]">
-                        {formatInvitations(task.requiredInvites, t.taskValidInvitation)}
+                        {formatInvitations(requiredInvites, t.taskValidInvitation)}
                       </p>
                       <p className="mt-1 text-[14px] leading-tight text-[#9b9b9b]">
                         {t.taskRewardLabel}:{" "}
                         <span className="font-bold text-[#6db98a]">
-                          {task.reward.toLocaleString()} XOF
+                          {displayedReward.toLocaleString()} XOF
                         </span>
                       </p>
                     </div>
@@ -151,7 +159,7 @@ export default function TasksPage() {
                   <div className="flex shrink-0 flex-col items-end gap-2">
                     <div className="flex items-center gap-2">
                       <span className="rounded-full border border-[#e1e4e7] bg-[#f4f5f6] px-2.5 py-1 text-[13px] text-[#a4a4a4]">
-                        {task.currentInvites} / {task.requiredInvites}
+                        {task.currentInvites} / {requiredInvites}
                       </span>
                       <button
                         type="button"

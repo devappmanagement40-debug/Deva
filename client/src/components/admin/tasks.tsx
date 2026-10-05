@@ -17,19 +17,80 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { displayCurrencyText } from "@/lib/content";
 import { Edit, Loader2, Trophy, Plus, Trash2 } from "lucide-react";
 import type { Task } from "@shared/schema";
+import { MAX_TASK_INVITES, MAX_TASK_REWARD } from "@shared/task-validation";
 
 const taskSchema = z.object({
-  name: z.string().min(2),
-  description: z.string().min(2),
-  requiredInvites: z.string().min(1),
-  reward: z.string().min(1).refine(
-    (value) => Number.isFinite(Number(value)) && Number(value) >= 0,
-    "Montant invalide",
-  ),
-  sortOrder: z.string().min(1),
+  name: z.string().trim().min(1).max(200),
+  description: z.string().trim().min(1).max(2_000),
+  requiredInvites: z.string().trim()
+    .regex(/^[1-9]\d*$/, "Le seuil doit être un entier positif")
+    .refine((value) => Number(value) <= MAX_TASK_INVITES, "Seuil trop élevé"),
+  reward: z.string().trim()
+    .regex(/^\d+(?:\.\d{1,2})?$/, "Montant invalide")
+    .refine((value) => Number(value) <= MAX_TASK_REWARD, "Montant trop élevé"),
+  sortOrder: z.string().trim()
+    .regex(/^(0|[1-9]\d*)$/, "L’ordre doit être un entier positif ou nul")
+    .refine((value) => Number(value) <= MAX_TASK_INVITES, "Ordre trop élevé"),
 });
 
 type TaskForm = z.infer<typeof taskSchema>;
+type TranslationStrings = ReturnType<typeof useI18n>["t"];
+
+function TaskFormFields({
+  form,
+  isPending,
+  t,
+}: {
+  form: any;
+  isPending: boolean;
+  t: TranslationStrings;
+}) {
+  return (
+    <div className="space-y-4">
+      <FormField control={form.control} name="name" render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t.adminTaskName}</FormLabel>
+          <FormControl><Input placeholder={t.adminTaskNamePlaceholder} {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <FormField control={form.control} name="description" render={({ field }) => (
+        <FormItem>
+          <FormLabel>{t.adminTaskDescriptionLabel}</FormLabel>
+          <FormControl><Input placeholder={t.adminTaskDescriptionPlaceholder} {...field} /></FormControl>
+          <FormMessage />
+        </FormItem>
+      )} />
+      <div className="grid grid-cols-3 gap-3">
+        <FormField control={form.control} name="requiredInvites" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t.adminTaskRequiredInvites}</FormLabel>
+            <FormControl><Input type="number" min="1" max={MAX_TASK_INVITES} step="1" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="reward" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t.adminTaskReward}</FormLabel>
+            <FormControl><Input type="number" min="0" max={MAX_TASK_REWARD} step="0.01" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+        <FormField control={form.control} name="sortOrder" render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t.adminTaskSortOrder}</FormLabel>
+            <FormControl><Input type="number" min="0" max={MAX_TASK_INVITES} step="1" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )} />
+      </div>
+      <Button type="submit" className="w-full" disabled={isPending}>
+        {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        {t.adminSave}
+      </Button>
+    </div>
+  );
+}
 
 export default function AdminTasks() {
   const { toast } = useToast();
@@ -62,9 +123,9 @@ export default function AdminTasks() {
       const res = await apiRequest("POST", "/api/admin/tasks", {
         name: data.name,
         description: data.description,
-        requiredInvites: parseInt(data.requiredInvites),
-        reward: parseFloat(data.reward),
-        sortOrder: parseInt(data.sortOrder),
+        requiredInvites: Number(data.requiredInvites),
+        reward: Number(data.reward),
+        sortOrder: Number(data.sortOrder),
       });
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || t.errorOccurred); }
       return res.json();
@@ -96,11 +157,19 @@ export default function AdminTasks() {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest("DELETE", `/api/admin/tasks/${id}`, {});
-      if (!res.ok) { const r = await res.json(); throw new Error(r.message || t.errorOccurred); }
+      if (!res.ok) {
+        const r = await res.json();
+        const error = new Error(r.message || t.errorOccurred) as Error & { code?: string };
+        error.code = r.code;
+        throw error;
+      }
       return res.json();
     },
     onSuccess: () => { invalidate(); toast({ title: t.adminTaskDeleted }); setConfirmDeleteId(null); },
-    onError: (e: any) => toast({ title: e.message || t.errorOccurred, variant: "destructive" }),
+    onError: (e: any) => toast({
+      title: e.code === "TASK_HAS_CLAIMS" ? t.adminTaskDeleteWarning : e.message || t.errorOccurred,
+      variant: "destructive",
+    }),
   });
 
   const openEdit = (task: Task) => {
@@ -121,58 +190,24 @@ export default function AdminTasks() {
       data: {
         name: data.name,
         description: data.description,
-        requiredInvites: parseInt(data.requiredInvites),
-        reward: parseFloat(data.reward),
-        sortOrder: parseInt(data.sortOrder),
+          requiredInvites: Number(data.requiredInvites),
+          reward: Number(data.reward),
+          sortOrder: Number(data.sortOrder),
       },
     });
   };
 
-  const TaskFormFields = ({ form, isPending }: { form: any; isPending: boolean }) => (
-    <div className="space-y-4">
-      <FormField control={form.control} name="name" render={({ field }) => (
-        <FormItem>
-          <FormLabel>{t.adminTaskName}</FormLabel>
-          <FormControl><Input placeholder={t.adminTaskNamePlaceholder} {...field} /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
-      <FormField control={form.control} name="description" render={({ field }) => (
-        <FormItem>
-          <FormLabel>{t.adminTaskDescriptionLabel}</FormLabel>
-          <FormControl><Input placeholder={t.adminTaskDescriptionPlaceholder} {...field} /></FormControl>
-          <FormMessage />
-        </FormItem>
-      )} />
-      <div className="grid grid-cols-3 gap-3">
-        <FormField control={form.control} name="requiredInvites" render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t.adminTaskRequiredInvites}</FormLabel>
-            <FormControl><Input type="number" min="1" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="reward" render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t.adminTaskReward}</FormLabel>
-            <FormControl><Input type="number" min="0" step="0.01" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-        <FormField control={form.control} name="sortOrder" render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t.adminTaskSortOrder}</FormLabel>
-            <FormControl><Input type="number" min="0" {...field} /></FormControl>
-            <FormMessage />
-          </FormItem>
-        )} />
-      </div>
-      <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-        {t.adminSave}
-      </Button>
-    </div>
-  );
+  const openCreateForm = () => {
+    const nextSortOrder = Math.max(0, ...(taskList ?? []).map((task) => task.sortOrder)) + 1;
+    createForm.reset({
+      name: "",
+      description: "",
+      requiredInvites: "1",
+      reward: "0",
+      sortOrder: String(nextSortOrder),
+    });
+    setShowCreateForm(true);
+  };
 
   return (
     <div className="space-y-4">
@@ -182,7 +217,7 @@ export default function AdminTasks() {
           <h2 className="text-lg font-bold">{t.adminTaskCenterTitle}</h2>
           <p className="text-sm text-muted-foreground">{t.adminTaskCenterDesc}</p>
         </div>
-        <Button size="sm" onClick={() => setShowCreateForm(true)}>
+        <Button size="sm" onClick={openCreateForm}>
           <Plus className="w-4 h-4 mr-1" /> {t.adminTaskNew}
         </Button>
       </div>
@@ -246,7 +281,7 @@ export default function AdminTasks() {
           <DialogHeader><DialogTitle>{t.adminTaskNew}</DialogTitle></DialogHeader>
           <Form {...createForm}>
             <form onSubmit={createForm.handleSubmit(d => createMutation.mutate(d))}>
-              <TaskFormFields form={createForm} isPending={createMutation.isPending} />
+              <TaskFormFields form={createForm} isPending={createMutation.isPending} t={t} />
             </form>
           </Form>
         </DialogContent>
@@ -258,7 +293,7 @@ export default function AdminTasks() {
           <DialogHeader><DialogTitle>{t.adminTaskEdit}</DialogTitle></DialogHeader>
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(handleUpdate)}>
-              <TaskFormFields form={editForm} isPending={updateMutation.isPending} />
+              <TaskFormFields form={editForm} isPending={updateMutation.isPending} t={t} />
             </form>
           </Form>
         </DialogContent>
