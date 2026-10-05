@@ -58,8 +58,8 @@ function formatAmount(value: string | number, locale: string) {
 function ReceiptField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-[#e7eaf2] py-2.5 last:border-b-0">
-      <span className="text-[12px] text-[#69718d]">{label}</span>
-      <span className="text-right text-[13px] font-semibold text-[#0b1235]">{value}</span>
+      <span className="text-[12px] font-medium text-[#5e3de9]">{label}</span>
+      <span className="text-right text-[13px] font-semibold text-[#5e3de9]">{value}</span>
     </div>
   );
 }
