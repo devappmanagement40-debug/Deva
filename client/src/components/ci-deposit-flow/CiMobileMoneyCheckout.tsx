@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
+import waveMobileMoneyLogo from "@/assets/wave-mobile-money.jpg";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -178,6 +179,9 @@ export function CiMobileMoneyCheckout({
 
   const isEnglish = language.toLowerCase().startsWith("en");
   const copy = isEnglish ? COPY.en : COPY.fr;
+  const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
+    ? waveMobileMoneyLogo
+    : operatorLogoUrl;
   const safeUrl =
     paymentUrl?.trim() && isSafePaymentUrl(paymentUrl.trim())
       ? paymentUrl.trim()
@@ -301,9 +305,9 @@ export function CiMobileMoneyCheckout({
           </div>
 
           <div className="ci-wave-operator-icon" aria-hidden="true">
-            {operatorLogoUrl && !logoFailed ? (
+            {displayedOperatorLogo && !logoFailed ? (
               <img
-                src={operatorLogoUrl}
+                src={displayedOperatorLogo}
                 alt=""
                 onError={() => setLogoFailed(true)}
               />

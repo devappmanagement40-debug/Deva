@@ -192,8 +192,8 @@
 
 .ci-wave-operator-icon {
   display: grid;
-  width: 48px;
-  height: 49px;
+  width: 72px;
+  height: 54px;
   place-items: center;
   overflow: hidden;
   margin: 13px auto 11px;
@@ -205,8 +205,8 @@
 .ci-wave-operator-icon img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  background: #fff;
+  object-fit: cover;
+  background: transparent;
 }
 
 .ci-wave-selected {
