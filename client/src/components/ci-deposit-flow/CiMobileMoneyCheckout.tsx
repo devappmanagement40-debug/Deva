@@ -31,7 +31,6 @@ export type CiMobileMoneyCheckoutProps = {
   onPickProof(): void;
   isSubmitting: boolean;
   onBack(): void;
-  onContinueToPayment(): void;
   onSubmitForReview(): void;
   language: string;
 };
@@ -41,18 +40,11 @@ type PaymentTab = "app" | "qr";
 const COPY = {
   fr: {
     deposit: "Dépôt Mobile Money",
-    stageOne: "Vos coordonnées de paiement",
-    intro: "Indiquez le numéro depuis lequel vous effectuerez le transfert.",
-    amount: "Montant du paiement",
-    operator: "Opérateur sélectionné",
     phoneLabel: "Numéro de téléphone utilisé pour payer",
     phonePlaceholder: "10 chiffres",
     phoneHint: "Saisissez les 10 chiffres de votre numéro ivoirien.",
-    continue: "Continuer vers le paiement",
-    secure: "Vérification par l’administration",
-    reviewNote: "Votre paiement sera examiné par l’administration.",
     stageTwo: "Effectuez votre transfert",
-    stageCount: "ÉTAPE 2 SUR 2",
+    paymentMethod: "WAVE",
     appTab: "Ouvrir l’application",
     qrTab: "Scanner le code QR",
     exactAmount: "Montant à transférer",
@@ -89,18 +81,11 @@ const COPY = {
   },
   en: {
     deposit: "Mobile Money deposit",
-    stageOne: "Your payment details",
-    intro: "Enter the number you will use to make the transfer.",
-    amount: "Payment amount",
-    operator: "Selected operator",
     phoneLabel: "Phone number used to pay",
     phonePlaceholder: "10 digits",
     phoneHint: "Enter the 10 digits of your Côte d’Ivoire phone number.",
-    continue: "Continue to payment",
-    secure: "Administrative review",
-    reviewNote: "Your payment will be reviewed by the administration.",
     stageTwo: "Make your transfer",
-    stageCount: "STEP 2 OF 2",
+    paymentMethod: "WAVE",
     appTab: "Open payment app",
     qrTab: "Scan QR code",
     exactAmount: "Transfer amount",
@@ -163,11 +148,9 @@ export function CiMobileMoneyCheckout({
   onPickProof,
   isSubmitting,
   onBack,
-  onContinueToPayment,
   onSubmitForReview,
   language,
 }: CiMobileMoneyCheckoutProps) {
-  const [stage, setStage] = useState<1 | 2>(1);
   const [tab, setTab] = useState<PaymentTab>("app");
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
@@ -209,11 +192,6 @@ export function CiMobileMoneyCheckout({
       }).format(amountXof)
     : String(amountXof);
 
-  const continueToInstructions = () => {
-    onContinueToPayment();
-    setStage(2);
-  };
-
   const copyRecipient = async () => {
     try {
       if (navigator.clipboard?.writeText) {
@@ -240,10 +218,6 @@ export function CiMobileMoneyCheckout({
   };
 
   const goBack = () => {
-    if (stage === 2) {
-      setStage(1);
-      return;
-    }
     onBack();
   };
 
@@ -458,39 +432,22 @@ export function CiMobileMoneyCheckout({
           </button>
           <div className="ci-brand">
             <div className="ci-brand-mark">DIAMANT · {copy.deposit}</div>
-            <div className="ci-brand-title">{stage === 1 ? copy.stageOne : copy.stageTwo}</div>
+            <div className="ci-brand-title">{copy.stageTwo}</div>
           </div>
-          {stage === 2 && <span className="ci-step">{copy.stageCount}</span>}
+          <span className="ci-step">{copy.paymentMethod}</span>
         </header>
 
-        {stage === 1 ? (
-          <section className="ci-card" aria-labelledby="ci-stage-one-title">
+        <section className="ci-card" aria-labelledby="ci-stage-two-title">
             <div className="ci-card-head">
-              <p className="ci-eyebrow">{copy.deposit}</p>
-              <h1 className="ci-title" id="ci-stage-one-title">{copy.stageOne}</h1>
-              <p className="ci-description">{copy.intro}</p>
+              <p className="ci-eyebrow">{copy.paymentMethod}</p>
+              <h1 className="ci-title" id="ci-stage-two-title">{copy.stageTwo}</h1>
             </div>
             <div className="ci-body">
-              <div className="ci-amount" aria-label={`${copy.amount}: ${formattedAmount} ${currency}`}>
-                <span className="ci-amount-label">{copy.amount}</span>
+              <div className="ci-amount" aria-label={`${copy.exactAmount}: ${formattedAmount} ${currency}`}>
+                <span className="ci-amount-label">{copy.exactAmount}</span>
                 <span className="ci-amount-value">
                   {formattedAmount} <span className="ci-amount-currency">{currency}</span>
                 </span>
-              </div>
-
-              <div className="ci-operator">
-                <div className="ci-operator-icon" aria-hidden="true">
-                  {operatorLogoUrl && !logoFailed ? (
-                    <img src={operatorLogoUrl} alt="" onError={() => setLogoFailed(true)} />
-                  ) : (
-                    <Phone size={23} strokeWidth={2.2} />
-                  )}
-                </div>
-                <div className="ci-operator-copy">
-                  <div className="ci-operator-label">{copy.operator}</div>
-                  <div className="ci-operator-name">{operatorName}</div>
-                </div>
-                <Check size={19} color="#df874a" aria-hidden="true" />
               </div>
 
               <label className="ci-field">
@@ -514,39 +471,6 @@ export function CiMobileMoneyCheckout({
                 </span>
                 <span className="ci-hint">{copy.phoneHint}</span>
               </label>
-
-              <button
-                className="ci-primary"
-                type="button"
-                onClick={continueToInstructions}
-                disabled={payerPhoneDigits.length !== 10}
-              >
-                {copy.continue}
-                <ArrowUpRight size={18} aria-hidden="true" />
-              </button>
-
-              <div className="ci-secure">
-                <ShieldCheck className="ci-secure-icon" size={20} aria-hidden="true" />
-                <div>
-                  <strong>{copy.secure}</strong>
-                  {copy.reviewNote}
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section className="ci-card" aria-labelledby="ci-stage-two-title">
-            <div className="ci-card-head">
-              <p className="ci-eyebrow">{copy.stageCount}</p>
-              <h1 className="ci-title" id="ci-stage-two-title">{copy.stageTwo}</h1>
-            </div>
-            <div className="ci-body">
-              <div className="ci-amount" aria-label={`${copy.exactAmount}: ${formattedAmount} ${currency}`}>
-                <span className="ci-amount-label">{copy.exactAmount}</span>
-                <span className="ci-amount-value">
-                  {formattedAmount} <span className="ci-amount-currency">{currency}</span>
-                </span>
-              </div>
 
               <div className="ci-recipient">
                 <div className="ci-recipient-head">
@@ -686,7 +610,7 @@ export function CiMobileMoneyCheckout({
                   className="ci-primary"
                   type="button"
                   onClick={onSubmitForReview}
-                  disabled={!transactionId.trim() || isSubmitting}
+                  disabled={payerPhoneDigits.length !== 10 || !transactionId.trim() || isSubmitting}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? copy.submitting : copy.submit}
@@ -694,7 +618,6 @@ export function CiMobileMoneyCheckout({
               </div>
             </div>
           </section>
-        )}
       </div>
     </main>
   );

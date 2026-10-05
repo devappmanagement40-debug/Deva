@@ -448,11 +448,8 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     if (countryCode.trim().toUpperCase() === "CI") {
       setIsOpeningMobileMoney(true);
       try {
-        const operators = await queryClient.fetchQuery<PaymentNumber[]>({
-          queryKey: ["/api/payment-numbers", countryCode],
-          queryFn: () => fetchMobileMoneyOperators(countryCode),
-          staleTime: 15_000,
-        });
+        const operators = await fetchMobileMoneyOperators(countryCode);
+        queryClient.setQueryData(["/api/payment-numbers", countryCode], operators);
         const waveOperators = operators.filter(
           (operator) => operator.operatorName.trim().toLowerCase() === "wave",
         );
@@ -861,7 +858,6 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               setView("main");
             }
           }}
-          onContinueToPayment={() => setPayerPhone(ciPhoneDigits)}
           onSubmitForReview={submitMobileMoneyDeposit}
           language={lang}
         />
