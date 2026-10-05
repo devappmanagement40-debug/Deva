@@ -1,17 +1,10 @@
-import { useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
+import { useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.jpg";
 import {
-  ArrowDown,
-  ArrowUpRight,
   Check,
-  CircleAlert,
-  Copy,
-  ExternalLink,
   Gem,
   Globe2,
-  ImagePlus,
   LockKeyhole,
   ShieldCheck,
   Smartphone,
@@ -140,81 +133,27 @@ const COPY = {
   },
 } as const;
 
-function isSafePaymentUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return ["https:", "wave:"].includes(parsed.protocol);
-  } catch {
-    return false;
-  }
-}
-
 export function CiMobileMoneyCheckout({
   amountXof,
   currency,
   operatorName,
-  operatorPhone,
-  operatorOwnerName,
   operatorLogoUrl,
-  paymentUrl,
-  paymentQrDataUrl,
   payerPhoneDigits,
   onPayerPhoneDigitsChange,
-  transactionId,
-  onTransactionIdChange,
-  proofName,
-  onPickProof,
   isSubmitting,
   onBack,
   onSubmitForReview,
   onToggleLanguage,
   language,
 }: CiMobileMoneyCheckoutProps) {
-  const [copied, setCopied] = useState(false);
-  const [copyError, setCopyError] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
-  const [generatedQr, setGeneratedQr] = useState("");
   const phoneInputRef = useRef<HTMLInputElement>(null);
-  const referenceInputRef = useRef<HTMLInputElement>(null);
 
   const isEnglish = language.toLowerCase().startsWith("en");
   const copy = isEnglish ? COPY.en : COPY.fr;
   const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
     ? waveMobileMoneyLogo
     : operatorLogoUrl;
-  const safeUrl =
-    paymentUrl?.trim() && isSafePaymentUrl(paymentUrl.trim())
-      ? paymentUrl.trim()
-      : "";
-  const qrSource = paymentQrDataUrl?.startsWith("data:image/")
-    ? paymentQrDataUrl
-    : "";
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!safeUrl || qrSource) {
-      setGeneratedQr("");
-      return () => {
-        cancelled = true;
-      };
-    }
-    void QRCode.toDataURL(safeUrl, {
-      errorCorrectionLevel: "M",
-      margin: 2,
-      width: 320,
-    })
-      .then((dataUrl) => {
-        if (!cancelled) setGeneratedQr(dataUrl);
-      })
-      .catch(() => {
-        if (!cancelled) setGeneratedQr("");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [safeUrl, qrSource]);
-
-  const displayedQr = qrSource || generatedQr;
   const formattedAmount = Number.isFinite(amountXof)
     ? new Intl.NumberFormat(isEnglish ? "en-US" : "fr-FR", {
         maximumFractionDigits: 0,
@@ -222,40 +161,10 @@ export function CiMobileMoneyCheckout({
     : String(amountXof);
   const displayCurrency = currency.toUpperCase() === "XOF" ? "FCFA" : currency;
 
-  const copyRecipient = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(operatorPhone);
-      } else {
-        const field = document.createElement("textarea");
-        field.value = operatorPhone;
-        field.setAttribute("readonly", "");
-        field.style.position = "fixed";
-        field.style.opacity = "0";
-        document.body.appendChild(field);
-        field.select();
-        const success = document.execCommand("copy");
-        field.remove();
-        if (!success) throw new Error("Clipboard unavailable");
-      }
-      setCopied(true);
-      setCopyError(false);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopyError(true);
-      setCopied(false);
-    }
-  };
-
   const handleSubmit = () => {
     if (payerPhoneDigits.length !== 10) {
       phoneInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       phoneInputRef.current?.focus({ preventScroll: true });
-      return;
-    }
-    if (!transactionId.trim()) {
-      referenceInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      referenceInputRef.current?.focus({ preventScroll: true });
       return;
     }
     onSubmitForReview();
@@ -373,133 +282,6 @@ export function CiMobileMoneyCheckout({
         </section>
       </section>
 
-      <section className="ci-wave-details" aria-labelledby="ci-wave-details-title">
-        <div className="ci-wave-details-card">
-          <div className="ci-wave-details-heading">
-            <span className="ci-wave-details-icon">
-              <Smartphone size={18} aria-hidden="true" />
-            </span>
-            <div>
-              <h1 id="ci-wave-details-title">{copy.paymentDetails}</h1>
-              <p>{copy.appHeading} {operatorName || "Wave"}</p>
-            </div>
-          </div>
-
-          <p className="ci-wave-instructions">{copy.appInstructions}</p>
-
-          <div className="ci-wave-recipient">
-            <div className="ci-wave-recipient-head">
-              <span>{copy.recipient} · {operatorName || "Wave"}</span>
-              <button type="button" onClick={() => void copyRecipient()}>
-                {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
-                {copied ? copy.copied : copy.copy}
-              </button>
-            </div>
-            <strong className="ci-wave-recipient-phone">{operatorPhone}</strong>
-            <span className="ci-wave-owner">
-              {copy.owner}: {operatorOwnerName || copy.missingOwner}
-            </span>
-            {copyError && (
-              <span className="ci-wave-copy-error" role="status">
-                {copy.copyFailed}
-              </span>
-            )}
-          </div>
-
-          {safeUrl ? (
-            <a
-              className="ci-wave-launch"
-              href={safeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${copy.launch}. ${copy.openNew}`}
-            >
-              <ExternalLink size={17} aria-hidden="true" />
-              {copy.launch}
-            </a>
-          ) : (
-            <div className="ci-wave-config-note" role="status">
-              <CircleAlert size={17} aria-hidden="true" />
-              <span>{copy.configureLink} {copy.manualTransfer}</span>
-            </div>
-          )}
-
-          <div className="ci-wave-qr-panel">
-            <div className="ci-wave-qr-heading">
-              <div>
-                <h2>{copy.qrHeading}</h2>
-                <p>{copy.scanInstructions}</p>
-              </div>
-              <ArrowDown size={18} aria-hidden="true" />
-            </div>
-            {displayedQr ? (
-              <img
-                className="ci-wave-qr"
-                src={displayedQr}
-                alt={`${copy.qrHeading} · ${operatorName || "Wave"}`}
-              />
-            ) : (
-              <div className="ci-wave-qr-unavailable">
-                <ImagePlus size={21} aria-hidden="true" />
-                <span>{copy.qrUnavailable}</span>
-                <small>{copy.configureQr}</small>
-              </div>
-            )}
-          </div>
-
-          <div className="ci-wave-reference">
-            <label htmlFor="ci-wave-transaction-id">
-              <span className="ci-wave-reference-label">
-                <span>{copy.reference}</span>
-                <strong>{copy.required}</strong>
-              </span>
-              <span className="ci-wave-reference-hint">{copy.referenceHint}</span>
-            </label>
-            <input
-              ref={referenceInputRef}
-              id="ci-wave-transaction-id"
-              type="text"
-              autoComplete="off"
-              value={transactionId}
-              maxLength={180}
-              onChange={(event) =>
-                onTransactionIdChange(event.currentTarget.value.slice(0, 180))
-              }
-              placeholder={copy.referencePlaceholder}
-              required
-            />
-
-            <button
-              className="ci-wave-proof"
-              type="button"
-              onClick={onPickProof}
-              aria-label={copy.proof}
-            >
-              <ImagePlus size={19} aria-hidden="true" />
-              <span>
-                <strong>{proofName ? copy.replaceProof : copy.chooseProof}</strong>
-                <small>{proofName || copy.noProof}</small>
-              </span>
-              <ArrowUpRight size={17} aria-hidden="true" />
-            </button>
-
-            <p className="ci-wave-review-note">
-              <ShieldCheck size={16} aria-hidden="true" />
-              <span>{copy.submitHint}</span>
-            </p>
-
-            <button
-              className="ci-wave-submit ci-wave-submit-details"
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-            >
-              {isSubmitting ? copy.submitting : copy.submitDetails}
-            </button>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }
