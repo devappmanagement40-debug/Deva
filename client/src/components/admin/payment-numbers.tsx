@@ -462,7 +462,7 @@ export default function AdminPaymentNumbers() {
                     data-testid="input-tg-ussd-template"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Obligatoire pour le Togo. Balises disponibles : {"{amount}"}, {"{number}"} (bénéficiaire), {"{phone}"} (client), {"{currency}"} et {"{operator}"}.
+                    Obligatoire pour le Togo et doit contenir {"{amount}"} pour insérer automatiquement le montant. Balises facultatives : {"{number}"} (bénéficiaire), {"{phone}"} (client), {"{currency}"} et {"{operator}"}.
                   </p>
                 </div>
               </section>

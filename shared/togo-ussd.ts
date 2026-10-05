@@ -36,6 +36,9 @@ export function isValidTogoUssdTemplate(template: string | null | undefined): bo
   if (matches.some((token) => !SUPPORTED_TOKENS.has(token.slice(1, -1).trim().toLowerCase()))) {
     return false;
   }
+  if (!matches.some((token) => token.slice(1, -1).trim().toLowerCase() === "amount")) {
+    return false;
+  }
   return !/[{}]/.test(template.replace(/\{[^{}]*\}/g, ""));
 }
 

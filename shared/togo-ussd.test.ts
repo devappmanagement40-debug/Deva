@@ -20,21 +20,23 @@ test("renders configured Togo payment values into the USSD template", () => {
 
 test("supports the payer phone aliases and case-insensitive tokens", () => {
   assert.equal(
-    renderTogoUssdTemplate("*123*{PAYERPHONE}*{currency}#", {
+    renderTogoUssdTemplate("*123*{PAYERPHONE}*{currency}*{Amount}#", {
       amount: 5000,
       number: "1305150",
       phone: "+228 93 25 63 28",
       currency: "XOF",
       operator: "Moov",
     }),
-    "*123*93256328*XOF#",
+    "*123*93256328*XOF*5000#",
   );
 });
 
 test("rejects missing, malformed, and unsupported Togo templates", () => {
   assert.equal(isValidTogoUssdTemplate(""), false);
   assert.equal(isValidTogoUssdTemplate("*123*{mystery}#"), false);
+  assert.equal(isValidTogoUssdTemplate("*123*{number}#"), false);
   assert.equal(isValidTogoUssdTemplate("*123*{amount"), false);
+  assert.equal(isValidTogoUssdTemplate("*123*{amount}*{number}#"), true);
   assert.equal(
     renderTogoUssdTemplate("*123*{mystery}#", {
       amount: 5000,

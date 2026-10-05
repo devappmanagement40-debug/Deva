@@ -7,7 +7,8 @@
   --tg-muted: #666a70;
   --tg-line: #d9dce0;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--tg-surface);
   color: #17202c;
   font-family: "Noto Sans", "Segoe UI", sans-serif;
@@ -367,6 +368,9 @@
   background: #fff;
   box-shadow: 0 2px 9px rgb(19 38 61 / 10%);
   color: var(--tg-ink);
+  -webkit-text-fill-color: var(--tg-ink);
+  caret-color: var(--tg-ink);
+  color-scheme: light;
   font: inherit;
   font-size: 16px;
   font-weight: 650;

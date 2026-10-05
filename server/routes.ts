@@ -1146,7 +1146,7 @@ export async function registerRoutes(
       const normalizedUssdTemplate = typeof ussdTemplate === "string" ? ussdTemplate.trim() : "";
       if (normalizedCountry === "TG" && !isValidTogoUssdTemplate(normalizedUssdTemplate)) {
         return res.status(400).json({
-          message: "Le modèle USSD du Togo est obligatoire et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
+          message: "Le modèle USSD du Togo doit contenir {amount} pour insérer automatiquement le montant et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
         });
       }
       if (normalizedCountry === "CI" && normalizedOperatorName.toLowerCase() !== "wave") {
@@ -1204,7 +1204,7 @@ export async function registerRoutes(
         !isValidTogoUssdTemplate(effectiveUssdTemplate)
       ) {
         return res.status(400).json({
-          message: "Le modèle USSD du Togo est obligatoire et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
+          message: "Le modèle USSD du Togo doit contenir {amount} pour insérer automatiquement le montant et ne peut utiliser que les balises {amount}, {number}, {phone}, {currency} et {operator}.",
         });
       }
       if (
