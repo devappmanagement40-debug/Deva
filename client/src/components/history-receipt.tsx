@@ -63,9 +63,9 @@ function formatAmount(value: string | number, locale: string) {
 
 function ReceiptField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-[#e7eaf2] py-2.5 last:border-b-0">
-      <span className="text-[12px] font-medium text-[#5e3de9]">{label}</span>
-      <span className="text-right text-[13px] font-semibold text-[#5e3de9]">{value}</span>
+    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-white/20 py-2.5 last:border-b-0">
+      <span className="text-[12px] font-medium text-white">{label}</span>
+      <span className="text-right text-[13px] font-semibold text-white">{value}</span>
     </div>
   );
 }
@@ -168,9 +168,9 @@ const DEPOSIT_RECEIPT_COPY = {
 
 function DepositReceiptField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-[#ebe9f7] py-2.5 last:border-b-0">
-      <span className="text-[12px] font-medium text-[#5e3de9]">{label}</span>
-      <span className="text-right text-[13px] font-semibold text-[#5e3de9]">{value}</span>
+    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-white/20 py-2.5 last:border-b-0">
+      <span className="text-[12px] font-medium text-white">{label}</span>
+      <span className="text-right text-[13px] font-semibold text-white">{value}</span>
     </div>
   );
 }
@@ -201,7 +201,7 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
           {statusLabel}
         </span>
       </div>
-      <div className="px-5">
+      <div className="bg-[#0b1235] px-5">
         <DepositReceiptField label={copy.amount} value={`${formatAmount(transaction.amount, locale)} XOF`} />
         <DepositReceiptField label={copy.method} value={method} />
         <DepositReceiptField label={copy.id} value={depositId} />
@@ -267,7 +267,7 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
           {statusTitle}
         </span>
       </div>
-      <div className="px-5">
+      <div className="bg-[#0b1235] px-5">
         <ReceiptField label={copy.gross} value={amount} />
         {netAmount && (
           <ReceiptField label={status.tone === "success" ? copy.received : copy.expectedNet} value={netAmount} />
