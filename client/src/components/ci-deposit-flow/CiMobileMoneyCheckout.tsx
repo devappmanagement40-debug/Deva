@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.png";
+import { isPaymentQrDataUrl } from "@/lib/payment-qr-image";
 import {
   ArrowLeft,
   Check,
@@ -21,6 +22,7 @@ export type CiMobileMoneyCheckoutProps = {
   operatorName: string;
   operatorLogoUrl?: string | null;
   paymentUrl?: string | null;
+  paymentQrDataUrl?: string | null;
   payerPhoneDigits: string;
   onPayerPhoneDigitsChange(value: string): void;
   transactionId: string;
@@ -42,7 +44,9 @@ const COPY = {
     launch: "Ouvrir Wave",
     stageTitle: "Effectuez votre transfert",
     stageIntro: "Payez avec Wave, puis indiquez la référence de votre transaction.",
-    paymentUnavailable: "Le lien de paiement Wave n’est pas configuré. Vous ne pouvez pas poursuivre ce dépôt pour le moment.",
+    paymentUnavailable: "Aucun lien de paiement ni QR Wave valide n’est configuré. Vous ne pouvez pas poursuivre ce dépôt pour le moment.",
+    qrHeading: "Code QR Wave",
+    qrHint: "Scannez ce code avec l’application Wave.",
     paymentInstructions: "Après le paiement, saisissez le numéro de transaction affiché sur votre reçu.",
     reference: "Numéro de transaction",
     referenceHint: "Saisissez la référence indiquée sur le reçu de votre transfert.",
@@ -71,7 +75,9 @@ const COPY = {
     launch: "Open Wave",
     stageTitle: "Make your transfer",
     stageIntro: "Pay with Wave, then enter your transaction reference.",
-    paymentUnavailable: "The Wave payment link is not configured. You cannot continue this deposit right now.",
+    paymentUnavailable: "No Wave payment link or QR code is configured. You cannot continue this deposit right now.",
+    qrHeading: "Wave QR code",
+    qrHint: "Scan this code with the Wave app.",
     paymentInstructions: "After payment, enter the transaction number shown on your receipt.",
     reference: "Transaction number",
     referenceHint: "Enter the reference shown on your transfer receipt.",
@@ -112,6 +118,7 @@ export function CiMobileMoneyCheckout({
   operatorName,
   operatorLogoUrl,
   paymentUrl,
+  paymentQrDataUrl,
   payerPhoneDigits,
   onPayerPhoneDigitsChange,
   transactionId,
@@ -136,6 +143,10 @@ export function CiMobileMoneyCheckout({
   const safePaymentUrl = trimmedPaymentUrl && isSafePaymentUrl(trimmedPaymentUrl)
     ? trimmedPaymentUrl
     : "";
+  const safePaymentQrDataUrl = isPaymentQrDataUrl(paymentQrDataUrl)
+    ? paymentQrDataUrl
+    : "";
+  const canPay = Boolean(safePaymentUrl || safePaymentQrDataUrl);
   const formattedTimeRemaining = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
   const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
     ? waveMobileMoneyLogo
@@ -172,7 +183,7 @@ export function CiMobileMoneyCheckout({
   };
 
   const handleSubmitForReview = () => {
-    if (!safePaymentUrl || !transactionId.trim() || isSubmitting) return;
+    if (!canPay || !transactionId.trim() || isSubmitting) return;
     onSubmitForReview();
   };
 
@@ -337,7 +348,7 @@ export function CiMobileMoneyCheckout({
                 </span>
               </div>
 
-              {safePaymentUrl ? (
+              {safePaymentUrl && (
                 <a
                   className="ci-wave-launch"
                   href={safePaymentUrl}
@@ -348,7 +359,17 @@ export function CiMobileMoneyCheckout({
                   <ExternalLink size={17} aria-hidden="true" />
                   {copy.launch}
                 </a>
-              ) : (
+              )}
+
+              {safePaymentQrDataUrl && (
+                <section className="ci-wave-qr" aria-label={copy.qrHeading}>
+                  <strong>{copy.qrHeading}</strong>
+                  <img src={safePaymentQrDataUrl} alt={copy.qrHeading} />
+                  <p>{copy.qrHint}</p>
+                </section>
+              )}
+
+              {!canPay && (
                 <div className="ci-wave-payment-unavailable" role="status">
                   <CircleAlert size={17} aria-hidden="true" />
                   <span>{copy.paymentUnavailable}</span>
@@ -381,7 +402,7 @@ export function CiMobileMoneyCheckout({
                   className="ci-wave-submit ci-wave-submit-details"
                   type="button"
                   onClick={handleSubmitForReview}
-                  disabled={!safePaymentUrl || !transactionId.trim() || isSubmitting}
+                  disabled={!canPay || !transactionId.trim() || isSubmitting}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? copy.submitting : copy.submitDetails}

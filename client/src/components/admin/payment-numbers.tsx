@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
+import PaymentQrUploader from "@/components/admin/payment-qr-uploader";
+import { isPaymentQrDataUrl } from "@/lib/payment-qr-image";
 import { Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff, ExternalLink } from "lucide-react";
 import type { PaymentNumber } from "@shared/schema";
 
@@ -28,6 +30,7 @@ const emptyForm = {
   country: "",
   logoUrl: "",
   paymentUrl: "",
+  paymentQrDataUrl: "",
   isActive: true,
 };
 
@@ -64,6 +67,8 @@ export default function AdminPaymentNumbers() {
       const payload = {
         ...form,
         country,
+        paymentUrl: country === "CI" ? form.paymentUrl : "",
+        paymentQrDataUrl: country === "CI" ? form.paymentQrDataUrl : "",
         operatorName: country === "CI" ? "Wave" : form.operatorName,
       };
       if (!payload.country) throw new Error("Veuillez sélectionner ou saisir un pays");
@@ -133,6 +138,7 @@ export default function AdminPaymentNumbers() {
       country: isKnown ? num.country : "",
       logoUrl: num.logoUrl || "",
       paymentUrl: num.paymentUrl || "",
+      paymentQrDataUrl: num.paymentQrDataUrl || "",
       isActive: num.isActive,
     });
     setShowForm(true);
@@ -211,25 +217,34 @@ export default function AdminPaymentNumbers() {
                         <p className="font-mono text-primary font-bold">{num.phone}</p>
                         <p className="text-sm text-muted-foreground">{num.ownerName}</p>
                         {num.country.trim().toUpperCase() === "CI" && (
-                          <p className="mt-1 break-all text-xs">
-                            {getSafePaymentHref(num.paymentUrl) ? (
-                              <a
-                                href={getSafePaymentHref(num.paymentUrl) || undefined}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title={num.paymentUrl || undefined}
-                                className="inline-flex items-start gap-1 text-primary underline underline-offset-2"
-                                data-testid={`link-wave-payment-${num.id}`}
-                              >
-                                <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
-                                <span>{num.paymentUrl}</span>
-                              </a>
-                            ) : (
-                              <span className="text-muted-foreground">
-                                {num.paymentUrl ? "Lien Wave invalide" : "Lien Wave non configuré"}
-                              </span>
+                          <>
+                            <p className="mt-1 break-all text-xs">
+                              {getSafePaymentHref(num.paymentUrl) ? (
+                                <a
+                                  href={getSafePaymentHref(num.paymentUrl) || undefined}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title={num.paymentUrl || undefined}
+                                  className="inline-flex items-start gap-1 text-primary underline underline-offset-2"
+                                  data-testid={`link-wave-payment-${num.id}`}
+                                >
+                                  <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                                  <span>{num.paymentUrl}</span>
+                                </a>
+                              ) : (
+                                <span className="text-muted-foreground">
+                                  {num.paymentUrl ? "Lien Wave invalide" : "Lien Wave non configuré"}
+                                </span>
+                              )}
+                            </p>
+                            {isPaymentQrDataUrl(num.paymentQrDataUrl) && (
+                              <img
+                                src={num.paymentQrDataUrl}
+                                alt="Aperçu du QR Wave"
+                                className="mt-2 h-14 w-14 rounded border border-border bg-white p-1 object-contain"
+                              />
                             )}
-                          </p>
+                          </>
                         )}
                       </div>
                       <div className="flex gap-1">
@@ -281,7 +296,7 @@ export default function AdminPaymentNumbers() {
                           country,
                           ...(country.trim().toUpperCase() === "CI"
                             ? {}
-                            : { paymentUrl: "" }),
+                            : { paymentUrl: "", paymentQrDataUrl: "" }),
                         }));
                       }
                     }}
@@ -305,7 +320,7 @@ export default function AdminPaymentNumbers() {
                       const value = e.target.value.toUpperCase();
                       setManualCountryInput(value);
                       if (value.trim() !== "CI") {
-                        setForm(f => ({ ...f, paymentUrl: "" }));
+                        setForm(f => ({ ...f, paymentUrl: "", paymentQrDataUrl: "" }));
                       }
                     }}
                     placeholder="Code pays (ex: GA, SN...)"
@@ -316,7 +331,18 @@ export default function AdminPaymentNumbers() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => { setManualCountry(false); setManualCountryInput(""); setForm(f => ({ ...f, country: countries[0]?.code || "" })); }}
+                    onClick={() => {
+                      const country = countries[0]?.code || "";
+                      setManualCountry(false);
+                      setManualCountryInput("");
+                      setForm(f => ({
+                        ...f,
+                        country,
+                        ...(country.trim().toUpperCase() === "CI"
+                          ? {}
+                          : { paymentUrl: "", paymentQrDataUrl: "" }),
+                      }));
+                    }}
                   >
                     Liste
                   </Button>
@@ -368,6 +394,10 @@ export default function AdminPaymentNumbers() {
                     Le dépôt Wave CI ouvre ce lien. Vous pouvez le modifier ici; les balises {"{amount}"}, {"{phone}"} et {"{currency}"} sont facultatives.
                   </p>
                 </div>
+                <PaymentQrUploader
+                  value={form.paymentQrDataUrl}
+                  onChange={paymentQrDataUrl => setForm(f => ({ ...f, paymentQrDataUrl }))}
+                />
               </section>
             )}
             <div className="flex items-center gap-2">

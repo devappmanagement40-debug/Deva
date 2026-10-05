@@ -826,6 +826,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           operatorName={selectedOperator.operatorName}
           operatorLogoUrl={selectedOperator.logoUrl}
           paymentUrl={paymentUrl}
+          paymentQrDataUrl={selectedOperator.paymentQrDataUrl}
           payerPhoneDigits={ciPhoneDigits}
           onPayerPhoneDigitsChange={(value) => setPayerPhone(value)}
           transactionId={mobileTransactionId}

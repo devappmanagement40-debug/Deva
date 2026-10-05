@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { getCountryFlagEmoji } from "@/lib/countries";
+import PaymentQrUploader from "@/components/admin/payment-qr-uploader";
+import { isPaymentQrDataUrl } from "@/lib/payment-qr-image";
 import {
   Plus, Edit, Trash2, Phone, Loader2, Eye, EyeOff, ExternalLink,
   ChevronDown, ChevronUp, Settings,
@@ -27,6 +29,7 @@ const emptyOp = {
   operatorName: "",
   logoUrl: "",
   paymentUrl: "",
+  paymentQrDataUrl: "",
   isActive: true,
 };
 
@@ -114,6 +117,7 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
       operatorName: op.operatorName,
       logoUrl: op.logoUrl || "",
       paymentUrl: op.paymentUrl || "",
+      paymentQrDataUrl: op.paymentQrDataUrl || "",
       isActive: op.isActive,
     });
     setShowAdd(true);
@@ -165,6 +169,13 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
                     </span>
                   )}
                 </div>
+              )}
+              {showCiPaymentSettings && isPaymentQrDataUrl(op.paymentQrDataUrl) && (
+                <img
+                  src={op.paymentQrDataUrl}
+                  alt="Aperçu du QR Wave"
+                  className="mt-2 h-14 w-14 rounded border border-border bg-white p-1 object-contain"
+                />
               )}
             </div>
             <Badge variant={op.isActive ? "default" : "secondary"} className="text-xs shrink-0">
@@ -230,17 +241,22 @@ function ChannelOperators({ channel }: { channel: DepositChannel }) {
             {showCiPaymentSettings && (
               <section className="space-y-3 rounded-lg border p-3">
                 <div>
-                    <label className="text-xs font-medium text-muted-foreground">Lien de paiement Wave</label>
+                  <label className="text-xs font-medium text-muted-foreground">Lien de paiement Wave</label>
                   <Input
-                      placeholder="https://…"
+                    placeholder="https://…"
                     value={form.paymentUrl}
                     onChange={e => setForm(f => ({ ...f, paymentUrl: e.target.value }))}
                     data-testid="input-channel-payment-url"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                      Ce lien est utilisé par le parcours de dépôt Wave en Côte d’Ivoire. Vous pouvez le modifier ici; les balises {"{amount}"}, {"{phone}"} et {"{currency}"} sont facultatives.
+                    Ce lien est utilisé par le parcours de dépôt Wave en Côte d’Ivoire. Vous pouvez le modifier ici; les balises {"{amount}"}, {"{phone}"} et {"{currency}"} sont facultatives.
                   </p>
                 </div>
+                <PaymentQrUploader
+                  value={form.paymentQrDataUrl}
+                  onChange={paymentQrDataUrl => setForm(f => ({ ...f, paymentQrDataUrl }))}
+                  testId="input-channel-payment-qr"
+                />
               </section>
             )}
             <label className="flex items-center gap-2 cursor-pointer">
