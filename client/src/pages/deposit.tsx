@@ -441,7 +441,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     setMobileMoneyCountryCode(countryCode);
     setSelectedOperator(null);
     setPayerName(user?.fullName || "");
-    setPayerPhone(user?.phone || "");
+    setPayerPhone(countryCode.trim().toUpperCase() === "CI" ? "" : (user?.phone || ""));
     setMobileTransactionId("");
     setProof(null);
     setProofName("");

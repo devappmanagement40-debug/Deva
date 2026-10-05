@@ -357,15 +357,20 @@
   min-width: 0;
   border: 0;
   outline: 0;
-  color: #383c40;
+  color: #1f2937;
   background: transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  caret-color: #1f2937;
+  -webkit-text-fill-color: #1f2937;
 }
 
 .ci-wave-phone-control input::placeholder {
   overflow: hidden;
-  color: #d29a6b;
+  color: #667085;
+  font-weight: 400;
+  opacity: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

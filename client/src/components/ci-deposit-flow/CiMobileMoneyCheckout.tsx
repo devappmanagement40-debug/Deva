@@ -274,7 +274,8 @@ export function CiMobileMoneyCheckout({
               id="ci-wave-phone"
               type="tel"
               inputMode="numeric"
-              autoComplete="tel-national"
+              autoComplete="off"
+              name="ci-wave-payment-phone"
               aria-describedby="ci-wave-phone-hint"
               value={payerPhoneDigits}
               onChange={(event) =>
