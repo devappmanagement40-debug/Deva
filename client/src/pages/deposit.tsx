@@ -147,7 +147,7 @@ function LabelledInput({
 
 export default function DepositPage({ startInIssue = false }: { startInIssue?: boolean }) {
   const { user } = useAuth();
-  const { lang, t } = useI18n();
+  const { lang, setLang, t } = useI18n();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -860,6 +860,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           }}
           onSubmitForReview={submitMobileMoneyDeposit}
           language={lang}
+          onToggleLanguage={() => setLang(lang.toLowerCase().startsWith("en") ? "fr" : "en")}
         />
       </>
     );
