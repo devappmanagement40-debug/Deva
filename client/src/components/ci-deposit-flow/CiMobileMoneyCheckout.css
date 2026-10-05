@@ -420,92 +420,133 @@
   color: #1b76c8;
 }
 
-.ci-wave-stage-heading {
+.ci-wave-method-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+  margin: 11px 0 10px;
+  padding: 5px;
+  border: 1px solid #e7eaf0;
+  border-radius: 11px;
+  background: #f5f6f8;
+}
+
+.ci-wave-method-tab {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 5px 0 10px;
-}
-
-.ci-wave-stage-mark {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 auto;
-  place-items: center;
-  overflow: hidden;
-  border-radius: 9px;
-  color: #0788b7;
-  background: #e5f8fc;
-}
-
-.ci-wave-stage-mark img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.ci-wave-stage-heading > span:last-child {
-  display: grid;
   min-width: 0;
-  gap: 2px;
-}
-
-.ci-wave-stage-heading strong {
-  color: #303841;
-  font-size: 15px;
-  line-height: 1.25;
-}
-
-.ci-wave-stage-heading small {
-  color: #747d88;
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.ci-wave-transfer-banner {
-  display: grid;
-  min-height: 59px;
-  grid-template-columns: 37px minmax(0, 1fr);
+  min-height: 49px;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 8px;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 7px;
+  color: #5b6470;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.ci-wave-method-tab svg {
+  flex: 0 0 auto;
+}
+
+.ci-wave-method-tab:hover:not(.ci-wave-method-tab--active) {
+  color: #273747;
+  background: #e9edf2;
+}
+
+.ci-wave-method-tab--active {
   color: #fff;
   background: var(--ci-wave-panel);
+  box-shadow: 0 3px 8px rgba(122, 77, 43, 0.2);
 }
 
-.ci-wave-transfer-logo {
+.ci-wave-method-help {
   display: grid;
-  width: 37px;
-  height: 37px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 11px 12px;
+  border: 1px solid #c8e2fa;
+  border-left: 4px solid var(--ci-wave-orange);
+  border-radius: 9px;
+  color: #236da9;
+  background: #eef7ff;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.ci-wave-method-help svg {
+  margin-top: 1px;
+}
+
+.ci-wave-method-panel {
+  min-width: 0;
+}
+
+.ci-wave-link-panel {
+  margin-top: 10px;
+}
+
+.ci-wave-link-card {
+  display: grid;
+  min-height: 91px;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(112deg, #efa368 0%, #ee9a59 100%);
+  box-shadow: 0 4px 10px rgba(122, 77, 43, 0.16);
+}
+
+.ci-wave-link-logo {
+  display: grid;
+  width: 62px;
+  height: 62px;
   place-items: center;
   overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.75);
+  border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
-  color: #087c9c;
   background: #fff;
 }
 
-.ci-wave-transfer-logo img {
+.ci-wave-link-logo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.ci-wave-transfer-banner > span:last-child {
+.ci-wave-link-copy {
   display: grid;
-  gap: 2px;
+  gap: 4px;
 }
 
-.ci-wave-transfer-banner strong {
-  font-size: 13px;
+.ci-wave-link-copy strong {
+  font-size: 17px;
   line-height: 1.2;
 }
 
-.ci-wave-transfer-banner small {
+.ci-wave-link-copy small {
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.4;
+}
+
+.ci-wave-link-note {
+  margin: 7px 0 0;
+  color: #737d88;
+  font-size: 10px;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .ci-wave-launch {
@@ -536,27 +577,27 @@
 .ci-wave-qr {
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 10px;
-  padding: 11px;
+  padding: 14px;
   border: 1px solid #e3e8ef;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
 }
 
 .ci-wave-qr strong {
   color: #344054;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
 }
 
 .ci-wave-qr img {
   display: block;
-  width: min(100%, 196px);
+  width: min(100%, 256px);
   aspect-ratio: 1;
-  padding: 8px;
+  padding: 9px;
   border: 1px solid #e3e8ef;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
   object-fit: contain;
 }
@@ -564,8 +605,8 @@
 .ci-wave-qr p {
   margin: 0;
   color: #667085;
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 11px;
+  line-height: 1.45;
   text-align: center;
 }
 
@@ -735,6 +776,33 @@
   .ci-wave-card {
     padding-right: 14px;
     padding-left: 14px;
+  }
+
+  .ci-wave-method-tabs {
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .ci-wave-method-tab {
+    gap: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    font-size: 10px;
+  }
+
+  .ci-wave-link-card {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .ci-wave-link-logo {
+    width: 54px;
+    height: 54px;
+  }
+
+  .ci-wave-link-copy strong {
+    font-size: 15px;
   }
 }
 

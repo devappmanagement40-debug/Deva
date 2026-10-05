@@ -10,6 +10,7 @@ import {
   Gem,
   Globe2,
   LockKeyhole,
+  QrCode,
   ShieldCheck,
   Smartphone,
   X,
@@ -41,13 +42,18 @@ const COPY = {
     phonePlaceholder: "Veuillez entrer le numéro de portefeuille…",
     phoneHint:
       "Veuillez saisir correctement votre numéro de portefeuille de paiement à 10 chiffres pour que votre paiement arrive avec précision",
-    launch: "Ouvrir Wave",
+    openAppTab: "Ouvrir l’application",
+    scanQrTab: "Scanner le code QR",
+    paymentMethodTabs: "Choisir le mode de paiement",
+    linkPanelHeading: "Pay with Wave",
+    linkPanelBody: "Ouvrez le lien de paiement pour effectuer votre transfert avec Wave.",
+    launch: "Payer par lien",
+    linkHelp: "Ouvrez le lien de paiement, puis terminez le transfert dans l’application Wave.",
+    qrHelp: "Scannez ce code QR avec l’application Wave pour effectuer le paiement.",
     stageTitle: "Effectuez votre transfert",
-    stageIntro: "Payez avec Wave, puis indiquez la référence de votre transaction.",
     paymentUnavailable: "Aucun lien de paiement ni QR Wave valide n’est configuré. Vous ne pouvez pas poursuivre ce dépôt pour le moment.",
     qrHeading: "Code QR Wave",
     qrHint: "Scannez ce code avec l’application Wave.",
-    paymentInstructions: "Après le paiement, saisissez le numéro de transaction affiché sur votre reçu.",
     reference: "Numéro de transaction",
     referenceHint: "Saisissez la référence indiquée sur le reçu de votre transfert.",
     referencePlaceholder: "Ex. : référence du reçu",
@@ -72,13 +78,18 @@ const COPY = {
     phonePlaceholder: "Enter your wallet phone number…",
     phoneHint:
       "Enter the correct 10-digit payment wallet number so your payment can be identified accurately.",
-    launch: "Open Wave",
+    openAppTab: "Open the app",
+    scanQrTab: "Scan the QR code",
+    paymentMethodTabs: "Choose a payment method",
+    linkPanelHeading: "Pay with Wave",
+    linkPanelBody: "Open the payment link to complete your transfer with Wave.",
+    launch: "Pay with link",
+    linkHelp: "Open the payment link, then complete the transfer in the Wave app.",
+    qrHelp: "Scan this QR code with the Wave app to make your payment.",
     stageTitle: "Make your transfer",
-    stageIntro: "Pay with Wave, then enter your transaction reference.",
     paymentUnavailable: "No Wave payment link or QR code is configured. You cannot continue this deposit right now.",
     qrHeading: "Wave QR code",
     qrHint: "Scan this code with the Wave app.",
-    paymentInstructions: "After payment, enter the transaction number shown on your receipt.",
     reference: "Transaction number",
     referenceHint: "Enter the reference shown on your transfer receipt.",
     referencePlaceholder: "e.g. receipt reference",
@@ -102,6 +113,7 @@ const COPY = {
 const PAYMENT_WINDOW_MS = 30 * 60 * 1000;
 
 type CheckoutStep = "phone" | "payment";
+type PaymentMethod = "link" | "qr";
 
 function isSafePaymentUrl(value: string): boolean {
   try {
@@ -130,6 +142,8 @@ export function CiMobileMoneyCheckout({
   language,
 }: CiMobileMoneyCheckoutProps) {
   const [step, setStep] = useState<CheckoutStep>("phone");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<PaymentMethod>("link");
   const [logoFailed, setLogoFailed] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(
     Math.floor(PAYMENT_WINDOW_MS / 1000),
@@ -147,6 +161,12 @@ export function CiMobileMoneyCheckout({
     ? paymentQrDataUrl
     : "";
   const canPay = Boolean(safePaymentUrl || safePaymentQrDataUrl);
+  const availablePaymentMethods: PaymentMethod[] = [];
+  if (safePaymentUrl) availablePaymentMethods.push("link");
+  if (safePaymentQrDataUrl) availablePaymentMethods.push("qr");
+  const activePaymentMethod = availablePaymentMethods.includes(selectedPaymentMethod)
+    ? selectedPaymentMethod
+    : availablePaymentMethods[0] ?? "link";
   const formattedTimeRemaining = `${String(Math.floor(secondsRemaining / 60)).padStart(2, "0")}:${String(secondsRemaining % 60).padStart(2, "0")}`;
   const displayedOperatorLogo = operatorName.trim().toLowerCase().includes("wave")
     ? waveMobileMoneyLogo
@@ -314,7 +334,7 @@ export function CiMobileMoneyCheckout({
               </div>
             </>
           ) : (
-            <section className="ci-wave-stage-two" aria-labelledby="ci-wave-stage-title">
+            <section className="ci-wave-stage-two" aria-label={copy.stageTitle}>
               <button
                 className="ci-wave-back-step"
                 type="button"
@@ -324,50 +344,110 @@ export function CiMobileMoneyCheckout({
                 {copy.backToPhone}
               </button>
 
-              <div className="ci-wave-stage-heading">
-                <span className="ci-wave-stage-mark">
-                  {displayedOperatorLogo && !logoFailed
-                    ? <img src={displayedOperatorLogo} alt="" onError={() => setLogoFailed(true)} />
-                    : <Smartphone size={19} aria-hidden="true" />}
-                </span>
-                <span>
-                  <strong id="ci-wave-stage-title">{copy.stageTitle}</strong>
-                  <small>{copy.stageIntro}</small>
-                </span>
-              </div>
-
-              <div className="ci-wave-transfer-banner">
-                <span className="ci-wave-transfer-logo" aria-hidden="true">
-                  {displayedOperatorLogo && !logoFailed
-                    ? <img src={displayedOperatorLogo} alt="" onError={() => setLogoFailed(true)} />
-                    : <Smartphone size={23} />}
-                </span>
-                <span>
-                  <strong>{operatorName || "Wave"}</strong>
-                  <small>{copy.paymentInstructions}</small>
-                </span>
-              </div>
-
-              {safePaymentUrl && (
-                <a
-                  className="ci-wave-launch"
-                  href={safePaymentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${copy.launch}. ${copy.openNew}`}
+              {availablePaymentMethods.length > 1 && (
+                <div
+                  className="ci-wave-method-tabs"
+                  role="tablist"
+                  aria-label={copy.paymentMethodTabs}
                 >
-                  <ExternalLink size={17} aria-hidden="true" />
-                  {copy.launch}
-                </a>
+                  {availablePaymentMethods.map((method) => {
+                    const isSelected = activePaymentMethod === method;
+                    return (
+                      <button
+                        key={method}
+                        id={`ci-wave-method-tab-${method}`}
+                        className={`ci-wave-method-tab${isSelected ? " ci-wave-method-tab--active" : ""}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={isSelected}
+                        aria-controls="ci-wave-method-panel"
+                        tabIndex={isSelected ? 0 : -1}
+                        onClick={() => setSelectedPaymentMethod(method)}
+                        onKeyDown={(event) => {
+                          if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+                          event.preventDefault();
+                          const currentIndex = availablePaymentMethods.indexOf(method);
+                          const direction = event.key === "ArrowRight" ? 1 : -1;
+                          const nextIndex =
+                            (currentIndex + direction + availablePaymentMethods.length) %
+                            availablePaymentMethods.length;
+                          const nextMethod = availablePaymentMethods[nextIndex];
+                          setSelectedPaymentMethod(nextMethod);
+                          document.getElementById(`ci-wave-method-tab-${nextMethod}`)?.focus();
+                        }}
+                      >
+                        {method === "link" ? (
+                          <ExternalLink size={16} aria-hidden="true" />
+                        ) : (
+                          <QrCode size={17} aria-hidden="true" />
+                        )}
+                        <span>{method === "link" ? copy.openAppTab : copy.scanQrTab}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               )}
 
-              {safePaymentQrDataUrl && (
-                <section className="ci-wave-qr" aria-label={copy.qrHeading}>
-                  <strong>{copy.qrHeading}</strong>
-                  <img src={safePaymentQrDataUrl} alt={copy.qrHeading} />
-                  <p>{copy.qrHint}</p>
-                </section>
+              {canPay && (
+                <div className="ci-wave-method-help" role="note">
+                  <CircleAlert size={17} aria-hidden="true" />
+                  <span>
+                    {activePaymentMethod === "link" ? copy.linkHelp : copy.qrHelp}
+                  </span>
+                </div>
               )}
+
+              <div
+                className="ci-wave-method-panel"
+                id="ci-wave-method-panel"
+                role="tabpanel"
+                aria-labelledby={
+                  availablePaymentMethods.length > 1
+                    ? `ci-wave-method-tab-${activePaymentMethod}`
+                    : undefined
+                }
+              >
+                {activePaymentMethod === "link" && safePaymentUrl && (
+                  <div className="ci-wave-link-panel">
+                    <div className="ci-wave-link-card">
+                      <span className="ci-wave-link-logo" aria-hidden="true">
+                        {displayedOperatorLogo && !logoFailed ? (
+                          <img
+                            src={displayedOperatorLogo}
+                            alt=""
+                            onError={() => setLogoFailed(true)}
+                          />
+                        ) : (
+                          <Smartphone size={28} />
+                        )}
+                      </span>
+                      <span className="ci-wave-link-copy">
+                        <strong>{copy.linkPanelHeading}</strong>
+                        <small>{copy.linkPanelBody}</small>
+                      </span>
+                    </div>
+                    <a
+                      className="ci-wave-launch"
+                      href={safePaymentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${copy.launch}. ${copy.openNew}`}
+                    >
+                      <ExternalLink size={17} aria-hidden="true" />
+                      {copy.launch}
+                    </a>
+                    <p className="ci-wave-link-note">{copy.openNew}</p>
+                  </div>
+                )}
+
+                {activePaymentMethod === "qr" && safePaymentQrDataUrl && (
+                  <section className="ci-wave-qr" aria-label={copy.qrHeading}>
+                    <strong>{copy.qrHeading}</strong>
+                    <img src={safePaymentQrDataUrl} alt={copy.qrHeading} />
+                    <p>{copy.qrHint}</p>
+                  </section>
+                )}
+              </div>
 
               {!canPay && (
                 <div className="ci-wave-payment-unavailable" role="status">
