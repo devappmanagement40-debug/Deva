@@ -44,6 +44,10 @@
   padding: 45px 10px 20px;
 }
 
+.ci-wave-screen--payment {
+  align-items: flex-start;
+}
+
 .ci-wave-close {
   position: absolute;
   top: 8px;
@@ -775,6 +779,380 @@
 
 .ci-wave-submit-details {
   margin-top: 15px;
+}
+
+.ci-wave-stage-two {
+  padding-top: 14px;
+}
+
+.ci-wave-back-step {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0 9px;
+  border: 1px solid #ead9cb;
+  border-radius: 7px;
+  color: #9b5b32;
+  background: #fffaf6;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ci-wave-stage-heading {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.ci-wave-stage-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 10px;
+  color: #fff;
+  background: #17b9dc;
+}
+
+.ci-wave-stage-mark img,
+.ci-wave-transfer-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ci-wave-stage-heading > span:last-child {
+  display: grid;
+  gap: 3px;
+}
+
+.ci-wave-stage-heading strong {
+  color: #30383e;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ci-wave-stage-heading small {
+  color: #737b82;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ci-wave-transfer-amount {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.ci-wave-transfer-amount > span {
+  color: #676b70;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.ci-wave-transfer-amount strong {
+  color: #e79a5c;
+  font-size: 16px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.ci-wave-recipient {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e9e5e2;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.ci-wave-recipient-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #747c82;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ci-wave-recipient-head button {
+  display: inline-flex;
+  min-height: 30px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid #eed5c1;
+  border-radius: 7px;
+  color: #b36534;
+  background: #fffaf6;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ci-wave-recipient-head button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ci-wave-recipient-phone {
+  display: block;
+  margin-top: 6px;
+  color: #282e34;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+}
+
+.ci-wave-owner {
+  display: block;
+  margin-top: 3px;
+  color: #727a82;
+  font-size: 11px;
+}
+
+.ci-wave-copy-error {
+  display: block;
+  margin-top: 7px;
+  color: #b64e43;
+  font-size: 11px;
+}
+
+.ci-wave-payment-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 14px;
+  padding: 5px;
+  border-radius: 9px;
+  background: #f2f2f3;
+}
+
+.ci-wave-payment-tabs button {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 7px;
+  color: #697078;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.ci-wave-payment-tabs button[aria-selected="true"] {
+  color: #fff;
+  background: var(--ci-wave-orange);
+  box-shadow: 0 3px 8px rgba(170, 95, 45, 0.18);
+}
+
+.ci-wave-payment-panel {
+  margin-top: 12px;
+}
+
+.ci-wave-transfer-banner {
+  display: grid;
+  justify-items: center;
+  margin-top: 1px;
+  padding: 15px 13px;
+  border: 1px solid #e7b080;
+  border-radius: 10px;
+  color: #fff;
+  background: #ee9b58;
+  text-align: center;
+}
+
+.ci-wave-transfer-logo {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: hidden;
+  margin-bottom: 7px;
+  border-radius: 11px;
+  color: #168db2;
+  background: #fff;
+}
+
+.ci-wave-transfer-banner strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ci-wave-transfer-banner p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.ci-wave-launch {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 11px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  color: #fff;
+  background: #168db2;
+  box-shadow: 0 4px 10px rgba(20, 117, 149, 0.18);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.ci-wave-launch:hover {
+  background: #107b9c;
+}
+
+.ci-wave-config-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid #d8e9f3;
+  border-left: 4px solid #e99a5e;
+  border-radius: 8px;
+  color: #246485;
+  background: #edf7fc;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.ci-wave-config-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #df884b;
+}
+
+.ci-wave-qr-panel {
+  display: grid;
+  min-height: 190px;
+  place-items: center;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #e7e9eb;
+  border-radius: 10px;
+  background: #fdfdfd;
+}
+
+.ci-wave-qr {
+  display: block;
+  width: min(100%, 220px);
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.ci-wave-qr-unavailable {
+  display: grid;
+  width: 100%;
+  min-height: 160px;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed #e3c7b4;
+  border-radius: 8px;
+  color: #6f747a;
+  background: #fffaf6;
+  text-align: center;
+  font-size: 12px;
+}
+
+.ci-wave-qr-unavailable svg {
+  color: #d78b54;
+}
+
+.ci-wave-qr-unavailable strong {
+  color: #474d53;
+  font-size: 13px;
+}
+
+.ci-wave-qr-unavailable small {
+  color: #727a82;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ci-wave-save-qr {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 9px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 4px;
+  color: #fff;
+  background: #398f54;
+  box-shadow: 0 4px 9px rgba(38, 120, 65, 0.2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.ci-wave-save-qr:hover {
+  background: #2e7e48;
+}
+
+.ci-wave-qr-save-hint {
+  margin: 7px 0 0;
+  color: #747c82;
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ci-wave-stage-two .ci-wave-reference {
+  margin-top: 15px;
+  padding-top: 14px;
+}
+
+.ci-wave-stage-two .ci-wave-reference > input {
+  min-height: 45px;
+}
+
+.ci-wave-stage-two .ci-wave-proof {
+  margin-top: 10px;
+}
+
+.ci-wave-stage-two .ci-wave-review-note {
+  color: #246485;
+}
+
+.ci-wave-checkout .ci-wave-back-step:focus-visible,
+.ci-wave-checkout .ci-wave-recipient-head button:focus-visible,
+.ci-wave-checkout .ci-wave-payment-tabs button:focus-visible,
+.ci-wave-checkout .ci-wave-save-qr:focus-visible {
+  outline: 3px solid rgba(20, 141, 178, 0.55);
+  outline-offset: 2px;
 }
 
 .ci-wave-checkout button:focus-visible,
