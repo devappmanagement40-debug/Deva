@@ -595,11 +595,12 @@
   display: block;
   width: min(100%, 256px);
   aspect-ratio: 1;
-  padding: 9px;
+  padding: 4px;
   border: 1px solid #e3e8ef;
   border-radius: 10px;
   background: #fff;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center 62%;
 }
 
 .ci-wave-qr p {
