@@ -16,7 +16,6 @@ import { isCountryCode } from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
-import { getDatabaseConfig } from "./database-config";
 import QRCode from "qrcode";
 import multer from "multer";
 import path from "path";
@@ -388,22 +387,14 @@ export async function registerRoutes(
     }
   });
 
-  const sessionDbConfig = {
-    ...getDatabaseConfig(),
-    // The session store has its own pool. Apply the same bounds as the main
-    // Drizzle pool so a stalled Supabase connection cannot block every API
-    // request waiting for a session.
-    max: 10,
-    connectionTimeoutMillis: 5_000,
-    idleTimeoutMillis: 30_000,
-    query_timeout: 10_000,
-    statement_timeout: 10_000,
-    keepAlive: true,
-  };
   const sessionMiddleware = session({
       store: new PgSession({
-        conString: sessionDbConfig.connectionString,
-        conObject: sessionDbConfig,
+        // Reuse the application's PostgreSQL pool instead of creating a
+        // second pool for sessions. This limits concurrent Supabase
+        // connections and keeps session writes on the same healthy pool.
+        pool: pool as unknown as NonNullable<
+          NonNullable<ConstructorParameters<typeof PgSession>[0]>["pool"]
+        >,
         tableName: "session",
         createTableIfMissing: true,
         pruneSessionInterval: 60 * 60,
