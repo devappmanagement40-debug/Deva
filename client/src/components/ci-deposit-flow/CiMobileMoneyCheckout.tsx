@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -259,7 +260,13 @@ export function CiMobileMoneyCheckout({
           min-height: 100dvh;
           padding: 18px 16px 34px;
           color: var(--ci-ink);
-          background: linear-gradient(155deg, #e88e48 0%, #f0a260 55%, #e58d4b 100%);
+          background-color: #e88e48;
+          background-image:
+            linear-gradient(155deg, rgba(232,142,72,.72) 0%, rgba(240,162,96,.75) 55%, rgba(229,141,75,.72) 100%),
+            url("${ciFlagAsset}");
+          background-position: center, center top;
+          background-size: cover, min(100vw, 560px) auto;
+          background-repeat: no-repeat, no-repeat;
           font-family: inherit;
         }
         .ci-checkout * { box-sizing: border-box; }
