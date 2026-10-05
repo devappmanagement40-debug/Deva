@@ -997,7 +997,12 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
                   <input
                     value={mobileTransactionId}
                     onChange={(event) => setMobileTransactionId(event.target.value)}
-                    className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-sm outline-none focus:border-[#32c95b]"
+                    className="h-11 w-full rounded-lg border border-[#dcebe0] px-3 text-base font-semibold text-[#1f2937] outline-none placeholder:text-[#98a2b3] focus:border-[#32c95b]"
+                    style={{
+                      colorScheme: "light",
+                      WebkitTextFillColor: "#1f2937",
+                      caretColor: "#1f2937",
+                    }}
                     placeholder="Référence indiquée sur votre reçu de paiement"
                     data-testid="input-mobile-transaction-reference"
                   />

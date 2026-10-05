@@ -650,15 +650,21 @@
   border: 1px solid #dfc6b4;
   border-radius: 6px;
   outline: none;
-  color: #323b44;
-  background: #fff;
+  color: #1f2937;
+  color-scheme: light;
+  -webkit-text-fill-color: #1f2937;
+  caret-color: #1f2937;
+  background-color: #fff;
   font: inherit;
-  font-size: 13px;
+  font-size: 16px;
+  font-weight: 600;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .ci-wave-reference input::placeholder {
-  color: #9ba2aa;
+  color: #98a2b3;
+  -webkit-text-fill-color: #98a2b3;
+  opacity: 1;
 }
 
 .ci-wave-reference input:focus {
