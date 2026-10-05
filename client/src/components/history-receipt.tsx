@@ -176,7 +176,6 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
   const copy = DEPOSIT_RECEIPT_COPY[lang as keyof typeof DEPOSIT_RECEIPT_COPY] ?? DEPOSIT_RECEIPT_COPY.fr;
   const statusLabel = statusLabels[normalizedStatus as keyof typeof statusLabels] || normalizedStatus || statusLabels.pending;
   const depositId = `A${String(transaction.id).replace(/^dep-/, "")}`;
-  const amount = formatAmount(transaction.amount, locale);
   const rawMethod = transaction.paymentMethod?.trim();
   const method = rawMethod?.toLowerCase() === "nowpayments"
     ? "OkayPay"
@@ -195,15 +194,7 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
         </span>
       </div>
       <div className="px-5">
-        <div className="my-4 rounded-lg border border-[#e4ddfb] bg-[#f6f3ff] px-4 py-3">
-          <p className="text-[12px] font-semibold text-[#655c91]">{copy.amount}</p>
-          <p
-            className="mt-1 break-words text-[26px] font-extrabold leading-tight tracking-tight text-[#5e3de9]"
-            data-testid={`receipt-deposit-amount-${transaction.id}`}
-          >
-            {amount} <span className="text-[15px] font-bold tracking-normal">XOF</span>
-          </p>
-        </div>
+        <DepositReceiptField label={copy.amount} value={`${formatAmount(transaction.amount, locale)} XOF`} />
         <DepositReceiptField label={copy.method} value={method} />
         <DepositReceiptField label={copy.id} value={depositId} />
         <DepositReceiptField label={copy.date} value={formatDate(transaction.createdAt, lang, true)} />
