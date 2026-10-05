@@ -29,4 +29,4 @@
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
 - [Supabase account migration](supabase-account-migration.md) — Replit PostgreSQL is the confirmed legacy source; Supabase is the working target; global settings and sessions stay separate.
-- [DIAMANT transaction receipts](diamant-transaction-receipts.md) — approved/completed receipts are solid green, rejected/failed are solid red; preserve amounts and avoid implying rejected withdrawals were paid.
+- [DIAMANT withdrawal receipts](diamant-transaction-receipts.md) — use the green/red receipt mockup for withdrawals only; preserve the existing layouts for deposits and earnings.
