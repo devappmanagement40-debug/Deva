@@ -40,7 +40,7 @@ export default function DepositHistoryPage() {
     <div className="min-h-screen bg-white">
       <HistoryPageHeader title={t.depositHistory || "Deposit history"} backHref="/deposit" />
       <HistoryDecor>
-        <section aria-live="polite">
+        <section className="space-y-3" aria-live="polite">
           {isLoading ? (
             <ReceiptLoadingState />
           ) : receipts.length > 0 ? (

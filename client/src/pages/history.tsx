@@ -75,7 +75,7 @@ export default function HistoryPage() {
         )}
       />
       <HistoryDecor>
-        <section className={activeTab === "withdrawal" ? "space-y-3" : ""} aria-live="polite">
+        <section className={activeTab !== "activity" ? "space-y-3" : ""} aria-live="polite">
           {isLoading ? (
             <ReceiptLoadingState />
           ) : activeTab !== "activity" && visibleItems.length > 0 ? (

@@ -143,7 +143,7 @@ export function ReceiptCard({ transaction }: { transaction: ReceiptTransaction }
   const { lang } = useI18n();
   return transaction.kind === "withdrawal"
     ? <WithdrawalReceipt transaction={transaction} lang={lang} />
-    : <DepositHistoryRow transaction={transaction} lang={lang} />;
+    : <DepositReceipt transaction={transaction} lang={lang} />;
 }
 
 const DEPOSIT_STATUS_LABELS = {
@@ -153,41 +153,51 @@ const DEPOSIT_STATUS_LABELS = {
   zh: { approved: "已批准", completed: "已完成", pending: "处理中", pending_2fa: "需要验证", processing: "进行中", rejected: "已拒绝", failed: "失败", cancelled: "已取消", canceled: "已取消", expired: "已过期" },
 };
 
-function DepositHistoryRow({ transaction, lang }: { transaction: ReceiptTransaction; lang: string }) {
+const DEPOSIT_RECEIPT_COPY = {
+  fr: { title: "Reçu de dépôt", amount: "Montant du dépôt", method: "Moyen de dépôt", id: "ID du dépôt", date: "Date", fallbackMethod: "Canal de dépôt" },
+  en: { title: "Deposit receipt", amount: "Deposit amount", method: "Deposit method", id: "Deposit ID", date: "Date", fallbackMethod: "Deposit channel" },
+  ar: { title: "إيصال الإيداع", amount: "مبلغ الإيداع", method: "طريقة الإيداع", id: "معرّف الإيداع", date: "التاريخ", fallbackMethod: "قناة الإيداع" },
+  zh: { title: "存款收据", amount: "存款金额", method: "存款方式", id: "存款编号", date: "日期", fallbackMethod: "存款渠道" },
+};
+
+function DepositReceiptField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-[#ebe9f7] py-2.5 last:border-b-0">
+      <span className="text-[12px] text-[#655c91]">{label}</span>
+      <span className="text-right text-[13px] font-semibold text-[#0b1235]">{value}</span>
+    </div>
+  );
+}
+
+function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction; lang: string }) {
   const locale = lang === "en" ? "en-US" : lang === "ar" ? "ar" : lang === "zh" ? "zh-CN" : "fr-FR";
   const normalizedStatus = transaction.status.trim().toLowerCase();
-  const status = STATUS_META[normalizedStatus] ?? { tone: "pending" as const };
   const statusLabels = DEPOSIT_STATUS_LABELS[lang as keyof typeof DEPOSIT_STATUS_LABELS] ?? DEPOSIT_STATUS_LABELS.fr;
+  const copy = DEPOSIT_RECEIPT_COPY[lang as keyof typeof DEPOSIT_RECEIPT_COPY] ?? DEPOSIT_RECEIPT_COPY.fr;
   const statusLabel = statusLabels[normalizedStatus as keyof typeof statusLabels] || normalizedStatus || statusLabels.pending;
-  const statusClass = {
-    success: "text-[#16803b]",
-    pending: "text-[#e4a11b]",
-    danger: "text-[#d13e3e]",
-  }[status.tone];
-  const fallbackReference = `A${String(transaction.id).replace(/^dep-/, "")}`;
-  const reference = transaction.reference?.trim() || fallbackReference;
+  const depositId = `A${String(transaction.id).replace(/^dep-/, "")}`;
   const rawMethod = transaction.paymentMethod?.trim();
   const method = rawMethod?.toLowerCase() === "nowpayments"
     ? "OkayPay"
     : rawMethod
-    || "Canaux de recharge";
-  const amount = formatAmount(transaction.amount, locale);
+    || copy.fallbackMethod;
 
   return (
     <article
-      className="min-h-[106px] border-b border-white bg-[#f3f3f3] px-4 py-4"
+      className="overflow-hidden rounded-xl border border-[#dedcf0] bg-white shadow-[0_8px_22px_rgba(11,18,53,.12)]"
       data-testid={`receipt-deposit-${transaction.id}`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-medium text-[#202020]">{reference}</p>
-          <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{method}</p>
-          <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt, lang)}</p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-7 text-right">
-          <p className="text-[13px] text-[#858585]">{amount} XOF</p>
-          <span className={`text-[12px] font-semibold ${statusClass}`}>{statusLabel}</span>
-        </div>
+      <div className="flex min-h-12 items-center justify-between gap-3 bg-gradient-to-r from-[#0b1235] to-[#5e3de9] px-5 py-2.5">
+        <span className="text-[12px] font-semibold text-white/90">{copy.title}</span>
+        <span className="shrink-0 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[12px] font-bold text-white">
+          {statusLabel}
+        </span>
+      </div>
+      <div className="px-5">
+        <DepositReceiptField label={copy.amount} value={`${formatAmount(transaction.amount, locale)} XOF`} />
+        <DepositReceiptField label={copy.method} value={method} />
+        <DepositReceiptField label={copy.id} value={depositId} />
+        <DepositReceiptField label={copy.date} value={formatDate(transaction.createdAt, lang, true)} />
       </div>
     </article>
   );
