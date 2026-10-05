@@ -19,6 +19,7 @@ export function FloatingCheckin({
   return (
     <button
       type="button"
+      className="floating-checkin-button"
       aria-label={label}
       title={label}
       data-testid="floating-checkin"
