@@ -32,6 +32,12 @@ const STATUS_META: Record<string, { tone: "success" | "pending" | "danger" }> = 
   expired: { tone: "danger" },
 };
 
+const STATUS_BADGE_CLASSES: Record<"success" | "pending" | "danger", string> = {
+  success: "bg-[#00ff00] text-black",
+  pending: "bg-[#5e3de9] text-white",
+  danger: "bg-[#ff0000] text-black",
+};
+
 function formatDate(value: string | Date, lang: string, includeSeconds = false) {
   const date = new Date(value);
   const locale = lang === "en" ? "en-US" : lang === "ar" ? "ar" : lang === "zh" ? "zh-CN" : "fr-FR";
@@ -175,6 +181,8 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
   const statusLabels = DEPOSIT_STATUS_LABELS[lang as keyof typeof DEPOSIT_STATUS_LABELS] ?? DEPOSIT_STATUS_LABELS.fr;
   const copy = DEPOSIT_RECEIPT_COPY[lang as keyof typeof DEPOSIT_RECEIPT_COPY] ?? DEPOSIT_RECEIPT_COPY.fr;
   const statusLabel = statusLabels[normalizedStatus as keyof typeof statusLabels] || normalizedStatus || statusLabels.pending;
+  const statusTone = STATUS_META[normalizedStatus]?.tone ?? "pending";
+  const statusBadgeClass = STATUS_BADGE_CLASSES[statusTone];
   const depositId = `A${String(transaction.id).replace(/^dep-/, "")}`;
   const rawMethod = transaction.paymentMethod?.trim();
   const method = rawMethod?.toLowerCase() === "nowpayments"
@@ -189,7 +197,7 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
     >
       <div className="flex min-h-12 items-center justify-between gap-3 bg-gradient-to-r from-[#0b1235] to-[#5e3de9] px-5 py-2.5">
         <span className="text-[12px] font-semibold text-white/90">{copy.title}</span>
-        <span className="shrink-0 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-[12px] font-bold text-white">
+        <span className={`shrink-0 rounded-full px-3 py-1 text-[12px] font-bold ${statusBadgeClass}`}>
           {statusLabel}
         </span>
       </div>
@@ -244,11 +252,7 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
   const status = STATUS_META[normalizedStatus] ?? { tone: "pending" as const };
   const copy = WITHDRAWAL_COPY[lang as keyof typeof WITHDRAWAL_COPY] ?? WITHDRAWAL_COPY.fr;
   const statusTitle = copy.status[normalizedStatus as keyof typeof copy.status] || `Retrait ${normalizedStatus || "en cours"}`;
-  const statusClass = {
-    success: "bg-[#00a651]",
-    pending: "bg-[#5e3de9]",
-    danger: "bg-[#e00000]",
-  }[status.tone];
+  const statusBadgeClass = STATUS_BADGE_CLASSES[status.tone];
   const amount = `${formatAmount(transaction.amount, locale)} XOF`;
   const netAmount = transaction.netAmount == null ? null : `${formatAmount(transaction.netAmount, locale)} XOF`;
   const fees = transaction.fees == null ? null : `${formatAmount(transaction.fees, locale)} XOF`;
@@ -259,7 +263,7 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
       data-testid={`receipt-withdrawal-${transaction.id}`}
     >
       <div className="flex h-12 justify-end border-b border-[#e7eaf2] bg-[#f7f8fc]">
-        <span className={`rounded-bl-xl px-5 py-3 text-right text-[12px] font-bold text-white ${statusClass}`}>
+        <span className={`rounded-bl-xl px-5 py-3 text-right text-[12px] font-bold ${statusBadgeClass}`}>
           {statusTitle}
         </span>
       </div>
