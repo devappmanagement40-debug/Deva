@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyCheckout";
+import MobileMoneyDepositVerification from "@/components/mobile-money-deposit-verification";
 import type { Country, PaymentNumber } from "@shared/schema";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
@@ -76,7 +77,7 @@ function resolveCiPaymentUrl(
   }
 }
 
-type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "issue";
+type DepositView = "main" | "currency" | "crypto-payment" | "mobile-money" | "mobile-money-verification" | "issue";
 
 type DepositMethodSelection =
   | { type: "mobile-money"; countryCode: string }
@@ -100,6 +101,17 @@ type CryptoPayment = {
   payinExtraId?: string;
   network?: string;
   qrCode: string;
+};
+
+type MobileMoneyVerification = {
+  depositId: number;
+  amountXof: number;
+  operatorName: string;
+  transactionId: string;
+};
+
+type DepositVerificationStatus = {
+  status: string;
 };
 
 const CRYPTO_CURRENCIES: CryptoCurrency[] = [
@@ -146,7 +158,7 @@ function LabelledInput({
 }
 
 export default function DepositPage({ startInIssue = false }: { startInIssue?: boolean }) {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { lang, setLang, t } = useI18n();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -165,6 +177,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const [selectedDepositMethod, setSelectedDepositMethod] = useState<DepositMethodSelection | null>(null);
   const [mobileMoneyCountryCode, setMobileMoneyCountryCode] = useState<string | null>(null);
   const [selectedOperator, setSelectedOperator] = useState<PaymentNumber | null>(null);
+  const [depositVerification, setDepositVerification] = useState<MobileMoneyVerification | null>(null);
   const [isOpeningMobileMoney, setIsOpeningMobileMoney] = useState(false);
   const [payerName, setPayerName] = useState(user?.fullName || "");
   const [payerPhone, setPayerPhone] = useState(user?.phone || "");
@@ -199,6 +212,41 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     enabled: view === "mobile-money" && Boolean(mobileMoneyCountryCode),
     staleTime: mobileMoneyCountryCode?.trim().toUpperCase() === "CI" ? 15_000 : 0,
   });
+
+  const depositVerificationQuery = useQuery<DepositVerificationStatus>({
+    queryKey: ["/api/deposit-verification", depositVerification?.depositId],
+    queryFn: async () => {
+      if (!depositVerification?.depositId) {
+        throw new Error("Le dépôt à vérifier est introuvable.");
+      }
+      const response = await apiRequest(
+        "GET",
+        `/api/deposits/${depositVerification.depositId}/verify`,
+      );
+      return response.json() as Promise<DepositVerificationStatus>;
+    },
+    enabled: view === "mobile-money-verification" && Boolean(depositVerification?.depositId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status.trim().toLowerCase() ?? "";
+      return ["approved", "rejected", "failed", "cancelled", "canceled"].includes(status)
+        ? false
+        : 5_000;
+    },
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+  });
+
+  const verificationStatus = depositVerificationQuery.data?.status.trim().toLowerCase();
+
+  useEffect(() => {
+    if (!["approved", "rejected", "failed", "cancelled", "canceled"].includes(verificationStatus || "")) {
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["/api/deposits/history"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+    if (verificationStatus === "approved") void refreshUser();
+  }, [queryClient, refreshUser, verificationStatus]);
 
   useEffect(() => {
     if (user?.fullName) setPayerName((current) => current || user.fullName);
@@ -294,12 +342,30 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits/history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+      const depositId = Number(result?.deposit?.id);
+      if (Number.isSafeInteger(depositId) && depositId > 0) {
+        setDepositVerification({
+          depositId,
+          amountXof: Number(amount),
+          operatorName: selectedOperator?.operatorName || "Mobile Money",
+          transactionId: mobileTransactionId.trim(),
+        });
+        setView("mobile-money-verification");
+        setSelectedOperator(null);
+        setSelectedDepositMethod(null);
+        setMobileMoneyCountryCode(null);
+        setMobileTransactionId("");
+        setProof(null);
+        setProofName("");
+        return;
+      }
+
       toast({
         title: "Demande de dépôt envoyée",
-        description: "Votre dépôt sera crédité après confirmation du paiement Mobile Money.",
+        description: "Consultez l’historique des dépôts pour suivre votre demande.",
       });
       setView("main");
       setSelectedOperator(null);
@@ -438,6 +504,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
   const openMobileMoney = async (countryCode?: string) => {
     if (!countryCode) return;
+    setDepositVerification(null);
     setMobileMoneyCountryCode(countryCode);
     setSelectedOperator(null);
     setPayerName(user?.fullName || "");
@@ -535,6 +602,16 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     });
   };
 
+  const retryDepositVerification = async () => {
+    const result = await depositVerificationQuery.refetch();
+    if (result.error) throw result.error;
+  };
+
+  const returnFromDepositVerification = () => {
+    setDepositVerification(null);
+    setView("main");
+  };
+
   const leaveIssueForm = () => {
     if (startInIssue) {
       navigate("/service");
@@ -544,6 +621,23 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   };
 
   if (!user) return null;
+
+  if (view === "mobile-money-verification" && depositVerification) {
+    return (
+      <MobileMoneyDepositVerification
+        amountXof={depositVerification.amountXof}
+        currency={CURRENCY}
+        operatorName={depositVerification.operatorName}
+        transactionId={depositVerification.transactionId}
+        status={depositVerificationQuery.data?.status}
+        isStatusError={depositVerificationQuery.isError}
+        language={lang}
+        onRetry={retryDepositVerification}
+        onReturn={returnFromDepositVerification}
+        onToggleLanguage={() => setLang(lang.toLowerCase().startsWith("en") ? "fr" : "en")}
+      />
+    );
+  }
 
   if (view === "crypto-payment" && cryptoPayment) {
     const selectedCurrencyLabel = selectedCryptoCurrency?.label || cryptoPayment.payCurrency.toUpperCase();
