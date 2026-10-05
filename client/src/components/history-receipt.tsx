@@ -8,7 +8,7 @@ export type HistoryTab = ReceiptKind | "activity";
 
 export interface ReceiptTransaction {
   id: string | number;
-  kind: ReceiptKind;
+  kind: ReceiptKind | "activity";
   amount: string | number;
   status: string;
   createdAt: string | Date;
@@ -28,6 +28,9 @@ const STATUS_META: Record<string, { tone: "success" | "pending" | "danger" }> = 
   processing: { tone: "pending" },
   rejected: { tone: "danger" },
   failed: { tone: "danger" },
+  cancelled: { tone: "danger" },
+  canceled: { tone: "danger" },
+  expired: { tone: "danger" },
 };
 
 function formatDate(value: string | Date, lang: string) {
@@ -41,7 +44,24 @@ function formatDate(value: string | Date, lang: string) {
         year: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        second: "2-digit",
       }).format(date);
+}
+
+function formatAmount(value: string | number, locale: string) {
+  const amount = Number(value);
+  return Number.isFinite(amount)
+    ? Math.abs(amount).toLocaleString(locale, { maximumFractionDigits: 8 })
+    : "0";
+}
+
+function ReceiptField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-h-[42px] items-center justify-between gap-4 border-b border-[#e7eaf2] py-2.5 last:border-b-0">
+      <span className="text-[12px] text-[#69718d]">{label}</span>
+      <span className="text-right text-[13px] font-semibold text-[#0b1235]">{value}</span>
+    </div>
+  );
 }
 
 export function HistoryPageHeader({
@@ -122,47 +142,115 @@ export function HistoryTabs({
 export function ReceiptCard({ transaction }: { transaction: ReceiptTransaction }) {
   const { lang } = useI18n();
   const isDeposit = transaction.kind === "deposit";
+  const isWithdrawal = transaction.kind === "withdrawal";
+  const isActivity = transaction.kind === "activity";
   const locale = lang === "en" ? "en-US" : lang === "ar" ? "ar" : lang === "zh" ? "zh-CN" : "fr-FR";
   const numericAmount = Number(transaction.amount);
-  const amount = Number.isFinite(numericAmount)
-    ? numericAmount.toLocaleString(locale, { maximumFractionDigits: 8 })
-    : "0";
-  const status = STATUS_META[transaction.status] ?? { tone: "pending" as const };
-  const statusLabels: Record<string, string> = lang === "en"
-    ? { approved: "Approved", completed: "Completed", pending: "Pending", pending_2fa: "Verification required", processing: "Processing", rejected: "Rejected", failed: "Failed" }
-    : lang === "ar"
-      ? { approved: "تمت الموافقة", completed: "مكتمل", pending: "قيد الانتظار", pending_2fa: "التحقق مطلوب", processing: "قيد المعالجة", rejected: "مرفوض", failed: "فشل" }
-      : lang === "zh"
-        ? { approved: "已批准", completed: "已完成", pending: "处理中", pending_2fa: "需要验证", processing: "进行中", rejected: "已拒绝", failed: "失败" }
-        : { approved: "Approved", completed: "Completed", pending: "Pending", pending_2fa: "Verification required", processing: "Processing", rejected: "Rejected", failed: "Failed" };
-  const statusLabel = statusLabels[transaction.status] || transaction.status || statusLabels.pending;
+  const normalizedStatus = transaction.status.trim().toLowerCase();
+  const status = STATUS_META[normalizedStatus] ?? { tone: "pending" as const };
+  const copy = {
+    fr: {
+      kinds: { deposit: "Dépôt", withdrawal: "Retrait", activity: "Mouvement" },
+      statuses: { approved: "approuvé", completed: "réussi", pending: "en attente", pending_2fa: "à vérifier", processing: "en cours", rejected: "rejeté", failed: "échoué", cancelled: "annulé", canceled: "annulé", expired: "expiré" },
+      amount: isDeposit ? "Montant déposé" : isWithdrawal ? "Montant retiré" : "Montant",
+      net: status.tone === "success" ? "Montant reçu" : "Montant net prévu",
+      fees: "Montant des frais",
+      method: "Moyen de paiement",
+      description: "Détail",
+      time: "Heure de transaction",
+    },
+    en: {
+      kinds: { deposit: "Deposit", withdrawal: "Withdrawal", activity: "Activity" },
+      statuses: { approved: "approved", completed: "successful", pending: "pending", pending_2fa: "requires verification", processing: "processing", rejected: "rejected", failed: "failed", cancelled: "cancelled", canceled: "cancelled", expired: "expired" },
+      amount: isDeposit ? "Amount deposited" : isWithdrawal ? "Amount withdrawn" : "Amount",
+      net: status.tone === "success" ? "Amount received" : "Expected net amount",
+      fees: "Transaction fee",
+      method: "Payment method",
+      description: "Details",
+      time: "Transaction time",
+    },
+    ar: {
+      kinds: { deposit: "إيداع", withdrawal: "سحب", activity: "حركة" },
+      statuses: { approved: "تمت الموافقة عليه", completed: "ناجح", pending: "قيد الانتظار", pending_2fa: "يتطلب التحقق", processing: "قيد المعالجة", rejected: "مرفوض", failed: "فشل", cancelled: "ملغي", canceled: "ملغي", expired: "منتهي" },
+      amount: isDeposit ? "المبلغ المودع" : isWithdrawal ? "المبلغ المسحوب" : "المبلغ",
+      net: status.tone === "success" ? "المبلغ المستلم" : "صافي المبلغ المتوقع",
+      fees: "رسوم المعاملة",
+      method: "طريقة الدفع",
+      description: "التفاصيل",
+      time: "وقت المعاملة",
+    },
+    zh: {
+      kinds: { deposit: "充值", withdrawal: "提现", activity: "交易" },
+      statuses: { approved: "已批准", completed: "成功", pending: "待处理", pending_2fa: "需验证", processing: "处理中", rejected: "已拒绝", failed: "失败", cancelled: "已取消", canceled: "已取消", expired: "已过期" },
+      amount: isDeposit ? "充值金额" : isWithdrawal ? "提现金额" : "金额",
+      net: status.tone === "success" ? "到账金额" : "预计到账金额",
+      fees: "交易费用",
+      method: "支付方式",
+      description: "详情",
+      time: "交易时间",
+    },
+  }[lang] ?? {
+    kinds: { deposit: "Dépôt", withdrawal: "Retrait", activity: "Mouvement" },
+    statuses: { approved: "approuvé", completed: "réussi", pending: "en attente", pending_2fa: "à vérifier", processing: "en cours", rejected: "rejeté", failed: "échoué", cancelled: "annulé", canceled: "annulé", expired: "expiré" },
+    amount: isDeposit ? "Montant déposé" : isWithdrawal ? "Montant retiré" : "Montant",
+    net: status.tone === "success" ? "Montant reçu" : "Montant net prévu",
+    fees: "Montant des frais",
+    method: "Moyen de paiement",
+    description: "Détail",
+    time: "Heure de transaction",
+  };
+  const kindLabel = copy.kinds[transaction.kind];
+  const statusLabel = copy.statuses[normalizedStatus as keyof typeof copy.statuses] || normalizedStatus || copy.statuses.pending;
+  const statusTitle = lang === "zh"
+    ? `${kindLabel}${statusLabel}`
+    : `${kindLabel} ${statusLabel}`;
   const statusClass = {
-    success: "text-[#16803b]",
-    pending: "text-[#e4a11b]",
-    danger: "text-[#d13e3e]",
+    success: "bg-[#00a651]",
+    pending: "bg-[#5e3de9]",
+    danger: "bg-[#e00000]",
   }[status.tone];
-  const fallbackReference = `${isDeposit ? "A" : "R"}${String(transaction.id).replace(/^(dep|wd)-/, "")}`;
+  const fallbackReference = `${isDeposit ? "A" : isWithdrawal ? "R" : "T"}${String(transaction.id).replace(/^(dep|wd|tx)-/, "")}`;
   const reference = transaction.reference?.trim() || fallbackReference;
   const rawMethod = transaction.paymentMethod?.trim();
   const method = rawMethod?.toLowerCase() === "nowpayments"
     ? "OkayPay"
     : rawMethod
     || (isDeposit ? "Canaux de recharge" : "USDT BEP20");
+  const amountValue = Number.isFinite(numericAmount)
+    ? `${isActivity ? (numericAmount < 0 ? "−" : "+") : ""}${formatAmount(transaction.amount, locale)} XOF`
+    : "0 XOF";
+  const receivedAmount = transaction.netAmount == null
+    ? null
+    : `${formatAmount(transaction.netAmount, locale)} XOF`;
+  const feeAmount = transaction.fees == null
+    ? null
+    : `${formatAmount(transaction.fees, locale)} XOF`;
   return (
     <article
-      className="min-h-[106px] border-b border-white bg-[#f3f3f3] px-4 py-4"
+      className="overflow-hidden rounded-xl border border-[#dfe4f0] bg-white shadow-[0_8px_22px_rgba(11,18,53,.12)]"
       data-testid={`receipt-${transaction.kind}-${transaction.id}`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-[14px] font-medium text-[#202020]">{reference}</p>
-          <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{method}</p>
-          <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt, lang)}</p>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-7 text-right">
-          <p className="text-[13px] text-[#858585]">{amount} XOF</p>
-          <span className={`text-[12px] font-semibold ${statusClass}`}>{statusLabel}</span>
-        </div>
+      <div className="flex min-h-12 items-center justify-between gap-3 border-b border-[#e7eaf2] bg-[#f7f8fc] pl-4">
+        <p className="truncate text-[12px] font-semibold text-[#0b1235]">{reference}</p>
+        <span className={`shrink-0 rounded-bl-xl px-4 py-3 text-right text-[12px] font-bold text-white ${statusClass}`}>
+          {statusTitle}
+        </span>
+      </div>
+      <div className="px-4">
+        <ReceiptField label={copy.amount} value={amountValue} />
+        {isWithdrawal && receivedAmount && (
+          <ReceiptField label={copy.net} value={receivedAmount} />
+        )}
+        {isWithdrawal && feeAmount && (
+          <ReceiptField label={copy.fees} value={feeAmount} />
+        )}
+        {isActivity && transaction.description && (
+          <ReceiptField label={copy.description} value={transaction.description} />
+        )}
+        {transaction.paymentMethod && (
+          <ReceiptField label={copy.method} value={method} />
+        )}
+        <ReceiptField label={copy.time} value={formatDate(transaction.createdAt, lang)} />
       </div>
     </article>
   );

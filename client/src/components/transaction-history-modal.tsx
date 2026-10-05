@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatCurrency } from "@/lib/countries";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
@@ -13,16 +12,6 @@ import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/component
 interface TransactionHistoryModalProps {
   open: boolean;
   onClose: () => void;
-}
-
-function formatDate(date: string) {
-  return new Date(date).toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
@@ -163,18 +152,17 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                 Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : transactions && transactions.length > 0 ? (
                 transactions.map((transaction) => (
-                  <article key={transaction.id} className="min-h-[92px] border-b border-white bg-[#f3f3f3] px-4 py-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[14px] font-medium text-[#202020]">T{transaction.id}</p>
-                        <p className="mt-2 truncate text-[12px] text-[#8a8a8a]">{formatTransactionDescription(transaction.description, lang)}</p>
-                        <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
-                      </div>
-                      <p className="shrink-0 text-[13px] text-[#16803b]">
-                        +{formatCurrency(parseFloat(transaction.amount), user.country)}
-                      </p>
-                    </div>
-                  </article>
+                  <ReceiptCard
+                    key={transaction.id}
+                    transaction={{
+                      id: transaction.id,
+                      kind: "activity",
+                      amount: transaction.amount,
+                      status: "completed",
+                      createdAt: transaction.createdAt as unknown as string,
+                      description: formatTransactionDescription(transaction.description, lang),
+                    }}
+                  />
                 ))
               ) : (
                 <div className="min-h-[92px] bg-white px-4 pt-3 text-center text-[14px] text-[#9a9a9a]">
