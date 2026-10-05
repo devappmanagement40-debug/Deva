@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
-import waveMobileMoneyLogo from "@/assets/wave-mobile-money.jpg";
+import waveMobileMoneyLogo from "@/assets/wave-mobile-money.png";
 import {
   Check,
   Gem,
