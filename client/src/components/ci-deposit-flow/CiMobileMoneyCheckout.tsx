@@ -1,9 +1,12 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import QRCode from "qrcode";
 import ciFlagAsset from "@/assets/cote-divoire-flag.svg";
 import waveMobileMoneyLogo from "@/assets/wave-mobile-money.jpg";
 import {
+  ArrowDown,
   ArrowUpRight,
   Check,
+  CircleAlert,
   Copy,
   ExternalLink,
   Gem,
@@ -24,6 +27,7 @@ export type CiMobileMoneyCheckoutProps = {
   operatorOwnerName: string;
   operatorLogoUrl?: string | null;
   paymentUrl?: string | null;
+  paymentQrDataUrl?: string | null;
   payerPhoneDigits: string;
   onPayerPhoneDigitsChange(value: string): void;
   transactionId: string;
@@ -39,7 +43,6 @@ export type CiMobileMoneyCheckoutProps = {
 
 const COPY = {
   fr: {
-    checkout: "Paiement Wave",
     exactAmount: "Montant du paiement",
     phoneLabel: "Numéro de portefeuille de paiement",
     phonePlaceholder: "Veuillez entrer le numéro de portefeuille…",
@@ -49,7 +52,19 @@ const COPY = {
     owner: "Titulaire du compte",
     copy: "Copier",
     copied: "Copié",
+    appHeading: "Effectuez votre paiement avec",
+    appInstructions:
+      "Envoyez le montant affiché au compte Wave ci-dessous, puis indiquez la référence de la transaction.",
     launch: "Ouvrir Wave",
+    launchUnavailable: "Lien de paiement non configuré",
+    qrHeading: "Code QR de paiement",
+    scanInstructions: "Scannez ce code avec votre application Mobile Money.",
+    qrUnavailable: "Code QR non configuré",
+    configureLink:
+      "Le lien de paiement n’est pas configuré. Vous pouvez effectuer un transfert manuel vers le compte indiqué.",
+    configureQr: "Aucun code QR de paiement n’est configuré.",
+    manualTransfer:
+      "Effectuez le transfert uniquement vers le numéro destinataire affiché ici.",
     reference: "Référence de la transaction",
     referenceHint: "Saisissez la référence indiquée sur le reçu de votre transfert.",
     referencePlaceholder: "Ex. : référence du reçu",
@@ -70,12 +85,12 @@ const COPY = {
     missingOwner: "Non renseigné",
     copyFailed: "Impossible de copier le numéro.",
     openNew: "S’ouvre dans un nouvel onglet",
+    paymentDetails: "Instructions de paiement",
     languageButton: "ENGLISH",
     copyTitle: "Informations pour le suivi",
     phoneInvalid: "Saisissez les 10 chiffres de votre numéro ivoirien après +225.",
   },
   en: {
-    checkout: "Wave payment",
     exactAmount: "Payment amount",
     phoneLabel: "Payment wallet number",
     phonePlaceholder: "Enter your wallet phone number…",
@@ -85,7 +100,19 @@ const COPY = {
     owner: "Account holder",
     copy: "Copy",
     copied: "Copied",
+    appHeading: "Make your payment with",
+    appInstructions:
+      "Send the amount shown to the Wave account below, then enter the transaction reference.",
     launch: "Open Wave",
+    launchUnavailable: "Payment link not configured",
+    qrHeading: "Payment QR code",
+    scanInstructions: "Scan this code with your Mobile Money app.",
+    qrUnavailable: "QR code not configured",
+    configureLink:
+      "The payment link is not configured. You can make a manual transfer to the account shown.",
+    configureQr: "No payment QR code is configured.",
+    manualTransfer:
+      "Send the transfer only to the recipient number shown here.",
     reference: "Transaction reference",
     referenceHint: "Enter the reference shown on your transfer receipt.",
     referencePlaceholder: "e.g. receipt reference",
@@ -106,6 +133,7 @@ const COPY = {
     missingOwner: "Not provided",
     copyFailed: "Could not copy the number.",
     openNew: "Opens in a new tab",
+    paymentDetails: "Payment instructions",
     languageButton: "FRANÇAIS",
     copyTitle: "Transfer details",
     phoneInvalid: "Enter the 10 digits of your Côte d’Ivoire number after +225.",
@@ -129,6 +157,7 @@ export function CiMobileMoneyCheckout({
   operatorOwnerName,
   operatorLogoUrl,
   paymentUrl,
+  paymentQrDataUrl,
   payerPhoneDigits,
   onPayerPhoneDigitsChange,
   transactionId,
@@ -144,6 +173,7 @@ export function CiMobileMoneyCheckout({
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
   const [logoFailed, setLogoFailed] = useState(false);
+  const [generatedQr, setGeneratedQr] = useState("");
   const phoneInputRef = useRef<HTMLInputElement>(null);
   const referenceInputRef = useRef<HTMLInputElement>(null);
 
@@ -156,6 +186,35 @@ export function CiMobileMoneyCheckout({
     paymentUrl?.trim() && isSafePaymentUrl(paymentUrl.trim())
       ? paymentUrl.trim()
       : "";
+  const qrSource = paymentQrDataUrl?.startsWith("data:image/")
+    ? paymentQrDataUrl
+    : "";
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!safeUrl || qrSource) {
+      setGeneratedQr("");
+      return () => {
+        cancelled = true;
+      };
+    }
+    void QRCode.toDataURL(safeUrl, {
+      errorCorrectionLevel: "M",
+      margin: 2,
+      width: 320,
+    })
+      .then((dataUrl) => {
+        if (!cancelled) setGeneratedQr(dataUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setGeneratedQr("");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [safeUrl, qrSource]);
+
+  const displayedQr = qrSource || generatedQr;
   const formattedAmount = Number.isFinite(amountXof)
     ? new Intl.NumberFormat(isEnglish ? "en-US" : "fr-FR", {
         maximumFractionDigits: 0,
@@ -204,7 +263,7 @@ export function CiMobileMoneyCheckout({
 
   return (
     <main className="ci-wave-checkout">
-      <section className="ci-wave-screen" aria-label={copy.checkout}>
+      <section className="ci-wave-screen" aria-label={copy.paymentDetails}>
         <button
           className="ci-wave-close"
           type="button"
@@ -214,7 +273,7 @@ export function CiMobileMoneyCheckout({
           <X size={20} aria-hidden="true" />
         </button>
 
-        <section className="ci-wave-card" aria-label={copy.checkout}>
+        <section className="ci-wave-card" aria-label={copy.paymentDetails}>
           <header className="ci-wave-header">
             <div className="ci-wave-brand" aria-label="DIAMANT">
               <Gem size={21} strokeWidth={2.4} aria-hidden="true" />
@@ -289,6 +348,45 @@ export function CiMobileMoneyCheckout({
             {copy.phoneHint}
           </p>
 
+          <button
+            className="ci-wave-submit"
+            type="button"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+          >
+            {isSubmitting ? copy.submitting : copy.submit}
+          </button>
+
+          <div className="ci-wave-security">
+            <span className="ci-wave-security-icon">
+              <ShieldCheck size={21} aria-hidden="true" />
+            </span>
+            <span className="ci-wave-security-copy">
+              <strong>
+                <LockKeyhole size={12} aria-hidden="true" />
+                {copy.secureHeading}
+              </strong>
+              <span>{copy.secureBody}</span>
+            </span>
+          </div>
+        </section>
+      </section>
+
+      <section className="ci-wave-details" aria-labelledby="ci-wave-details-title">
+        <div className="ci-wave-details-card">
+          <div className="ci-wave-details-heading">
+            <span className="ci-wave-details-icon">
+              <Smartphone size={18} aria-hidden="true" />
+            </span>
+            <div>
+              <h1 id="ci-wave-details-title">{copy.paymentDetails}</h1>
+              <p>{copy.appHeading} {operatorName || "Wave"}</p>
+            </div>
+          </div>
+
+          <p className="ci-wave-instructions">{copy.appInstructions}</p>
+
           <div className="ci-wave-recipient">
             <div className="ci-wave-recipient-head">
               <span>{copy.recipient} · {operatorName || "Wave"}</span>
@@ -308,7 +406,7 @@ export function CiMobileMoneyCheckout({
             )}
           </div>
 
-          {safeUrl && (
+          {safeUrl ? (
             <a
               className="ci-wave-launch"
               href={safeUrl}
@@ -319,7 +417,35 @@ export function CiMobileMoneyCheckout({
               <ExternalLink size={17} aria-hidden="true" />
               {copy.launch}
             </a>
+          ) : (
+            <div className="ci-wave-config-note" role="status">
+              <CircleAlert size={17} aria-hidden="true" />
+              <span>{copy.configureLink} {copy.manualTransfer}</span>
+            </div>
           )}
+
+          <div className="ci-wave-qr-panel">
+            <div className="ci-wave-qr-heading">
+              <div>
+                <h2>{copy.qrHeading}</h2>
+                <p>{copy.scanInstructions}</p>
+              </div>
+              <ArrowDown size={18} aria-hidden="true" />
+            </div>
+            {displayedQr ? (
+              <img
+                className="ci-wave-qr"
+                src={displayedQr}
+                alt={`${copy.qrHeading} · ${operatorName || "Wave"}`}
+              />
+            ) : (
+              <div className="ci-wave-qr-unavailable">
+                <ImagePlus size={21} aria-hidden="true" />
+                <span>{copy.qrUnavailable}</span>
+                <small>{copy.configureQr}</small>
+              </div>
+            )}
+          </div>
 
           <div className="ci-wave-reference">
             <label htmlFor="ci-wave-transaction-id">
@@ -372,20 +498,7 @@ export function CiMobileMoneyCheckout({
               {isSubmitting ? copy.submitting : copy.submitDetails}
             </button>
           </div>
-
-          <div className="ci-wave-security">
-            <span className="ci-wave-security-icon">
-              <ShieldCheck size={21} aria-hidden="true" />
-            </span>
-            <span className="ci-wave-security-copy">
-              <strong>
-                <LockKeyhole size={12} aria-hidden="true" />
-                {copy.secureHeading}
-              </strong>
-              <span>{copy.secureBody}</span>
-            </span>
-          </div>
-        </section>
+        </div>
       </section>
     </main>
   );

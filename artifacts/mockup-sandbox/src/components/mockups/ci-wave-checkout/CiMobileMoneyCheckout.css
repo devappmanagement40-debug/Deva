@@ -31,7 +31,8 @@
   mix-blend-mode: soft-light;
 }
 
-.ci-wave-screen {
+.ci-wave-screen,
+.ci-wave-details {
   position: relative;
   z-index: 1;
 }
@@ -39,7 +40,7 @@
 .ci-wave-screen {
   display: flex;
   min-height: 100dvh;
-  align-items: safe center;
+  align-items: center;
   justify-content: center;
   padding: 45px 10px 20px;
 }
@@ -365,6 +366,57 @@
   font-weight: 800;
 }
 
+.ci-wave-details {
+  width: calc(100% - 20px);
+  max-width: 439px;
+  margin: 0 auto 36px;
+}
+
+.ci-wave-details-card {
+  padding: 19px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 9px 25px rgba(112, 62, 31, 0.14);
+}
+
+.ci-wave-details-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.ci-wave-details-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  color: #1689b1;
+  background: #e9f6fb;
+}
+
+.ci-wave-details-heading h1 {
+  margin: 0;
+  color: #30383e;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.ci-wave-details-heading p {
+  margin: 3px 0 0;
+  color: #737b82;
+  font-size: 12px;
+}
+
+.ci-wave-instructions {
+  margin: 13px 0 0;
+  color: #626b73;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .ci-wave-recipient {
   margin-top: 14px;
   padding: 13px;
@@ -442,6 +494,91 @@
 
 .ci-wave-launch:hover {
   background: #107b9c;
+}
+
+.ci-wave-config-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #d8e9f3;
+  border-left: 4px solid #e99a5e;
+  border-radius: 9px;
+  color: #246485;
+  background: #edf7fc;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ci-wave-config-note svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #df884b;
+}
+
+.ci-wave-qr-panel {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid #e7e9eb;
+  border-radius: 11px;
+  background: #fdfdfd;
+}
+
+.ci-wave-qr-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #5d6870;
+}
+
+.ci-wave-qr-heading h2 {
+  margin: 0;
+  color: #41484e;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.ci-wave-qr-heading p {
+  margin: 4px 0 0;
+  color: #727a82;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.ci-wave-qr {
+  display: block;
+  width: min(100%, 190px);
+  aspect-ratio: 1;
+  margin: 12px auto 0;
+  object-fit: contain;
+}
+
+.ci-wave-qr-unavailable {
+  display: grid;
+  min-height: 96px;
+  justify-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 13px;
+  border: 1px dashed #e3c7b4;
+  border-radius: 9px;
+  color: #6f747a;
+  background: #fffaf6;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ci-wave-qr-unavailable svg {
+  color: #d78b54;
+}
+
+.ci-wave-qr-unavailable small {
+  color: #777e83;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .ci-wave-reference {
