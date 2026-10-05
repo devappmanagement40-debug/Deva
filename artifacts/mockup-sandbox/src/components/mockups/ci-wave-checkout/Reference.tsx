@@ -11,7 +11,6 @@ export function Reference() {
       operatorOwnerName="DIAMANT"
       operatorLogoUrl={null}
       paymentUrl={null}
-      paymentQrDataUrl={null}
       payerPhoneDigits=""
       onPayerPhoneDigitsChange={() => undefined}
       transactionId=""
