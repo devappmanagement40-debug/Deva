@@ -16,7 +16,8 @@
     "test:share-reports": "tsx --test server/share-report-validation.test.ts",
     "test:nowpayments": "tsx --test server/nowpayments-policy.test.ts",
     "test:daily-bonus": "tsx --test server/daily-bonus-policy.test.ts",
-    "test:task-rewards": "tsx --test server/task-rewards-policy.test.ts"
+    "test:task-rewards": "tsx --test server/task-rewards-policy.test.ts",
+    "test:product-categories": "tsx --test shared/product-categories.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

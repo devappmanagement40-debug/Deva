@@ -3,8 +3,8 @@ name: DIAMANT product sections
 description: Product type assignments for the three existing storefront sections and the compatibility rule for unclassified products.
 ---
 
-Products can be assigned to Stability, Wellness, or Activity. Keep the storefront sections aligned with the admin product-type selector. Existing products without a deliberate assignment should remain visible in every section until an admin classifies them; newly created products should require a concrete section.
+Products belong to exactly one of Stability, Wellness, or Activity; category filters and admin assignment must stay aligned. Legacy products marked “all” belong in Stability, while Wellness and Activity remain empty until assigned. Paid purchases in Wellness or Activity require an active Stability holding; an active admin-assigned Stability holding counts. Historical purchase snapshots remain unchanged.
 
-**Why:** Adding category filtering without a safe legacy default would arbitrarily hide existing products or place all of them in a section chosen by the code.
+**Why:** The user confirmed legacy “all” products should move to Stability and that an active Stability product is a prerequisite for buying in the other categories. Purchase snapshots preserve the terms that applied at the time of purchase.
 
-**How to apply:** Preserve the legacy “all sections” behavior when migrating old products, and let admins assign each existing product to a specific section through its edit form.
+**How to apply:** Normalize legacy “all” or missing catalog types to Stability, require a concrete category for new and edited products, and enforce the active-Stability prerequisite in both the interface and purchase storage logic.

@@ -11,6 +11,7 @@ import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
+import { normalizeProductType } from "@shared/product-categories";
 import { getProductVisual } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import "./products.css";
@@ -28,6 +29,8 @@ const INVEST_COPY: Record<Lang, {
   investNow: string;
   soldOut: string;
   unavailable: string;
+  stabilityRequired: string;
+  stabilityRequiredButton: string;
   support: string;
   purchaseHint: string;
   multipleHint: string;
@@ -48,6 +51,8 @@ const INVEST_COPY: Record<Lang, {
     investNow: "Acheter",
     soldOut: "Épuisé",
     unavailable: "Bientôt disponible",
+    stabilityRequired: "Pour acheter un produit Bien-être ou Activité, vous devez d’abord posséder un produit Stabiliser actif.",
+    stabilityRequiredButton: "Stabiliser requis",
     support: "Assistance",
     purchaseHint: "Les gains sont crédités automatiquement à la fin du cycle du produit. Aucune collecte manuelle n'est nécessaire.",
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
@@ -68,6 +73,8 @@ const INVEST_COPY: Record<Lang, {
     investNow: "Buy",
     soldOut: "Sold out",
     unavailable: "Unavailable",
+    stabilityRequired: "You must own an active Stability product before buying a Wellness or Activity product.",
+    stabilityRequiredButton: "Stability required",
     support: "Support",
     purchaseHint: "Product earnings are credited automatically at the end of the cycle. No manual collection is needed.",
     multipleHint: "You can purchase multiple products to increase your earnings.",
@@ -88,6 +95,8 @@ const INVEST_COPY: Record<Lang, {
     investNow: "شراء",
     soldOut: "نفد المخزون",
     unavailable: "غير متاح",
+    stabilityRequired: "يجب أن تمتلك منتج استقرار نشطًا قبل شراء منتج العافية أو النشاط.",
+    stabilityRequiredButton: "الاستقرار مطلوب",
     support: "الدعم",
     purchaseHint: "تُضاف أرباح المنتج تلقائيًا عند انتهاء الدورة. لا حاجة إلى التحصيل اليدوي.",
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
@@ -108,6 +117,8 @@ const INVEST_COPY: Record<Lang, {
     investNow: "购买",
     soldOut: "已售罄",
     unavailable: "暂不可用",
+    stabilityRequired: "购买健康或活力产品前，您必须先拥有一个有效的稳健产品。",
+    stabilityRequiredButton: "需要稳健产品",
     support: "客服",
     purchaseHint: "产品周期结束时，收益将自动计入收益余额，无需手动领取。",
     multipleHint: "您可以购买多个产品以增加收益。",
@@ -125,6 +136,12 @@ function formatXof(value: number) {
     : "0.00";
 }
 
+type ProductWithOwnership = Product & {
+  isOwned?: boolean;
+  ownedCount?: number;
+  userHasActiveStabilityProduct?: boolean;
+};
+
 export default function ProductsPage() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
@@ -133,7 +150,7 @@ export default function ProductsPage() {
   const [selectedTab, setSelectedTab] = useState(0);
   const copy = INVEST_COPY[lang];
 
-  const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<Product[]>({
+  const { data: products, isLoading: productsLoading, isError, refetch } = useQuery<ProductWithOwnership[]>({
     queryKey: ["/api/products"],
   });
 
@@ -166,8 +183,10 @@ export default function ProductsPage() {
   const availableBalance = depositBalance + earningsBalance;
   const paidProducts = (products || []).filter((product) => !product.isFree);
   const selectedProductType = PRODUCT_TAB_TYPES[selectedTab] ?? PRODUCT_TAB_TYPES[0];
+  const hasActiveStabilityProduct = products?.some((product) => product.userHasActiveStabilityProduct === true) ?? false;
+  const stabilityPrerequisiteApplies = selectedProductType !== "stability" && !hasActiveStabilityProduct;
   const sectionProducts = paidProducts.filter(
-    (product) => !product.productType || product.productType === "all" || product.productType === selectedProductType,
+    (product) => normalizeProductType(product.productType) === selectedProductType,
   );
   const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
   const getDisplayName = (product: Product) => rebrandText(product.name);
@@ -208,6 +227,12 @@ export default function ProductsPage() {
           </div>
 
           <section className="diamant-invest-list" aria-label={copy.overview}>
+            {stabilityPrerequisiteApplies && !productsLoading && !isError && (
+              <div className="diamant-invest-prerequisite" role="alert">
+                <AlertTriangle size={19} aria-hidden="true" />
+                <p>{copy.stabilityRequired}</p>
+              </div>
+            )}
             {productsLoading ? (
               <div className="diamant-invest-skeletons" aria-label={copy.loading} aria-busy="true">
                 {[0, 1, 2].map((item) => (
@@ -240,7 +265,7 @@ export default function ProductsPage() {
                 const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
                 const isSoldOut = stock >= 100;
                 const isUnavailable = !!product.isUnavailable;
-                const isBlocked = isSoldOut || isUnavailable;
+                const isBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies;
                 const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
 
                 return (
@@ -271,10 +296,10 @@ export default function ProductsPage() {
                         onClick={() => !isBlocked && handleBuy(product)}
                         disabled={purchaseMutation.isPending || isBlocked}
                         className={`diamant-invest-buy${isBlocked ? " is-disabled" : ""}`}
-                        aria-label={`${copy.investNow}: ${displayName}`}
+                        aria-label={`${stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}: ${displayName}`}
                         data-testid={`button-purchase-${product.id}`}
                       >
-                        {isPending ? <Loader2 size={19} className="animate-spin" /> : isUnavailable ? copy.unavailable : isSoldOut ? copy.soldOut : copy.investNow}
+                        {isPending ? <Loader2 size={19} className="animate-spin" /> : isUnavailable ? copy.unavailable : isSoldOut ? copy.soldOut : stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}
                       </button>
                     </div>
                   </article>

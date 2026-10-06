@@ -10,6 +10,7 @@ import {
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
+import { ownsActiveStabilityProduct } from "@shared/product-categories";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import { isCountryCode } from "@shared/country-codes";
@@ -767,7 +768,11 @@ export async function registerRoutes(
     try {
       const products = await storage.getProducts();
       const userProductsList = await storage.getUserProducts(req.session.userId!);
-      const user = await storage.getUser(req.session.userId!);
+      const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map((up) => ({
+        isActive: up.isActive,
+        daysRemaining: up.daysRemaining,
+        productType: up.product.productType,
+      })));
       
       const productCounts = new Map<number, number>();
       userProductsList.forEach(up => {
@@ -780,6 +785,7 @@ export async function registerRoutes(
         ...p,
         isOwned: productCounts.has(p.id),
         ownedCount: productCounts.get(p.id) || 0,
+        userHasActiveStabilityProduct,
       }));
 
       res.json(productsWithOwnership);
@@ -3449,7 +3455,7 @@ export async function registerRoutes(
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
       const { name, price, dailyEarnings, cycleDays, imageUrl, minInviteCount, maxOwned, stockPercentage } = req.body;
-      const productType = req.body.productType ?? "all";
+      const productType = req.body.productType;
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
       }

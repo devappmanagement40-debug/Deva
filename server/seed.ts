@@ -103,7 +103,9 @@ export async function seed() {
     )
   `);
   // New columns on products
-  await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "product_type" text NOT NULL DEFAULT 'all'`);
+  await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "product_type" text NOT NULL DEFAULT 'stability'`);
+  await db.execute(sql`ALTER TABLE "products" ALTER COLUMN "product_type" SET DEFAULT 'stability'`);
+  await db.execute(sql`UPDATE "products" SET "product_type" = 'stability' WHERE "product_type" IS NULL OR "product_type" = 'all'`);
   await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "series_id" integer REFERENCES "product_series"("id")`);
   await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "min_invite_count" integer NOT NULL DEFAULT 0`);
   await db.execute(sql`ALTER TABLE "products" ADD COLUMN IF NOT EXISTS "max_owned" integer NOT NULL DEFAULT 0`);

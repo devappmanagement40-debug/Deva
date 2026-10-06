@@ -26,6 +26,10 @@ import {
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
+import {
+  canPurchaseProductType,
+  ownsActiveStabilityProduct,
+} from "@shared/product-categories";
 
 export class TaskHasClaimsError extends Error {
   constructor() {
@@ -596,6 +600,18 @@ export class DatabaseStorage implements IStorage {
 
     const user = await this.getUser(userId);
     if (!user) throw new Error("Utilisateur non trouvé");
+
+    if (!product.isFree && !assignedByAdmin && !canPurchaseProductType(product.productType, false)) {
+      const activeProducts = await this.getUserProducts(userId);
+      const hasActiveStabilityProduct = ownsActiveStabilityProduct(activeProducts.map((holding) => ({
+        isActive: holding.isActive,
+        daysRemaining: holding.daysRemaining,
+        productType: holding.product.productType,
+      })));
+      if (!canPurchaseProductType(product.productType, hasActiveStabilityProduct)) {
+        throw new Error("Vous devez posséder un produit Stabiliser actif avant d'acheter des produits Bien-être ou Activité.");
+      }
+    }
 
     const isPaidUserPurchase = !product.isFree && !assignedByAdmin;
     let buyerSpinReward = 0;

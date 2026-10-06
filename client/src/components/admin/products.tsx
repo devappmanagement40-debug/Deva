@@ -17,12 +17,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
 import { Edit, Loader2, Plus, Trash2, Users, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
+import { normalizeProductType } from "@shared/product-categories";
 import ImageUploader from "@/components/admin/image-uploader";
 import { getProductVisual } from "@/lib/product-visuals";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nom requis"),
-  productType: z.enum(["all", "stability", "wellness", "activity"]),
+  productType: z.enum(["stability", "wellness", "activity"]),
   price: z.string().min(1, "Prix requis"),
   dailyEarnings: z.string().min(1, "Gains journaliers requis"),
   cycleDays: z.string().min(1, "Durée requise"),
@@ -35,7 +36,6 @@ const productSchema = z.object({
 type ProductForm = z.infer<typeof productSchema>;
 
 const PRODUCT_TYPE_LABELS: Record<ProductForm["productType"], string> = {
-  all: "Toutes les sections (produit existant)",
   stability: "Stabiliser",
   wellness: "Bien-être",
   activity: "Activité",
@@ -338,7 +338,7 @@ export default function AdminProducts() {
     setSelectedProduct(product);
     editForm.reset({
       name: rebrandText(product.name),
-      productType: product.productType ?? "all",
+      productType: normalizeProductType(product.productType),
       price: product.price.toString(),
       dailyEarnings: product.dailyEarnings.toString(),
       cycleDays: product.cycleDays.toString(),
@@ -370,7 +370,7 @@ export default function AdminProducts() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{rebrandText(product.name)}</p>
-                      <Badge variant="outline" className="text-xs">{PRODUCT_TYPE_LABELS[product.productType ?? "all"]}</Badge>
+                      <Badge variant="outline" className="text-xs">{PRODUCT_TYPE_LABELS[normalizeProductType(product.productType)]}</Badge>
                       {product.isFree && <Badge variant="secondary" className="text-xs">Gratuit</Badge>}
                       <Badge variant={product.isActive ? "default" : "outline"} className="text-xs">
                         {product.isActive ? "Actif" : "Inactif"}
