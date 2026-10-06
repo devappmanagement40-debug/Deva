@@ -1,20 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useLocation } from "wouter";
 import customerServiceIcon from "@assets/customer-service-icon-512.png";
 import supportAvatar from "@assets/generated_images/diamant-support-avatar-3d.png";
 import telegramIcon from "@/assets/images/telegram-icon.png";
-
-interface SettingsLinks {
-  supportLink: string;
-  supportType: string;
-  supportLabel: string;
-  support2Link: string;
-  support2Type: string;
-  support2Label: string;
-  floatingSupportTarget?: string;
-}
 
 interface FloatingSupportProps {
   bottomOffset?: number;
@@ -33,18 +22,6 @@ export function FloatingSupport({
 }: FloatingSupportProps) {
   const { t } = useI18n();
   const [, navigate] = useLocation();
-  const { data } = useQuery<SettingsLinks>({
-    queryKey: ["/api/settings/links"],
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Choisit le lien selon le paramètre admin (support1 par défaut)
-  const target = data?.floatingSupportTarget || "support1";
-  const support1Link = data?.supportLink?.trim() || "";
-  const support2Link = data?.support2Link?.trim() || "";
-  const preferredLink = target === "support2" ? support2Link : support1Link;
-  const fallbackLink = target === "support2" ? support1Link : support2Link;
-  const link = [preferredLink, fallbackLink].find((href) => href && href !== "#") || "";
 
   // Drag state
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -111,13 +88,9 @@ export function FloatingSupport({
     if (!dragging.current) return;
     dragging.current = false;
     if (!didDrag.current) {
-      if (placement === "auth" && link) {
-        window.open(link, "_blank", "noopener,noreferrer");
-      } else {
-        // Member pages should always open the in-app help center, not a configured
-        // external link that could point to an unrelated flow.
-        navigate("/service");
-      }
+      // Always open the help hub first. Users choose a support channel or issue
+      // flow from there instead of being sent directly to a configured URL.
+      navigate("/service");
     }
   };
 
@@ -126,6 +99,7 @@ export function FloatingSupport({
   return (
     <button
       ref={btnRef}
+      type="button"
       aria-label={t.customerService}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}

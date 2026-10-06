@@ -244,7 +244,12 @@ export default function ServicePage() {
           type="button"
           className="diamant-service-fab"
           aria-label="Contacter le service client DIAMANT"
-          onClick={() => openSupportLink(floatingLink.href)}
+          onClick={() => {
+            document.querySelector(".diamant-service-content")?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }}
           data-testid="button-floating-support"
         >
           <img src={customerServiceIcon} alt="" aria-hidden="true" draggable={false} />

@@ -369,9 +369,7 @@ function RouterComponent() {
         </ProtectedRoute>
       </Route>
       <Route path="/service">
-        <ProtectedRoute>
-          <ServicePage />
-        </ProtectedRoute>
+        <ServicePage />
       </Route>
       <Route path="/support-chat">
         <ProtectedRoute>
