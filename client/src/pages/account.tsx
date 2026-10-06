@@ -18,10 +18,8 @@ import {
   Headphones,
   KeyRound,
   LockKeyhole,
-  LogOut,
   MessageSquare,
   ReceiptText,
-  Shield,
   UsersRound,
   WalletCards,
   type LucideIcon,
@@ -36,7 +34,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
-import customerServiceIcon from "@assets/customer-service-icon-512.png";
 import {
   computeVipLevelFromProduct,
   DEFAULT_VIP_CONFIGS,
@@ -263,26 +260,6 @@ const ACCOUNT_LINKS: {
   { copyKey: "application", Icon: Download },
 ];
 
-const ACCOUNT_MENU_ACTIONS: {
-  labelKey: "changePassword" | "changeWithdrawalPin" | "wallet" | "redeem" | "checkinBtn" | "shareInformation" | "history" | "security" | "customerService" | "application" | "revenue" | "taskCenterTitle";
-  href?: string;
-  action?: "install";
-  Icon: LucideIcon;
-}[] = [
-  { labelKey: "changePassword", href: "/change-password", Icon: KeyRound },
-  { labelKey: "changeWithdrawalPin", href: "/change-withdrawal-pin", Icon: LockKeyhole },
-  { labelKey: "wallet", href: "/wallet", Icon: CreditCard },
-  { labelKey: "redeem", href: "/gift-code", Icon: Gift },
-  { labelKey: "checkinBtn", href: "/checkin", Icon: CalendarDays },
-  { labelKey: "shareInformation", href: "/share-information", Icon: Download },
-  { labelKey: "history", href: "/history", Icon: ReceiptText },
-  { labelKey: "revenue", href: "/earnings", Icon: CircleDollarSign },
-  { labelKey: "taskCenterTitle", href: "/tasks", Icon: FileText },
-  { labelKey: "security", href: "/rules", Icon: Bookmark },
-  { labelKey: "customerService", href: "/service", Icon: Headphones },
-  { labelKey: "application", action: "install", Icon: Download },
-];
-
 export default function AccountPage() {
   const { user, logout } = useAuth();
   const [, navigate] = useLocation();
@@ -294,7 +271,6 @@ export default function AccountPage() {
   const displayedBalance =
     (Number.isFinite(depositAmount) ? depositAmount : 0) +
     (Number.isFinite(earningsAmount) ? earningsAmount : 0);
-  const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [adminPin, setAdminPin] = useState("");
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -346,7 +322,6 @@ export default function AccountPage() {
     },
     onSuccess: () => {
       setShowPinModal(false);
-      setShowAccountMenu(false);
       setAdminPin("");
       navigate("/admin");
     },
@@ -394,11 +369,6 @@ export default function AccountPage() {
   };
 
   const openAdmin = () => {
-    if (user.isAdminPasswordRequired === false) {
-      setShowAccountMenu(false);
-      navigate("/admin");
-      return;
-    }
     setShowPinModal(true);
   };
 
@@ -464,8 +434,9 @@ export default function AccountPage() {
               <button
                 type="button"
                 className="ielp-account-avatar-button"
-                onClick={() => setShowAccountMenu(true)}
-                aria-label={copy.accountMenu}
+                onClick={user.isAdmin ? openAdmin : undefined}
+                disabled={!user.isAdmin}
+                aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
                 data-testid="button-account-menu"
               >
                 <span className="ielp-account-avatar" aria-hidden="true">
@@ -479,8 +450,9 @@ export default function AccountPage() {
                   <button
                     type="button"
                     className="ielp-account-phone-menu"
-                    onClick={() => setShowAccountMenu(true)}
-                    aria-label={copy.accountMenu}
+                    onClick={user.isAdmin ? openAdmin : undefined}
+                    disabled={!user.isAdmin}
+                    aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
                     data-testid="button-account-menu-phone"
                   >
                     {maskedPhone}
@@ -629,61 +601,6 @@ export default function AccountPage() {
       </div>
 
       <FloatingSupport placement="home" />
-
-      <Dialog open={showAccountMenu} onOpenChange={setShowAccountMenu}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{copy.accountMenu}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-1">
-            <div className="mb-3 rounded-xl bg-[#f3faf5] px-4 py-3">
-              <p className="font-medium text-[#1f2933]">{maskedPhone}</p>
-              <p className="mt-1 text-xs text-[#65736e]">{copy.member}</p>
-            </div>
-            {ACCOUNT_MENU_ACTIONS.map(({ labelKey, href, action, Icon }) => (
-              <button
-                key={labelKey}
-                onClick={() => {
-                  if (action === "install") {
-                    void handleInstall();
-                  } else if (href) {
-                    setShowAccountMenu(false);
-                    navigate(href);
-                  }
-                }}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
-              >
-                {labelKey === "customerService" ? (
-                  <img src={customerServiceIcon} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" />
-                ) : (
-                  <Icon size={19} color="#0789e9" />
-                )}
-                <span className="text-sm text-[#30363a]">
-                  {labelKey === "application"
-                    ? installing ? copy.installing : copy.application
-                    : t[labelKey]}
-                </span>
-              </button>
-            ))}
-            {user.isAdmin && (
-              <button
-                onClick={openAdmin}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left active:bg-slate-50"
-              >
-                <Shield size={19} color="#0789e9" />
-                <span className="text-sm text-[#30363a]">{t.adminPanel}</span>
-              </button>
-            )}
-            <button
-              onClick={handleLogout}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#fff0f0] px-3 py-3 font-medium text-[#d22f2f] active:opacity-70"
-            >
-              <LogOut size={18} />
-              {t.logout}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <Dialog open={showPinModal} onOpenChange={setShowPinModal}>
         <DialogContent className="max-w-sm">
