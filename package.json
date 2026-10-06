@@ -15,6 +15,7 @@
     "test:support-chat": "tsx --test server/support-chat-validation.test.ts",
     "test:share-reports": "tsx --test server/share-report-validation.test.ts",
     "test:nowpayments": "tsx --test server/nowpayments-policy.test.ts",
+    "test:telegram-admin": "tsx --test server/telegram-admin.test.ts",
     "test:withdrawal-fees": "tsx --test shared/withdrawal-fees.test.ts",
     "test:daily-bonus": "tsx --test server/daily-bonus-policy.test.ts",
     "test:task-rewards": "tsx --test server/task-rewards-policy.test.ts",

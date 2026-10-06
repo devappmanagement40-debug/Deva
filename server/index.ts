@@ -6,6 +6,7 @@ import { createServer } from "http";
 import { seed } from "./seed";
 import { storage } from "./storage";
 import { getConfiguredAppUrlInfo, getNowPaymentsCallbackUrl } from "./nowpayments";
+import { startAdminTelegramBot } from "./telegram-admin";
 
 const app = express();
 const httpServer = createServer(app);
@@ -184,6 +185,11 @@ process.on("uncaughtException", (err) => {
   const host = process.env.NODE_ENV === "production" ? "127.0.0.1" : "0.0.0.0";
   httpServer.listen(port, host, () => {
     log(`serving on port ${port} (${host})`);
+    if (process.env.NODE_ENV === "production") {
+      void startAdminTelegramBot().catch(() => {
+        console.error("[telegram-admin] Startup failed.");
+      });
+    }
   });
   } catch (err) {
     console.error("Fatal startup error:", err);

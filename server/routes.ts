@@ -41,6 +41,7 @@ import {
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { notifyAdminTelegram } from "./telegram-admin";
 
 function parsePositiveIntegerSetting(value: string | undefined, fallback: number): number | null {
   const parsed = value?.trim() ? Number(value.trim()) : fallback;
@@ -561,6 +562,11 @@ export async function registerRoutes(
           : undefined,
         telegram: data.telegram || undefined,
       });
+      notifyAdminTelegram({
+        kind: "signup",
+        userId: user.id,
+        country: user.country,
+      });
 
       req.session.userId = user.id;
       const currentUser = await storage.getUser(user.id);
@@ -597,6 +603,14 @@ export async function registerRoutes(
 
       const validPassword = await bcrypt.compare(data.password, user.password);
       if (!validPassword) {
+        if (user.isAdmin || user.isSuperAdmin) {
+          notifyAdminTelegram({
+            kind: "security_alert",
+            source: "Connexion",
+            issue: "admin_login_failed",
+            userId: user.id,
+          });
+        }
         recordFailedAttempt(req);
         return res.status(400).json({ message: "Identifiants incorrects" });
       }
@@ -607,6 +621,13 @@ export async function registerRoutes(
 
       clearFailedAttempts(req);
       req.session.userId = user.id;
+      if (user.isAdmin || user.isSuperAdmin) {
+        notifyAdminTelegram({
+          kind: "admin_login",
+          userId: user.id,
+          country: user.country,
+        });
+      }
       res.json({ user: { ...user, password: undefined, transactionPassword: undefined } });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -858,6 +879,12 @@ export async function registerRoutes(
       }
 
       const userProduct = await storage.purchaseProduct(userId, productId);
+      notifyAdminTelegram({
+        kind: "purchase",
+        userId,
+        productName: product.name,
+        amount: Number(product.price) || 0,
+      });
       res.json(userProduct);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -1332,6 +1359,12 @@ export async function registerRoutes(
       });
 
       if (!payment.pay_address || !payment.payment_id) {
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "deposit",
+          code: "payment_response_incomplete",
+        });
         console.error("NOWPayments: missing pay_address or payment_id in response", payment);
         return res.status(502).json({ message: "Impossible de générer l'adresse de dépôt" });
       }
@@ -1349,6 +1382,14 @@ export async function registerRoutes(
         nowPaymentsStatus: "WAITING",
         nowPaymentsExpectedAmount: String(payment.pay_amount ?? amountUsdt),
         nowPaymentsExpectedCurrency: String(payment.pay_currency || payCurrencyLower).toLowerCase(),
+      });
+      notifyAdminTelegram({
+        kind: "deposit_created",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: "NOWPayments · USDT BEP20",
+        status: deposit.status,
       });
 
       const qrCode = await QRCode.toDataURL(payment.pay_address, {
@@ -1369,6 +1410,12 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       console.error("NOWPayments deposit error:", error);
+      notifyAdminTelegram({
+        kind: "payment_error",
+        provider: "NOWPayments",
+        stage: "deposit",
+        code: "creation_failed",
+      });
       const message = error?.details?.message || error?.message || "Une erreur est survenue lors de la création du dépôt";
       return res.status(502).json({ message });
     }
@@ -1383,15 +1430,31 @@ export async function registerRoutes(
 
       if (!ipnSecret) {
         console.error("NOWPayments IPN rejected: NOWPAYMENTS_IPN_SECRET is not configured");
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "webhook",
+          code: "ipn_secret_missing",
+        });
         return res.status(503).json({ message: "NOWPayments IPN is not configured" });
       }
       if (!sig) {
+        notifyAdminTelegram({
+          kind: "security_alert",
+          source: "NOWPayments",
+          issue: "invalid_webhook_signature",
+        });
         return res.status(401).json({ message: "Missing signature" });
       }
 
       const sdk = getSDK();
       if (!sdk.verifyWebhookSignature(req.body, sig)) {
         console.warn("NOWPayments IPN: invalid signature");
+        notifyAdminTelegram({
+          kind: "security_alert",
+          source: "NOWPayments",
+          issue: "invalid_webhook_signature",
+        });
         return res.status(401).json({ message: "Invalid signature" });
       }
 
@@ -1430,6 +1493,19 @@ export async function registerRoutes(
             nextStatus,
             payout.error || `NOWPayments payout ${status}`,
           );
+          if (refunded) {
+            notifyAdminTelegram({
+              kind: "withdrawal_status",
+              id: withdrawal.id,
+              amount: withdrawal.amount,
+              netAmount: withdrawal.netAmount,
+              fees: withdrawal.fees,
+              country: withdrawal.country,
+              paymentMethod: withdrawal.paymentMethod,
+              status: nextStatus,
+              providerStatus: statusUpdate.nowPaymentsStatus,
+            });
+          }
           return res.status(200).json({
             received: true,
             status,
@@ -1442,6 +1518,19 @@ export async function registerRoutes(
             withdrawal.id,
             statusUpdate,
           );
+          if (completed && completed.status !== withdrawal.status) {
+            notifyAdminTelegram({
+              kind: "withdrawal_status",
+              id: completed.id,
+              amount: completed.amount,
+              netAmount: completed.netAmount,
+              fees: completed.fees,
+              country: completed.country,
+              paymentMethod: completed.paymentMethod,
+              status: completed.status,
+              providerStatus: completed.nowPaymentsStatus,
+            });
+          }
           return res.status(200).json({
             received: true,
             status: completed?.status || "approved",
@@ -1453,6 +1542,25 @@ export async function registerRoutes(
           nextStatus,
           statusUpdate,
         );
+        if (
+          tracked &&
+          (
+            tracked.status !== withdrawal.status ||
+            tracked.nowPaymentsStatus !== withdrawal.nowPaymentsStatus
+          )
+        ) {
+          notifyAdminTelegram({
+            kind: "withdrawal_status",
+            id: tracked.id,
+            amount: tracked.amount,
+            netAmount: tracked.netAmount,
+            fees: tracked.fees,
+            country: tracked.country,
+            paymentMethod: tracked.paymentMethod,
+            status: tracked.status,
+            providerStatus: tracked.nowPaymentsStatus,
+          });
+        }
         return res.status(200).json({
           received: true,
           status: tracked?.status || nextStatus,
@@ -1475,6 +1583,11 @@ export async function registerRoutes(
       const reference = String(payment.payment_id);
       const deposit = await storage.getDepositByReference(reference);
       if (!deposit) {
+        notifyAdminTelegram({
+          kind: "security_alert",
+          source: "NOWPayments",
+          issue: "webhook_unmatched_payment",
+        });
         console.warn(`NOWPayments IPN: no deposit found for payment_id=${payment.payment_id}`);
         return res.status(200).json({ received: true }); // 200 to stop NowPayments retries
       }
@@ -1509,8 +1622,32 @@ export async function registerRoutes(
             : null
         ),
       });
+      if (
+        result.deposit &&
+        (
+          result.deposit.status !== deposit.status ||
+          result.deposit.nowPaymentsStatus !== deposit.nowPaymentsStatus
+        )
+      ) {
+        notifyAdminTelegram({
+          kind: "deposit_status",
+          id: result.deposit.id,
+          amount: result.deposit.amount,
+          country: result.deposit.country,
+          paymentMethod: result.deposit.paymentMethod,
+          status: result.deposit.status,
+          providerStatus: result.deposit.nowPaymentsStatus,
+        });
+      }
 
       if (decision === "review") {
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "deposit",
+          code: "deposit_requires_review",
+          recordId: deposit.id,
+        });
         console.warn(
           `NOWPayments IPN: deposit ${deposit.id} requires review (status=${gatewayStatus}, paid=${payment.actually_paid})`,
         );
@@ -1523,6 +1660,12 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       console.error("NOWPayments IPN error:", error);
+      notifyAdminTelegram({
+        kind: "payment_error",
+        provider: "NOWPayments",
+        stage: "webhook",
+        code: "ipn_processing_failed",
+      });
       return res.status(500).json({ message: "Internal error" });
     }
   });
@@ -1712,6 +1855,14 @@ export async function registerRoutes(
         reference: data.transactionId,
         status: "pending",
       });
+      notifyAdminTelegram({
+        kind: "deposit_created",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: "Signalement de dépôt",
+        status: deposit.status,
+      });
 
       return res.status(201).json({ deposit });
     } catch (error: any) {
@@ -1863,6 +2014,14 @@ export async function registerRoutes(
         reference: depositReference,
         status: "pending",
       });
+      notifyAdminTelegram({
+        kind: "deposit_created",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
 
       res.json({ deposit });
     } catch (error: any) {
@@ -1940,6 +2099,14 @@ export async function registerRoutes(
         status: "processing",
         reference: null,
       });
+      notifyAdminTelegram({
+        kind: "deposit_created",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
 
       // Build the WestPay hosted-payment URL
       const appBase = getConfiguredAppUrl();
@@ -1962,6 +2129,12 @@ export async function registerRoutes(
 
       res.json({ depositId: deposit.id, payUrl: payUrl.toString() });
     } catch (error: any) {
+      notifyAdminTelegram({
+        kind: "payment_error",
+        provider: "WestPay",
+        stage: "deposit",
+        code: "initiation_failed",
+      });
       res.status(500).json({ message: error.message });
     }
   });
@@ -2260,6 +2433,20 @@ export async function registerRoutes(
         });
       }
 
+      if ("withdrawal" in reservation && reservation.withdrawal) {
+        const withdrawal = reservation.withdrawal;
+        notifyAdminTelegram({
+          kind: "withdrawal_created",
+          id: withdrawal.id,
+          amount: withdrawal.amount,
+          netAmount: withdrawal.netAmount,
+          fees: withdrawal.fees,
+          country: withdrawal.country,
+          paymentMethod: withdrawal.paymentMethod,
+          status: withdrawal.status,
+        });
+      }
+
       return res.json({
         ...reservation.withdrawal,
         withdrawalMode: normalizeWithdrawalMode(settingsForWithdrawal.withdrawalMode),
@@ -2330,6 +2517,17 @@ export async function registerRoutes(
         withdrawal.userId,
         `Payout NOWPayments vérifié pour le retrait ${withdrawal.id}`,
       );
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: updated.id,
+        amount: updated.amount,
+        netAmount: updated.netAmount,
+        fees: updated.fees,
+        country: updated.country,
+        paymentMethod: updated.paymentMethod,
+        status: updated.status,
+        providerStatus: updated.nowPaymentsStatus,
+      });
       return res.json(updated);
     } catch (error: any) {
       if (shouldReconcileNowPaymentsPayoutError(error)) {
@@ -2338,12 +2536,39 @@ export async function registerRoutes(
           withdrawalId,
           `Validation 2FA NOWPayments possiblement acceptée : ${error.message || "réponse ambiguë"}`,
         );
+        if (reconciled) {
+          notifyAdminTelegram({
+            kind: "withdrawal_status",
+            id: reconciled.id,
+            amount: reconciled.amount,
+            netAmount: reconciled.netAmount,
+            fees: reconciled.fees,
+            country: reconciled.country,
+            paymentMethod: reconciled.paymentMethod,
+            status: reconciled.status,
+            providerStatus: reconciled.nowPaymentsStatus,
+          });
+          notifyAdminTelegram({
+            kind: "payment_error",
+            provider: "NOWPayments",
+            stage: "reconciliation",
+            code: "verification_response_ambiguous",
+            recordId: reconciled.id,
+          });
+        }
         return res.status(502).json({
           message: reconciled
             ? "La réponse à la validation 2FA est ambiguë. Le retrait est conservé pour rapprochement et ne doit pas être relancé."
             : "La réponse à la validation 2FA est ambiguë. Consultez l'état actuel du retrait avant toute nouvelle action.",
         });
       }
+      notifyAdminTelegram({
+        kind: "payment_error",
+        provider: "NOWPayments",
+        stage: "withdrawal",
+        code: "payout_verification_failed",
+        recordId: Number.isSafeInteger(Number(req.params.id)) ? Number(req.params.id) : undefined,
+      });
       return res.status(400).json({
         message: error?.message || "La validation du payout NOWPayments a échoué",
       });
@@ -3068,6 +3293,14 @@ export async function registerRoutes(
       const deposit = approval.deposit;
 
       await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé: ${deposit.amount} XOF`);
+      notifyAdminTelegram({
+        kind: "deposit_status",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3090,6 +3323,14 @@ export async function registerRoutes(
       }
 
       await storage.logAdminAction(req.session.userId!, "reject_deposit", deposit.userId, `Dépôt ${deposit.id} rejeté`);
+      notifyAdminTelegram({
+        kind: "deposit_status",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3196,6 +3437,17 @@ export async function registerRoutes(
         nowPaymentsStatus: (payoutItem.status || "PENDING_2FA").toUpperCase(),
         nowPaymentsError: null,
       });
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: updated.id,
+        amount: updated.amount,
+        netAmount: updated.netAmount,
+        fees: updated.fees,
+        country: updated.country,
+        paymentMethod: updated.paymentMethod,
+        status: updated.status,
+        providerStatus: updated.nowPaymentsStatus,
+      });
       await storage.logAdminAction(
         req.session.userId!,
         "start_nowpayments_withdrawal",
@@ -3208,18 +3460,48 @@ export async function registerRoutes(
         payoutMayExist ||
         (error instanceof NowPaymentsPayoutError && error.requestMayHaveReachedProvider);
       if (claimedWithdrawalId && !requestMayHaveReachedProvider) {
-        await storage.refundWithdrawal(
+        const refunded = await storage.refundWithdrawal(
           claimedWithdrawalId,
           "failed",
           `Échec de création du payout NOWPayments: ${error.message || "erreur inconnue"}`,
         );
+        if (refunded) {
+          notifyAdminTelegram({
+            kind: "withdrawal_status",
+            id: refunded.id,
+            amount: refunded.amount,
+            netAmount: refunded.netAmount,
+            fees: refunded.fees,
+            country: refunded.country,
+            paymentMethod: refunded.paymentMethod,
+            status: refunded.status,
+          });
+        }
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "withdrawal",
+          code: "payout_creation_failed",
+          recordId: claimedWithdrawalId,
+        });
       }
       if (claimedWithdrawalId && requestMayHaveReachedProvider) {
         try {
-          await storage.updateWithdrawal(claimedWithdrawalId, {
+          const reconciling = await storage.updateWithdrawal(claimedWithdrawalId, {
             status: "reconciling",
             nowPaymentsStatus: "RECONCILIATION_REQUIRED",
             nowPaymentsError: `Payout NOWPayments possiblement créé : ${error.message || "réponse ambiguë"}`,
+          });
+          notifyAdminTelegram({
+            kind: "withdrawal_status",
+            id: reconciling.id,
+            amount: reconciling.amount,
+            netAmount: reconciling.netAmount,
+            fees: reconciling.fees,
+            country: reconciling.country,
+            paymentMethod: reconciling.paymentMethod,
+            status: reconciling.status,
+            providerStatus: reconciling.nowPaymentsStatus,
           });
         } catch (reconciliationError) {
           console.error(
@@ -3227,6 +3509,13 @@ export async function registerRoutes(
             reconciliationError,
           );
         }
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "reconciliation",
+          code: "provider_response_ambiguous",
+          recordId: claimedWithdrawalId,
+        });
         return res.status(502).json({
           message: "La réponse NOWPayments est ambiguë. Le retrait est conservé pour rapprochement et n'a pas été remboursé automatiquement.",
         });
@@ -3265,6 +3554,16 @@ export async function registerRoutes(
       });
 
       await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé: ${withdrawalData.netAmount} XOF`);
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: withdrawal.id,
+        amount: withdrawal.amount,
+        netAmount: withdrawal.netAmount,
+        fees: withdrawal.fees,
+        country: withdrawal.country,
+        paymentMethod: withdrawal.paymentMethod,
+        status: withdrawal.status,
+      });
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -3290,6 +3589,16 @@ export async function registerRoutes(
       }
 
       await storage.logAdminAction(req.session.userId!, "reject_withdrawal", withdrawal.userId, `Retrait ${withdrawal.id} rejeté et remboursé`);
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: withdrawal.id,
+        amount: withdrawal.amount,
+        netAmount: withdrawal.netAmount,
+        fees: withdrawal.fees,
+        country: withdrawal.country,
+        paymentMethod: withdrawal.paymentMethod,
+        status: withdrawal.status,
+      });
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -4520,6 +4829,14 @@ export async function registerRoutes(
       if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
       const deposit = approval.deposit;
       await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé par bankier: ${deposit.amount} XOF`);
+      notifyAdminTelegram({
+        kind: "deposit_status",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -4541,6 +4858,14 @@ export async function registerRoutes(
         screenshot: null,
       });
       await storage.logAdminAction(req.session.userId!, "reject_deposit", deposit.userId, `Dépôt ${deposit.id} rejeté par bankier`);
+      notifyAdminTelegram({
+        kind: "deposit_status",
+        id: deposit.id,
+        amount: deposit.amount,
+        country: deposit.country,
+        paymentMethod: deposit.paymentMethod,
+        status: deposit.status,
+      });
       res.json(deposit);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -4565,6 +4890,16 @@ export async function registerRoutes(
         processedBy: req.session.userId,
       });
       await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé par bankier: ${withdrawalData.netAmount} XOF`);
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: withdrawal.id,
+        amount: withdrawal.amount,
+        netAmount: withdrawal.netAmount,
+        fees: withdrawal.fees,
+        country: withdrawal.country,
+        paymentMethod: withdrawal.paymentMethod,
+        status: withdrawal.status,
+      });
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -4589,6 +4924,16 @@ export async function registerRoutes(
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
       }
       await storage.logAdminAction(req.session.userId!, "reject_withdrawal", withdrawal.userId, `Retrait ${withdrawal.id} rejeté par bankier et remboursé`);
+      notifyAdminTelegram({
+        kind: "withdrawal_status",
+        id: withdrawal.id,
+        amount: withdrawal.amount,
+        netAmount: withdrawal.netAmount,
+        fees: withdrawal.fees,
+        country: withdrawal.country,
+        paymentMethod: withdrawal.paymentMethod,
+        status: withdrawal.status,
+      });
       res.json(withdrawal);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -4622,6 +4967,12 @@ export async function registerRoutes(
 
       if (!secret) {
         console.error("[WestPay webhook] Secret non configuré — requête ignorée");
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "WestPay",
+          stage: "webhook",
+          code: "webhook_secret_missing",
+        });
         return res.status(200).json({ received: true }); // 200 so WestPay doesn't retry endlessly
       }
 
@@ -4641,6 +4992,11 @@ export async function registerRoutes(
 
       if (!sigValid) {
         console.error("[WestPay webhook] Signature invalide");
+        notifyAdminTelegram({
+          kind: "security_alert",
+          source: "WestPay",
+          issue: "invalid_webhook_signature",
+        });
         return res.status(401).json({ error: "Signature invalide" });
       }
 
@@ -4652,10 +5008,26 @@ export async function registerRoutes(
         const deposit = await storage.findProcessingWestpayDeposit(numAmount, payerPhone, country || "");
         if (deposit) {
           await storage.approveWestpayDeposit(deposit.id, txId, payer || null);
+          const updatedDeposit = await storage.getDeposit(deposit.id);
+          if (updatedDeposit && updatedDeposit.status !== deposit.status) {
+            notifyAdminTelegram({
+              kind: "deposit_status",
+              id: updatedDeposit.id,
+              amount: updatedDeposit.amount,
+              country: updatedDeposit.country,
+              paymentMethod: updatedDeposit.paymentMethod,
+              status: updatedDeposit.status,
+            });
+          }
           console.log(
             `[WestPay webhook] Dépôt #${deposit.id} approuvé — ${numAmount} USDT (txId: ${txId})`,
           );
         } else {
+          notifyAdminTelegram({
+            kind: "security_alert",
+            source: "WestPay",
+            issue: "webhook_unmatched_payment",
+          });
           console.warn(
             `[WestPay webhook] Aucun dépôt en attente pour amount=${numAmount} country=${country}`,
           );
@@ -4665,6 +5037,12 @@ export async function registerRoutes(
       res.json({ received: true });
     } catch (error: any) {
       console.error("[WestPay webhook] Erreur:", error.message);
+      notifyAdminTelegram({
+        kind: "payment_error",
+        provider: "WestPay",
+        stage: "webhook",
+        code: "webhook_processing_failed",
+      });
       res.status(500).json({ message: "Internal error" });
     }
   });
