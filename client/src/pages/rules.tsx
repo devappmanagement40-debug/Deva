@@ -23,6 +23,15 @@ export default function RulesPage() {
   const rS1b1 = getContent(settings, "content_rulespage_s1b1", "Chaque produit affiche son prix, sa durée et ses conditions avant l'achat.");
   const rS1b2 = getContent(settings, "content_rulespage_s1b2", "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.");
   const rS1b3 = getContent(settings, "content_rulespage_s1b3", "Consultez les informations du produit avant de confirmer.");
+  const productRangeTitle = getContent(settings, "content_rulespage_productRangeTitle", "FAQ — Gamme des produits Explore, Parcours et Offres");
+  const exploreQuestion = getContent(settings, "content_rulespage_exploreQuestion", "Comment fonctionne la gamme Explore ?");
+  const exploreAnswer = getContent(settings, "content_rulespage_exploreAnswer", "Explore est la gamme de départ. La fiche de chaque produit indique son prix, son revenu quotidien, la durée du cycle et le revenu total. Ces conditions varient selon le produit.");
+  const parcoursQuestion = getContent(settings, "content_rulespage_parcoursQuestion", "Que comprend la gamme Parcours ?");
+  const parcoursAnswer = getContent(settings, "content_rulespage_parcoursAnswer", "Parcours regroupe des produits dans une catégorie distincte. Chaque fiche présente ses propres conditions et revenus. Pour acheter un produit Parcours, vous devez posséder au moins un produit Explore actif.");
+  const offresQuestion = getContent(settings, "content_rulespage_offresQuestion", "Que comprennent les produits Offres ?");
+  const offresAnswer = getContent(settings, "content_rulespage_offresAnswer", "Offres regroupe des produits dans une catégorie distincte. Chaque fiche présente ses propres conditions et revenus. Pour acheter un produit Offres, vous devez posséder au moins un produit Explore actif.");
+  const productAccessQuestion = getContent(settings, "content_rulespage_productAccessQuestion", "Un produit Explore doit-il rester actif pour acheter Parcours ou Offres ?");
+  const productAccessAnswer = getContent(settings, "content_rulespage_productAccessAnswer", "Oui. Il faut posséder au moins un produit Explore actif. Un produit terminé, révoqué ou inactif ne satisfait pas cette condition.");
   const rS2Title = getContent(settings, "content_rulespage_s2Title", "2. Dépôts et retraits");
   const rS3Title = getContent(settings, "content_rulespage_s3Title", "3. Programme de parrainage");
   const rS3b4 = getContent(settings, "content_rulespage_s3b4", "Toute fraude, tentative de manipulation ou utilisation de comptes multiples peut entraîner la suspension du compte.");
@@ -50,6 +59,25 @@ export default function RulesPage() {
             <li>{rS1b2}</li>
             <li>{rS1b3}</li>
           </ul>
+        </section>
+
+        <section className="space-y-4 rounded-2xl bg-white p-5 shadow-sm">
+          <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">
+            {productRangeTitle}
+          </h2>
+          <div className="space-y-4">
+            {[
+              { question: exploreQuestion, answer: exploreAnswer },
+              { question: parcoursQuestion, answer: parcoursAnswer },
+              { question: offresQuestion, answer: offresAnswer },
+              { question: productAccessQuestion, answer: productAccessAnswer },
+            ].map(({ question, answer }) => (
+              <article key={question} className="space-y-1.5">
+                <h3 className="font-semibold text-[#26352d]">{question}</h3>
+                <p className="whitespace-pre-line text-sm leading-6 text-[#3f4d45]">{answer}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">

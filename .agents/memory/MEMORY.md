@@ -19,7 +19,7 @@
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
 - [TGOOD product cycle credits](tgood-product-earnings-collection.md) — gains accrue through the full cycle and credit once; settle legacy unpaid gains without repeating prior credits.
 - [DIAMANT purchase snapshots](diamant-purchase-snapshots.md) — existing purchases keep their purchase-time terms; catalog edits or removal must not rewrite or revoke them.
-- [DIAMANT product sections](diamant-product-sections.md) — categories stay separate; legacy “all” products map to Stability, which is required before Wellness or Activity purchases.
+- [DIAMANT product sections](diamant-product-sections.md) — internal categories stay unchanged; French storefront labels are Explore/Parcours/Offres, with active Explore gating the latter two.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
