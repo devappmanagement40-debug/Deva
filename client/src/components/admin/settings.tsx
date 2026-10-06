@@ -233,7 +233,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupButtonLabel: "Cliquez ici pour rejoindre le groupe Telegram",
       popupTitle: "Plate-forme",
       popupTelegramLabel: "Groupes Telegram",
-      popupConfirmLabel: "thankyou",
+      popupConfirmLabel: "OK",
       floatingSupportTarget: "support1",
       supportEnabled: true,
       support2Enabled: false,
@@ -915,7 +915,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             {([
               { name: "popupTitle" as const, label: "Titre du popup", placeholder: "Plate-forme" },
               { name: "popupTelegramLabel" as const, label: "Texte du bouton Telegram", placeholder: "Groupes Telegram" },
-              { name: "popupConfirmLabel" as const, label: "Texte du bouton de confirmation", placeholder: "thankyou" },
+              { name: "popupConfirmLabel" as const, label: "Texte du bouton de confirmation", placeholder: "OK" },
             ]).map(({ name, label, placeholder }) => (
               <FormField key={name} control={form.control} name={name} render={({ field }) => (
                 <FormItem>

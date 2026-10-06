@@ -3,8 +3,8 @@ name: DIAMANT home announcement popup
 description: Visual and interaction rules for the home announcement modal.
 ---
 
-The home announcement popup stays compact and uses DIAMANT's violet-and-blue platform palette. Show a short title, one prominent official Telegram action, and the Annuler/close control at the top right. Do not show the floating mascot or extra helper text.
+The home announcement follows the user's yellow illustrated reference: astronaut/diamond artwork, a cloud-edged header, a white body with an introduction and five numbered DIAMANT information lines, a yellow Telegram action, and a dark navy OK button. Keep its copy and official channel settings admin-managed.
 
-**Why:** the user specified this design direction for the home announcement popup.
+**Why:** the user replaced the earlier compact violet popup direction with this reference. The screenshot is branded BeMine and contains specific financial claims that must not be transferred to DIAMANT without verification.
 
-**How to apply:** keep the title and official channel link admin-managed. Do not render the long legacy popup lines; leave their saved settings intact unless the user asks to delete them. Do not apply this rule to the wheel invitation and rules popups, which have their own visual reference.
+**How to apply:** reproduce the visual hierarchy, not BeMine's brand or promises. Use only current DIAMANT copy/settings; never introduce its signup bonus, deposit or withdrawal figures, hourly-return claim, or referral percentage as DIAMANT facts. Preserve saved settings when hiding old copy. This rule applies only to the home announcement, not the wheel invitation and rules popups.
