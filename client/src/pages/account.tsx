@@ -369,6 +369,10 @@ export default function AccountPage() {
   };
 
   const openAdmin = () => {
+    if (user.isAdminPasswordRequired === false) {
+      navigate("/admin");
+      return;
+    }
     setShowPinModal(true);
   };
 
