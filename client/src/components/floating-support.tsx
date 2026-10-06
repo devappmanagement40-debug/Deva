@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
+import { useLocation } from "wouter";
 import customerServiceIcon from "@assets/customer-service-icon-512.png";
 import supportAvatar from "@assets/generated_images/diamant-support-avatar-3d.png";
 import telegramIcon from "@/assets/images/telegram-icon.png";
@@ -31,6 +32,7 @@ export function FloatingSupport({
   zIndex = 200,
 }: FloatingSupportProps) {
   const { t } = useI18n();
+  const [, navigate] = useLocation();
   const { data } = useQuery<SettingsLinks>({
     queryKey: ["/api/settings/links"],
     staleTime: 5 * 60 * 1000,
@@ -38,9 +40,11 @@ export function FloatingSupport({
 
   // Choisit le lien selon le paramètre admin (support1 par défaut)
   const target = data?.floatingSupportTarget || "support1";
-  const link = target === "support2"
-    ? (data?.support2Link || "#")
-    : (data?.supportLink || "#");
+  const support1Link = data?.supportLink?.trim() || "";
+  const support2Link = data?.support2Link?.trim() || "";
+  const preferredLink = target === "support2" ? support2Link : support1Link;
+  const fallbackLink = target === "support2" ? support1Link : support2Link;
+  const link = [preferredLink, fallbackLink].find((href) => href && href !== "#") || "";
 
   // Drag state
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -89,7 +93,8 @@ export function FloatingSupport({
     if (!dragging.current || pos === null) return;
     const dx = e.clientX - startPos.current.x;
     const dy = e.clientY - startPos.current.y;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) didDrag.current = true;
+    const dragThreshold = e.pointerType === "touch" ? 10 : 4;
+    if (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold) didDrag.current = true;
 
     const newLeft = startOffset.current.x + dx;
     const newTop = startOffset.current.y + dy;
@@ -105,8 +110,13 @@ export function FloatingSupport({
   const onPointerUp = () => {
     if (!dragging.current) return;
     dragging.current = false;
-    if (!didDrag.current && link && link !== "#") {
-      window.open(link, "_blank", "noopener,noreferrer");
+    if (!didDrag.current) {
+      if (link) {
+        window.open(link, "_blank", "noopener,noreferrer");
+      } else {
+        // Don't leave the floating icon as a no-op when support links aren't configured.
+        navigate("/service");
+      }
     }
   };
 
