@@ -472,8 +472,8 @@ function HomePage() {
                       type="button"
                       key={product.id}
                       style={product.cardColor ? {
-                        background: `color-mix(in srgb, ${product.cardColor} 34%, var(--home-panel))`,
-                        borderColor: `color-mix(in srgb, ${product.cardColor} 62%, var(--home-panel))`,
+                        background: `color-mix(in srgb, ${product.cardColor} 74%, var(--home-panel))`,
+                        borderColor: product.cardColor,
                         borderInlineStart: `5px solid ${product.cardColor}`,
                       } : undefined}
                       onClick={() => navigate("/invest")}
