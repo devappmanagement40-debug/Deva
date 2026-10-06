@@ -228,6 +228,38 @@
   font-weight: 700;
 }
 
+.diamant-order-date-row dd {
+  max-width: 58%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.diamant-order-status {
+  display: inline-flex;
+  min-width: 116px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 2px solid #b6a4ff;
+  border-bottom: 5px solid #351c9b;
+  border-radius: 11px;
+  color: #fff;
+  background: #653de9;
+  box-shadow: 0 5px 0 #351c9b, 0 7px 13px rgba(63, 52, 125, .3);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.diamant-order-status.is-complete {
+  border-color: #aeb6ca;
+  border-bottom-color: #8992a7;
+  color: #495672;
+  background: #dfe3ed;
+  box-shadow: none;
+}
+
 .diamant-invest-product-visual {
   position: relative;
   height: 120px;
@@ -744,6 +776,7 @@
   .diamant-invest-product-copy h3 { font-size: 16px; }
   .diamant-invest-product-copy dl > div { font-size: 10px; }
   .diamant-invest-buy { min-width: 103px; min-height: 43px; padding-inline: 8px; font-size: 11px; }
+  .diamant-order-status { min-width: 103px; min-height: 40px; padding-inline: 8px; font-size: 11px; }
   .diamant-invest-price strong { font-size: 16px; }
 }
 

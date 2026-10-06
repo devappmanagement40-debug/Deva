@@ -5,7 +5,8 @@ import { Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
-import { getProductImageUrl } from "@/lib/product-visuals";
+import { ProductOrderCard } from "@/components/product-order-card";
+import { formatProductCardAmount } from "@/components/product-card-frame";
 
 function isProductActive(product: any): boolean {
   return product.status === "active" && Number(product.daysRemaining) > 0;
@@ -77,7 +78,7 @@ export default function OrdersPage() {
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="space-y-4">
-            {filteredProducts.map((up: any, index: number) => {
+            {filteredProducts.map((up: any) => {
               const productIsActive = isProductActive(up);
               const daysCompleted = (up.product?.cycleDays || 0) - (up.daysRemaining || 0);
               const totalEarned = Number(up.totalEarned ?? daysCompleted * Number(up.product?.dailyEarnings || 0));
@@ -95,74 +96,55 @@ export default function OrdersPage() {
               const expirationTime = expirationDateTime
                 ? expirationDateTime.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
                 : "";
+              const product = up.product ?? {
+                price: "0",
+                imageUrl: null,
+                cardColor: null,
+              };
+              const details = [
+                {
+                  label: t.ordersDailyLbl,
+                  value: <>{formatProductCardAmount(Number(product.dailyEarnings || 0))} <small>XOF</small></>,
+                },
+                {
+                  label: t.ordersCycleLbl,
+                  value: `${product.cycleDays || 0} ${t.ordersDaysLbl}`,
+                },
+                {
+                  label: t.totalRevenue,
+                  value: <>{formatProductCardAmount(Number(product.totalReturn || 0))} <small>XOF</small></>,
+                },
+                ...(productIsActive ? [{
+                  label: t.ordersRemainingLbl,
+                  value: `${up.daysRemaining || 0} ${t.ordersDaysLbl}`,
+                }] : []),
+                {
+                  label: t.ordersTotalEarnedLbl,
+                  value: <>{formatProductCardAmount(totalEarned)} <small>XOF</small></>,
+                },
+                {
+                  label: t.ordersDateLbl,
+                  value: purchaseDateTime ? `${purchaseDate} · ${purchaseTime}` : "-",
+                  className: "diamant-order-date-row",
+                },
+                {
+                  label: t.ordersExpirationLbl,
+                  value: expirationDateTime ? `${expirationDate} · ${expirationTime}` : "-",
+                  className: "diamant-order-date-row",
+                },
+              ];
 
               return (
-                <div
+                <ProductOrderCard
                   key={up.id}
-                  className="bg-white rounded-xl p-2 shadow-sm border"
-                  style={up.product?.cardColor ? {
-                    backgroundColor: `color-mix(in srgb, ${up.product.cardColor} 38%, #f5f7ff)`,
-                    borderColor: `color-mix(in srgb, ${up.product.cardColor} 62%, #7885ac)`,
-                    borderInlineStartWidth: 4,
-                    borderInlineStartColor: up.product.cardColor,
-                  } : undefined}
-                  data-testid={`order-card-${up.id}`}
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="w-24 h-24 flex-shrink-0">
-                      {getProductImageUrl(up.product?.imageUrl) ? (
-                        <img
-                          src={getProductImageUrl(up.product?.imageUrl)!}
-                          alt={rebrandText(up.product?.name || t.noProducts)}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="w-full h-full rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center" aria-label="Aucune image produit">
-                          <ImageIcon className="h-7 w-7" aria-hidden="true" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="text-red-500 font-bold text-xs">
-                          {rebrandText(up.product?.name || t.noProducts)}
-                        </p>
-                        {!productIsActive && (
-                          <span className="px-1.5 py-0.5 text-[10px] font-semibold rounded bg-gray-100 text-gray-600">
-                            {t.ordersStatusDone}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="space-y-0.5 text-[11px]">
-                        <p className="text-gray-600">
-                          {t.price}：<span className="text-gray-800 font-medium">{Number(up.product?.price || 0).toLocaleString() || 0} XOF</span>
-                        </p>
-                        <p className="text-gray-600">
-                          {t.ordersDailyLbl}：<span className="text-gray-800 font-medium">{Number(up.product?.dailyEarnings || 0).toLocaleString() || 0} XOF</span>
-                        </p>
-                        <p className="text-gray-600">
-                          {t.ordersCycleLbl}：<span className="text-gray-800 font-medium">{up.product?.cycleDays || 0} {t.ordersDaysLbl}</span>
-                        </p>
-                        {productIsActive && (
-                          <p className="text-gray-600">
-                            {t.ordersRemainingLbl}：<span className="text-[#2196F3] font-medium">{up.daysRemaining || 0}</span>
-                          </p>
-                        )}
-                        <p className="text-gray-600">
-                          {t.ordersTotalEarnedLbl}：<span className="text-gray-600 font-bold">{totalEarned.toLocaleString()} XOF</span>
-                        </p>
-                        <p className="text-gray-600">
-                          {t.ordersDateLbl}：<span className="text-gray-700 font-medium">{purchaseDate}</span> {purchaseTime}
-                        </p>
-                        <p className="text-gray-600">
-                          {t.ordersExpirationLbl}：<span className="text-gray-700 font-medium">{expirationDate}</span> {expirationTime}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  product={product}
+                  displayName={rebrandText(product.name || t.noProducts)}
+                  details={details}
+                  active={productIsActive}
+                  statusLabel={productIsActive ? t.ordersOngoing : t.ordersStatusDone}
+                  priceLabel={t.price}
+                  rootTestId={`order-card-${up.id}`}
+                />
               );
             })}
           </div>

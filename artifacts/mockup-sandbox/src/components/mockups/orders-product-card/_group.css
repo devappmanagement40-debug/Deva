@@ -1,0 +1,373 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800;900&display=swap");
+
+:root {
+  --button-outline: rgba(0, 0, 0, .10);
+  --badge-outline: rgba(0, 0, 0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0, 0, 0, .03);
+  --elevate-2: rgba(0, 0, 0, .08);
+  --background: 140 22% 96%;
+  --foreground: 150 30% 10%;
+  --border: 140 18% 84%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --card-border: 0 0% 90%;
+  --sidebar: 142 80% 29%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-border: 142 72% 22%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 142 80% 29%;
+  --sidebar-accent: 142 72% 39%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-ring: 142 80% 29%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 0 0% 90%;
+  --primary: 142 80% 33%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;
+  --accent: 142 55% 92%;
+  --accent-foreground: 142 80% 27%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 0 0% 85%;
+  --ring: 142 80% 33%;
+  --chart-1: 142 80% 33%;
+  --chart-2: 166 64% 35%;
+  --chart-3: 190 70% 40%;
+  --chart-4: 280 65% 55%;
+  --chart-5: 340 70% 55%;
+  --font-sans: 'Roboto', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+  --radius: .5rem;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.05);
+  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.08);
+  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.08);
+  --shadow: 0px 4px 6px -1px rgba(0,0,0,0.08);
+  --shadow-md: 0px 6px 10px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.1);
+  --shadow-xl: 0px 20px 25px -5px rgba(0,0,0,0.12);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0,0,0,0.15);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --primary-border: hsl(var(--primary));
+  --secondary-border: hsl(var(--secondary));
+  --muted-border: hsl(var(--muted));
+  --accent-border: hsl(var(--accent));
+  --destructive-border: hsl(var(--destructive));
+}
+
+.dark {
+  --button-outline: rgba(255, 255, 255, .10);
+  --badge-outline: rgba(255, 255, 255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255, 255, 255, .04);
+  --elevate-2: rgba(255, 255, 255, .09);
+  --background: 0 0% 8%;
+  --foreground: 0 0% 95%;
+  --border: 0 0% 20%;
+  --card: 0 0% 12%;
+  --card-foreground: 0 0% 95%;
+  --card-border: 0 0% 18%;
+  --sidebar: 0 0% 5%;
+  --sidebar-foreground: 0 0% 95%;
+  --sidebar-border: 0 0% 15%;
+  --sidebar-primary: 142 80% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 15%;
+  --sidebar-accent-foreground: 0 0% 95%;
+  --sidebar-ring: 142 80% 45%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 95%;
+  --popover-border: 0 0% 18%;
+  --primary: 142 80% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 55%;
+  --accent: 142 70% 36%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 0 0% 22%;
+  --ring: 142 80% 45%;
+  --chart-1: 142 80% 45%;
+  --chart-2: 166 64% 40%;
+  --chart-3: 190 70% 50%;
+  --chart-4: 280 65% 55%;
+  --chart-5: 340 70% 55%;
+  --shadow-2xs: 0px 1px 2px 0px rgba(0,0,0,0.2);
+  --shadow-xs: 0px 1px 3px 0px rgba(0,0,0,0.3);
+  --shadow-sm: 0px 2px 4px 0px rgba(0,0,0,0.3);
+  --shadow: 0px 4px 6px -1px rgba(0,0,0,0.3);
+  --shadow-md: 0px 6px 10px -2px rgba(0,0,0,0.35);
+  --shadow-lg: 0px 10px 15px -3px rgba(0,0,0,0.4);
+  --shadow-xl: 0px 20px 25px -5px rgba(0,0,0,0.45);
+  --shadow-2xl: 0px 25px 50px -12px rgba(0,0,0,0.5);
+}
+
+.preview-shell {
+  display: flex;
+  min-height: 100vh;
+  justify-content: center;
+  padding: 20px 14px;
+  background: #071637;
+  font-family: Arial, Roboto, sans-serif;
+}
+
+.preview-content {
+  width: min(100%, 430px);
+}
+
+.preview-heading {
+  margin: 0 0 14px;
+  color: #fff;
+  font-family: Arial, Roboto, sans-serif;
+}
+
+.preview-heading span {
+  color: #bdc9e9;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.preview-heading h1 {
+  margin: 4px 0 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.diamant-invest-product-card {
+  position: relative;
+  padding: 15px 14px 14px;
+  overflow: hidden;
+  border: 2px solid #7885ac;
+  border-radius: 18px;
+  background: #f5f7ff;
+  box-shadow: 0 12px 28px rgba(1, 5, 28, .32), inset 0 1px 0 #fff;
+  color: #122044;
+}
+
+.diamant-invest-product-card.is-card-clickable { cursor: pointer; }
+
+.diamant-invest-product-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 12px;
+  align-items: start;
+  margin-top: 0;
+}
+
+.diamant-invest-product-copy { min-width: 0; }
+
+.diamant-invest-product-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.diamant-invest-product-copy h3 {
+  min-width: 0;
+  margin: 0;
+  color: #101d43;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.diamant-invest-product-copy dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.diamant-invest-product-copy dl > div {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 0;
+  border-bottom: 1px solid #d2d8e5;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.diamant-invest-product-copy dl > div:last-child { border-bottom: 0; }
+.diamant-invest-product-copy dt { min-width: 0; color: #3d4658; font-weight: 600; }
+
+.diamant-invest-product-copy dd {
+  flex: none;
+  margin: 0;
+  color: #244f79;
+  font-weight: 700;
+  text-align: end;
+  white-space: nowrap;
+}
+
+.diamant-invest-product-copy dd small { color: #42668b; font-size: 8px; font-weight: 700; }
+
+.diamant-invest-product-visual {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  border: 2px solid #7784aa;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 40%, rgba(147, 149, 219, .2), transparent 60%), #dce0f0;
+  box-shadow: 0 4px 10px rgba(18, 30, 69, .16);
+}
+
+.diamant-invest-product-visual img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.diamant-invest-product-visual > span {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 5px 4px 4px;
+  color: #fff;
+  background: linear-gradient(transparent, rgba(11, 18, 55, .78));
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-align: center;
+}
+
+.diamant-invest-product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 13px;
+  padding: 6px 7px 6px 10px;
+  border: 2px solid #17234b;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 0 rgba(19, 30, 65, .16), inset 0 1px 0 #fff;
+}
+
+.diamant-invest-price { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; }
+
+.diamant-invest-price strong {
+  color: #244f79;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.025em;
+  white-space: nowrap;
+}
+
+.diamant-invest-price strong small {
+  color: #42668b;
+  font-family: Arial, Roboto, sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.diamant-invest-buy {
+  display: inline-flex;
+  min-width: 116px;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border: 2px solid #c2b3ff;
+  border-bottom: 5px solid #351c9b;
+  border-radius: 11px;
+  color: #fff;
+  background: #653de9;
+  box-shadow: 0 5px 0 #351c9b, 0 7px 13px rgba(63, 52, 125, .3);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
+}
+
+.diamant-invest-buy:hover:not(:disabled) {
+  background: #704cff;
+  box-shadow: 0 5px 0 #3b20ad, 0 8px 16px rgba(63, 52, 125, .36);
+}
+
+.diamant-invest-buy:active:not(:disabled) {
+  transform: translateY(4px);
+  border-bottom-width: 3px;
+  background: #5632d3;
+  box-shadow: 0 2px 0 #351c9b, 0 3px 7px rgba(63, 52, 125, .3);
+}
+
+.diamant-invest-buy.is-disabled,
+.diamant-invest-buy:disabled {
+  border-color: #aeb6ca;
+  color: #495672;
+  background: #dfe3ed;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.diamant-invest-buy:focus-visible { outline: 3px solid #d5cbff; outline-offset: 3px; }
+
+.diamant-order-date-row dd { max-width: 58%; white-space: normal; overflow-wrap: anywhere; }
+
+.diamant-order-status {
+  display: inline-flex;
+  min-width: 116px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 2px solid #b6a4ff;
+  border-bottom: 5px solid #351c9b;
+  border-radius: 11px;
+  color: #fff;
+  background: #653de9;
+  box-shadow: 0 5px 0 #351c9b, 0 7px 13px rgba(63, 52, 125, .3);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.diamant-order-status.is-complete {
+  border-color: #aeb6ca;
+  border-bottom-color: #8992a7;
+  color: #495672;
+  background: #dfe3ed;
+  box-shadow: none;
+}
+
+@media (min-width: 600px) {
+  .diamant-invest-product-card { padding: 17px 18px 15px; }
+  .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 132px; }
+  .diamant-invest-product-visual { height: 130px; }
+  .diamant-invest-product-copy h3 { font-size: 19px; }
+  .diamant-invest-product-copy dl > div { font-size: 12px; }
+}
+
+@media (max-width: 380px) {
+  .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px; }
+  .diamant-invest-product-visual { height: 100px; }
+  .diamant-invest-product-copy h3 { font-size: 16px; }
+  .diamant-invest-product-copy dl > div { font-size: 10px; }
+  .diamant-invest-buy { min-width: 103px; min-height: 43px; padding-inline: 8px; font-size: 11px; }
+  .diamant-invest-price strong { font-size: 16px; }
+  .diamant-order-status { min-width: 103px; min-height: 40px; padding-inline: 8px; font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .diamant-invest-buy { transition: none; } }

@@ -15,6 +15,8 @@ export const modules: ModuleMap = {
   "./components/mockups/ielp-team/Reference.tsx": () => import("../components/mockups/ielp-team/Reference.tsx"),
   "./components/mockups/purchase-dialog/Compact.tsx": () => import("../components/mockups/purchase-dialog/Compact.tsx"),
   "./components/mockups/purchase-dialog/Current.tsx": () => import("../components/mockups/purchase-dialog/Current.tsx"),
+  "./components/mockups/orders-product-card/Current.tsx": () => import("../components/mockups/orders-product-card/Current.tsx"),
+  "./components/mockups/orders-product-card/PurchasedData.tsx": () => import("../components/mockups/orders-product-card/PurchasedData.tsx"),
   "./components/mockups/withdrawal-proofs/Current.tsx": () => import("../components/mockups/withdrawal-proofs/Current.tsx"),
   "./components/mockups/withdrawal-proofs/Diamant.tsx": () => import("../components/mockups/withdrawal-proofs/Diamant.tsx")
 };
