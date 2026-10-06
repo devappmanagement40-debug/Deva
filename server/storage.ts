@@ -667,23 +667,6 @@ export class DatabaseStorage implements IStorage {
       const depositDebit = Math.min(depositBalance, productPrice);
       const earningsDebit = productPrice - depositDebit;
       
-      // Check if this is user's first paid investment
-      const existingProducts = await db.select({
-        productSnapshot: userProducts.productSnapshot,
-        productIsFree: products.isFree,
-      })
-        .from(userProducts)
-        .innerJoin(products, eq(userProducts.productId, products.id))
-        .where(and(
-          eq(userProducts.userId, userId),
-          eq(userProducts.assignedByAdmin, false)
-        ));
-      
-      const hasPreviousPaidPurchase = existingProducts.some(({ productSnapshot, productIsFree }) =>
-        !(productSnapshot?.isFree ?? productIsFree)
-      );
-      const isFirstInvestment = !hasPreviousPaidPurchase;
-      
       await this.updateUser(userId, { 
         balance: (depositBalance - depositDebit).toFixed(2),
         totalEarnings: (earningsBalance - earningsDebit).toFixed(2),
@@ -697,8 +680,8 @@ export class DatabaseStorage implements IStorage {
         description: `Achat ${product.name}`,
       });
 
-      // Process referral commissions ONLY on first investment
-      if (isFirstInvestment) {
+      // Pay configured referral commissions on every paid purchase.
+      if (isPaidUserPurchase) {
         await this.processReferralCommissions(userId, productPrice, productId);
       }
 

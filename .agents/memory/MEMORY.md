@@ -27,7 +27,7 @@
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
 - [DIAMANT feedback popups](diamant-feedback-popups.md) — use the new popup style across pages; preserve current notifications on wheel and check-in.
 - [DIAMANT home announcement popup](diamant-home-announcement-popup.md) — yellow illustration, numbered admin-managed copy, Telegram CTA, and OK button; don't copy BeMine financial claims.
-- [DIAMANT referral commissions](diamant-referral-commissions.md) — default rates are 30/3/2% for levels 1/2/3 and remain editable in the admin panel.
+- [DIAMANT referral commissions](diamant-referral-commissions.md) — admin-editable rates apply on every paid product purchase by a referred user.
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
