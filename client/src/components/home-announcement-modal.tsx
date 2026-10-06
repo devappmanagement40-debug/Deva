@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Send } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import popupMascot from "@assets/generated_images/diamant-popup-mascot.png";
+import { Send, ShieldCheck, X } from "lucide-react";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { getContent } from "@/lib/content";
-
-const POPUP_ACCENT = "#08b83a";
 
 const DEFAULT_LINES = [
   "🚀 DIAMANT RDC: official launch!",
@@ -33,53 +30,69 @@ export default function HomeAnnouncementModal() {
   const telegramUrl = settings.channelEnabled === "false"
     ? ""
     : (settings.channelLink || "").trim();
-  const telegramLabel = settings.channelLabel || settings.popupTelegramLabel || "Telegram >";
-  const confirmLabel = settings.popupConfirmLabel || "OK";
-  const announcementTitle = popupTitle;
+  const telegramLabel = settings.channelLabel || settings.popupTelegramLabel || "Chaîne officielle DIAMANT";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="w-[calc(100%-3rem)] max-w-[410px] overflow-visible border-0 bg-[#eaffe7] p-0 shadow-2xl [&>button]:hidden"
-        style={{ borderRadius: 10, maxHeight: "calc(100vh - 110px)" }}
+        className="flex max-h-[calc(100dvh-32px)] w-[calc(100%-24px)] max-w-[430px] flex-col gap-0 overflow-hidden rounded-[22px] border border-[#d9def8] bg-[#f7f8ff] p-0 text-[#1b2450] shadow-[0_26px_90px_rgba(20,21,80,0.38)] [&>button]:hidden"
       >
-        <img
-          src={popupMascot}
-          alt=""
-          className="pointer-events-none absolute left-1/2 z-10 h-[102px] w-[150px] -translate-x-1/2 object-contain"
-          style={{ top: -57 }}
-        />
-        <DialogTitle className="sr-only">{announcementTitle}</DialogTitle>
-        <div
-          className="overflow-y-auto px-4 pb-5 pt-12"
-          style={{ color: "#101010", fontSize: 16, lineHeight: 1.9 }}
-        >
-          {lines.map((line, index) => (
-            <p key={`${line}-${index}`} className="whitespace-pre-wrap">{line}</p>
-          ))}
+        <header className="relative shrink-0 bg-gradient-to-br from-[#0f1a4b] via-[#37398f] to-[#3965d2] px-5 pb-5 pt-6 sm:px-6">
+          <div className="absolute right-3 top-3">
+            <DialogClose asChild>
+              <button
+                type="button"
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#37398f]"
+                aria-label="Annuler et fermer l’annonce"
+                data-testid="button-announcement-close"
+              >
+                <span>Annuler</span>
+                <X size={16} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            </DialogClose>
+          </div>
+          <DialogTitle className="pr-24 pt-10 font-['Roboto'] text-[23px] font-bold leading-tight tracking-normal text-white sm:text-[26px]">
+            {popupTitle}
+          </DialogTitle>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-2 sm:px-6">
+          <div className="divide-y divide-[#e0e4f7]">
+            {lines.map((line, index) => (
+              <div className="flex gap-3 py-3.5" key={`${line}-${index}`}>
+                <span
+                  className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#5a51dd] ring-4 ring-[#eeedff]"
+                  aria-hidden="true"
+                />
+                <p className="min-w-0 flex-1 whitespace-pre-wrap text-[14px] leading-[1.55] text-[#25315c] sm:text-[15px]">
+                  {line}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex h-[78px] shrink-0 border-t border-[#d9ead6] bg-white" style={{ borderRadius: "0 0 10px 10px" }}>
+
+        <footer className="shrink-0 border-t border-[#dce2f8] bg-[#f7f8ff] px-5 pb-[max(18px,env(safe-area-inset-bottom))] pt-4 sm:px-6">
           <button
+            type="button"
             onClick={() => telegramUrl && window.open(telegramUrl, "_blank", "noopener,noreferrer")}
             disabled={!telegramUrl}
-            className="flex min-w-0 flex-1 items-center justify-center gap-1 border-r border-[#e3e3e3] px-2 active:opacity-70"
-            style={{ color: "#111", fontSize: "clamp(17px, 5.4vw, 25px)" }}
+            className="flex min-h-[62px] w-full items-center justify-center gap-3 rounded-[15px] bg-gradient-to-r from-[#2f62da] via-[#5746d5] to-[#713fc8] px-4 py-3 text-center text-[15px] font-bold leading-5 text-white shadow-[0_5px_0_#352c9a] transition-[transform,filter,box-shadow] hover:brightness-105 active:translate-y-[2px] active:shadow-[0_3px_0_#352c9a] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5145d6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f7f8ff] sm:text-[16px]"
             data-testid="button-popup-telegram"
           >
-            <span className="flex shrink-0 items-center justify-center rounded-full bg-[#2aabee]" style={{ width: "clamp(32px, 8.7vw, 40px)", height: "clamp(32px, 8.7vw, 40px)" }}>
-              <Send size={20} fill="white" color="white" strokeWidth={1.8} />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20">
+              <Send size={18} fill="currentColor" strokeWidth={1.8} aria-hidden="true" />
             </span>
-             <span className="truncate whitespace-nowrap">{telegramUrl ? telegramLabel : "Support non configuré"}</span>
+            <span className="flex min-w-0 flex-col items-start">
+              <span>{telegramUrl ? "Rejoindre la chaîne Telegram" : "Canal officiel non configuré"}</span>
+              {telegramUrl && <span className="text-[11px] font-medium leading-4 text-white/75">{telegramLabel}</span>}
+            </span>
           </button>
-          <button
-            onClick={() => setOpen(false)}
-            className="flex min-w-0 flex-1 items-center justify-center px-2 active:opacity-70"
-            style={{ color: POPUP_ACCENT, fontSize: "clamp(24px, 6.3vw, 29px)", fontWeight: 400 }}
-            data-testid="button-popup-ok"
-          >
-            {confirmLabel}
-          </button>
-        </div>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] leading-4 text-[#6871a6]">
+            <ShieldCheck size={13} strokeWidth={1.8} aria-hidden="true" />
+            <span>Accès à la chaîne officielle DIAMANT</span>
+          </p>
+        </footer>
       </DialogContent>
     </Dialog>
   );
