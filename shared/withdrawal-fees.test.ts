@@ -12,6 +12,13 @@ test("12% is withheld from the entered withdrawal amount", () => {
   });
 });
 
+test("a changed admin rate is used instead of a fixed 12% calculation", () => {
+  assert.deepEqual(calculateWithdrawalPayoutAmounts(10_000, 5), {
+    fees: 500,
+    netAmount: 9_500,
+  });
+});
+
 test("fees are rounded to the nearest whole XOF", () => {
   assert.deepEqual(calculateWithdrawalPayoutAmounts(1_001, 12), {
     fees: 120,

@@ -21,6 +21,7 @@
 - [DIAMANT purchase snapshots](diamant-purchase-snapshots.md) — existing purchases keep their purchase-time terms; catalog edits or removal must not rewrite or revoke them.
 - [DIAMANT product sections](diamant-product-sections.md) — internal categories stay unchanged; French storefront labels are Explore/Parcours/Offres, with active Explore gating the latter two.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
+- [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.

@@ -1,6 +1,7 @@
 import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 import { getContent } from "@/lib/content";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
@@ -11,7 +12,7 @@ export default function RulesPage() {
 
   const minDeposit = settings?.minDeposit || "2500";
   const minWithdrawal = settings?.minWithdrawal || "1000";
-  const withdrawalFees = settings?.withdrawalFees ?? "12";
+  const withdrawalFees = settings?.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT);
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
   const maxWithdrawalsPerDay = settings?.maxWithdrawalsPerDay || "1";

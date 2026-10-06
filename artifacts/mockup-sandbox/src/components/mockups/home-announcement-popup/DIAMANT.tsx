@@ -12,7 +12,7 @@ import "./_group.css";
 const popupLines = [
   "Dépôts disponibles par Mobile Money et USDT BEP20, crédités après confirmation.",
   "Dépôt minimum : 2 500 XOF.",
-  "Retrait minimum : 1 000 XOF. Frais de 12 % retenus sur le montant saisi, par Mobile Money ou USDT BEP20.",
+  "Retrait minimum selon le paramètre configuré. Les frais de retrait sont indiqués avant confirmation.",
   "Les retraits et le support sont disponibles de 09:00 à 17:00.",
   "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
 ];

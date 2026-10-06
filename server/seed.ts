@@ -9,6 +9,7 @@ import {
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
+import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
@@ -467,7 +468,7 @@ export async function seed() {
     { key: "popupTitle", value: "DIAMANT" },
     { key: "popupLine1", value: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
     { key: "popupLine2", value: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
-    { key: "popupLine3", value: "💚 Retrait minimum : 1 000 XOF — 12 % retenus sur le montant saisi" },
+    { key: "popupLine3", value: "💚 Les frais de retrait sont affichés avant confirmation." },
     { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
     { key: "popupLine6", value: "🕘 Retraits et support disponibles de 09:00 à 17:00" },
@@ -483,7 +484,7 @@ export async function seed() {
     { key: "minWithdrawal", value: "1000" },
     { key: "withdrawalEnabled", value: "true" },
     { key: "withdrawalMode", value: "manual" },
-    { key: "withdrawalFees", value: "12" },
+    { key: "withdrawalFees", value: String(DEFAULT_WITHDRAWAL_FEE_PERCENT) },
     { key: "withdrawalStartHour", value: "9" },
     { key: "withdrawalEndHour", value: "17" },
     { key: "maxWithdrawalsPerDay", value: "1" },

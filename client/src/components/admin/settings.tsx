@@ -319,7 +319,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
        popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20"),
-       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 000 XOF — 12 % retenus sur le montant saisi"),
+       popupLine3:             rebrandText(settings.popupLine3 || "💚 Les frais de retrait sont affichés avant confirmation."),
         popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
@@ -786,7 +786,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <FormLabel>Frais de retrait (%)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" max="99" step="0.01" /></FormControl>
                   <FormDescription>
-                    Retenus sur le montant saisi. À 12 %, un retrait de 10 000 XOF verse 8 800 XOF.
+                    Retenus sur le montant saisi; le montant versé est affiché avant confirmation.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -955,7 +955,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
               { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
-              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Retrait minimum : 1 000 XOF — 12 % retenus sur le montant saisi" },
+              { name: "popupLine3" as const, label: "Ligne 3 — Frais de retrait", placeholder: "💚 Les frais de retrait sont affichés avant confirmation." },
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },

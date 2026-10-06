@@ -13,6 +13,10 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
 import { Loader2, AlertCircle, Wallet } from "lucide-react";
 import type { WithdrawalWallet } from "@shared/schema";
+import {
+  calculateWithdrawalPayoutAmounts,
+  DEFAULT_WITHDRAWAL_FEE_PERCENT,
+} from "@shared/withdrawal-fees";
 
 const withdrawSchemaFactory = (msg: string) =>
   z.object({ amount: z.string().min(1, msg) });
@@ -41,6 +45,7 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
     withdrawalEndHour: number;
     maxWithdrawalsPerDay: number;
     minWithdrawal: number;
+    withdrawalFees: number;
   }>({
     queryKey: ["/api/settings/withdrawal"],
     enabled: open,
@@ -84,9 +89,19 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
   const defaultWallet = wallets?.find(w => w.isDefault);
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
   const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
+  const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const currency = "XOF";
 
   const amount = parseInt(form.watch("amount") || "0");
+  const payoutEstimate = amount >= minWithdrawal
+    ? (() => {
+        try {
+          return calculateWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
+        } catch {
+          return null;
+        }
+      })()
+    : null;
 
   const canWithdraw = withdrawalEnabled && user.hasDeposited && user.hasActiveProduct && !user.isWithdrawalBlocked && defaultWallet;
 
@@ -96,7 +111,8 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
         <DialogHeader>
           <DialogTitle>{t.withdrawTitle}</DialogTitle>
           <DialogDescription>
-            {t.withdrawMinFee.replace("{0}", String(minWithdrawal))}
+            <span className="block">{t.withdrawMinFee.replace("{0}", minWithdrawal.toLocaleString("fr-FR"))}</span>
+            <span className="block">{t.fees}: {withdrawalFeePercent.toLocaleString("fr-FR")} %</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -155,15 +171,19 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
                 )}
               />
 
-              {amount >= 1 && (
+              {payoutEstimate && (
                 <div className="bg-muted rounded-lg p-3 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t.withdrawAmountRow}</span>
+                    <span className="text-muted-foreground">{t.grossAmount}</span>
                     <span className="text-foreground">{amount.toLocaleString()} {currency}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %)</span>
+                    <span className="text-foreground">{payoutEstimate.fees.toLocaleString("fr-FR")} {currency}</span>
+                  </div>
                   <div className="flex justify-between border-t pt-2">
-                    <span className="font-medium text-foreground">{t.withdrawNetAmount}</span>
-                    <span className="font-bold text-primary">{amount.toLocaleString()} {currency}</span>
+                    <span className="font-medium text-foreground">{t.netAmount}</span>
+                    <span className="font-bold text-primary">{payoutEstimate.netAmount.toLocaleString("fr-FR")} {currency}</span>
                   </div>
                 </div>
               )}

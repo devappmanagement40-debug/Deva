@@ -1,5 +1,6 @@
 // Helper to read admin-editable text content from the /api/settings key-value map,
 // falling back to the field's default when the setting is absent or empty.
+import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 
 const PRESERVED_USDT_TERMS = /\bUSDT(?:\s+|-)(?:BEP20|TRC20|ERC20|BSC|MATIC)\b|\b(?:BEP20|TRC20|ERC20|POLYGON|ETH|MATIC|BSC)-USDT\b|\/USDT\b/gi;
 const NON_MINING_ABOUT_TERMS = /(électri|electr|énerg|energy|mobilit|mobility|vélo|velo|scooter|cyclomoteur|recharg|charging)/i;
@@ -37,7 +38,7 @@ export function getContent(
 const DEFAULT_SETTING_PLACEHOLDERS = {
   minDeposit: "2500",
   minWithdrawal: "1000",
-  withdrawalFees: "12",
+  withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
 } as const;
 
 export function formatSettingPlaceholders(

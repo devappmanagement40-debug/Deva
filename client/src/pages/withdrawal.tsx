@@ -91,7 +91,7 @@ export default function WithdrawalPage() {
 
   const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
-  const grossWithdrawalAmount = typeof amount === "number" && Number.isSafeInteger(amount) && amount > 0
+  const grossWithdrawalAmount = typeof amount === "number" && Number.isSafeInteger(amount) && amount >= minWithdrawal
     ? amount
     : 0;
   const payoutEstimate = grossWithdrawalAmount > 0
