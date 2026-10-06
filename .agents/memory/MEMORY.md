@@ -25,7 +25,7 @@
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
 - [DIAMANT feedback popups](diamant-feedback-popups.md) — use the new popup style across pages; preserve current notifications on wheel and check-in.
-- [DIAMANT home announcement popup](diamant-home-announcement-popup.md) — use blue-violet branding, remove the floating mascot, add a prominent official Telegram button and top-right close control.
+- [DIAMANT home announcement popup](diamant-home-announcement-popup.md) — keep it compact with a short title, one official Telegram CTA, and a top-right close control.
 - [DIAMANT referral commissions](diamant-referral-commissions.md) — default rates are 30/3/2% for levels 1/2/3 and remain editable in the admin panel.
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
