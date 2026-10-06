@@ -12,6 +12,7 @@ import {
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
 } from "@shared/withdrawal-fees";
 import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { getSafeWithdrawalErrorMessage } from "@/lib/withdrawal-errors";
 
 interface WalletData {
   id: number;
@@ -177,7 +178,7 @@ export default function WithdrawalPage() {
       const response = await apiRequest("POST", "/api/auth/transaction-pin/reset", data);
       if (!response.ok) {
         const result = await response.json().catch(() => ({}));
-        throw new Error(result.message || t.errorOccurred);
+        throw new Error(typeof result.message === "string" ? result.message : "");
       }
       return response.json();
     },
@@ -190,7 +191,10 @@ export default function WithdrawalPage() {
       await Promise.all([refetchTransactionPinStatus(), refreshUser()]);
     },
     onError: (error: Error) => {
-      toast({ title: error.message || t.errorOccurred, variant: "destructive" });
+      toast({
+        title: getSafeWithdrawalErrorMessage(error, "pin-reset", t.withdrawalPinIncorrect),
+        variant: "destructive",
+      });
     },
   });
 
@@ -222,10 +226,13 @@ export default function WithdrawalPage() {
         credentials: "include",
         body: JSON.stringify(data),
       });
-      const result = await response.json().catch(() => ({}));
+      const responseBody: unknown = await response.json().catch(() => null);
+      const result = responseBody && typeof responseBody === "object" && !Array.isArray(responseBody)
+        ? responseBody as Record<string, unknown>
+        : {};
       if (!response.ok) {
-        const error = new Error(result.message || t.errorOccurred) as Error & { code?: string };
-        error.code = result.code;
+        const error = new Error(typeof result.message === "string" ? result.message : "") as Error & { code?: string };
+        if (typeof result.code === "string") error.code = result.code;
         throw error;
       }
       return result;
@@ -254,7 +261,7 @@ export default function WithdrawalPage() {
         return;
       }
       toast({
-        title: code === "INVALID_TRANSACTION_PIN" ? t.withdrawalPinIncorrect : error.message || t.errorOccurred,
+        title: getSafeWithdrawalErrorMessage(error, "request", t.withdrawalPinIncorrect),
         variant: "destructive",
       });
     },
@@ -271,11 +278,11 @@ export default function WithdrawalPage() {
       return;
     }
     if (!withdrawalEnabled) {
-      toast({ title: t.errorOccurred, variant: "destructive" });
+      toast({ title: "Les retraits sont désactivés pour le moment.", variant: "destructive" });
       return;
     }
     if (!hasActiveProduct) {
-      toast({ title: withdrawalWarningNoProduct, variant: "destructive" });
+      toast({ title: "Un produit actif est requis pour effectuer un retrait.", variant: "destructive" });
       return;
     }
     if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount <= 0) {
@@ -283,23 +290,23 @@ export default function WithdrawalPage() {
       return;
     }
     if (amount < minWithdrawal) {
-      toast({ title: t.invalidAmount, description: `${t.minAmountPrefix} ${minWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
+      toast({ title: "Montant inférieur au minimum autorisé", description: `${t.minAmountPrefix} ${minWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
       return;
     }
     if (amount > maxWithdrawal) {
-      toast({ title: "Amount too high", description: `The maximum amount is ${maxWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
+      toast({ title: "Montant supérieur au maximum autorisé", description: `Maximum : ${maxWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
       return;
     }
     if (amount > earningsBalance) {
-      toast({ title: t.errorOccurred, description: "Solde de gains insuffisant.", variant: "destructive" });
+      toast({ title: "Solde de gains insuffisant.", variant: "destructive" });
       return;
     }
     if (!selectedWallet) {
-      toast({ title: "Select an account", description: "Please link a withdrawal account.", variant: "destructive" });
+      toast({ title: "Aucun moyen de retrait sélectionné", description: "Ajoutez ou sélectionnez un compte de retrait.", variant: "destructive" });
       return;
     }
     if (!transactionPin) {
-      toast({ title: t.errTransactionPasswordRequired, variant: "destructive" });
+      toast({ title: "Saisissez votre code PIN de retrait.", variant: "destructive" });
       return;
     }
     withdrawalSubmissionLock.current = true;

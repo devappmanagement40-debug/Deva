@@ -33,6 +33,7 @@
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
 - [Supabase account migration](supabase-account-migration.md) — Replit PostgreSQL is the confirmed legacy source; Supabase is the working target; global settings and sessions stay separate.
 - [DIAMANT transaction receipts](diamant-transaction-receipts.md) — use white field text on dark receipt bodies, pure green/red status badges, and keep earnings layout distinct.
+- [DIAMANT withdrawal error messages](diamant-error-messaging.md) — explain the safe, specific cause in withdrawal notices; never show generic titles or raw technical details.
 - [DIAMANT Mobile Money verification](diamant-mobile-money-verification.md) — shared six-minute screen follows the checkout's navy, white, orange, and blue style; retry checks the same deposit.
 - [DIAMANT Togo Mobile Money](diamant-togo-mobile-money.md) — collect +228, show admin-managed instructions, require a transaction ID after payment, and preserve CI.
 - [PDF processing in the JS workspace](pdf-processing-js-workspace.md) — handle temporary Python/PDF tooling without leaving generated scaffolding or changing Replit settings.
