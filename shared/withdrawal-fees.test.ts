@@ -19,6 +19,13 @@ test("a changed admin rate is used instead of a fixed 12% calculation", () => {
   });
 });
 
+test("a minimum request of 1,200 XOF still applies the configured fee", () => {
+  assert.deepEqual(calculateWithdrawalPayoutAmounts(1_200, 12), {
+    fees: 144,
+    netAmount: 1_056,
+  });
+});
+
 test("fees are rounded to the nearest whole XOF", () => {
   assert.deepEqual(calculateWithdrawalPayoutAmounts(1_001, 12), {
     fees: 120,
