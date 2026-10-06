@@ -31,7 +31,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
   );
   const s2Title = getContent(settings, "content_rules_section2Title", "2. Withdrawals");
   const s2Body = formatSettingPlaceholders(
-    getContent(settings, "content_rules_section2Body", `- Minimum : {{minWithdrawal}} XOF\n- Retraits disponibles par Mobile Money ou USDT BEP20 selon les options du pays\n- Le montant demandé est reçu intégralement\n- Horaires : ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} retrait(s) par jour\n- Un produit actif et un portefeuille de retrait enregistré sont requis`),
+    getContent(settings, "content_rules_section2Body", `- Minimum : {{minWithdrawal}} XOF\n- Frais de retrait : {{withdrawalFees}} % retenus sur le montant demandé\n- Retraits disponibles par Mobile Money ou USDT BEP20 selon les options du pays\n- Horaires : ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} retrait(s) par jour\n- Un produit actif et un portefeuille de retrait enregistré sont requis`),
     settings,
   );
   const s3Title = getContent(settings, "content_rules_section3Title", "3. Products");

@@ -34,19 +34,30 @@ export function getContent(
   return rebrandText(configuredValue && !containsOutOfScopeAboutCopy ? configuredValue : fallback);
 }
 
-const DEFAULT_AMOUNT_SETTINGS = {
+const DEFAULT_SETTING_PLACEHOLDERS = {
   minDeposit: "2500",
   minWithdrawal: "1000",
+  withdrawalFees: "12",
 } as const;
 
 export function formatSettingPlaceholders(
   value: string,
   settings: Record<string, string> | undefined,
 ): string {
-  return value.replace(/\{\{\s*(minDeposit|minWithdrawal)\s*\}\}/g, (_match, key: keyof typeof DEFAULT_AMOUNT_SETTINGS) => {
-    const amount = Number.parseInt(settings?.[key] ?? DEFAULT_AMOUNT_SETTINGS[key], 10);
-    return Number.isSafeInteger(amount) && amount >= 0
-      ? amount.toLocaleString("fr-FR")
-      : Number.parseInt(DEFAULT_AMOUNT_SETTINGS[key], 10).toLocaleString("fr-FR");
-  });
+  return value.replace(
+    /\{\{\s*(minDeposit|minWithdrawal|withdrawalFees)\s*\}\}/g,
+    (_match, key: keyof typeof DEFAULT_SETTING_PLACEHOLDERS) => {
+      const rawValue = settings?.[key] ?? DEFAULT_SETTING_PLACEHOLDERS[key];
+      if (key === "withdrawalFees") {
+        const percent = Number(rawValue);
+        return Number.isFinite(percent) && percent >= 0 && percent <= 99
+          ? percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
+          : DEFAULT_SETTING_PLACEHOLDERS.withdrawalFees;
+      }
+      const amount = Number.parseInt(rawValue, 10);
+      return Number.isSafeInteger(amount) && amount >= 0
+        ? amount.toLocaleString("fr-FR")
+        : Number.parseInt(DEFAULT_SETTING_PLACEHOLDERS[key], 10).toLocaleString("fr-FR");
+    },
+  );
 }

@@ -4,9 +4,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ChevronLeft, ChevronRight, Clock3, CreditCard, Loader2, ShieldCheck, Wifi } from "lucide-react";
-import { getContent } from "@/lib/content";
+import { formatSettingPlaceholders, getContent } from "@/lib/content";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
+import {
+  calculateWithdrawalPayoutAmounts,
+  DEFAULT_WITHDRAWAL_FEE_PERCENT,
+} from "@shared/withdrawal-fees";
 
 interface WalletData {
   id: number;
@@ -74,6 +78,7 @@ export default function WithdrawalPage() {
     withdrawalDays: string;
     maxWithdrawalsPerDay: number;
     minWithdrawal: number;
+    withdrawalFees: number;
   }>({
     queryKey: ["/api/settings/withdrawal"],
     staleTime: 0,
@@ -85,6 +90,13 @@ export default function WithdrawalPage() {
   });
 
   const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
+  const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
+  const grossWithdrawalAmount = typeof amount === "number" && Number.isSafeInteger(amount) && amount > 0
+    ? amount
+    : 0;
+  const payoutEstimate = grossWithdrawalAmount > 0
+    ? calculateWithdrawalPayoutAmounts(grossWithdrawalAmount, withdrawalFeePercent)
+    : { fees: 0, netAmount: 0 };
   const maxWithdrawal = parseInt(allSettings?.maxWithdrawal || "1000000");
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
   const withdrawalStartHour = withdrawalSettings?.withdrawalStartHour ?? 9;
@@ -271,7 +283,10 @@ export default function WithdrawalPage() {
   const instructions = [
     getContent(allSettings, "content_withdrawal_instruction1", `1. Minimum withdrawal amount: ${minWithdrawal.toLocaleString()} ${currency}.`),
     getContent(allSettings, "content_withdrawal_instruction2", `2. One withdrawal per day is allowed.`),
-    getContent(allSettings, "content_withdrawal_instruction3", "3. You will receive the full requested amount."),
+    formatSettingPlaceholders(
+      getContent(allSettings, "content_withdrawal_instruction3", "3. Des frais de {{withdrawalFees}} % sont retenus sur le montant demandé avant l'envoi."),
+      allSettings,
+    ),
     getContent(allSettings, "content_withdrawal_instruction4", "4. Withdrawals are available from 09:00 to 17:00."),
     getContent(allSettings, "content_withdrawal_instruction5", "5. Sélectionnez un compte Mobile Money disponible dans votre pays ou une adresse USDT BEP20 valide."),
     getContent(allSettings, "content_withdrawal_instruction6", "6. Review the withdrawal conditions before submitting."),
@@ -539,9 +554,19 @@ export default function WithdrawalPage() {
             />
           </div>
 
-          <div className="mt-[12px] flex items-center justify-between px-[10px]">
-            <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 15 }}>
-              Amount received: {currency} {amount ? Number(amount).toLocaleString() : "0"}
+          <div
+            className="mt-[12px] space-y-1 px-[10px]"
+            data-testid="withdrawal-fee-estimate"
+            aria-live="polite"
+          >
+            <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
+              {t.grossAmount} (débit du solde) : {currency} {grossWithdrawalAmount.toLocaleString("fr-FR")}
+            </p>
+            <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
+              {t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %) : {currency} {payoutEstimate.fees.toLocaleString("fr-FR")}
+            </p>
+            <p className="font-semibold" style={{ color: "#202124", fontSize: 15 }}>
+              {t.netAmount} : {currency} {payoutEstimate.netAmount.toLocaleString("fr-FR")}
             </p>
           </div>
         </div>

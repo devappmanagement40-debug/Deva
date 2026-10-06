@@ -11,6 +11,7 @@ export default function RulesPage() {
 
   const minDeposit = settings?.minDeposit || "2500";
   const minWithdrawal = settings?.minWithdrawal || "1000";
+  const withdrawalFees = settings?.withdrawalFees ?? "12";
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
   const maxWithdrawalsPerDay = settings?.maxWithdrawalsPerDay || "1";
@@ -89,6 +90,7 @@ export default function RulesPage() {
             <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} XOF.</li>
             <li>Moyens de recharge : Mobile Money et USDT BEP20, selon les options disponibles.</li>
             <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} XOF.</li>
+            <li>Frais de retrait : {Number(withdrawalFees).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} % retenus sur le montant demandé.</li>
             <li>Moyens disponibles : Mobile Money ou USDT BEP20, selon les options du pays.</li>
             <li>Horaires de retrait : {withdrawalStartHour}h00 – {withdrawalEndHour}h00.</li>
             <li>Maximum {maxWithdrawalsPerDay} retrait(s) par jour et par utilisateur.</li>

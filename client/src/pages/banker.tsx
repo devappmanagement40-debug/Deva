@@ -377,6 +377,10 @@ export default function BankerPage() {
                            <p className="font-bold text-lg text-primary">{Number(w.netAmount).toLocaleString()} XOF</p>
                         </div>
                         <div>
+                          <p className="text-muted-foreground text-xs">{t.fees}</p>
+                           <p className="font-medium">{Number(w.fees).toLocaleString()} XOF</p>
+                        </div>
+                        <div>
                           <p className="text-muted-foreground text-xs">{t.beneficiary}</p>
                           <p className="font-medium">{w.accountName}</p>
                         </div>

@@ -3,7 +3,7 @@
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
 - [Country selection and markets](rdc-only-market.md) — CI deposits use an admin-managed Wave link and optional uploaded QR; don't change other markets.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
-- [TGOOD withdrawal policy](tgood-withdrawal-policy.md) — use Wave for CI and TMoney/Moov for TG withdrawals, separate from deposit channels; preserve the full-payout rule.
+- [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — withhold the configured fee from the gross amount; debit gross once, pay net, and preserve market-specific methods.
 - [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — rate is XOF ÷ 650; credits stay XOF, the rate stays hidden, and deposit guidance follows admin settings.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.

@@ -15,6 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Save, Link, Clock, Users, PowerOff, Power, HandCoins, Zap } from "lucide-react";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
+import {
+  DEFAULT_WITHDRAWAL_FEE_PERCENT,
+  parseWithdrawalFeePercent,
+} from "@shared/withdrawal-fees";
 
 const commissionRateSchema = z.string()
   .trim()
@@ -23,6 +27,14 @@ const commissionRateSchema = z.string()
     const rate = Number(value);
     return Number.isFinite(rate) && rate >= 0 && rate <= 100;
   }, "Saisissez un taux entre 0 et 100");
+
+const withdrawalFeeSchema = z.string()
+  .trim()
+  .min(1, "Taux requis")
+  .refine(
+    (value) => parseWithdrawalFeePercent(value) !== null,
+    "Saisissez un taux entre 0 et 99 %, avec au plus 2 décimales",
+  );
 
 const NETWORKS = [
   { value: "telegram", label: "Telegram" },
@@ -55,6 +67,7 @@ const settingsSchema = z.object({
   minDeposit: z.string().min(1, "Montant requis"),
   depositPresetAmounts: z.string().min(1, "Montants requis"),
   minWithdrawal: z.string().min(1, "Montant requis"),
+  withdrawalFees: withdrawalFeeSchema,
   maxWithdrawal: z.string().min(1, "Montant requis"),
   withdrawalEnabled: z.boolean(),
   maxWithdrawalsPerDay: z.string().min(1, "Requis"),
@@ -242,6 +255,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       minDeposit: "2500",
       depositPresetAmounts: "2500,5000,7000,10000,15000,20000,50000,70000",
       minWithdrawal: "1000",
+      withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal: "1000000",
       withdrawalEnabled: true,
       maxWithdrawalsPerDay: "1",
@@ -289,6 +303,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       minDeposit:             settings.minDeposit             ?? "2500",
       depositPresetAmounts:   settings.depositPresetAmounts   ?? "2500,5000,7000,10000,15000,20000,50000,70000",
       minWithdrawal:          settings.minWithdrawal          ?? "1000",
+      withdrawalFees:         settings.withdrawalFees         ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal:          settings.maxWithdrawal          ?? "1000000",
       withdrawalEnabled:      settings.withdrawalEnabled      !== "false",
       maxWithdrawalsPerDay:   settings.maxWithdrawalsPerDay   ?? "1",
@@ -304,7 +319,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
        popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20"),
-       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 000 XOF — Mobile Money et USDT BEP20 selon disponibilité"),
+       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 000 XOF — 12 % retenus sur le montant saisi"),
         popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
@@ -766,6 +781,16 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <FormMessage />
                 </FormItem>
               )} />
+              <FormField control={form.control} name="withdrawalFees" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Frais de retrait (%)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="0" max="99" step="0.01" /></FormControl>
+                  <FormDescription>
+                    Retenus sur le montant saisi. À 12 %, un retrait de 10 000 XOF verse 8 800 XOF.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
               <FormField control={form.control} name="maxWithdrawal" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Retrait maximum (XOF)</FormLabel>
@@ -792,7 +817,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <textarea
                     {...field}
                     rows={6}
-                    placeholder={"1. Le montant minimum de retrait est de 1 000 XOF\n2. Le montant demandé sera reçu intégralement\n3. Choisissez Mobile Money ou USDT BEP20 selon les options disponibles\n4. Maximum 1 retrait par jour"}
+                    placeholder={"1. Le montant minimum de retrait est de 1 000 XOF\n2. Des frais sont retenus sur le montant demandé\n3. Choisissez Mobile Money ou USDT BEP20 selon les options disponibles\n4. Maximum 1 retrait par jour"}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
                   />
                 </FormControl>
@@ -930,7 +955,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
               { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
-              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Retrait minimum : 1 000 XOF — Mobile Money et USDT BEP20 selon disponibilité" },
+              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Retrait minimum : 1 000 XOF — 12 % retenus sur le montant saisi" },
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },

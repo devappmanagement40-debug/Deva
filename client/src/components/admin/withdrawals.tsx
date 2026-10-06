@@ -247,6 +247,10 @@ export default function AdminWithdrawals() {
                       <p className="font-medium text-primary">{withdrawal.netAmount.toLocaleString()} XOF</p>
                   </div>
                   <div>
+                    <p className="text-muted-foreground">{t.fees}</p>
+                    <p className="font-medium text-foreground">{withdrawal.fees.toLocaleString()} XOF</p>
+                  </div>
+                  <div>
                     <p className="text-muted-foreground">{t.method}</p>
                     <p className="font-medium text-foreground">{withdrawal.paymentMethod || "—"}</p>
                   </div>

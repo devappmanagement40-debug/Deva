@@ -35,6 +35,11 @@ import {
   resolveCountryOperator,
   serializeCountryOperators,
 } from "./country-operator-policy";
+import {
+  calculateWithdrawalPayoutAmounts,
+  DEFAULT_WITHDRAWAL_FEE_PERCENT,
+  parseWithdrawalFeePercent,
+} from "@shared/withdrawal-fees";
 
 /**
  * Résout les paramètres WestPay.
@@ -2144,6 +2149,21 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Solde insuffisant" });
       }
 
+      const withdrawalFeePercent = parseWithdrawalFeePercent(
+        settingsForWithdrawal.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
+      );
+      if (withdrawalFeePercent === null) {
+        console.error("Invalid withdrawal fee percentage in platform settings");
+        return res.status(500).json({ message: "Les frais de retrait sont mal configurés. Contactez l'administration." });
+      }
+      let payoutAmounts: ReturnType<typeof calculateWithdrawalPayoutAmounts>;
+      try {
+        payoutAmounts = calculateWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
+      } catch (error) {
+        console.error("Could not calculate withdrawal fee:", error);
+        return res.status(500).json({ message: "Impossible de calculer les frais de retrait." });
+      }
+
       // Récupérer le moyen de retrait sélectionné.
       const walletId = Number(req.body.walletId);
       let wallet: any = null;
@@ -2195,8 +2215,8 @@ export async function registerRoutes(
       const withdrawal = await storage.createWithdrawal({
         userId: user.id,
         amount,
-        netAmount: amount,
-        fees: 0,
+        netAmount: payoutAmounts.netAmount,
+        fees: payoutAmounts.fees,
         accountName: wallet.accountName,
         accountNumber: wallet.accountNumber,
         country: user.country,
@@ -2602,6 +2622,12 @@ export async function registerRoutes(
   app.get("/api/settings/withdrawal", requireAuth, async (req, res) => {
     try {
       const settings = await storage.getSettings();
+      const withdrawalFees = parseWithdrawalFeePercent(
+        settings.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
+      );
+      if (withdrawalFees === null) {
+        return res.status(500).json({ message: "Les frais de retrait sont mal configurés." });
+      }
       res.json({
         withdrawalEnabled: settings.withdrawalEnabled !== "false",
         withdrawalStartHour: parseInt(settings.withdrawalStartHour || "9"),
@@ -2609,6 +2635,7 @@ export async function registerRoutes(
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
         maxWithdrawalsPerDay: parseInt(settings.maxWithdrawalsPerDay || "1"),
         minWithdrawal: parseInt(settings.minWithdrawal || "1000"),
+        withdrawalFees,
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3888,6 +3915,7 @@ export async function registerRoutes(
         "level2Commission",
         "level3Commission",
       ]);
+      const withdrawalFeeSettingKey = "withdrawalFees";
 
       // Validate all configurable spin rewards before saving any part of a
       // bulk update, so malformed values cannot leave the panel half-saved.
@@ -3920,6 +3948,15 @@ export async function registerRoutes(
       }
 
       for (const [key, value] of entries) {
+        if (key !== withdrawalFeeSettingKey) continue;
+        if (parseWithdrawalFeePercent(value) === null) {
+          return res.status(400).json({
+            message: "Les frais de retrait doivent être un taux entre 0 et 99 %, avec au plus 2 décimales.",
+          });
+        }
+      }
+
+      for (const [key, value] of entries) {
         if (key === "withdrawalMode") {
           const mode = normalizeWithdrawalMode(typeof value === "string" ? value : undefined);
           if (
@@ -3934,6 +3971,9 @@ export async function registerRoutes(
           await storage.setSetting(key, String(spins), req.session.userId);
         } else if (referralCommissionSettingKeys.has(key)) {
           const rate = typeof value === "number" ? value : Number(String(value).trim());
+          await storage.setSetting(key, String(rate), req.session.userId);
+        } else if (key === withdrawalFeeSettingKey) {
+          const rate = parseWithdrawalFeePercent(value)!;
           await storage.setSetting(key, String(rate), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [

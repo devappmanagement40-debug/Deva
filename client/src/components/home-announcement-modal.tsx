@@ -13,7 +13,7 @@ import { formatSettingPlaceholders, getContent } from "@/lib/content";
 const POPUP_LINE_FALLBACKS = [
   "Dépôts disponibles par Mobile Money et USDT BEP20, crédités après confirmation.",
   "Dépôt minimum : {{minDeposit}} XOF.",
-  "Retrait minimum : {{minWithdrawal}} XOF par Mobile Money ou USDT BEP20, selon les options disponibles.",
+  "Retrait minimum : {{minWithdrawal}} XOF. Frais de {{withdrawalFees}} % retenus sur le montant saisi, par Mobile Money ou USDT BEP20.",
   "Les retraits et le support sont disponibles de 09:00 à 17:00.",
   "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
 ];

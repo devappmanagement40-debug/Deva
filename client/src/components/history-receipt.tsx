@@ -217,7 +217,7 @@ const WITHDRAWAL_COPY = {
     gross: "Montant retiré",
     received: "Montant reçu",
     expectedNet: "Montant net prévu",
-    fees: "Montant de la taxe",
+    fees: "Frais de retrait",
     start: "Heure de début",
   },
   en: {
@@ -225,7 +225,7 @@ const WITHDRAWAL_COPY = {
     gross: "Amount withdrawn",
     received: "Amount received",
     expectedNet: "Expected net amount",
-    fees: "Tax amount",
+    fees: "Withdrawal fee",
     start: "Start time",
   },
   ar: {
@@ -233,7 +233,7 @@ const WITHDRAWAL_COPY = {
     gross: "المبلغ المسحوب",
     received: "المبلغ المستلم",
     expectedNet: "صافي المبلغ المتوقع",
-    fees: "مبلغ الضريبة",
+    fees: "رسوم السحب",
     start: "وقت البدء",
   },
   zh: {
@@ -241,7 +241,7 @@ const WITHDRAWAL_COPY = {
     gross: "提现金额",
     received: "到账金额",
     expectedNet: "预计到账金额",
-    fees: "税费金额",
+    fees: "提现手续费",
     start: "开始时间",
   },
 };
