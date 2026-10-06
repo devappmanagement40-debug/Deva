@@ -149,6 +149,10 @@
   color: #122044;
 }
 
+.diamant-invest-product-card.is-card-clickable {
+  cursor: pointer;
+}
+
 .diamant-invest-product-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;

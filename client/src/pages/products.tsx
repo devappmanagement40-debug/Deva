@@ -14,6 +14,8 @@ import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
+import { PRODUCT_CARD_COPY } from "@/lib/product-card-copy";
+import { ProductCatalogCard } from "@/components/product-catalog-card";
 import "./products.css";
 
 const PRODUCT_TAB_TYPES = ["stability", "wellness", "activity"] as const;
@@ -41,13 +43,9 @@ const INVEST_COPY: Record<Lang, {
   retry: string;
 }> = {
   fr: {
+    ...PRODUCT_CARD_COPY.fr,
     tabs: ["Stabiliser", "Bien-être", "Activité"],
     overview: "Découvrez les produits d’investissement DIAMANT",
-    days: "jours",
-    daily: "Revenu quotidien",
-    term: "Jours de revenu",
-    priceLabel: "Prix",
-    total: "Revenu total",
     investNow: "Acheter",
     soldOut: "Épuisé",
     unavailable: "Bientôt disponible",
@@ -63,13 +61,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "Réessayer",
   },
   en: {
+    ...PRODUCT_CARD_COPY.en,
     tabs: ["Stability", "Wellness", "Activity"],
     overview: "Explore DIAMANT investment products",
-    days: "days",
-    daily: "Daily revenue",
-    term: "Revenue days",
-    priceLabel: "Price",
-    total: "Total revenue",
     investNow: "Buy",
     soldOut: "Sold out",
     unavailable: "Unavailable",
@@ -85,13 +79,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "Try again",
   },
   ar: {
+    ...PRODUCT_CARD_COPY.ar,
     tabs: ["الاستقرار", "العافية", "النشاط"],
     overview: "اكتشف منتجات DIAMANT الاستثمارية",
-    days: "أيام",
-    daily: "العائد اليومي",
-    term: "أيام الربح",
-    priceLabel: "السعر",
-    total: "إجمالي العائد",
     investNow: "شراء",
     soldOut: "نفد المخزون",
     unavailable: "غير متاح",
@@ -107,13 +97,9 @@ const INVEST_COPY: Record<Lang, {
     retry: "إعادة المحاولة",
   },
   zh: {
+    ...PRODUCT_CARD_COPY.zh,
     tabs: ["稳健", "健康", "活力"],
     overview: "探索 DIAMANT 投资产品",
-    days: "天",
-    daily: "每日收益",
-    term: "收益天数",
-    priceLabel: "价格",
-    total: "总收益",
     investNow: "购买",
     soldOut: "已售罄",
     unavailable: "暂不可用",
@@ -258,71 +244,36 @@ export default function ProductsPage() {
             ) : (
               sectionProducts.map((product) => {
                 const index = productIndexes.get(product.id) ?? 0;
-                const price = Number(product.price) || 0;
-                const dailyEarnings = Number(product.dailyEarnings) || 0;
-                const totalReturn = Number(product.totalReturn) || 0;
                 const isPending = purchaseMutation.isPending && purchaseMutation.variables === product.id;
                 const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
                 const isSoldOut = stock >= 100;
                 const isUnavailable = !!product.isUnavailable;
                 const isBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies;
                 const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
+                const actionStatusLabel = isUnavailable
+                  ? copy.unavailable
+                  : isSoldOut
+                    ? copy.soldOut
+                    : stabilityPrerequisiteApplies
+                      ? copy.stabilityRequiredButton
+                      : undefined;
 
                 return (
-                  <article
+                  <ProductCatalogCard
                     key={product.id}
-                    className="diamant-invest-product-card"
-                    data-card-colored={!!product.cardColor}
-                    style={product.cardColor ? {
-                      backgroundColor: `color-mix(in srgb, ${product.cardColor} 38%, #f5f7ff)`,
-                      borderColor: `color-mix(in srgb, ${product.cardColor} 62%, #7885ac)`,
-                      borderInlineStartWidth: 5,
-                      borderInlineStartColor: product.cardColor,
-                    } : undefined}
-                    data-testid={`product-card-${product.id}`}
-                  >
-                    <div className="diamant-invest-product-main">
-                      <div className="diamant-invest-product-copy">
-                        <div className="diamant-invest-product-title-row">
-                          <h3>{displayName}</h3>
-                        </div>
-                        <dl>
-                          <div><dt>{copy.daily}</dt><dd>{formatXof(dailyEarnings)} <small>XOF</small></dd></div>
-                          <div><dt>{copy.term}</dt><dd>{product.cycleDays} {copy.days}</dd></div>
-                          <div><dt>{copy.total}</dt><dd>{formatXof(totalReturn)} <small>XOF</small></dd></div>
-                        </dl>
-                      </div>
-                      <div
-                        className="diamant-invest-product-visual"
-                        style={product.cardColor ? { borderColor: `color-mix(in srgb, ${product.cardColor} 65%, #7784aa)` } : undefined}
-                      >
-                        {getProductImage(product) ? (
-                          <img src={getProductImage(product)!} alt={displayName} loading="lazy" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center text-[#42668b]" aria-label="Aucune image configurée">
-                            <ImageIcon size={34} aria-hidden="true" />
-                          </div>
-                        )}
-                        <span>DIAMANT</span>
-                      </div>
-                    </div>
-                    <div className="diamant-invest-product-footer">
-                      <div className="diamant-invest-price">
-                        <span className="sr-only">{copy.priceLabel}</span>
-                        <strong>{formatXof(price)} <small>XOF</small></strong>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => !isBlocked && handleBuy(product)}
-                        disabled={purchaseMutation.isPending || isBlocked}
-                        className={`diamant-invest-buy${isBlocked ? " is-disabled" : ""}`}
-                        aria-label={`${stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}: ${displayName}`}
-                        data-testid={`button-purchase-${product.id}`}
-                      >
-                        {isPending ? <Loader2 size={19} className="animate-spin" /> : isUnavailable ? copy.unavailable : isSoldOut ? copy.soldOut : stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}
-                      </button>
-                    </div>
-                  </article>
+                    product={product}
+                    displayName={displayName}
+                    labels={PRODUCT_CARD_COPY[lang]}
+                    actionLabel={copy.investNow}
+                    actionStatusLabel={actionStatusLabel}
+                    actionAriaLabel={`${stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}: ${displayName}`}
+                    onAction={() => !isBlocked && handleBuy(product)}
+                    disabled={purchaseMutation.isPending || isBlocked}
+                    blocked={isBlocked}
+                    pending={isPending}
+                    rootTestId={`product-card-${product.id}`}
+                    actionTestId={`button-purchase-${product.id}`}
+                  />
                 );
               })
             )}

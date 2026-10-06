@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   FileCheck2,
-  Image as ImageIcon,
   MessageSquare,
   UsersRound,
   WalletCards,
@@ -21,8 +20,9 @@ import { FloatingCheckin } from "@/components/floating-checkin";
 import { FloatingWheel } from "@/components/floating-wheel";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
 import BannerCarousel from "@/components/banner-carousel";
+import { ProductCatalogCard } from "@/components/product-catalog-card";
 import type { Product } from "@shared/schema";
-import { getProductImageUrl } from "@/lib/product-visuals";
+import { PRODUCT_CARD_COPY } from "@/lib/product-card-copy";
 import { rebrandText } from "@/lib/content";
 import { resolveInfoArticles } from "@/data/diamant-info-articles";
 import { HOME_BANNER_DEFAULT_IMAGES } from "@/lib/banner-defaults";
@@ -55,11 +55,6 @@ type HomeCopy = {
   productsError: string;
   information: string;
   informationEmpty: string;
-  productPrice: string;
-  dailyIncome: string;
-  totalReturn: string;
-  cycle: string;
-  returnRatio: string;
 };
 
 const COPY: Record<Lang, HomeCopy> = {
@@ -85,11 +80,6 @@ const COPY: Record<Lang, HomeCopy> = {
     productsError: "Impossible de charger les produits.",
     information: "Information",
     informationEmpty: "Aucune information disponible.",
-    productPrice: "Prix",
-    dailyIncome: "Revenu quotidien",
-    totalReturn: "Revenu total",
-    cycle: "Cycle",
-    returnRatio: "Ratio du total",
   },
   en: {
     chat: "Customer service",
@@ -113,11 +103,6 @@ const COPY: Record<Lang, HomeCopy> = {
     productsError: "Could not load the products.",
     information: "Information",
     informationEmpty: "No information is available.",
-    productPrice: "Price",
-    dailyIncome: "Daily income",
-    totalReturn: "Total return",
-    cycle: "Cycle",
-    returnRatio: "Total ratio",
   },
   ar: {
     chat: "خدمة العملاء",
@@ -141,11 +126,6 @@ const COPY: Record<Lang, HomeCopy> = {
     productsError: "تعذر تحميل المنتجات.",
     information: "المعلومات",
     informationEmpty: "لا توجد معلومات متاحة.",
-    productPrice: "السعر",
-    dailyIncome: "الدخل اليومي",
-    totalReturn: "الإجمالي",
-    cycle: "الدورة",
-    returnRatio: "نسبة الإجمالي",
   },
   zh: {
     chat: "客户服务",
@@ -169,11 +149,6 @@ const COPY: Record<Lang, HomeCopy> = {
     productsError: "无法加载产品。",
     information: "信息",
     informationEmpty: "暂无信息。",
-    productPrice: "价格",
-    dailyIncome: "每日收入",
-    totalReturn: "总回报",
-    cycle: "周期",
-    returnRatio: "总额比例",
   },
 };
 
@@ -182,7 +157,6 @@ const AMOUNT_FORMAT = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-const COUNT_FORMAT = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const QUICK_ACTIONS: {
   id: "recharge" | "withdraw" | "team" | "proofs";
   Icon: LucideIcon;
@@ -197,11 +171,6 @@ const QUICK_ACTIONS: {
 function formatMoney(value: unknown) {
   const amount = Number(value);
   return AMOUNT_FORMAT.format(Number.isFinite(amount) ? amount : 0);
-}
-
-function formatCount(value: unknown) {
-  const count = Number(value);
-  return COUNT_FORMAT.format(Number.isFinite(count) ? count : 0);
 }
 
 function parseProductIds(value?: string) {
@@ -292,7 +261,7 @@ function HomePage() {
       const trackBounds = track.getBoundingClientRect();
       if (trackBounds.width === 0 || trackBounds.bottom <= 0 || trackBounds.top >= window.innerHeight) return;
 
-      const cards = Array.from(track.querySelectorAll<HTMLButtonElement>(".ielp-home-product-card"));
+      const cards = Array.from(track.querySelectorAll<HTMLElement>(".diamant-invest-product-card"));
       if (cards.length < 2) return;
 
       const isRtl = lang === "ar";
@@ -459,72 +428,21 @@ function HomePage() {
                   }
                 }}
               >
-                {popularProducts.map((product, index) => {
-                  const name = rebrandText(product.name);
-                  const price = Number(product.price);
-                  const totalReturn = Number(product.totalReturn);
-                  const ratio = Number.isFinite(price) && price > 0 && Number.isFinite(totalReturn)
-                    ? (totalReturn / price) * 100
-                    : undefined;
+                {popularProducts.map((product) => {
+                  const displayName = rebrandText(product.name);
+                  const openProducts = () => navigate("/invest");
                   return (
-                    <button
-                      className="ielp-home-product-card"
-                      type="button"
+                    <ProductCatalogCard
                       key={product.id}
-                      style={product.cardColor ? {
-                        background: `color-mix(in srgb, ${product.cardColor} 74%, var(--home-panel))`,
-                        borderColor: product.cardColor,
-                        borderInlineStart: `5px solid ${product.cardColor}`,
-                      } : undefined}
-                      onClick={() => navigate("/invest")}
-                      aria-label={`${name} — ${copy.viewProducts}`}
-                      data-testid={`home-popular-product-${product.id}`}
-                    >
-                      {getProductImageUrl(product.imageUrl) ? (
-                        <img
-                          className="ielp-home-product-card__image"
-                          src={getProductImageUrl(product.imageUrl)!}
-                          alt=""
-                          loading="lazy"
-                          draggable={false}
-                        />
-                      ) : (
-                        <span className="ielp-home-product-card__image flex items-center justify-center bg-slate-100 text-slate-400" aria-hidden="true">
-                          <ImageIcon className="h-7 w-7" />
-                        </span>
-                      )}
-                      <span className="ielp-home-product-card__content">
-                        <span className="ielp-home-product-card__topline">
-                          <span className="ielp-home-product-card__name">{name}</span>
-                          <span
-                            className="ielp-home-product-card__ratio"
-                            aria-label={ratio === undefined ? copy.returnRatio : `${copy.returnRatio}: ${ratio.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
-                          >
-                            {ratio === undefined
-                              ? "—"
-                              : `${ratio.toLocaleString(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`}
-                          </span>
-                        </span>
-                        <span className="ielp-home-product-card__details">
-                          <span>
-                            <small>{copy.totalReturn}</small>
-                            <strong><small>XOF</small> {formatMoney(product.totalReturn)}</strong>
-                          </span>
-                          <span>
-                            <small>{copy.dailyIncome}</small>
-                            <strong><small>XOF</small> {formatMoney(product.dailyEarnings)}</strong>
-                          </span>
-                          <span>
-                            <small>{copy.cycle}</small>
-                            <strong>{formatCount(product.cycleDays)} {lang === "fr" ? "j" : lang === "zh" ? "天" : lang === "ar" ? "يوم" : "days"}</strong>
-                          </span>
-                          <span>
-                            <small>{copy.productPrice}</small>
-                            <strong><small>XOF</small> {formatMoney(product.price)}</strong>
-                          </span>
-                        </span>
-                      </span>
-                    </button>
+                      product={product}
+                      displayName={displayName}
+                      labels={PRODUCT_CARD_COPY[lang]}
+                      actionLabel={copy.viewProducts}
+                      actionAriaLabel={`${displayName} — ${copy.viewProducts}`}
+                      onAction={openProducts}
+                      onCardClick={openProducts}
+                      rootTestId={`home-popular-product-${product.id}`}
+                    />
                   );
                 })}
               </div>
