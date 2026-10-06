@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -269,7 +269,13 @@ export default function ProductsPage() {
                 const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
 
                 return (
-                  <article key={product.id} className="diamant-invest-product-card" data-testid={`product-card-${product.id}`}>
+                  <article
+                    key={product.id}
+                    className="diamant-invest-product-card"
+                    data-card-colored={!!product.cardColor}
+                    style={product.cardColor ? { "--product-card-color": product.cardColor } as CSSProperties : undefined}
+                    data-testid={`product-card-${product.id}`}
+                  >
                     <div className="diamant-invest-product-main">
                       <div className="diamant-invest-product-copy">
                         <div className="diamant-invest-product-title-row">

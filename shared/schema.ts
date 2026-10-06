@@ -103,6 +103,7 @@ export const products = pgTable("products", {
   cycleDays: integer("cycle_days").notNull().default(80),
   totalReturn: decimal("total_return", { precision: 15, scale: 2 }).notNull(),
   imageUrl: text("image_url"),
+  cardColor: text("card_color"),
   isFree: boolean("is_free").notNull().default(false),
   isActive: boolean("is_active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),

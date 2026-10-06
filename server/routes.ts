@@ -11,6 +11,7 @@ import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
 import { ownsActiveStabilityProduct } from "@shared/product-categories";
+import { normalizeProductCardColor } from "@shared/product-card-color";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import { isCountryCode } from "@shared/country-codes";
@@ -3454,7 +3455,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
-      const { name, price, dailyEarnings, cycleDays, imageUrl, minInviteCount, maxOwned, stockPercentage } = req.body;
+      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, minInviteCount, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType;
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
@@ -3480,6 +3481,7 @@ export async function registerRoutes(
         cycleDays: cycleInt,
         totalReturn: String((dailyNum * cycleInt).toFixed(2)),
         imageUrl: imageUrl || null,
+        cardColor: normalizeProductCardColor(cardColor),
         isFree: false,
         isActive: true,
         sortOrder: 0,
@@ -3504,6 +3506,13 @@ export async function registerRoutes(
       delete body.collectAtEnd;
       if (body.productType !== undefined && !PRODUCT_TYPES.includes(body.productType)) {
         return res.status(400).json({ message: "Type de produit invalide" });
+      }
+      if (body.cardColor !== undefined) {
+        try {
+          body.cardColor = normalizeProductCardColor(body.cardColor);
+        } catch (error: any) {
+          return res.status(400).json({ message: error.message });
+        }
       }
       // Normalize numeric fields when present
       if (body.minInviteCount !== undefined) body.minInviteCount = parseInt(body.minInviteCount) || 0;

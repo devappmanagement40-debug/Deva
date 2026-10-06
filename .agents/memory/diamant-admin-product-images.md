@@ -3,8 +3,8 @@ name: DIAMANT admin-managed product images
 description: Keep catalog product images editable in the administration panel and out of hardcoded source mappings.
 ---
 
-Catalog images belong to each product record. Administrators must be able to add, replace, and remove a product image in the admin panel; do not map photos to product IDs or categories in client code.
+Catalog images and optional card colors belong to each product record. Administrators must be able to add, replace, and remove product images, choose a distinct card color, or reset to the original appearance; do not map visuals to product IDs or categories in client code.
 
-**Why:** the user explicitly requires every product image to be visible and editable in administration, with no hardcoded image assignments.
+**Why:** the user explicitly requires product visuals to be editable in administration rather than hardcoded, including a per-product card color with the original appearance as an option.
 
-**How to apply:** Render the stored product image URL in the catalog and admin preview. Keep a neutral placeholder for products with no image; ensure uploaded image URLs remain publicly served after production builds.
+**How to apply:** Render stored image URLs and optional card colors in the catalog and admin preview. Keep neutral placeholders and original styling when values are unset; ensure uploaded image URLs remain publicly served after production builds.

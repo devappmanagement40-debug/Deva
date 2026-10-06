@@ -149,6 +149,13 @@
   color: #122044;
 }
 
+.diamant-invest-product-card[data-card-colored="true"] {
+  background: color-mix(in srgb, var(--product-card-color) 38%, #f5f7ff);
+  border-color: color-mix(in srgb, var(--product-card-color) 62%, #7885ac);
+  border-inline-start-width: 5px;
+  border-inline-start-color: var(--product-card-color);
+}
+
 .diamant-invest-product-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 120px;
@@ -234,6 +241,10 @@
     radial-gradient(circle at 50% 40%, rgba(147, 149, 219, .2), transparent 60%),
     #dce0f0;
   box-shadow: 0 4px 10px rgba(18, 30, 69, .16);
+}
+
+.diamant-invest-product-card[data-card-colored="true"] .diamant-invest-product-visual {
+  border-color: color-mix(in srgb, var(--product-card-color) 65%, #7784aa);
 }
 
 .diamant-invest-product-visual img {
