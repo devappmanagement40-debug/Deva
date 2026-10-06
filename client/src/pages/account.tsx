@@ -439,7 +439,6 @@ export default function AccountPage() {
                 type="button"
                 className="ielp-account-avatar-button"
                 onClick={user.isAdmin ? openAdmin : undefined}
-                disabled={!user.isAdmin}
                 aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
                 data-testid="button-account-menu"
               >
@@ -455,7 +454,6 @@ export default function AccountPage() {
                     type="button"
                     className="ielp-account-phone-menu"
                     onClick={user.isAdmin ? openAdmin : undefined}
-                    disabled={!user.isAdmin}
                     aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
                     data-testid="button-account-menu-phone"
                   >
