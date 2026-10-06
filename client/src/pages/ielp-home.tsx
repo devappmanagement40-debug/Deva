@@ -476,7 +476,7 @@ function HomePage() {
                     >
                       <img
                         className="ielp-home-product-card__image"
-                        src={getProductVisual(product.imageUrl, index)}
+                        src={getProductVisual(product.imageUrl, product.id, product.productType)}
                         alt=""
                         loading="lazy"
                         draggable={false}

@@ -4,13 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
-
-import productBike from "@assets/generated_images/diamant-product-bike-card.jpg";
-import productScooter from "@assets/generated_images/diamant-scooter.jpg";
-import productMoped from "@assets/generated_images/diamant-moped.jpg";
-import chargingStation from "@assets/generated_images/diamant-charging-station-hero.jpg";
-
-const productImages = [productBike, productScooter, productMoped, chargingStation];
+import { getProductVisual } from "@/lib/product-visuals";
 
 function isProductActive(product: any): boolean {
   return product.status === "active" && Number(product.daysRemaining) > 0;
@@ -33,10 +27,6 @@ export default function OrdersPage() {
   if (!user) return null;
 
   const headerTitle = getContent(settings, "content_orders_headerTitle", t.myProductsTitle);
-
-  const getProductImage = (index: number) => {
-    return productImages[index % productImages.length];
-  };
 
   const filteredProducts = userProducts?.filter((up: any) =>
     activeTab === "active" ? isProductActive(up) : !isProductActive(up)
@@ -114,7 +104,11 @@ export default function OrdersPage() {
                   <div className="flex items-start gap-2">
                     <div className="w-24 h-24 flex-shrink-0">
                       <img
-                        src={up.product?.imageUrl || getProductImage(up.productId ? up.productId % productImages.length : index)}
+                        src={getProductVisual(
+                          up.product?.imageUrl,
+                          Number(up.product?.id ?? up.productId ?? index + 1),
+                          up.product?.productType,
+                        )}
                         alt={rebrandText(up.product?.name || t.noProducts)}
                         className="w-full h-full object-cover rounded-lg"
                       />

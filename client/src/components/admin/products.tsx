@@ -361,12 +361,12 @@ export default function AdminProducts() {
       {isLoading ? (
         Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)
       ) : products && products.length > 0 ? (
-        products.map((product, index) => (
+        products.map((product) => (
           <Card key={product.id}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <img src={getProductVisual(product.imageUrl, index)} alt={rebrandText(product.name)} className="w-12 h-12 rounded-lg object-cover border border-border" />
+                  <img src={getProductVisual(product.imageUrl, product.id, normalizeProductType(product.productType))} alt={rebrandText(product.name)} className="w-12 h-12 rounded-lg object-cover border border-border" />
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{rebrandText(product.name)}</p>

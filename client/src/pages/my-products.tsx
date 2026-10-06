@@ -112,7 +112,11 @@ export default function MyProductsPage() {
               const completedDays = Math.max(0, cycleDays - daysRemaining);
               const progress = cycleDays > 0 ? Math.min(100, Math.round((completedDays / cycleDays) * 100)) : 0;
               const earned = Number(userProduct.totalEarned || 0);
-              const image = getProductVisual(product.imageUrl, index);
+              const image = getProductVisual(
+                product.imageUrl,
+                Number(product.id ?? userProduct.productId ?? index + 1),
+                product.productType,
+              );
               const displayName = getDisplayName(product.name, index);
 
               return (

@@ -190,7 +190,8 @@ export default function ProductsPage() {
   );
   const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
   const getDisplayName = (product: Product) => rebrandText(product.name);
-  const getProductImage = (product: Product, index: number) => getProductVisual(product.imageUrl, index);
+  const getProductImage = (product: Product) =>
+    getProductVisual(product.imageUrl, product.id, normalizeProductType(product.productType));
   const confirmProductIndex = confirmProduct
     ? Math.max(0, sectionProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
@@ -282,7 +283,7 @@ export default function ProductsPage() {
                         </dl>
                       </div>
                       <div className="diamant-invest-product-visual">
-                        <img src={getProductImage(product, index)} alt={displayName} loading="lazy" />
+                        <img src={getProductImage(product)} alt={displayName} loading="lazy" />
                         <span>DIAMANT</span>
                       </div>
                     </div>
@@ -316,7 +317,7 @@ export default function ProductsPage() {
             <DialogContent className="diamant-purchase-dialog">
               <DialogTitle className="sr-only">{t.investConfirmDesc} — {getDisplayName(confirmProduct)}</DialogTitle>
               <div className="diamant-purchase-dialog__visual">
-                <img src={getProductImage(confirmProduct, confirmProductIndex)} alt={getDisplayName(confirmProduct)} />
+                <img src={getProductImage(confirmProduct)} alt={getDisplayName(confirmProduct)} />
               </div>
               <div className="diamant-purchase-dialog__body">
                 <div className="diamant-purchase-dialog__heading">
