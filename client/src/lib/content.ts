@@ -33,3 +33,20 @@ export function getContent(
     NON_MINING_ABOUT_TERMS.test(configuredValue);
   return rebrandText(configuredValue && !containsOutOfScopeAboutCopy ? configuredValue : fallback);
 }
+
+const DEFAULT_AMOUNT_SETTINGS = {
+  minDeposit: "2500",
+  minWithdrawal: "1000",
+} as const;
+
+export function formatSettingPlaceholders(
+  value: string,
+  settings: Record<string, string> | undefined,
+): string {
+  return value.replace(/\{\{\s*(minDeposit|minWithdrawal)\s*\}\}/g, (_match, key: keyof typeof DEFAULT_AMOUNT_SETTINGS) => {
+    const amount = Number.parseInt(settings?.[key] ?? DEFAULT_AMOUNT_SETTINGS[key], 10);
+    return Number.isSafeInteger(amount) && amount >= 0
+      ? amount.toLocaleString("fr-FR")
+      : Number.parseInt(DEFAULT_AMOUNT_SETTINGS[key], 10).toLocaleString("fr-FR");
+  });
+}

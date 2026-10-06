@@ -10,9 +10,9 @@ import {
 import "./_group.css";
 
 const popupLines = [
-  "Les dépôts sont crédités après confirmation du paiement.",
-  "Dépôt minimum : 18 XOF.",
-  "Retrait minimum : 1 XOF via USDT BEP20, sans frais.",
+  "Dépôts disponibles par Mobile Money et USDT BEP20, crédités après confirmation.",
+  "Dépôt minimum : 2 500 XOF.",
+  "Retrait minimum : 1 000 XOF par Mobile Money ou USDT BEP20, selon les options disponibles.",
   "Les retraits et le support sont disponibles de 09:00 à 17:00.",
   "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
 ];

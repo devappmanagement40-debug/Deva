@@ -196,7 +196,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
-  const minDeposit = Number.parseInt(settings.minDeposit || "18", 10) || 18;
+  const minDeposit = Number.parseInt(settings.minDeposit || "2500", 10) || 2500;
   const depositPresetAmounts = parseDepositPresetAmounts(settings.depositPresetAmounts);
 
   const { data: mobileDepositCountries = [], isLoading: countriesLoading, isError: countriesError } = useQuery<DepositCountryOption[]>({

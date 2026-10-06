@@ -1299,7 +1299,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "18", 10);
+      const minDeposit = parseInt(settings.minDeposit || "2500", 10);
       if (amountXof < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
@@ -1677,7 +1677,7 @@ export async function registerRoutes(
       if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
 
       const settings = await storage.getSettings();
-      const minDeposit = Number.parseInt(settings.minDeposit || "18", 10);
+      const minDeposit = Number.parseInt(settings.minDeposit || "2500", 10);
       if (data.amount < minDeposit) {
         return res.status(400).json({
           message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
@@ -1726,7 +1726,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "18");
+      const minDeposit = parseInt(settings.minDeposit || "2500");
       const amountValue = Number(amount);
       if (!Number.isSafeInteger(amountValue) || amountValue < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
@@ -1881,7 +1881,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "18");
+      const minDeposit = parseInt(settings.minDeposit || "2500");
       if (Number(amount) < minDeposit)
         return res.status(400).json({
           message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
@@ -2119,7 +2119,7 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Les retraits sont disponibles de ${startHour}h à ${endHour}h` });
         }
       }
-      const minWithdrawal = parseInt(settingsForWithdrawal.minWithdrawal || "1");
+      const minWithdrawal = parseInt(settingsForWithdrawal.minWithdrawal || "1000");
       if (amount < minWithdrawal) {
         return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} XOF` });
       }
@@ -2608,7 +2608,7 @@ export async function registerRoutes(
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
         maxWithdrawalsPerDay: parseInt(settings.maxWithdrawalsPerDay || "1"),
-        minWithdrawal: parseInt(settings.minWithdrawal || "1"),
+        minWithdrawal: parseInt(settings.minWithdrawal || "1000"),
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });

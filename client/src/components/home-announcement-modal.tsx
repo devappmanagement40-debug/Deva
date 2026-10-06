@@ -8,12 +8,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getContent } from "@/lib/content";
+import { formatSettingPlaceholders, getContent } from "@/lib/content";
 
 const POPUP_LINE_FALLBACKS = [
-  "Les dépôts sont crédités après confirmation du paiement.",
-  "Dépôt minimum : 18 XOF.",
-  "Retrait minimum : 1 XOF via USDT BEP20, sans frais.",
+  "Dépôts disponibles par Mobile Money et USDT BEP20, crédités après confirmation.",
+  "Dépôt minimum : {{minDeposit}} XOF.",
+  "Retrait minimum : {{minWithdrawal}} XOF par Mobile Money ou USDT BEP20, selon les options disponibles.",
   "Les retraits et le support sont disponibles de 09:00 à 17:00.",
   "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
 ];
@@ -31,7 +31,10 @@ export default function HomeAnnouncementModal() {
     "Bienvenue sur la plateforme DIAMANT.",
   );
   const popupLines = POPUP_LINE_FALLBACKS.map((fallback, index) =>
-    getContent(settings, `content_home_popupLine${index + 2}`, fallback),
+    formatSettingPlaceholders(
+      getContent(settings, `content_home_popupLine${index + 2}`, fallback),
+      settings,
+    ),
   );
   const confirmLabel = settings.popupConfirmLabel?.trim();
   const popupConfirmLabel =

@@ -83,7 +83,7 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
   const balance = parseFloat(user.balance || "0");
   const defaultWallet = wallets?.find(w => w.isDefault);
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
-  const minWithdrawal = withdrawalSettings?.minWithdrawal || 1;
+  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
   const currency = "XOF";
 
   const amount = parseInt(form.watch("amount") || "0");
@@ -126,7 +126,9 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
                   <span className="text-sm text-muted-foreground">{t.withdrawWalletLabel}</span>
                 </div>
                 <p className="font-medium text-foreground">{defaultWallet?.accountName}</p>
-                <p className="text-sm text-muted-foreground">{defaultWallet?.accountNumber} - USDT BEP20</p>
+                <p className="text-sm text-muted-foreground">
+                  {defaultWallet?.accountNumber} - {defaultWallet?.paymentMethod || "Mobile Money / USDT BEP20"}
+                </p>
               </div>
 
               <div className="bg-secondary rounded-lg p-3 text-center">

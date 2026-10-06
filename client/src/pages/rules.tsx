@@ -9,8 +9,8 @@ export default function RulesPage() {
     queryKey: ["/api/settings"],
   });
 
-  const minDeposit = settings?.minDeposit || "18";
-  const minWithdrawal = settings?.minWithdrawal || "1";
+  const minDeposit = settings?.minDeposit || "2500";
+  const minWithdrawal = settings?.minWithdrawal || "1000";
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
   const maxWithdrawalsPerDay = settings?.maxWithdrawalsPerDay || "1";
@@ -87,7 +87,9 @@ export default function RulesPage() {
           <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS2Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
             <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} XOF.</li>
-            <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} XOF via USDT BEP20, sans frais.</li>
+            <li>Moyens de recharge : Mobile Money et USDT BEP20, selon les options disponibles.</li>
+            <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} XOF.</li>
+            <li>Moyens disponibles : Mobile Money ou USDT BEP20, selon les options du pays.</li>
             <li>Horaires de retrait : {withdrawalStartHour}h00 – {withdrawalEndHour}h00.</li>
             <li>Maximum {maxWithdrawalsPerDay} retrait(s) par jour et par utilisateur.</li>
           </ul>

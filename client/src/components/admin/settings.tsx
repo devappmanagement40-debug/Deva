@@ -239,9 +239,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled: false,
       channelEnabled: true,
       groupEnabled: false,
-      minDeposit: "18",
-      depositPresetAmounts: "3500,5000,7000,10000,15000,20000,50000,70000",
-      minWithdrawal: "1",
+      minDeposit: "2500",
+      depositPresetAmounts: "2500,5000,7000,10000,15000,20000,50000,70000",
+      minWithdrawal: "1000",
       maxWithdrawal: "1000000",
       withdrawalEnabled: true,
       maxWithdrawalsPerDay: "1",
@@ -286,9 +286,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled:        settings.support2Enabled        !== "false",
       channelEnabled:         settings.channelEnabled         !== "false",
       groupEnabled:           settings.groupEnabled           !== "false",
-      minDeposit:             settings.minDeposit             ?? "18",
-      depositPresetAmounts:   settings.depositPresetAmounts   ?? "3500,5000,7000,10000,15000,20000,50000,70000",
-      minWithdrawal:          settings.minWithdrawal          ?? "1",
+      minDeposit:             settings.minDeposit             ?? "2500",
+      depositPresetAmounts:   settings.depositPresetAmounts   ?? "2500,5000,7000,10000,15000,20000,50000,70000",
+      minWithdrawal:          settings.minWithdrawal          ?? "1000",
       maxWithdrawal:          settings.maxWithdrawal          ?? "1000000",
       withdrawalEnabled:      settings.withdrawalEnabled      !== "false",
       maxWithdrawalsPerDay:   settings.maxWithdrawalsPerDay   ?? "1",
@@ -303,8 +303,8 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
-       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 18 XOF"),
-       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 XOF — USDT BEP20, sans frais"),
+       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20"),
+       popupLine3:             rebrandText(settings.popupLine3 || "💚 Retrait minimum : 1 000 XOF — Mobile Money et USDT BEP20 selon disponibilité"),
         popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
@@ -754,7 +754,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               <FormField control={form.control} name="depositPresetAmounts" render={({ field }) => (
                 <FormItem className="col-span-2">
                   <FormLabel>Montants rapides de recharge (XOF)</FormLabel>
-                  <FormControl><Input {...field} placeholder="3500,5000,7000,10000,15000,20000,50000,70000" /></FormControl>
+                  <FormControl><Input {...field} placeholder="2500,5000,7000,10000,15000,20000,50000,70000" /></FormControl>
                   <FormDescription>Liste de montants séparés par des virgules, affichés comme boutons rapides sur la page de recharge.</FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -792,7 +792,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <textarea
                     {...field}
                     rows={6}
-                    placeholder={"1. Le montant minimum de retrait est de 1 XOF\n2. Le montant demandé sera reçu intégralement\n3. Les retraits sont disponibles sous 4 à 24 heures\n4. Maximum 1 retrait par jour"}
+                    placeholder={"1. Le montant minimum de retrait est de 1 000 XOF\n2. Le montant demandé sera reçu intégralement\n3. Choisissez Mobile Money ou USDT BEP20 selon les options disponibles\n4. Maximum 1 retrait par jour"}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
                   />
                 </FormControl>
@@ -929,8 +929,8 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             ))}
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 18 XOF" },
-              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Minimum withdrawal: 1 XOF via USDT BEP20, no fee" },
+              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
+              { name: "popupLine3" as const, label: "Ligne 3 — Retrait minimum", placeholder: "💚 Retrait minimum : 1 000 XOF — Mobile Money et USDT BEP20 selon disponibilité" },
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },

@@ -84,7 +84,7 @@ export default function WithdrawalPage() {
     queryKey: ["/api/settings"],
   });
 
-  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1;
+  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
   const maxWithdrawal = parseInt(allSettings?.maxWithdrawal || "1000000");
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
   const withdrawalStartHour = withdrawalSettings?.withdrawalStartHour ?? 9;
@@ -273,7 +273,7 @@ export default function WithdrawalPage() {
     getContent(allSettings, "content_withdrawal_instruction2", `2. One withdrawal per day is allowed.`),
     getContent(allSettings, "content_withdrawal_instruction3", "3. You will receive the full requested amount."),
     getContent(allSettings, "content_withdrawal_instruction4", "4. Withdrawals are available from 09:00 to 17:00."),
-    getContent(allSettings, "content_withdrawal_instruction5", "5. Use a valid USDT BEP20 wallet address."),
+    getContent(allSettings, "content_withdrawal_instruction5", "5. Sélectionnez un compte Mobile Money disponible dans votre pays ou une adresse USDT BEP20 valide."),
     getContent(allSettings, "content_withdrawal_instruction6", "6. Review the withdrawal conditions before submitting."),
   ];
 
