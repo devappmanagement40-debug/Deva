@@ -87,9 +87,23 @@ export function FloatingSupport({
   const onPointerUp = () => {
     if (!dragging.current) return;
     dragging.current = false;
-    if (!didDrag.current) {
-      // Always open the help hub first. Users choose a support channel or issue
-      // flow from there instead of being sent directly to a configured URL.
+  };
+
+  const onPointerCancel = () => {
+    dragging.current = false;
+    didDrag.current = false;
+  };
+
+  const onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const wasDragged = didDrag.current;
+    didDrag.current = false;
+    if (!wasDragged) {
+      // Finish the tap on this button before changing routes. Navigating from
+      // pointerup can let mobile's synthesized click activate the new page's
+      // card underneath the floating button.
       navigate("/service");
     }
   };
@@ -104,6 +118,9 @@ export function FloatingSupport({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onClick={onClick}
+      data-testid="floating-support-launcher"
       style={{
         position: "fixed",
         right: pos.right,

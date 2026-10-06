@@ -64,3 +64,11 @@ Keep the card's next-level amount tied to the configured price of the next activ
 **Why:** The VIP threshold is controlled by the product catalog and can change, while the screenshot's 3000 is only an example of the desired text and style. VIP is based on discrete product levels, so the card has no continuous progress value to show.
 
 **How to apply:** Match the visible copy and visual treatment, but calculate the amount from the next product's configured price and keep the current VIP label dynamic.
+
+## Floating support tap handling
+
+For draggable fixed support buttons, pointer-up should only finish the drag. Navigate from the completed click and suppress clicks after a drag; do not navigate before a mobile tap has fully completed.
+
+**Why:** Navigating during pointer-up can let the phone's synthesized click land on a help-page card beneath the floating button, sending the user into a deposit report instead of the help center.
+
+**How to apply:** Use pointer events only to move or cancel the drag, then handle click versus drag separately. Verify with touch emulation at a phone viewport that a tap opens the help center and dragging does not navigate.
