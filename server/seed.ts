@@ -516,17 +516,17 @@ export async function seed() {
     { key: "vip0Advantages", value: "Les produits Explore restent disponibles selon leurs conditions." },
     { key: "vip1Description", value: "Membre ayant réalisé son premier achat personnel payant dans Parcours." },
     { key: "vip1Advantages", value: "Rang d'entrée pour l'accès aux produits Parcours." },
-    { key: "vip2Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip2Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip2Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
-    { key: "vip3Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip3Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip3Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
-    { key: "vip4Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip4Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip4Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
-    { key: "vip5Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip5Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip5Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
-    { key: "vip6Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip6Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip6Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
-    { key: "vip7Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip7Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip7Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
     // VIP labels (insert only)
     { key: "vip0Label", value: "VIP 0" }, { key: "vip1Label", value: "VIP 1" },
@@ -633,7 +633,12 @@ export async function seed() {
     {
       key: "vip2Description",
       oldValue: "Membre actif avec 3 filleuls directs (niveau A).",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip2Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip2Advantages",
@@ -643,7 +648,12 @@ export async function seed() {
     {
       key: "vip3Description",
       oldValue: "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B).",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip3Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip3Advantages",
@@ -653,7 +663,12 @@ export async function seed() {
     {
       key: "vip4Description",
       oldValue: "Minimum 100 membres dans l'équipe totale (niveaux A + B + C).",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip4Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip4Advantages",
@@ -663,7 +678,12 @@ export async function seed() {
     {
       key: "vip5Description",
       oldValue: "Minimum 300 membres dans l'équipe totale.",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip5Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip5Advantages",
@@ -673,7 +693,12 @@ export async function seed() {
     {
       key: "vip6Description",
       oldValue: "Minimum 600 membres dans l'équipe totale.",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip6Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip6Advantages",
@@ -683,7 +708,12 @@ export async function seed() {
     {
       key: "vip7Description",
       oldValue: "Minimum 1 000 membres dans l'équipe totale.",
-      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+    },
+    {
+      key: "vip7Description",
+      oldValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      newValue: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
     },
     {
       key: "vip7Advantages",

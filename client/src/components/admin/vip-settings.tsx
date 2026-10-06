@@ -18,28 +18,50 @@ export default function AdminVipSettings() {
 
   const [form, setForm] = useState<Record<string, string>>({});
 
-  const legacyVipCopy: Record<string, string> = {
+  const legacyVipCopy: Record<string, string | string[]> = {
     vip0Description: "Membre inscrit n'ayant pas encore investi.",
     vip0Advantages: "Accès à la plateforme. Possibilité de déposer et d'investir.",
     vip1Description: "Nouveau membre ayant réalisé son premier investissement.",
     vip1Advantages: "Accès complet à la plateforme. Gains quotidiens. Commissions de parrainage actives.",
-    vip2Description: "Membre actif avec 3 filleuls directs (niveau A).",
+    vip2Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Membre actif avec 3 filleuls directs (niveau A).",
+    ],
     vip2Advantages: "Statut VIP 2. Reconnaissance de votre activité de recrutement.",
-    vip3Description: "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B).",
+    vip3Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B).",
+    ],
     vip3Advantages: "Statut VIP 3. Équipe structurée sur 2 niveaux.",
-    vip4Description: "Minimum 100 membres dans l'équipe totale (niveaux A + B + C).",
+    vip4Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Minimum 100 membres dans l'équipe totale (niveaux A + B + C).",
+    ],
     vip4Advantages: "Statut VIP 4. Leader d'équipe confirmé.",
-    vip5Description: "Minimum 300 membres dans l'équipe totale.",
+    vip5Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Minimum 300 membres dans l'équipe totale.",
+    ],
     vip5Advantages: "Statut VIP 5. Ambassadeur de la plateforme.",
-    vip6Description: "Minimum 600 membres dans l'équipe totale.",
+    vip6Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Minimum 600 membres dans l'équipe totale.",
+    ],
     vip6Advantages: "Statut VIP 6. Partenaire élite.",
-    vip7Description: "Minimum 1 000 membres dans l'équipe totale.",
+    vip7Description: [
+      "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+      "Minimum 1 000 membres dans l'équipe totale.",
+    ],
     vip7Advantages: "Statut VIP 7. Rang suprême. Reconnaissance maximale.",
   };
   const val = (key: string, fallback: string) => {
     if (form[key] !== undefined) return form[key];
     const savedValue = settings[key];
-    return savedValue === legacyVipCopy[key] ? fallback : (savedValue ?? fallback);
+    const legacyValue = legacyVipCopy[key];
+    const isLegacyValue = Array.isArray(legacyValue)
+      ? legacyValue.includes(savedValue ?? "")
+      : savedValue === legacyValue;
+    return isLegacyValue ? fallback : (savedValue ?? fallback);
   };
 
   const set = (key: string, value: string) =>
@@ -73,7 +95,7 @@ export default function AdminVipSettings() {
       <div>
         <h2 className="text-base font-bold">⭐ Configuration des niveaux VIP</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Les niveaux VIP dépendent uniquement des achats personnels payants dans Parcours. Les seuils sont des montants cumulés en XOF.
+          VIP 1 s’obtient après le premier achat personnel payant dans Parcours. À partir de là, les seuils VIP suivants dépendent du cumul des achats personnels payants de toutes les catégories, en XOF.
         </p>
       </div>
 
@@ -94,7 +116,7 @@ export default function AdminVipSettings() {
 
             {/* ── Conditions personnelles ── */}
             <div className="rounded-lg border border-dashed border-muted-foreground/30 p-3 space-y-3">
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Investissement personnel Parcours</p>
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Investissement personnel — tous les produits payants</p>
               {cfg.level === 0 && (
                 <p className="text-xs text-muted-foreground italic">
                   Explore ne donne pas de niveau VIP. Le membre reste VIP 0 tant qu’il n’a pas effectué d’achat Parcours.
@@ -122,7 +144,7 @@ export default function AdminVipSettings() {
               )}
               {cfg.level >= 2 && (
                 <p className="text-[10px] text-muted-foreground">
-                  Seuil total depuis le premier achat Parcours. Renseigne les niveaux dans l’ordre avec des montants croissants.
+                  Cumul de tous les achats personnels payants (Explore, Parcours et Offres), y compris ceux réalisés avant le premier achat Parcours. Les produits gratuits et attribués par l’administration ne comptent pas. Configure les niveaux dans l’ordre avec des montants croissants.
                 </p>
               )}
             </div>

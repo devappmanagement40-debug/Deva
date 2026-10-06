@@ -15,6 +15,7 @@ interface EligiblePurchase {
   amountCents: number;
   purchaseDate: number;
   id: number;
+  startsVip: boolean;
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -39,7 +40,7 @@ function thresholdToCents(value: unknown): number | null {
   return amount * 100;
 }
 
-function getPaidParcoursPurchases(purchases: readonly unknown[]): EligiblePurchase[] {
+function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurchase[] {
   const eligible: EligiblePurchase[] = [];
 
   for (const value of purchases) {
@@ -56,7 +57,6 @@ function getPaidParcoursPurchases(purchases: readonly unknown[]): EligiblePurcha
     if (!snapshot) continue;
     if (purchase.assignedByAdmin === true || root.assignedByAdmin === true) continue;
     if (snapshot.isFree === true || currentProduct?.isFree === true) continue;
-    if (normalizeProductType(snapshot.productType ?? currentProduct?.productType) !== "wellness") continue;
 
     const amountCents = amountToCents(snapshot.price ?? currentProduct?.price);
     if (amountCents <= 0) continue;
@@ -74,6 +74,7 @@ function getPaidParcoursPurchases(purchases: readonly unknown[]): EligiblePurcha
       amountCents,
       purchaseDate: Number.isFinite(parsedDate) ? parsedDate : Number.MAX_SAFE_INTEGER,
       id: Number.isSafeInteger(parsedId) ? parsedId : Number.MAX_SAFE_INTEGER,
+      startsVip: normalizeProductType(snapshot.productType ?? currentProduct?.productType) === "wellness",
     });
   }
 
@@ -84,14 +85,16 @@ function getPaidParcoursPurchases(purchases: readonly unknown[]): EligiblePurcha
 
 /**
  * VIP1 is earned by the first personal paid Parcours purchase. Later ranks use
- * admin-configured cumulative XOF thresholds. The progress bar measures only
- * the current stage, starting from the purchase that reached the current rank.
+ * cumulative personal paid purchases from every product category as soon as
+ * each purchase is recorded; cycle completion is not required. The progress
+ * bar measures only the current stage, starting from the purchase that reached
+ * the current rank.
  */
 export function calculateVipProgress(
   purchases: readonly unknown[],
   settings: Record<string, unknown>,
 ): VipProgress {
-  const eligiblePurchases = getPaidParcoursPurchases(purchases);
+  const eligiblePurchases = getPersonalPaidPurchases(purchases);
   if (eligiblePurchases.length === 0) {
     return {
       level: 0,
@@ -113,12 +116,12 @@ export function calculateVipProgress(
       throw new Error("Le cumul des investissements dépasse la limite autorisée.");
     }
 
-    if (level === 0) {
+    if (level === 0 && purchase.startsVip) {
       level = 1;
       currentStageStartCents = totalCents;
     }
 
-    while (level < MAX_VIP_LEVEL) {
+    while (level > 0 && level < MAX_VIP_LEVEL) {
       const nextThresholdCents = thresholdToCents(settings[`vip${level + 1}MinInvestment`]);
       if (nextThresholdCents === null || totalCents < nextThresholdCents) break;
       level++;
