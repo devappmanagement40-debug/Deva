@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -273,7 +273,12 @@ export default function ProductsPage() {
                     key={product.id}
                     className="diamant-invest-product-card"
                     data-card-colored={!!product.cardColor}
-                    style={product.cardColor ? { "--product-card-color": product.cardColor } as CSSProperties : undefined}
+                    style={product.cardColor ? {
+                      backgroundColor: `color-mix(in srgb, ${product.cardColor} 38%, #f5f7ff)`,
+                      borderColor: `color-mix(in srgb, ${product.cardColor} 62%, #7885ac)`,
+                      borderInlineStartWidth: 5,
+                      borderInlineStartColor: product.cardColor,
+                    } : undefined}
                     data-testid={`product-card-${product.id}`}
                   >
                     <div className="diamant-invest-product-main">
@@ -287,7 +292,10 @@ export default function ProductsPage() {
                           <div><dt>{copy.total}</dt><dd>{formatXof(totalReturn)} <small>XOF</small></dd></div>
                         </dl>
                       </div>
-                      <div className="diamant-invest-product-visual">
+                      <div
+                        className="diamant-invest-product-visual"
+                        style={product.cardColor ? { borderColor: `color-mix(in srgb, ${product.cardColor} 65%, #7784aa)` } : undefined}
+                      >
                         {getProductImage(product) ? (
                           <img src={getProductImage(product)!} alt={displayName} loading="lazy" />
                         ) : (

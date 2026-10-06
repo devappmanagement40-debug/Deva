@@ -18,6 +18,7 @@ import { rebrandText } from "@/lib/content";
 import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, Users, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
+import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
 import ImageUploader from "@/components/admin/image-uploader";
 import { getProductImageUrl } from "@/lib/product-visuals";
 
@@ -28,6 +29,10 @@ const productSchema = z.object({
   dailyEarnings: z.string().min(1, "Gains journaliers requis"),
   cycleDays: z.string().min(1, "Durée requise"),
   imageUrl: z.string().optional(),
+  cardColor: z.string().optional().refine(
+    (value) => value === undefined || value === "" || isValidProductCardColor(value),
+    "Choisis une couleur valide",
+  ),
   minInviteCount: z.string().optional(),
   maxOwned: z.string().optional(),
   stockPercentage: z.number().min(0).max(100).optional(),
@@ -57,6 +62,48 @@ function ImageUploadField({ form }: { form: any }) {
             label=""
             previewHeight={112}
           />
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function ProductCardColorField({ form }: { form: any }) {
+  const currentValue: string = form.watch("cardColor") || "";
+  return (
+    <FormField
+      control={form.control}
+      name="cardColor"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Couleur de la carte</FormLabel>
+          <div className="flex flex-wrap items-center gap-3">
+            <FormControl>
+              <input
+                type="color"
+                value={currentValue || DEFAULT_PRODUCT_CARD_COLOR}
+                onChange={(event) => field.onChange(event.target.value)}
+                className="h-11 w-14 cursor-pointer rounded-md border border-input bg-background p-1"
+                aria-label="Choisir la couleur de la carte produit"
+              />
+            </FormControl>
+            <span className="text-sm text-muted-foreground">
+              {currentValue ? currentValue.toUpperCase() : "Couleur d’origine"}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!currentValue}
+              onClick={() => field.onChange("")}
+            >
+              Utiliser la couleur d’origine
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            La couleur personnalisée teinte la carte sans changer sa mise en page.
+          </p>
           <FormMessage />
         </FormItem>
       )}
@@ -222,6 +269,7 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
 
       {/* Image */}
       <ImageUploadField form={form} />
+      <ProductCardColorField form={form} />
 
       <Button type="submit" className="w-full" disabled={isPending} data-testid="button-save-product">
         {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : submitLabel}
@@ -242,7 +290,7 @@ export default function AdminProducts() {
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: "80",
-    imageUrl: "", minInviteCount: "0", maxOwned: "0", stockPercentage: 0,
+    imageUrl: "", cardColor: "", minInviteCount: "0", maxOwned: "0", stockPercentage: 0,
   };
 
   const editForm = useForm<ProductForm>({ resolver: zodResolver(productSchema), defaultValues });
@@ -274,6 +322,7 @@ export default function AdminProducts() {
         cycleDays: parseInt(data.cycleDays),
         totalReturn: parseFloat((parseFloat(data.dailyEarnings) * parseInt(data.cycleDays)).toFixed(2)),
         imageUrl: data.imageUrl || null,
+        cardColor: data.cardColor || null,
         minInviteCount: parseInt(data.minInviteCount || "0") || 0,
         maxOwned: parseInt(data.maxOwned || "0") || 0,
         stockPercentage: Math.min(100, Math.max(0, data.stockPercentage ?? 0)),
@@ -343,6 +392,7 @@ export default function AdminProducts() {
       dailyEarnings: product.dailyEarnings.toString(),
       cycleDays: product.cycleDays.toString(),
       imageUrl: product.imageUrl || "",
+      cardColor: product.cardColor || "",
       minInviteCount: String(product.minInviteCount ?? 0),
       maxOwned: String(product.maxOwned ?? 0),
       stockPercentage: product.stockPercentage ?? 0,
@@ -384,6 +434,12 @@ export default function AdminProducts() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{rebrandText(product.name)}</p>
                       <Badge variant="outline" className="text-xs">{PRODUCT_TYPE_LABELS[normalizeProductType(product.productType)]}</Badge>
+                      <span
+                        className="h-3.5 w-3.5 rounded-full border border-black/15"
+                        style={{ backgroundColor: product.cardColor || DEFAULT_PRODUCT_CARD_COLOR }}
+                        title={product.cardColor ? `Couleur ${product.cardColor}` : "Couleur d’origine"}
+                        aria-label={product.cardColor ? `Couleur personnalisée ${product.cardColor}` : "Couleur d’origine"}
+                      />
                       {product.isFree && <Badge variant="secondary" className="text-xs">Gratuit</Badge>}
                       <Badge variant={product.isActive ? "default" : "outline"} className="text-xs">
                         {product.isActive ? "Actif" : "Inactif"}

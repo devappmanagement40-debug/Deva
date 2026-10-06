@@ -471,6 +471,10 @@ function HomePage() {
                       className="ielp-home-product-card"
                       type="button"
                       key={product.id}
+                      style={product.cardColor ? {
+                        borderColor: product.cardColor,
+                        background: `color-mix(in srgb, ${product.cardColor} 34%, var(--home-panel))`,
+                      } : undefined}
                       onClick={() => navigate("/invest")}
                       aria-label={`${name} — ${copy.viewProducts}`}
                       data-testid={`home-popular-product-${product.id}`}

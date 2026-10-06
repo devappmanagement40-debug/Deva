@@ -119,6 +119,7 @@ export default function MyProductsPage() {
                 <article
                   key={userProduct.id}
                   className="relative min-h-[326px] overflow-hidden border-b-[6px] border-black bg-[#202020]"
+                  style={product.cardColor ? { borderBottomColor: product.cardColor } : undefined}
                   data-testid={`product-card-${userProduct.id}`}
                 >
                   {image ? (
@@ -134,9 +135,15 @@ export default function MyProductsPage() {
                     </div>
                   )}
                   <div className={`absolute inset-0 ${image ? "bg-gradient-to-r from-black/70 via-black/45 to-black/10" : "bg-black/30"}`} />
+                  {product.cardColor && (
+                    <div className="absolute inset-x-0 top-0 z-10 h-1.5" style={{ backgroundColor: product.cardColor }} />
+                  )}
                   <div className="relative z-10 min-h-[320px] px-5 pb-5 pt-6 text-white">
                     <h2 className="font-semibold" style={{ fontSize: 27, lineHeight: 1.15 }}>{displayName}</h2>
-                    <div className="mt-4 w-[82%] max-w-[350px] bg-black/50 px-2.5 py-2.5">
+                    <div
+                      className="mt-4 w-[82%] max-w-[350px] bg-black/50 px-2.5 py-2.5"
+                      style={product.cardColor ? { backgroundColor: `color-mix(in srgb, ${product.cardColor} 28%, #111111)` } : undefined}
+                    >
                       <InfoRow label={`${t.price}:`} value={`XOF ${Number(product.price || 0).toLocaleString(localeForLang(lang))}`} />
                       <InfoRow label={`${t.duration}:`} value={`${cycleDays} ${t.myProductsDays}`} />
                       <InfoRow label={`${t.dailyRevenue}:`} value={`XOF ${Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}`} />

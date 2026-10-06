@@ -575,6 +575,9 @@ export class DatabaseStorage implements IStorage {
         product: {
           ...snapshot,
           imageUrl: snapshot.imageUrl || r.product.imageUrl,
+          // Card color is presentation-only, so follow the current catalog
+          // setting without changing any purchase-time terms in the snapshot.
+          cardColor: r.product.cardColor,
         },
       };
     });
@@ -595,6 +598,7 @@ export class DatabaseStorage implements IStorage {
         product: {
           ...snapshot,
           imageUrl: snapshot.imageUrl || r.product.imageUrl,
+          cardColor: r.product.cardColor,
         },
       };
     });

@@ -100,6 +100,12 @@ export default function OrdersPage() {
                 <div
                   key={up.id}
                   className="bg-white rounded-xl p-2 shadow-sm border"
+                  style={up.product?.cardColor ? {
+                    backgroundColor: `color-mix(in srgb, ${up.product.cardColor} 15%, #ffffff)`,
+                    borderColor: `color-mix(in srgb, ${up.product.cardColor} 65%, #d1d5db)`,
+                    borderInlineStartWidth: 4,
+                    borderInlineStartColor: up.product.cardColor,
+                  } : undefined}
                   data-testid={`order-card-${up.id}`}
                 >
                   <div className="flex items-start gap-2">
