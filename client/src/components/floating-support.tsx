@@ -111,10 +111,11 @@ export function FloatingSupport({
     if (!dragging.current) return;
     dragging.current = false;
     if (!didDrag.current) {
-      if (link) {
+      if (placement === "auth" && link) {
         window.open(link, "_blank", "noopener,noreferrer");
       } else {
-        // Don't leave the floating icon as a no-op when support links aren't configured.
+        // Member pages should always open the in-app help center, not a configured
+        // external link that could point to an unrelated flow.
         navigate("/service");
       }
     }
