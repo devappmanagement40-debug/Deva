@@ -314,15 +314,15 @@ export async function seed() {
     const defaultProductPrice = 18;
     const defaultProductPriceStep = 10;
     const defaultProducts = [
-      { name: "VIP 1", dailyEarnings: "300",   cycleDays: 360, totalReturn: "108000",    imageUrl: null, sortOrder: 1 },
-      { name: "VIP 2", dailyEarnings: "800",   cycleDays: 360, totalReturn: "288000",    imageUrl: null, sortOrder: 2 },
-      { name: "VIP 3", dailyEarnings: "1500",  cycleDays: 360, totalReturn: "540000",    imageUrl: null, sortOrder: 3 },
-      { name: "VIP 4", dailyEarnings: "2000",  cycleDays: 360, totalReturn: "720000",    imageUrl: null, sortOrder: 4 },
-      { name: "VIP 5", dailyEarnings: "3500",  cycleDays: 360, totalReturn: "1260000",   imageUrl: null, sortOrder: 5 },
-      { name: "VIP 6", dailyEarnings: "10000", cycleDays: 360, totalReturn: "3600000",   imageUrl: null, sortOrder: 6 },
-      { name: "VIP 7", dailyEarnings: "30000", cycleDays: 360, totalReturn: "10800000",  imageUrl: null, sortOrder: 7 },
-      { name: "VIP 8", dailyEarnings: "60",    cycleDays: 360, totalReturn: "21600",     imageUrl: null, sortOrder: 8 },
-      { name: "VIP 9", dailyEarnings: "120",   cycleDays: 360, totalReturn: "43200",     imageUrl: null, sortOrder: 9 },
+      { name: "VIP 1", dailyEarnings: "300",   cycleDays: 150, totalReturn: "45000",    imageUrl: null, sortOrder: 1 },
+      { name: "VIP 2", dailyEarnings: "800",   cycleDays: 150, totalReturn: "120000",   imageUrl: null, sortOrder: 2 },
+      { name: "VIP 3", dailyEarnings: "1500",  cycleDays: 150, totalReturn: "225000",   imageUrl: null, sortOrder: 3 },
+      { name: "VIP 4", dailyEarnings: "2000",  cycleDays: 150, totalReturn: "300000",   imageUrl: null, sortOrder: 4 },
+      { name: "VIP 5", dailyEarnings: "3500",  cycleDays: 150, totalReturn: "525000",   imageUrl: null, sortOrder: 5 },
+      { name: "VIP 6", dailyEarnings: "10000", cycleDays: 150, totalReturn: "1500000",  imageUrl: null, sortOrder: 6 },
+      { name: "VIP 7", dailyEarnings: "30000", cycleDays: 150, totalReturn: "4500000",  imageUrl: null, sortOrder: 7 },
+      { name: "VIP 8", dailyEarnings: "60",    cycleDays: 150, totalReturn: "9000",     imageUrl: null, sortOrder: 8 },
+      { name: "VIP 9", dailyEarnings: "120",   cycleDays: 150, totalReturn: "18000",    imageUrl: null, sortOrder: 9 },
     ].map((product) => ({
       ...product,
       price: String(defaultProductPrice + (product.sortOrder - 1) * defaultProductPriceStep),
