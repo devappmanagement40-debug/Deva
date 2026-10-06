@@ -40,7 +40,11 @@ import {
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
-import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import {
+  DEFAULT_MIN_WITHDRAWAL_XOF,
+  DEFAULT_XOF_PER_USDT,
+  parseXofPerUsdt,
+} from "@shared/financial-settings";
 import { notifyAdminTelegram } from "./telegram-admin";
 
 function parsePositiveIntegerSetting(value: string | undefined, fallback: number): number | null {
@@ -1342,7 +1346,16 @@ export async function registerRoutes(
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
 
-      const amountUsdt = convertXofToUsdt(amountXof);
+      const xofPerUsdt = parseXofPerUsdt(
+        settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT,
+      );
+      if (xofPerUsdt === null) {
+        console.error("NOWPayments deposit rejected: invalid XOF/USDT conversion setting");
+        return res.status(503).json({
+          message: "Le taux de conversion des dépôts USDT est indisponible. Réessayez plus tard.",
+        });
+      }
+      const amountUsdt = convertXofToUsdt(amountXof, xofPerUsdt);
 
       // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
       const orderId = `tgood-${user.id}-${Date.now()}`;
@@ -2820,6 +2833,7 @@ export async function registerRoutes(
         westpayWebhookSecret, westpayMerchantSlug,
         westpayApiKey_CI, westpayApiKey_BF, westpayApiKey_BJ,
         westpayApiKey_TG, westpayApiKey_CM, westpayApiKey_ML,
+        xofPerUsdt,
         __migration_referral_commission_defaults_v1,
         ...publicSettings
       } = settings;
@@ -4278,6 +4292,7 @@ export async function registerRoutes(
         "level3Commission",
       ]);
       const withdrawalFeeSettingKey = "withdrawalFees";
+      const xofPerUsdtSettingKey = "xofPerUsdt";
 
       // Validate all configurable spin rewards before saving any part of a
       // bulk update, so malformed values cannot leave the panel half-saved.
@@ -4319,6 +4334,15 @@ export async function registerRoutes(
       }
 
       for (const [key, value] of entries) {
+        if (key !== xofPerUsdtSettingKey) continue;
+        if (parseXofPerUsdt(value) === null) {
+          return res.status(400).json({
+            message: "Le taux XOF par USDT doit être un entier entre 1 et 1 000 000.",
+          });
+        }
+      }
+
+      for (const [key, value] of entries) {
         if (key === "withdrawalMode") {
           const mode = normalizeWithdrawalMode(typeof value === "string" ? value : undefined);
           if (
@@ -4336,6 +4360,9 @@ export async function registerRoutes(
           await storage.setSetting(key, String(rate), req.session.userId);
         } else if (key === withdrawalFeeSettingKey) {
           const rate = parseWithdrawalFeePercent(value)!;
+          await storage.setSetting(key, String(rate), req.session.userId);
+        } else if (key === xofPerUsdtSettingKey) {
+          const rate = parseXofPerUsdt(value)!;
           await storage.setSetting(key, String(rate), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [

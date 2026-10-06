@@ -15,21 +15,30 @@ import {
   NowPaymentsSDK,
   type Payment as NowPaymentsPayment,
 } from "@nowpaymentsio/nowpayments-sdk-nodejs";
+import { DEFAULT_XOF_PER_USDT, parseXofPerUsdt } from "@shared/financial-settings";
 
 export const SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY = "usdtbsc";
-export const XOF_PER_USDT = 500;
+export const XOF_PER_USDT = DEFAULT_XOF_PER_USDT;
 
 export function isSupportedNowPaymentsDepositCurrency(value: unknown): value is string {
   return typeof value === "string"
     && value.trim().toLowerCase() === SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY;
 }
 
-export function convertXofToUsdt(amountXof: number): number {
+export function convertXofToUsdt(
+  amountXof: number,
+  xofPerUsdt: number = XOF_PER_USDT,
+): number {
   if (!Number.isSafeInteger(amountXof) || amountXof <= 0) {
     throw new RangeError("Le montant XOF doit être un entier positif.");
   }
 
-  return Number((amountXof / XOF_PER_USDT).toFixed(8));
+  const validRate = parseXofPerUsdt(xofPerUsdt);
+  if (validRate === null) {
+    throw new RangeError("Le taux XOF par USDT doit être un entier positif valide.");
+  }
+
+  return Number((amountXof / validRate).toFixed(8));
 }
 
 // ---------------------------------------------------------------------------

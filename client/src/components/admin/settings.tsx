@@ -19,7 +19,11 @@ import {
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
-import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import {
+  DEFAULT_MIN_WITHDRAWAL_XOF,
+  DEFAULT_XOF_PER_USDT,
+  parseXofPerUsdt,
+} from "@shared/financial-settings";
 
 const commissionRateSchema = z.string()
   .trim()
@@ -35,6 +39,14 @@ const withdrawalFeeSchema = z.string()
   .refine(
     (value) => parseWithdrawalFeePercent(value) !== null,
     "Saisissez un taux entre 0 et 99 %, avec au plus 2 décimales",
+  );
+
+const xofPerUsdtSchema = z.string()
+  .trim()
+  .min(1, "Taux requis")
+  .refine(
+    (value) => parseXofPerUsdt(value) !== null,
+    "Saisissez un entier entre 1 et 1 000 000 XOF",
   );
 
 const NETWORKS = [
@@ -66,6 +78,7 @@ const settingsSchema = z.object({
   channelEnabled: z.boolean(),
   groupEnabled: z.boolean(),
   minDeposit: z.string().min(1, "Montant requis"),
+  xofPerUsdt: xofPerUsdtSchema,
   depositPresetAmounts: z.string().min(1, "Montants requis"),
   minWithdrawal: z.string().min(1, "Montant requis"),
   withdrawalFees: withdrawalFeeSchema,
@@ -254,6 +267,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       channelEnabled: true,
       groupEnabled: false,
       minDeposit: "2500",
+      xofPerUsdt: String(DEFAULT_XOF_PER_USDT),
       depositPresetAmounts: "2500,5000,7000,10000,15000,20000,50000,70000",
       minWithdrawal: String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
@@ -302,6 +316,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       channelEnabled:         settings.channelEnabled         !== "false",
       groupEnabled:           settings.groupEnabled           !== "false",
       minDeposit:             settings.minDeposit             ?? "2500",
+      xofPerUsdt:             settings.xofPerUsdt             ?? String(DEFAULT_XOF_PER_USDT),
       depositPresetAmounts:   settings.depositPresetAmounts   ?? "2500,5000,7000,10000,15000,20000,50000,70000",
       minWithdrawal:          settings.minWithdrawal          ?? String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees:         settings.withdrawalFees         ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
@@ -764,6 +779,16 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                 <FormItem>
                   <FormLabel>Recharge minimum (XOF)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="xofPerUsdt" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Taux dépôt USDT (XOF pour 1 USDT)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="1" max="1000000" step="1" /></FormControl>
+                  <FormDescription>
+                    Utilisé pour les nouveaux dépôts USDT BEP20. Le taux n’est pas affiché aux membres; leur solde reste crédité en XOF.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
