@@ -35,11 +35,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import {
-  computeVipLevelFromProduct,
   DEFAULT_VIP_CONFIGS,
   VIP_BADGE_STYLE,
   mergeAdminVipConfig,
 } from "@/lib/vip";
+import { calculateVipProgress } from "@shared/vip-progress";
 import {
   ACCOUNT_BANNER_DEFAULT_IMAGES,
   buildAccountBannerPosters,
@@ -62,6 +62,8 @@ type AccountCopy = {
   rewards: string;
   vipTitle: string;
   vipAmountRemaining: string;
+  vipFirstPurchase: string;
+  vipThresholdPending: string;
   vipAction: string;
   vipMax: string;
   idCopied: string;
@@ -98,8 +100,10 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipAmountRemaining: "Il manque encore {amount} avant le VIP suivant",
-    vipAction: "Méthodes pour améliorer votre statut privilégié (VIP)",
+    vipAmountRemaining: "Il manque encore {amount} XOF pour atteindre le niveau VIP suivant",
+    vipFirstPurchase: "Achetez votre premier produit Parcours pour devenir VIP 1.",
+    vipThresholdPending: "Le seuil du prochain niveau VIP doit être configuré dans l’administration.",
+    vipAction: "Votre niveau progresse avec vos achats personnels dans Parcours.",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
     idCopyFailed: "Impossible de copier l’ID.",
@@ -133,8 +137,10 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipAmountRemaining: "{amount} still needed before the next VIP",
-    vipAction: "How to improve your premium (VIP) status",
+    vipAmountRemaining: "{amount} XOF still needed to reach the next VIP level",
+    vipFirstPurchase: "Buy your first Parcours product to become VIP 1.",
+    vipThresholdPending: "The next VIP threshold must be configured by an administrator.",
+    vipAction: "Your level progresses with your personal Parcours purchases.",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
     idCopyFailed: "Could not copy the ID.",
@@ -168,8 +174,10 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipAmountRemaining: "ينقصك {amount} قبل مستوى VIP التالي",
-    vipAction: "كيفية تحسين مكانتك المميزة (VIP)",
+    vipAmountRemaining: "يتبقى {amount} XOF للوصول إلى مستوى VIP التالي",
+    vipFirstPurchase: "اشترِ أول منتج Parcours لتصبح VIP 1.",
+    vipThresholdPending: "يجب على المسؤول إعداد حد مستوى VIP التالي.",
+    vipAction: "يتقدم مستواك من خلال مشترياتك الشخصية في Parcours.",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
     idCopyFailed: "تعذر نسخ المعرّف.",
@@ -203,8 +211,10 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipAmountRemaining: "距离下一个VIP等级还差 {amount}",
-    vipAction: "如何提升尊享等级（VIP）",
+    vipAmountRemaining: "距离下一个VIP等级还差 {amount} XOF",
+    vipFirstPurchase: "购买您的第一个 Parcours 产品即可成为 VIP 1。",
+    vipThresholdPending: "下一个 VIP 等级门槛需要由管理员设置。",
+    vipAction: "您的等级会随着您在 Parcours 的个人购买而提升。",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
     idCopyFailed: "无法复制编号。",
@@ -284,22 +294,22 @@ export default function AccountPage() {
   const accountBannerPosters = buildAccountBannerPosters(
     parseBannerImages(settings.accountBannerImages, ACCOUNT_BANNER_DEFAULT_IMAGES),
   );
-  const { data: catalogProducts = [] } = useQuery<any[]>({
-    queryKey: ["/api/products"],
-  });
   const vipConfigs = mergeAdminVipConfig(DEFAULT_VIP_CONFIGS, settings);
-  const vipLevel = computeVipLevelFromProduct(userProducts);
+  const vipProgress = calculateVipProgress(userProducts, settings);
+  const vipLevel = vipProgress.level;
   const currentVip = vipConfigs[vipLevel] ?? DEFAULT_VIP_CONFIGS[0];
-  const nextVip = vipConfigs[vipLevel + 1] ?? null;
+  const nextVip = vipProgress.nextLevel === null ? null : vipConfigs[vipProgress.nextLevel] ?? null;
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
-  const nextVipProduct = nextVip
-    ? catalogProducts.find((product: any) => Number(product.sortOrder) === vipLevel + 1 && product.isActive !== false)
-    : null;
-  const nextVipAmount = nextVipProduct ? Math.ceil(Number(nextVipProduct.price)) : null;
-  const nextVipMessage = nextVip
-    ? copy.vipAmountRemaining
-      .replace("{amount}", nextVipAmount !== null && Number.isFinite(nextVipAmount) ? String(nextVipAmount) : "…")
-    : copy.vipMax;
+  const nextVipMessage = vipLevel === 0
+    ? copy.vipFirstPurchase
+    : !nextVip
+      ? copy.vipMax
+      : vipProgress.amountRemainingXof === null
+        ? copy.vipThresholdPending
+        : copy.vipAmountRemaining.replace(
+            "{amount}",
+            Math.ceil(vipProgress.amountRemainingXof).toLocaleString(lang, { maximumFractionDigits: 0 }),
+          );
 
   useEffect(() => {
     if ((window as any)._installPrompt) setInstallPrompt((window as any)._installPrompt);
@@ -521,7 +531,7 @@ export default function AccountPage() {
               </div>
               <p className="ielp-account-vip-next">{nextVipMessage}</p>
               <div className="ielp-account-vip-progress" aria-hidden="true">
-                <span />
+                <span style={{ width: `${vipProgress.progressPercent}%` }} />
               </div>
               <div className="ielp-account-vip-footer">
                 <span>{copy.vipAction}</span>

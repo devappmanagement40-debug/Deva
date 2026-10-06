@@ -33,6 +33,7 @@ const INVEST_COPY: Record<Lang, {
   unavailable: string;
   stabilityRequired: string;
   stabilityRequiredButton: string;
+  vipRequired: string;
   support: string;
   purchaseHint: string;
   multipleHint: string;
@@ -51,6 +52,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Bientôt disponible",
     stabilityRequired: "Pour acheter un produit Parcours ou Offres, vous devez d’abord posséder un produit Explore actif.",
     stabilityRequiredButton: "Explore requis",
+    vipRequired: "VIP {level} requis",
     support: "Assistance",
     purchaseHint: "Les gains sont crédités automatiquement à la fin du cycle du produit. Aucune collecte manuelle n'est nécessaire.",
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
@@ -69,6 +71,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Unavailable",
     stabilityRequired: "You must own an active Stability product before buying a Wellness or Activity product.",
     stabilityRequiredButton: "Stability required",
+    vipRequired: "VIP {level} required",
     support: "Support",
     purchaseHint: "Product earnings are credited automatically at the end of the cycle. No manual collection is needed.",
     multipleHint: "You can purchase multiple products to increase your earnings.",
@@ -87,6 +90,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "غير متاح",
     stabilityRequired: "يجب أن تمتلك منتج استقرار نشطًا قبل شراء منتج العافية أو النشاط.",
     stabilityRequiredButton: "الاستقرار مطلوب",
+    vipRequired: "مطلوب VIP {level}",
     support: "الدعم",
     purchaseHint: "تُضاف أرباح المنتج تلقائيًا عند انتهاء الدورة. لا حاجة إلى التحصيل اليدوي.",
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
@@ -105,6 +109,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "暂不可用",
     stabilityRequired: "购买健康或活力产品前，您必须先拥有一个有效的稳健产品。",
     stabilityRequiredButton: "需要稳健产品",
+    vipRequired: "需要 VIP {level}",
     support: "客服",
     purchaseHint: "产品周期结束时，收益将自动计入收益余额，无需手动领取。",
     multipleHint: "您可以购买多个产品以增加收益。",
@@ -126,6 +131,8 @@ type ProductWithOwnership = Product & {
   isOwned?: boolean;
   ownedCount?: number;
   userHasActiveStabilityProduct?: boolean;
+  userVipLevel?: number;
+  vipLocked?: boolean;
 };
 
 export default function ProductsPage() {
@@ -248,7 +255,10 @@ export default function ProductsPage() {
                 const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
                 const isSoldOut = stock >= 100;
                 const isUnavailable = !!product.isUnavailable;
-                const isBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies;
+                const requiredVipLevel = Number(product.requiredVipLevel) || 0;
+                const vipLocked = normalizeProductType(product.productType) === "wellness" &&
+                  (product.vipLocked ?? Number(product.userVipLevel ?? 0) < requiredVipLevel);
+                const isBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies || vipLocked;
                 const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
                 const actionStatusLabel = isUnavailable
                   ? copy.unavailable
@@ -256,7 +266,9 @@ export default function ProductsPage() {
                     ? copy.soldOut
                     : stabilityPrerequisiteApplies
                       ? copy.stabilityRequiredButton
-                      : undefined;
+                      : vipLocked
+                        ? copy.vipRequired.replace("{level}", String(requiredVipLevel))
+                        : undefined;
 
                 return (
                   <ProductCatalogCard
@@ -266,7 +278,7 @@ export default function ProductsPage() {
                     labels={PRODUCT_CARD_COPY[lang]}
                     actionLabel={copy.investNow}
                     actionStatusLabel={actionStatusLabel}
-                    actionAriaLabel={`${stabilityPrerequisiteApplies ? copy.stabilityRequiredButton : copy.investNow}: ${displayName}`}
+                    actionAriaLabel={`${actionStatusLabel ?? copy.investNow}: ${displayName}`}
                     onAction={() => !isBlocked && handleBuy(product)}
                     disabled={purchaseMutation.isPending || isBlocked}
                     blocked={isBlocked}

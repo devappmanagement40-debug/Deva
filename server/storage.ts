@@ -28,8 +28,10 @@ import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-s
 import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
 import {
   canPurchaseProductType,
+  normalizeProductType,
   ownsActiveStabilityProduct,
 } from "@shared/product-categories";
+import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
 
 export class TaskHasClaimsError extends Error {
   constructor() {
@@ -627,19 +629,29 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error("Utilisateur non trouvé");
 
+    const isPaidUserPurchase = !product.isFree && !assignedByAdmin;
+    let purchaseHistory: { userProduct: UserProduct; product: Product }[] | null = null;
     if (!product.isFree && !assignedByAdmin && !canPurchaseProductType(product.productType, false)) {
-      const activeProducts = await this.getUserProducts(userId);
-      const hasActiveStabilityProduct = ownsActiveStabilityProduct(activeProducts.map((holding) => ({
-        isActive: holding.isActive,
-        daysRemaining: holding.daysRemaining,
-        productType: holding.product.productType,
+      purchaseHistory = await this.getAllUserProducts(userId);
+      const hasActiveStabilityProduct = ownsActiveStabilityProduct(purchaseHistory.map(({ userProduct, product: holdingProduct }) => ({
+        isActive: userProduct.isActive,
+        daysRemaining: userProduct.daysRemaining,
+        productType: holdingProduct.productType,
       })));
       if (!canPurchaseProductType(product.productType, hasActiveStabilityProduct)) {
         throw new Error("Vous devez posséder un produit Explore actif avant d'acheter des produits Parcours ou Offres.");
       }
     }
 
-    const isPaidUserPurchase = !product.isFree && !assignedByAdmin;
+    if (isPaidUserPurchase && normalizeProductType(product.productType) === "wellness") {
+      purchaseHistory ??= await this.getAllUserProducts(userId);
+      const settings = await this.getSettings();
+      const currentVipLevel = calculateVipProgress(purchaseHistory, settings).level;
+      if (!isVipLevelUnlocked(currentVipLevel, product.requiredVipLevel)) {
+        throw new Error(`Vous devez atteindre le niveau VIP ${product.requiredVipLevel} pour acheter ce produit Parcours.`);
+      }
+    }
+
     let buyerSpinReward = 0;
     let referralSpinReward = 0;
     if (isPaidUserPurchase) {

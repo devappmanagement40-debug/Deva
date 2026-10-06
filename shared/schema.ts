@@ -110,6 +110,7 @@ export const products = pgTable("products", {
   // Series & purchase conditions
   seriesId: integer("series_id").references(() => productSeries.id),
   minInviteCount: integer("min_invite_count").notNull().default(0),   // 0 = aucune condition
+  requiredVipLevel: integer("required_vip_level").notNull().default(0),
   maxOwned: integer("max_owned").notNull().default(0),                // 0 = illimité
   // Legacy payout mode retained to interpret uncredited earnings on old purchases.
   collectAtEnd: boolean("collect_at_end").notNull().default(false),

@@ -10,8 +10,9 @@ import {
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
 import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
-import { ownsActiveStabilityProduct } from "@shared/product-categories";
+import { normalizeProductType, ownsActiveStabilityProduct } from "@shared/product-categories";
 import { normalizeProductCardColor } from "@shared/product-card-color";
+import { calculateVipProgress, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import { isCountryCode } from "@shared/country-codes";
@@ -803,18 +804,23 @@ export async function registerRoutes(
   // Products
   app.get("/api/products", requireAuth, async (req, res) => {
     try {
-      const products = await storage.getProducts();
-      const userProductsList = await storage.getUserProducts(req.session.userId!);
-      const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map((up) => ({
-        isActive: up.isActive,
-        daysRemaining: up.daysRemaining,
-        productType: up.product.productType,
+      const userId = req.session.userId!;
+      const [products, userProductsList, settings] = await Promise.all([
+        storage.getProducts(),
+        storage.getAllUserProducts(userId),
+        storage.getSettings(),
+      ]);
+      const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map(({ userProduct, product }) => ({
+        isActive: userProduct.isActive,
+        daysRemaining: userProduct.daysRemaining,
+        productType: product.productType,
       })));
+      const vipLevel = calculateVipProgress(userProductsList, settings).level;
       
       const productCounts = new Map<number, number>();
-      userProductsList.forEach(up => {
-        if (up.isActive) {
-          productCounts.set(up.productId, (productCounts.get(up.productId) || 0) + 1);
+      userProductsList.forEach(({ userProduct }) => {
+        if (userProduct.isActive) {
+          productCounts.set(userProduct.productId, (productCounts.get(userProduct.productId) || 0) + 1);
         }
       });
       
@@ -823,6 +829,10 @@ export async function registerRoutes(
         isOwned: productCounts.has(p.id),
         ownedCount: productCounts.get(p.id) || 0,
         userHasActiveStabilityProduct,
+        userVipLevel: vipLevel,
+        vipLocked:
+          normalizeProductType(p.productType) === "wellness" &&
+          !isVipLevelUnlocked(vipLevel, p.requiredVipLevel),
       }));
 
       res.json(productsWithOwnership);
@@ -911,6 +921,7 @@ export async function registerRoutes(
         daysRemaining: up.userProduct.daysRemaining,
         totalEarned: up.userProduct.totalEarned,
         pendingEarnings: up.userProduct.pendingEarnings,
+        assignedByAdmin: up.userProduct.assignedByAdmin,
         nextCollectionAt: up.userProduct.lastEarningDate
           ? new Date(new Date(up.userProduct.lastEarningDate).getTime() + 24 * 60 * 60 * 1000)
           : null,
@@ -3858,13 +3869,17 @@ export async function registerRoutes(
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
-      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, minInviteCount, maxOwned, stockPercentage } = req.body;
+      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, minInviteCount, requiredVipLevel, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType;
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
       }
       if (!PRODUCT_TYPES.includes(productType)) {
         return res.status(400).json({ message: "Type de produit invalide" });
+      }
+      const parsedRequiredVipLevel = parseVipLevel(requiredVipLevel ?? 0);
+      if (parsedRequiredVipLevel === null) {
+        return res.status(400).json({ message: "Le niveau VIP requis doit être un entier entre 0 et 7." });
       }
       const priceNum = parseFloat(price);
       const dailyNum = parseFloat(dailyEarnings);
@@ -3890,6 +3905,7 @@ export async function registerRoutes(
         sortOrder: 0,
         seriesId: null,
         minInviteCount: parseInt(minInviteCount) || 0,
+        requiredVipLevel: parsedRequiredVipLevel,
         maxOwned: parseInt(maxOwned) || 0,
         collectAtEnd: false,
         stockPercentage: Math.min(100, Math.max(0, parseInt(stockPercentage) || 0)),
@@ -3916,6 +3932,13 @@ export async function registerRoutes(
         } catch (error: any) {
           return res.status(400).json({ message: error.message });
         }
+      }
+      if (body.requiredVipLevel !== undefined) {
+        const requiredVipLevel = parseVipLevel(body.requiredVipLevel);
+        if (requiredVipLevel === null) {
+          return res.status(400).json({ message: "Le niveau VIP requis doit être un entier entre 0 et 7." });
+        }
+        body.requiredVipLevel = requiredVipLevel;
       }
       // Normalize numeric fields when present
       if (body.minInviteCount !== undefined) body.minInviteCount = parseInt(body.minInviteCount) || 0;
@@ -4282,6 +4305,18 @@ export async function registerRoutes(
       const entries: [string, unknown][] = isSingleSettingPayload
         ? [[body.key, body.value]]
         : Object.entries(body);
+      const vipInvestmentSettingKeyPattern = /^vip[2-7]MinInvestment$/;
+      if (entries.some(([key]) => vipInvestmentSettingKeyPattern.test(key))) {
+        const currentSettings = await storage.getSettings();
+        const candidateSettings: Record<string, unknown> = { ...currentSettings };
+        for (const [key, value] of entries) {
+          if (vipInvestmentSettingKeyPattern.test(key)) {
+            candidateSettings[key] = value;
+          }
+        }
+        const vipThresholdError = validateVipInvestmentThresholds(candidateSettings);
+        if (vipThresholdError) return res.status(400).json({ message: vipThresholdError });
+      }
       const spinRewardSettingKeys = new Set([
         "spinWheelSelfPurchaseSpins",
         "spinWheelReferralPurchaseSpins",
@@ -4364,6 +4399,8 @@ export async function registerRoutes(
         } else if (key === xofPerUsdtSettingKey) {
           const rate = parseXofPerUsdt(value)!;
           await storage.setSetting(key, String(rate), req.session.userId);
+        } else if (vipInvestmentSettingKeyPattern.test(key)) {
+          await storage.setSetting(key, String(value ?? "").trim(), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [
             "supportLink",

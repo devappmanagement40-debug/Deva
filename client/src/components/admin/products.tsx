@@ -19,6 +19,7 @@ import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, Users, ShoppingBag } f
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
+import { MAX_VIP_LEVEL } from "@shared/vip-progress";
 import ImageUploader from "@/components/admin/image-uploader";
 import { getProductImageUrl } from "@/lib/product-visuals";
 
@@ -34,6 +35,7 @@ const productSchema = z.object({
     "Choisis une couleur valide",
   ),
   minInviteCount: z.string().optional(),
+  requiredVipLevel: z.string(),
   maxOwned: z.string().optional(),
   stockPercentage: z.number().min(0).max(100).optional(),
 });
@@ -41,9 +43,9 @@ const productSchema = z.object({
 type ProductForm = z.infer<typeof productSchema>;
 
 const PRODUCT_TYPE_LABELS: Record<ProductForm["productType"], string> = {
-  stability: "Stabiliser",
-  wellness: "Bien-être",
-  activity: "Activité",
+  stability: "Explore",
+  wellness: "Parcours",
+  activity: "Offres",
 };
 
 // ─── ImageUploadField ────────────────────────────────────────────────────────
@@ -214,6 +216,28 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
             </FormItem>
           )} />
         </div>
+        {form.watch("productType") === "wellness" && (
+          <FormField control={form.control} name="requiredVipLevel" render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-xs">Niveau VIP minimum requis</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger><SelectValue placeholder="Choisir le niveau requis" /></SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="0">VIP 0 — produit de départ après Explore</SelectItem>
+                  {Array.from({ length: MAX_VIP_LEVEL }, (_, index) => index + 1).map((level) => (
+                    <SelectItem key={level} value={String(level)}>VIP {level}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">
+                Le premier achat Parcours donne VIP 1. Choisis VIP 0 pour rendre le produit de départ achetable après Explore.
+              </p>
+              <FormMessage />
+            </FormItem>
+          )} />
+        )}
       </div>
 
       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
@@ -290,7 +314,7 @@ export default function AdminProducts() {
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: "80",
-    imageUrl: "", cardColor: "", minInviteCount: "0", maxOwned: "0", stockPercentage: 0,
+    imageUrl: "", cardColor: "", minInviteCount: "0", requiredVipLevel: "0", maxOwned: "0", stockPercentage: 0,
   };
 
   const editForm = useForm<ProductForm>({ resolver: zodResolver(productSchema), defaultValues });
@@ -324,6 +348,7 @@ export default function AdminProducts() {
         imageUrl: data.imageUrl || null,
         cardColor: data.cardColor || null,
         minInviteCount: parseInt(data.minInviteCount || "0") || 0,
+        requiredVipLevel: Number.parseInt(data.requiredVipLevel, 10),
         maxOwned: parseInt(data.maxOwned || "0") || 0,
         stockPercentage: Math.min(100, Math.max(0, data.stockPercentage ?? 0)),
       };
@@ -394,6 +419,7 @@ export default function AdminProducts() {
       imageUrl: product.imageUrl || "",
       cardColor: product.cardColor || "",
       minInviteCount: String(product.minInviteCount ?? 0),
+      requiredVipLevel: String(product.requiredVipLevel ?? 0),
       maxOwned: String(product.maxOwned ?? 0),
       stockPercentage: product.stockPercentage ?? 0,
     });
@@ -452,6 +478,11 @@ export default function AdminProducts() {
                       {Number(product.price).toLocaleString()} XOF — {Number(product.dailyEarnings).toLocaleString()} XOF/jour
                     </p>
                     <div className="flex gap-2 mt-0.5 flex-wrap">
+                      {normalizeProductType(product.productType) === "wellness" && (
+                        <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
+                          VIP minimum : {Number(product.requiredVipLevel) || 0}
+                        </span>
+                      )}
                       {Number(product.minInviteCount) > 0 && (
                         <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
                           👥 {product.minInviteCount} invitations requises

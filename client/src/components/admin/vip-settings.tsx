@@ -8,6 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Save } from "lucide-react";
 import { DEFAULT_VIP_CONFIGS } from "@/lib/vip";
 import { displayCurrencyText } from "@/lib/content";
+import { MAX_VIP_LEVEL } from "@shared/vip-progress";
 
 export default function AdminVipSettings() {
   const { toast } = useToast();
@@ -17,8 +18,29 @@ export default function AdminVipSettings() {
 
   const [form, setForm] = useState<Record<string, string>>({});
 
-  const val = (key: string, fallback: string) =>
-    form[key] !== undefined ? form[key] : (settings[key] ?? fallback);
+  const legacyVipCopy: Record<string, string> = {
+    vip0Description: "Membre inscrit n'ayant pas encore investi.",
+    vip0Advantages: "Accès à la plateforme. Possibilité de déposer et d'investir.",
+    vip1Description: "Nouveau membre ayant réalisé son premier investissement.",
+    vip1Advantages: "Accès complet à la plateforme. Gains quotidiens. Commissions de parrainage actives.",
+    vip2Description: "Membre actif avec 3 filleuls directs (niveau A).",
+    vip2Advantages: "Statut VIP 2. Reconnaissance de votre activité de recrutement.",
+    vip3Description: "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B).",
+    vip3Advantages: "Statut VIP 3. Équipe structurée sur 2 niveaux.",
+    vip4Description: "Minimum 100 membres dans l'équipe totale (niveaux A + B + C).",
+    vip4Advantages: "Statut VIP 4. Leader d'équipe confirmé.",
+    vip5Description: "Minimum 300 membres dans l'équipe totale.",
+    vip5Advantages: "Statut VIP 5. Ambassadeur de la plateforme.",
+    vip6Description: "Minimum 600 membres dans l'équipe totale.",
+    vip6Advantages: "Statut VIP 6. Partenaire élite.",
+    vip7Description: "Minimum 1 000 membres dans l'équipe totale.",
+    vip7Advantages: "Statut VIP 7. Rang suprême. Reconnaissance maximale.",
+  };
+  const val = (key: string, fallback: string) => {
+    if (form[key] !== undefined) return form[key];
+    const savedValue = settings[key];
+    return savedValue === legacyVipCopy[key] ? fallback : (savedValue ?? fallback);
+  };
 
   const set = (key: string, value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -31,6 +53,7 @@ export default function AdminVipSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
       queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       setForm({});
       toast({ title: "✅ Paramètres VIP sauvegardés" });
     },
@@ -50,7 +73,7 @@ export default function AdminVipSettings() {
       <div>
         <h2 className="text-base font-bold">⭐ Configuration des niveaux VIP</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Tous les seuils, récompenses et textes sont modifiables ici. Les changements s'appliquent immédiatement pour tous les utilisateurs.
+          Les niveaux VIP dépendent uniquement des achats personnels payants dans Parcours. Les seuils sont des montants cumulés en XOF.
         </p>
       </div>
 
@@ -69,83 +92,38 @@ export default function AdminVipSettings() {
           </CardHeader>
           <CardContent className="space-y-4">
 
-            {/* ── Conditions ── */}
+            {/* ── Conditions personnelles ── */}
             <div className="rounded-lg border border-dashed border-muted-foreground/30 p-3 space-y-3">
-              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Conditions d'accès</p>
-
-              {/* Investissement requis — toujours vrai pour niv 1+ */}
-              {cfg.level >= 1 && (
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Investissement personnel Parcours</p>
+              {cfg.level === 0 && (
                 <p className="text-xs text-muted-foreground italic">
-                  ✦ Premier investissement requis (non modifiable)
+                  Explore ne donne pas de niveau VIP. Le membre reste VIP 0 tant qu’il n’a pas effectué d’achat Parcours.
                 </p>
               )}
-
-              {/* Filleuls directs A */}
-              {(cfg.minDirectA !== null || cfg.level === 2 || cfg.level === 3) && (
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-muted-foreground w-52 shrink-0">
-                    Filleuls directs minimum (niveau A)
-                  </label>
-                  <Input
-                    type="number" min="0"
-                    className="h-8 text-sm w-24"
-                    placeholder="–"
-                    value={val(`vip${cfg.level}MinDirectA`, cfg.minDirectA !== null ? String(cfg.minDirectA) : "")}
-                    onChange={(e) => set(`vip${cfg.level}MinDirectA`, e.target.value)}
-                  />
-                  <span className="text-xs text-muted-foreground">membres A</span>
-                </div>
+              {cfg.level === 1 && (
+                <p className="text-xs text-muted-foreground italic">
+                  ✦ VIP 1 est obtenu après le premier achat personnel payant dans Parcours.
+                </p>
               )}
-
-              {/* Membres niveau B */}
-              {(cfg.minLevelB !== null || cfg.level === 3) && (
+              {cfg.level >= 2 && cfg.level <= MAX_VIP_LEVEL && (
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-muted-foreground w-52 shrink-0">
-                    Membres niveau B minimum
+                    Investissement cumulé minimum
                   </label>
                   <Input
-                    type="number" min="0"
+                    type="number" min="1" step="1"
                     className="h-8 text-sm w-24"
-                    placeholder="–"
-                    value={val(`vip${cfg.level}MinLevelB`, cfg.minLevelB !== null ? String(cfg.minLevelB) : "")}
-                    onChange={(e) => set(`vip${cfg.level}MinLevelB`, e.target.value)}
-                  />
-                  <span className="text-xs text-muted-foreground">membres B</span>
-                </div>
-              )}
-
-              {/* Équipe totale */}
-              {(cfg.minTotalTeam !== null || cfg.level >= 4) && (
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-muted-foreground w-52 shrink-0">
-                    Membres totaux minimum (A+B+C)
-                  </label>
-                  <Input
-                    type="number" min="0"
-                    className="h-8 text-sm w-24"
-                    placeholder="–"
-                    value={val(`vip${cfg.level}MinTotalTeam`, cfg.minTotalTeam !== null ? String(cfg.minTotalTeam) : "")}
-                    onChange={(e) => set(`vip${cfg.level}MinTotalTeam`, e.target.value)}
-                  />
-                  <span className="text-xs text-muted-foreground">membres</span>
-                </div>
-              )}
-
-              {/* Récompense */}
-              {cfg.level >= 2 && (
-                <div className="flex items-center gap-2">
-                  <label className="text-xs text-muted-foreground w-52 shrink-0">
-                    Récompense de passage (XOF)
-                  </label>
-                  <Input
-                    type="number" min="0"
-                    className="h-8 text-sm w-24"
-                    placeholder="0"
-                    value={val(`vip${cfg.level}Reward`, String(cfg.reward))}
-                    onChange={(e) => set(`vip${cfg.level}Reward`, e.target.value)}
+                    placeholder="Non configuré"
+                    value={val(`vip${cfg.level}MinInvestment`, cfg.minInvestment !== null ? String(cfg.minInvestment) : "")}
+                    onChange={(e) => set(`vip${cfg.level}MinInvestment`, e.target.value)}
                   />
                   <span className="text-xs text-muted-foreground">XOF</span>
                 </div>
+              )}
+              {cfg.level >= 2 && (
+                <p className="text-[10px] text-muted-foreground">
+                  Seuil total depuis le premier achat Parcours. Renseigne les niveaux dans l’ordre avec des montants croissants.
+                </p>
               )}
             </div>
 

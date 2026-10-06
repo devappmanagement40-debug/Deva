@@ -511,23 +511,23 @@ export async function seed() {
     { key: "westpayApiKey_TG", value: "" },
     { key: "westpayApiKey_CM", value: "" },
     { key: "westpayApiKey_ML", value: "" }, // gardé pour WestPay même si Mali retiré du login
-    // VIP descriptions & advantages (insert only — never force-update)
-    { key: "vip0Description", value: "Membre inscrit n'ayant pas encore investi." },
-    { key: "vip0Advantages", value: "Accès à la plateforme. Possibilité de déposer et d'investir." },
-    { key: "vip1Description", value: "Nouveau membre ayant réalisé son premier investissement." },
-    { key: "vip1Advantages", value: "Accès complet à la plateforme. Gains quotidiens. Commissions de parrainage actives." },
-    { key: "vip2Description", value: "Membre actif avec 3 filleuls directs (niveau A)." },
-    { key: "vip2Advantages", value: "Statut VIP 2. Reconnaissance de votre activité de recrutement." },
-    { key: "vip3Description", value: "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B)." },
-    { key: "vip3Advantages", value: "Statut VIP 3. Équipe structurée sur 2 niveaux." },
-    { key: "vip4Description", value: "Minimum 100 membres dans l'équipe totale (niveaux A + B + C)." },
-    { key: "vip4Advantages", value: "Statut VIP 4. Leader d'équipe confirmé." },
-    { key: "vip5Description", value: "Minimum 300 membres dans l'équipe totale." },
-    { key: "vip5Advantages", value: "Statut VIP 5. Ambassadeur de la plateforme." },
-    { key: "vip6Description", value: "Minimum 600 membres dans l'équipe totale." },
-    { key: "vip6Advantages", value: "Statut VIP 6. Partenaire élite." },
-    { key: "vip7Description", value: "Minimum 1 000 membres dans l'équipe totale." },
-    { key: "vip7Advantages", value: "Statut VIP 7. Rang suprême. Reconnaissance maximale." },
+    // VIP descriptions & advantages (insert only — never force-update custom copy)
+    { key: "vip0Description", value: "Membre n'ayant pas encore acheté de produit Parcours." },
+    { key: "vip0Advantages", value: "Les produits Explore restent disponibles selon leurs conditions." },
+    { key: "vip1Description", value: "Membre ayant réalisé son premier achat personnel payant dans Parcours." },
+    { key: "vip1Advantages", value: "Rang d'entrée pour l'accès aux produits Parcours." },
+    { key: "vip2Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip2Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
+    { key: "vip3Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip3Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
+    { key: "vip4Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip4Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
+    { key: "vip5Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip5Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
+    { key: "vip6Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip6Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
+    { key: "vip7Description", value: "Seuil d'investissement personnel cumulé dans Parcours atteint." },
+    { key: "vip7Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
     // VIP labels (insert only)
     { key: "vip0Label", value: "VIP 0" }, { key: "vip1Label", value: "VIP 1" },
     { key: "vip2Label", value: "VIP 2" }, { key: "vip3Label", value: "VIP 3" },
@@ -610,6 +610,86 @@ export async function seed() {
 
   // Update only known default copy. Custom admin content remains untouched.
   const knownDefaultCopyUpdates = [
+    {
+      key: "vip0Description",
+      oldValue: "Membre inscrit n'ayant pas encore investi.",
+      newValue: "Membre n'ayant pas encore acheté de produit Parcours.",
+    },
+    {
+      key: "vip0Advantages",
+      oldValue: "Accès à la plateforme. Possibilité de déposer et d'investir.",
+      newValue: "Les produits Explore restent disponibles selon leurs conditions.",
+    },
+    {
+      key: "vip1Description",
+      oldValue: "Nouveau membre ayant réalisé son premier investissement.",
+      newValue: "Membre ayant réalisé son premier achat personnel payant dans Parcours.",
+    },
+    {
+      key: "vip1Advantages",
+      oldValue: "Accès complet à la plateforme. Gains quotidiens. Commissions de parrainage actives.",
+      newValue: "Rang d'entrée pour l'accès aux produits Parcours.",
+    },
+    {
+      key: "vip2Description",
+      oldValue: "Membre actif avec 3 filleuls directs (niveau A).",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip2Advantages",
+      oldValue: "Statut VIP 2. Reconnaissance de votre activité de recrutement.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
+    {
+      key: "vip3Description",
+      oldValue: "Minimum 3 membres directs (A) ayant commencé à construire leur propre réseau (niveau B).",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip3Advantages",
+      oldValue: "Statut VIP 3. Équipe structurée sur 2 niveaux.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
+    {
+      key: "vip4Description",
+      oldValue: "Minimum 100 membres dans l'équipe totale (niveaux A + B + C).",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip4Advantages",
+      oldValue: "Statut VIP 4. Leader d'équipe confirmé.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
+    {
+      key: "vip5Description",
+      oldValue: "Minimum 300 membres dans l'équipe totale.",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip5Advantages",
+      oldValue: "Statut VIP 5. Ambassadeur de la plateforme.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
+    {
+      key: "vip6Description",
+      oldValue: "Minimum 600 membres dans l'équipe totale.",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip6Advantages",
+      oldValue: "Statut VIP 6. Partenaire élite.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
+    {
+      key: "vip7Description",
+      oldValue: "Minimum 1 000 membres dans l'équipe totale.",
+      newValue: "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+    },
+    {
+      key: "vip7Advantages",
+      oldValue: "Statut VIP 7. Rang suprême. Reconnaissance maximale.",
+      newValue: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    },
     {
       key: "spinWheelInviteText",
       oldValue: "Invitez vos amis à s'inscrire et vous aurez plus de chances de gagner des prix, jusqu'à 50 fois par jour.",
