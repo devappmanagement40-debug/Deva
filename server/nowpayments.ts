@@ -17,7 +17,7 @@ import {
 } from "@nowpaymentsio/nowpayments-sdk-nodejs";
 
 export const SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY = "usdtbsc";
-export const XOF_PER_USDT = 650;
+export const XOF_PER_USDT = 500;
 
 export function isSupportedNowPaymentsDepositCurrency(value: unknown): value is string {
   return typeof value === "string"

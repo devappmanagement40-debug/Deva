@@ -4,7 +4,7 @@
 - [Country selection and markets](rdc-only-market.md) — CI deposits use an admin-managed Wave link and optional uploaded QR; don't change other markets.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — current minimum is 1,200 XOF; withhold the configured fee from gross, debit once, and pay net.
-- [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — rate is XOF ÷ 650; credits stay XOF, the rate stays hidden, and deposit guidance follows admin settings.
+- [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — rate is XOF ÷ 500; credits stay XOF, the rate stays hidden, and deposit guidance follows admin settings.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.

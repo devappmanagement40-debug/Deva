@@ -14,11 +14,12 @@ import {
 } from "./nowpayments";
 
 test("converts the requested XOF deposit into the exact USDT payment amount", () => {
-  assert.equal(convertXofToUsdt(650), 1);
-  assert.equal(convertXofToUsdt(1300), 2);
-  assert.equal(convertXofToUsdt(3500), 5.38461538);
+  assert.equal(convertXofToUsdt(500), 1);
+  assert.equal(convertXofToUsdt(1000), 2);
+  assert.equal(convertXofToUsdt(2500), 5);
+  assert.equal(convertXofToUsdt(3500), 7);
   assert.throws(() => convertXofToUsdt(0), RangeError);
-  assert.throws(() => convertXofToUsdt(650.5), RangeError);
+  assert.throws(() => convertXofToUsdt(500.5), RangeError);
 });
 
 test("only permits USDT BEP20 for new crypto deposits", () => {
