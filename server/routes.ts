@@ -42,6 +42,11 @@ import {
 } from "@shared/withdrawal-fees";
 import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 
+function parsePositiveIntegerSetting(value: string | undefined, fallback: number): number | null {
+  const parsed = value?.trim() ? Number(value.trim()) : fallback;
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
+}
+
 /**
  * Résout les paramètres WestPay.
  * Le secret du webhook utilise TOUJOURS la variable d'environnement en priorité
@@ -2057,7 +2062,15 @@ export async function registerRoutes(
   // Withdrawals
   app.post("/api/withdrawals", requireAuth, requireSameOrigin, async (req, res) => {
     try {
-      const amount = Number(req.body.amount);
+      const requestBody = req.body && typeof req.body === "object" && !Array.isArray(req.body)
+        ? req.body as Record<string, unknown>
+        : {};
+      const rawAmount = requestBody.amount;
+      const amount = typeof rawAmount === "number"
+        ? rawAmount
+        : typeof rawAmount === "string" && rawAmount.trim()
+          ? Number(rawAmount)
+          : Number.NaN;
       const user = await storage.getUser(req.session.userId!);
       
       if (!user) {
@@ -2071,8 +2084,8 @@ export async function registerRoutes(
         });
       }
 
-      const transactionPassword = typeof req.body.transactionPassword === "string"
-        ? req.body.transactionPassword
+      const transactionPassword = typeof requestBody.transactionPassword === "string"
+        ? requestBody.transactionPassword
         : "";
       if (!transactionPassword) {
         return res.status(400).json({ message: "Saisissez votre code PIN de sécurité" });
@@ -2094,7 +2107,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Vous devez posséder un produit actif pour effectuer un retrait." });
       }
 
-      if (!Number.isFinite(amount) || amount <= 0 || !Number.isInteger(amount)) {
+      if (!Number.isSafeInteger(amount) || amount <= 0) {
         return res.status(400).json({ message: "Montant de retrait invalide" });
       }
 
@@ -2125,13 +2138,18 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Les retraits sont disponibles de ${startHour}h à ${endHour}h` });
         }
       }
-      const minWithdrawal = parseInt(
-        settingsForWithdrawal.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF),
+      const minWithdrawal = parsePositiveIntegerSetting(
+        settingsForWithdrawal.minWithdrawal,
+        DEFAULT_MIN_WITHDRAWAL_XOF,
       );
+      const maxWithdrawal = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawal, 1_000_000);
+      if (minWithdrawal === null || maxWithdrawal === null || maxWithdrawal < minWithdrawal) {
+        console.error("Invalid withdrawal amount limits in platform settings");
+        return res.status(500).json({ message: "Les limites de retrait sont mal configurées. Contactez l'administration." });
+      }
       if (amount < minWithdrawal) {
         return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} XOF` });
       }
-      const maxWithdrawal = parseInt(settingsForWithdrawal.maxWithdrawal || "1000000");
       if (amount > maxWithdrawal) {
         return res.status(400).json({ message: `Montant maximum : ${maxWithdrawal.toLocaleString()} XOF` });
       }
@@ -2145,11 +2163,6 @@ export async function registerRoutes(
         if (stats.level1Invested < 1) {
           return res.status(400).json({ message: "Invitez quelqu'un qui investit" });
         }
-      }
-
-      const earningsBalance = parseFloat(user.totalEarnings || "0");
-      if (amount > earningsBalance) {
-        return res.status(400).json({ message: "Solde insuffisant" });
       }
 
       const withdrawalFeePercent = parseWithdrawalFeePercent(
@@ -2168,13 +2181,23 @@ export async function registerRoutes(
       }
 
       // Récupérer le moyen de retrait sélectionné.
-      const walletId = Number(req.body.walletId);
+      const rawWalletId = requestBody.walletId;
       let wallet: any = null;
-      if (walletId) {
+      if (rawWalletId !== undefined && rawWalletId !== null && rawWalletId !== "") {
+        const walletId = typeof rawWalletId === "number"
+          ? rawWalletId
+          : typeof rawWalletId === "string"
+            ? Number(rawWalletId)
+            : Number.NaN;
+        if (!Number.isSafeInteger(walletId) || walletId <= 0) {
+          return res.status(400).json({ message: "Le moyen de retrait sélectionné est invalide." });
+        }
         const wallets = await storage.getWallets(user.id);
         wallet = wallets.find((w: any) => w.id === walletId) || null;
-      }
-      if (!wallet) {
+        if (!wallet) {
+          return res.status(400).json({ message: "Ce moyen de retrait n'est plus disponible. Sélectionnez un compte à jour." });
+        }
+      } else {
         wallet = await storage.getDefaultWallet(user.id);
       }
       if (!wallet) {
@@ -2201,21 +2224,16 @@ export async function registerRoutes(
         }
       }
 
-      const todayCount = await storage.getUserWithdrawalCountToday(user.id);
-      const maxPerDay = parseInt(settingsForWithdrawal.maxWithdrawalsPerDay || "1");
-      if (todayCount >= maxPerDay) {
-        return res.status(400).json({ message: `Maximum ${maxPerDay} retrait${maxPerDay > 1 ? 's' : ''} par jour` });
+      const maxPerDay = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawalsPerDay, 1);
+      if (maxPerDay === null) {
+        console.error("Invalid daily withdrawal limit in platform settings");
+        return res.status(500).json({ message: "La limite quotidienne de retrait est mal configurée. Contactez l'administration." });
       }
 
       // Withdrawals can only use the earnings balance, never the deposit balance.
-      await storage.updateUser(user.id, {
-        totalEarnings: (earningsBalance - amount).toFixed(2),
-      });
-
-      // Both modes create an auditable pending request. In semi-automatic
-      // mode, an administrator explicitly starts the external payout and then
-      // confirms NOWPayments 2FA; the user-facing request never calls the API.
-      const withdrawal = await storage.createWithdrawal({
+      // Debit and pending request creation are one transaction so a failed
+      // insert cannot leave the user's earnings deducted without a request.
+      const reservation = await storage.createWithdrawalRequest({
         userId: user.id,
         amount,
         netAmount: payoutAmounts.netAmount,
@@ -2225,13 +2243,30 @@ export async function registerRoutes(
         country: user.country,
         paymentMethod: wallet.paymentMethod,
         status: "pending",
-      });
+      }, maxPerDay);
+
+      if (reservation.status === "user_missing") {
+        return res.status(401).json({ message: "La session a expiré. Reconnectez-vous." });
+      }
+      if (reservation.status === "withdrawal_blocked") {
+        return res.status(400).json({ message: "Retraits bloqués sur ce compte" });
+      }
+      if (reservation.status === "insufficient_balance") {
+        return res.status(400).json({ message: "Solde insuffisant" });
+      }
+      if (reservation.status === "daily_limit") {
+        return res.status(400).json({
+          message: `Maximum ${reservation.limit} retrait${reservation.limit > 1 ? "s" : ""} par jour`,
+        });
+      }
+
       return res.json({
-        ...withdrawal,
+        ...reservation.withdrawal,
         withdrawalMode: normalizeWithdrawalMode(settingsForWithdrawal.withdrawalMode),
       });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
+    } catch (error: unknown) {
+      console.error("[withdrawals] Failed to create a withdrawal request:", error);
+      return res.status(500).json({ message: "Impossible de créer le retrait pour le moment. Réessayez plus tard." });
     }
   });
 
@@ -2631,15 +2666,28 @@ export async function registerRoutes(
       if (withdrawalFees === null) {
         return res.status(500).json({ message: "Les frais de retrait sont mal configurés." });
       }
+      const minWithdrawal = parsePositiveIntegerSetting(
+        settings.minWithdrawal,
+        DEFAULT_MIN_WITHDRAWAL_XOF,
+      );
+      const maxWithdrawal = parsePositiveIntegerSetting(settings.maxWithdrawal, 1_000_000);
+      const maxWithdrawalsPerDay = parsePositiveIntegerSetting(settings.maxWithdrawalsPerDay, 1);
+      if (
+        minWithdrawal === null
+        || maxWithdrawal === null
+        || maxWithdrawal < minWithdrawal
+        || maxWithdrawalsPerDay === null
+      ) {
+        return res.status(500).json({ message: "Les limites de retrait sont mal configurées." });
+      }
       res.json({
         withdrawalEnabled: settings.withdrawalEnabled !== "false",
         withdrawalStartHour: parseInt(settings.withdrawalStartHour || "9"),
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
-        maxWithdrawalsPerDay: parseInt(settings.maxWithdrawalsPerDay || "1"),
-        minWithdrawal: parseInt(
-          settings.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF),
-        ),
+        maxWithdrawalsPerDay,
+        minWithdrawal,
+        maxWithdrawal,
         withdrawalFees,
       });
     } catch (error: any) {

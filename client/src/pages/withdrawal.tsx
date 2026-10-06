@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -46,6 +46,7 @@ export default function WithdrawalPage() {
   const [confirmTransactionPin, setConfirmTransactionPin] = useState("");
   const [forceTransactionPinReset, setForceTransactionPinReset] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<WalletData | null>(null);
+  const withdrawalSubmissionLock = useRef(false);
   const [, navigate] = useLocation();
 
   const currency = "XOF";
@@ -72,16 +73,22 @@ export default function WithdrawalPage() {
     transactionPinStatus && (!transactionPinStatus.hasPin || transactionPinStatus.resetRequired),
   );
 
-  const { data: withdrawalSettings } = useQuery<{
+  const {
+    data: withdrawalSettings,
+    isLoading: withdrawalSettingsLoading,
+    isError: withdrawalSettingsError,
+  } = useQuery<{
     withdrawalEnabled: boolean;
     withdrawalStartHour: number;
     withdrawalEndHour: number;
     withdrawalDays: string;
     maxWithdrawalsPerDay: number;
     minWithdrawal: number;
+    maxWithdrawal: number;
     withdrawalFees: number;
   }>({
     queryKey: ["/api/settings/withdrawal"],
+    enabled: Boolean(user?.id),
     staleTime: 0,
     refetchOnMount: true,
   });
@@ -91,15 +98,20 @@ export default function WithdrawalPage() {
   });
 
   const minWithdrawal = withdrawalSettings?.minWithdrawal ?? DEFAULT_MIN_WITHDRAWAL_XOF;
+  const maxWithdrawal = withdrawalSettings?.maxWithdrawal ?? 1_000_000;
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
-  const grossWithdrawalAmount = typeof amount === "number" && Number.isSafeInteger(amount) && amount >= minWithdrawal
+  const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled === true;
+  const grossWithdrawalAmount = typeof amount === "number"
+    && Number.isSafeInteger(amount)
+    && amount >= minWithdrawal
+    && amount <= maxWithdrawal
     ? amount
     : 0;
   const payoutEstimate = grossWithdrawalAmount > 0
     ? calculateWithdrawalPayoutAmounts(grossWithdrawalAmount, withdrawalFeePercent)
     : { fees: 0, netAmount: 0 };
-  const maxWithdrawal = parseInt(allSettings?.maxWithdrawal || "1000000");
-  const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
+  const rawEarningsBalance = Number(user?.totalEarnings ?? 0);
+  const earningsBalance = Number.isFinite(rawEarningsBalance) ? Math.max(0, rawEarningsBalance) : 0;
   const withdrawalStartHour = withdrawalSettings?.withdrawalStartHour ?? 9;
   const withdrawalEndHour = withdrawalSettings?.withdrawalEndHour ?? 17;
   const withdrawalDaysRaw = withdrawalSettings?.withdrawalDays ?? "1,2,3,4,5";
@@ -119,6 +131,7 @@ export default function WithdrawalPage() {
 
   const { data: wallets = [], isLoading: walletsLoading } = useQuery<WalletData[]>({
     queryKey: ["/api/wallets"],
+    enabled: Boolean(user?.id),
     refetchOnWindowFocus: true,
   });
   const { data: activeMobileMoneyOperators = [] } = useQuery<string[]>({
@@ -154,6 +167,7 @@ export default function WithdrawalPage() {
 
   const { data: userProducts = [] } = useQuery<UserProduct[]>({
     queryKey: ["/api/user/products"],
+    enabled: Boolean(user?.id),
   });
 
   const hasActiveProduct = userProducts.some((p) => p.status === "active");
@@ -216,17 +230,20 @@ export default function WithdrawalPage() {
       }
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: data?.payoutRequiresVerification ? t.withdrawalCreated : t.withdrawalSubmitted,
         description: data?.payoutRequiresVerification
           ? t.withdrawalCreatedDesc
           : t.withdrawalSubmittedDesc,
       });
-      refreshUser();
-      queryClient.invalidateQueries({ queryKey: ["/api/withdrawals"] });
       setAmount("");
       setTransactionPin("");
+      await Promise.allSettled([
+        refreshUser(),
+        queryClient.invalidateQueries({ queryKey: ["/api/withdrawals/history"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/history/all"] }),
+      ]);
     },
     onError: (error: Error) => {
       const code = (error as Error & { code?: string }).code;
@@ -244,6 +261,15 @@ export default function WithdrawalPage() {
   });
 
   const handleSubmit = () => {
+    if (withdrawalSubmissionLock.current || withdrawMutation.isPending) return;
+    if (!withdrawalSettings) {
+      toast({
+        title: "Impossible de vérifier les paramètres de retrait",
+        description: "Réessayez lorsque les paramètres seront disponibles.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!withdrawalEnabled) {
       toast({ title: t.errorOccurred, variant: "destructive" });
       return;
@@ -252,12 +278,20 @@ export default function WithdrawalPage() {
       toast({ title: withdrawalWarningNoProduct, variant: "destructive" });
       return;
     }
-    if (!amount || amount < minWithdrawal) {
+    if (typeof amount !== "number" || !Number.isSafeInteger(amount) || amount <= 0) {
+      toast({ title: t.invalidAmount, variant: "destructive" });
+      return;
+    }
+    if (amount < minWithdrawal) {
       toast({ title: t.invalidAmount, description: `${t.minAmountPrefix} ${minWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
       return;
     }
     if (amount > maxWithdrawal) {
       toast({ title: "Amount too high", description: `The maximum amount is ${maxWithdrawal.toLocaleString()} ${currency}`, variant: "destructive" });
+      return;
+    }
+    if (amount > earningsBalance) {
+      toast({ title: t.errorOccurred, description: "Solde de gains insuffisant.", variant: "destructive" });
       return;
     }
     if (!selectedWallet) {
@@ -268,17 +302,20 @@ export default function WithdrawalPage() {
       toast({ title: t.errTransactionPasswordRequired, variant: "destructive" });
       return;
     }
+    withdrawalSubmissionLock.current = true;
     withdrawMutation.mutate({
       amount: Number(amount),
       walletId: selectedWallet.id,
       transactionPassword: transactionPin,
+    }, {
+      onSettled: () => {
+        withdrawalSubmissionLock.current = false;
+      },
     });
   };
 
   if (walletsLoading) return null;
   if (!user) return null;
-
-  const earningsBalance = parseFloat(user?.totalEarnings || "0");
 
   // Use admin instructions when configured, otherwise generate the defaults.
   const instructions = [
@@ -546,6 +583,9 @@ export default function WithdrawalPage() {
             </span>
             <input
               type="number"
+              min={minWithdrawal}
+              max={maxWithdrawal}
+              step={1}
               value={amount}
               onChange={(e) => setAmount(e.target.value ? Number(e.target.value) : "")}
               placeholder="Enter the withdrawal amount"
@@ -589,14 +629,24 @@ export default function WithdrawalPage() {
           />
         </div>
 
-        {!withdrawalEnabled && (
+        {!withdrawalSettings && withdrawalSettingsLoading && (
+          <div className="mt-5 rounded-lg border border-[#d9d4ee] bg-white px-4 py-3 text-xs text-[#545960]" role="status">
+            {t.loading}
+          </div>
+        )}
+        {!withdrawalSettings && withdrawalSettingsError && (
+          <div className="mt-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-xs font-medium text-red-600" role="alert">
+            Impossible de charger les paramètres de retrait. Réessayez plus tard.
+          </div>
+        )}
+        {withdrawalSettings && !withdrawalEnabled && (
           <div className="mt-5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
             Withdrawals are currently disabled.
           </div>
         )}
         <button
           onClick={handleSubmit}
-          disabled={withdrawMutation.isPending || !withdrawalEnabled}
+          disabled={withdrawMutation.isPending || !withdrawalSettings || !withdrawalEnabled}
           aria-describedby={!hasActiveProduct ? "withdrawal-product-notice" : undefined}
           className="mt-[24px] block font-bold text-white disabled:opacity-50"
           style={{

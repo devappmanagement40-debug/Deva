@@ -101,6 +101,13 @@ export type DailyBonusClaimResult =
   | { status: "cooldown"; hoursRemaining: number }
   | { status: "user_missing" };
 
+export type WithdrawalRequestCreationResult =
+  | { status: "created"; withdrawal: Withdrawal }
+  | { status: "user_missing" }
+  | { status: "withdrawal_blocked" }
+  | { status: "insufficient_balance" }
+  | { status: "daily_limit"; limit: number };
+
 function spinWheelResultFromRow(row: SpinWheelRequestRow): SpinWheelResult {
   return {
     segmentId: Number(row.segment_id),
@@ -200,7 +207,10 @@ export interface IStorage {
   getSupportChatAttachmentUserId(attachmentUrl: string): Promise<number | undefined>;
   
   // Withdrawals
-  createWithdrawal(data: Partial<Withdrawal>): Promise<Withdrawal>;
+  createWithdrawalRequest(
+    data: Partial<Withdrawal>,
+    maxPerDay: number,
+  ): Promise<WithdrawalRequestCreationResult>;
   getWithdrawals(status?: string): Promise<(Withdrawal & { user: User })[]>;
   getUserWithdrawals(userId: number): Promise<Withdrawal[]>;
   updateWithdrawal(id: number, data: Partial<Withdrawal>): Promise<Withdrawal>;
@@ -1610,9 +1620,72 @@ export class DatabaseStorage implements IStorage {
 
 
   // Withdrawals
-  async createWithdrawal(data: Partial<Withdrawal>): Promise<Withdrawal> {
-    const [withdrawal] = await db.insert(withdrawals).values(data as any).returning();
-    return withdrawal;
+  async createWithdrawalRequest(
+    data: Partial<Withdrawal>,
+    maxPerDay: number,
+  ): Promise<WithdrawalRequestCreationResult> {
+    const userId = Number(data.userId);
+    const amount = Number(data.amount);
+    if (!Number.isSafeInteger(userId) || userId <= 0 || !Number.isSafeInteger(amount) || amount <= 0) {
+      throw new RangeError("Invalid withdrawal reservation data.");
+    }
+    if (!Number.isSafeInteger(maxPerDay) || maxPerDay <= 0) {
+      throw new RangeError("Invalid daily withdrawal limit.");
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return db.transaction(async (tx) => {
+      // Serializing requests on the user's row prevents parallel withdrawals
+      // from spending the same earnings balance or passing the daily limit.
+      const [user] = await tx
+        .select({
+          id: users.id,
+          totalEarnings: users.totalEarnings,
+          isWithdrawalBlocked: users.isWithdrawalBlocked,
+        })
+        .from(users)
+        .where(eq(users.id, userId))
+        .for("update");
+      if (!user) return { status: "user_missing" };
+      if (user.isWithdrawalBlocked) return { status: "withdrawal_blocked" };
+
+      const availableEarnings = Number(user.totalEarnings || "0");
+      if (!Number.isFinite(availableEarnings) || availableEarnings < amount) {
+        return { status: "insufficient_balance" };
+      }
+
+      const [todayCountRow] = await tx
+        .select({ count: sql<number>`count(*)` })
+        .from(withdrawals)
+        .where(and(
+          eq(withdrawals.userId, userId),
+          gte(withdrawals.createdAt, today),
+        ));
+      const todayCount = Number(todayCountRow?.count ?? 0);
+      if (!Number.isSafeInteger(todayCount) || todayCount >= maxPerDay) {
+        return { status: "daily_limit", limit: maxPerDay };
+      }
+
+      const [debitedUser] = await tx
+        .update(users)
+        .set({ totalEarnings: sql`${users.totalEarnings} - ${amount}` })
+        .where(and(
+          eq(users.id, userId),
+          sql`${users.totalEarnings} >= ${amount}`,
+        ))
+        .returning({ id: users.id });
+      if (!debitedUser) return { status: "insufficient_balance" };
+
+      const [withdrawal] = await tx
+        .insert(withdrawals)
+        .values({ ...data, userId, amount } as any)
+        .returning();
+      if (!withdrawal) throw new Error("The withdrawal request could not be saved.");
+
+      return { status: "created", withdrawal };
+    });
   }
 
   async getWithdrawals(status?: string): Promise<(Withdrawal & { user: User })[]> {
@@ -1802,13 +1875,12 @@ export class DatabaseStorage implements IStorage {
 
       if (!withdrawal) return undefined;
 
-      const [user] = await tx.select().from(users).where(eq(users.id, withdrawal.userId));
+      const [user] = await tx
+        .update(users)
+        .set({ totalEarnings: sql`${users.totalEarnings} + ${withdrawal.amount}` })
+        .where(eq(users.id, withdrawal.userId))
+        .returning({ id: users.id });
       if (user) {
-        const refundedEarnings = parseFloat(user.totalEarnings || "0") + withdrawal.amount;
-        await tx
-          .update(users)
-          .set({ totalEarnings: refundedEarnings.toFixed(2) })
-          .where(eq(users.id, user.id));
         await tx.insert(transactions).values({
           userId: user.id,
           type: "withdrawal_refund",
