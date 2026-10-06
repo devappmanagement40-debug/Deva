@@ -1,6 +1,6 @@
 # DIAMANT gold product images
 
-These nine images are illustrative photos assigned in order to Stability products with IDs 1–9. They are not claims about the actual contents, custody, or backing of any product. Existing uploaded product images continue to take precedence.
+These nine images are illustrative product photos. Their public copies are stored in `client/public/uploads/` and each catalog product's `imageUrl` is managed in the database, so an administrator can replace or remove an image from the product panel. The photos are not claims about the actual contents, custody, or backing of any product.
 
 The JPEGs are resized/optimized copies for the mobile catalog. Source credits and licenses:
 

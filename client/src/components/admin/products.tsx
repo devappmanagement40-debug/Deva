@@ -15,11 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
-import { Edit, Loader2, Plus, Trash2, Users, ShoppingBag } from "lucide-react";
+import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, Users, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import ImageUploader from "@/components/admin/image-uploader";
-import { getProductVisual } from "@/lib/product-visuals";
+import { getProductImageUrl } from "@/lib/product-visuals";
 
 const productSchema = z.object({
   name: z.string().min(2, "Nom requis"),
@@ -366,7 +366,20 @@ export default function AdminProducts() {
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <img src={getProductVisual(product.imageUrl, product.id, normalizeProductType(product.productType))} alt={rebrandText(product.name)} className="w-12 h-12 rounded-lg object-cover border border-border" />
+                  {getProductImageUrl(product.imageUrl) ? (
+                    <img
+                      src={getProductImageUrl(product.imageUrl)!}
+                      alt={`Image de ${rebrandText(product.name)}`}
+                      className="w-12 h-12 rounded-lg object-cover border border-border"
+                    />
+                  ) : (
+                    <div
+                      className="w-12 h-12 rounded-lg border border-dashed border-border bg-muted/50 flex items-center justify-center text-muted-foreground"
+                      title="Aucune image configurée"
+                    >
+                      <ImageIcon className="w-5 h-5" aria-hidden="true" />
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{rebrandText(product.name)}</p>

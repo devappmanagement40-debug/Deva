@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CircleHelp, Loader2, MessageSquare, RefreshCw } from "lucide-react";
+import { AlertTriangle, CircleHelp, Image as ImageIcon, Loader2, MessageSquare, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -12,7 +12,7 @@ import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
-import { getProductVisual } from "@/lib/product-visuals";
+import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import "./products.css";
 
@@ -190,8 +190,7 @@ export default function ProductsPage() {
   );
   const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
   const getDisplayName = (product: Product) => rebrandText(product.name);
-  const getProductImage = (product: Product) =>
-    getProductVisual(product.imageUrl, product.id, normalizeProductType(product.productType));
+  const getProductImage = (product: Product) => getProductImageUrl(product.imageUrl);
   const confirmProductIndex = confirmProduct
     ? Math.max(0, sectionProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
@@ -283,7 +282,13 @@ export default function ProductsPage() {
                         </dl>
                       </div>
                       <div className="diamant-invest-product-visual">
-                        <img src={getProductImage(product)} alt={displayName} loading="lazy" />
+                        {getProductImage(product) ? (
+                          <img src={getProductImage(product)!} alt={displayName} loading="lazy" />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-[#42668b]" aria-label="Aucune image configurée">
+                            <ImageIcon size={34} aria-hidden="true" />
+                          </div>
+                        )}
                         <span>DIAMANT</span>
                       </div>
                     </div>
@@ -317,7 +322,13 @@ export default function ProductsPage() {
             <DialogContent className="diamant-purchase-dialog">
               <DialogTitle className="sr-only">{t.investConfirmDesc} — {getDisplayName(confirmProduct)}</DialogTitle>
               <div className="diamant-purchase-dialog__visual">
-                <img src={getProductImage(confirmProduct)} alt={getDisplayName(confirmProduct)} />
+                {getProductImage(confirmProduct) ? (
+                  <img src={getProductImage(confirmProduct)!} alt={getDisplayName(confirmProduct)} />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-white/50" aria-label="Aucune image configurée">
+                    <ImageIcon size={42} aria-hidden="true" />
+                  </div>
+                )}
               </div>
               <div className="diamant-purchase-dialog__body">
                 <div className="diamant-purchase-dialog__heading">

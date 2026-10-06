@@ -5,15 +5,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/countries";
-import { Loader2, AlertTriangle, Settings } from "lucide-react";
+import { Image as ImageIcon, Loader2, AlertTriangle, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { rebrandText } from "@/lib/content";
 import type { Product } from "@shared/schema";
+import { getProductImageUrl } from "@/lib/product-visuals";
 
 import serviceIcon from "@assets/20260311_214852_1773265973964.png";
-import productImgFallback from "@assets/generated_images/diamant-product-bike-card.jpg";
 
 interface ProductWithOwnership extends Product {
   isOwned: boolean;
@@ -79,7 +79,7 @@ export default function InvestPage() {
         ) : paidProducts.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             {paidProducts.map((product) => {
-              const img = product.imageUrl || productImgFallback;
+              const img = getProductImageUrl(product.imageUrl);
               return (
                 <div
                   key={product.id}
@@ -91,7 +91,13 @@ export default function InvestPage() {
                   </div>
 
                   <div className="mx-3 my-2 rounded-xl overflow-hidden" style={{ height: 110 }}>
-                    <img src={img} alt={rebrandText(product.name)} className="w-full h-full object-cover" />
+                    {img ? (
+                      <img src={img} alt={rebrandText(product.name)} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center bg-gray-100 text-gray-400" aria-label="Aucune image configurée">
+                        <ImageIcon className="h-8 w-8" aria-hidden="true" />
+                      </div>
+                    )}
                   </div>
 
                   <div className="px-3 pb-1 space-y-0.5">
@@ -165,11 +171,17 @@ export default function InvestPage() {
               className="flex items-center justify-center"
               style={{ background: "#f8f8f8", height: 200 }}
             >
-              <img
-                src={confirmProduct.imageUrl || productImgFallback}
-                alt={confirmProduct.name}
-                style={{ height: 180, maxWidth: "90%", objectFit: "contain" }}
-              />
+              {getProductImageUrl(confirmProduct.imageUrl) ? (
+                <img
+                  src={getProductImageUrl(confirmProduct.imageUrl)!}
+                  alt={confirmProduct.name}
+                  style={{ height: 180, maxWidth: "90%", objectFit: "contain" }}
+                />
+              ) : (
+                <div className="flex h-[180px] items-center justify-center text-gray-400" aria-label="Aucune image configurée">
+                  <ImageIcon className="h-10 w-10" aria-hidden="true" />
+                </div>
+              )}
             </div>
 
             {/* ── Prix + nom ── */}

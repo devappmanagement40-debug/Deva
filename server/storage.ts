@@ -568,10 +568,16 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(userProducts.productId, products.id))
       .where(and(eq(userProducts.userId, userId), eq(userProducts.isActive, true)));
     
-    return result.map(r => ({
-      ...r.userProduct,
-      product: r.userProduct.productSnapshot ?? r.product,
-    }));
+    return result.map(r => {
+      const snapshot = r.userProduct.productSnapshot ?? r.product;
+      return {
+        ...r.userProduct,
+        product: {
+          ...snapshot,
+          imageUrl: snapshot.imageUrl || r.product.imageUrl,
+        },
+      };
+    });
   }
 
   async getAllUserProducts(userId: number): Promise<{ userProduct: UserProduct; product: Product }[]> {
@@ -582,10 +588,16 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(userProducts.productId, products.id))
       .where(eq(userProducts.userId, userId));
     
-    const purchasesWithSnapshots = result.map(r => ({
-      ...r,
-      product: r.userProduct.productSnapshot ?? r.product,
-    }));
+    const purchasesWithSnapshots = result.map(r => {
+      const snapshot = r.userProduct.productSnapshot ?? r.product;
+      return {
+        ...r,
+        product: {
+          ...snapshot,
+          imageUrl: snapshot.imageUrl || r.product.imageUrl,
+        },
+      };
+    });
 
     return purchasesWithSnapshots.sort((a, b) => {
       const dateA = a.userProduct.purchaseDate ? new Date(a.userProduct.purchaseDate).getTime() : 0;

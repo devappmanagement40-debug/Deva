@@ -1,28 +1,19 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon, Loader2 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
 import { getContent } from "@/lib/content";
-import productBike from "@assets/generated_images/diamant-product-bike-card.jpg";
-import electricScooter from "@assets/generated_images/diamant-scooter.jpg";
-import electricMoped from "@assets/generated_images/diamant-moped.jpg";
-import chargingStation from "@assets/generated_images/diamant-charging-station-hero.jpg";
-import chargingPile from "@assets/image_search/diamant-real-charging-pile-transparent.png";
+import { getProductImageUrl } from "@/lib/product-visuals";
+import { rebrandText } from "@/lib/content";
+import type { Product } from "@shared/schema";
 
 const GREEN = "#00b80b";
 const LOGO_GREEN = "#aed33e";
-const GIFT_BANNER_PRODUCTS = [
-  { image: productBike, label: "DIAMANT electric bike" },
-  { image: electricScooter, label: "DIAMANT electric scooter" },
-  { image: electricMoped, label: "DIAMANT electric moped" },
-  { image: chargingStation, label: "DIAMANT charging station" },
-  { image: chargingPile, label: "DIAMANT charging pile" },
-];
 
 export default function GiftCodePage() {
   const { refreshUser } = useAuth();
@@ -33,6 +24,10 @@ export default function GiftCodePage() {
   const { data: settings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
+  const catalogProducts = products.filter((product) => !product.isFree);
 
   const groupLink = settings?.channelLink || settings?.groupLink || "";
   const headerTitle = getContent(settings, "content_giftcode_headerTitle", "Code cadeau");
@@ -101,10 +96,19 @@ export default function GiftCodePage() {
 
         <div className="mx-[21px] grid grid-cols-4 gap-[5px]" data-testid="gift-product-grid">
           {Array.from({ length: 12 }, (_, index) => {
-            const product = GIFT_BANNER_PRODUCTS[index % GIFT_BANNER_PRODUCTS.length];
+            const product = catalogProducts.length
+              ? catalogProducts[index % catalogProducts.length]
+              : undefined;
+            const imageUrl = product ? getProductImageUrl(product.imageUrl) : null;
             return (
-              <div key={index} className="aspect-[101/66] overflow-hidden rounded-[8px] bg-[#f0f5f2]">
-                <img src={product.image} alt={product.label} className="h-full w-full object-cover" />
+              <div key={product ? `${product.id}-${index}` : index} className="aspect-[101/66] overflow-hidden rounded-[8px] bg-[#f0f5f2]">
+                {imageUrl ? (
+                  <img src={imageUrl} alt={rebrandText(product!.name)} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[#a1afa5]" aria-label="Aucune image produit">
+                    <ImageIcon className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                )}
               </div>
             );
           })}

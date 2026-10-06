@@ -1,8 +1,8 @@
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
-import { ChevronLeft, Loader2 } from "lucide-react";
-import { getProductVisual } from "@/lib/product-visuals";
+import { ChevronLeft, Image as ImageIcon, Loader2 } from "lucide-react";
+import { getProductImageUrl } from "@/lib/product-visuals";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
 import { DiamantBrand } from "@/components/diamant-brand";
@@ -112,11 +112,7 @@ export default function MyProductsPage() {
               const completedDays = Math.max(0, cycleDays - daysRemaining);
               const progress = cycleDays > 0 ? Math.min(100, Math.round((completedDays / cycleDays) * 100)) : 0;
               const earned = Number(userProduct.totalEarned || 0);
-              const image = getProductVisual(
-                product.imageUrl,
-                Number(product.id ?? userProduct.productId ?? index + 1),
-                product.productType,
-              );
+              const image = getProductImageUrl(product.imageUrl);
               const displayName = getDisplayName(product.name, index);
 
               return (
@@ -125,13 +121,19 @@ export default function MyProductsPage() {
                   className="relative min-h-[326px] overflow-hidden border-b-[6px] border-black bg-[#202020]"
                   data-testid={`product-card-${userProduct.id}`}
                 >
-                  <img
-                    src={image}
-                    alt={displayName}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    style={{ objectPosition: "center 54%" }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/10" />
+                  {image ? (
+                    <img
+                      src={image}
+                      alt={displayName}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      style={{ objectPosition: "center 54%" }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-white/30" aria-hidden="true">
+                      <ImageIcon className="h-14 w-14" />
+                    </div>
+                  )}
+                  <div className={`absolute inset-0 ${image ? "bg-gradient-to-r from-black/70 via-black/45 to-black/10" : "bg-black/30"}`} />
                   <div className="relative z-10 min-h-[320px] px-5 pb-5 pt-6 text-white">
                     <h2 className="font-semibold" style={{ fontSize: 27, lineHeight: 1.15 }}>{displayName}</h2>
                     <div className="mt-4 w-[82%] max-w-[350px] bg-black/50 px-2.5 py-2.5">

@@ -79,6 +79,8 @@ export default function ImageUploader({
             type="button"
             onClick={() => onChange("")}
             className="absolute top-1 right-1 bg-destructive text-white rounded-full p-0.5 hover:opacity-80 transition"
+            aria-label="Supprimer l’image du produit"
+            title="Supprimer l’image"
           >
             <X className="w-3.5 h-3.5" />
           </button>

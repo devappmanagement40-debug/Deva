@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
+import { Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
-import { getProductVisual } from "@/lib/product-visuals";
+import { getProductImageUrl } from "@/lib/product-visuals";
 
 function isProductActive(product: any): boolean {
   return product.status === "active" && Number(product.daysRemaining) > 0;
@@ -103,15 +104,17 @@ export default function OrdersPage() {
                 >
                   <div className="flex items-start gap-2">
                     <div className="w-24 h-24 flex-shrink-0">
-                      <img
-                        src={getProductVisual(
-                          up.product?.imageUrl,
-                          Number(up.product?.id ?? up.productId ?? index + 1),
-                          up.product?.productType,
-                        )}
-                        alt={rebrandText(up.product?.name || t.noProducts)}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
+                      {getProductImageUrl(up.product?.imageUrl) ? (
+                        <img
+                          src={getProductImageUrl(up.product?.imageUrl)!}
+                          alt={rebrandText(up.product?.name || t.noProducts)}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-full rounded-lg bg-gray-100 text-gray-400 flex items-center justify-center" aria-label="Aucune image produit">
+                          <ImageIcon className="h-7 w-7" aria-hidden="true" />
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">

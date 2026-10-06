@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileCheck2,
+  Image as ImageIcon,
   MessageSquare,
   UsersRound,
   WalletCards,
@@ -21,7 +22,7 @@ import { FloatingWheel } from "@/components/floating-wheel";
 import HomeAnnouncementModal from "@/components/home-announcement-modal";
 import BannerCarousel from "@/components/banner-carousel";
 import type { Product } from "@shared/schema";
-import { getProductVisual } from "@/lib/product-visuals";
+import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import { resolveInfoArticles } from "@/data/diamant-info-articles";
 import { HOME_BANNER_DEFAULT_IMAGES } from "@/lib/banner-defaults";
@@ -474,13 +475,19 @@ function HomePage() {
                       aria-label={`${name} — ${copy.viewProducts}`}
                       data-testid={`home-popular-product-${product.id}`}
                     >
-                      <img
-                        className="ielp-home-product-card__image"
-                        src={getProductVisual(product.imageUrl, product.id, product.productType)}
-                        alt=""
-                        loading="lazy"
-                        draggable={false}
-                      />
+                      {getProductImageUrl(product.imageUrl) ? (
+                        <img
+                          className="ielp-home-product-card__image"
+                          src={getProductImageUrl(product.imageUrl)!}
+                          alt=""
+                          loading="lazy"
+                          draggable={false}
+                        />
+                      ) : (
+                        <span className="ielp-home-product-card__image flex items-center justify-center bg-slate-100 text-slate-400" aria-hidden="true">
+                          <ImageIcon className="h-7 w-7" />
+                        </span>
+                      )}
                       <span className="ielp-home-product-card__content">
                         <span className="ielp-home-product-card__topline">
                           <span className="ielp-home-product-card__name">{name}</span>
