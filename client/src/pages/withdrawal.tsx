@@ -560,7 +560,10 @@ export default function WithdrawalPage() {
             data-testid="withdrawal-fee-estimate"
             aria-live="polite"
           >
-            <p className="font-semibold" style={{ color: "#202124", fontSize: 15 }}>
+            <p
+              className="rounded-md px-3 py-2 font-semibold"
+              style={{ color: "#ffffff", backgroundColor: "#14213d", fontSize: 15 }}
+            >
               {t.netAmount} : {currency} {payoutEstimate.netAmount.toLocaleString("fr-FR")}
             </p>
             <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
