@@ -560,14 +560,11 @@ export default function WithdrawalPage() {
             data-testid="withdrawal-fee-estimate"
             aria-live="polite"
           >
-            <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
-              {t.grossAmount} (débit du solde) : {currency} {grossWithdrawalAmount.toLocaleString("fr-FR")}
+            <p className="font-semibold" style={{ color: "#202124", fontSize: 15 }}>
+              {t.netAmount} : {currency} {payoutEstimate.netAmount.toLocaleString("fr-FR")}
             </p>
             <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
               {t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %) : {currency} {payoutEstimate.fees.toLocaleString("fr-FR")}
-            </p>
-            <p className="font-semibold" style={{ color: "#202124", fontSize: 15 }}>
-              {t.netAmount} : {currency} {payoutEstimate.netAmount.toLocaleString("fr-FR")}
             </p>
           </div>
         </div>

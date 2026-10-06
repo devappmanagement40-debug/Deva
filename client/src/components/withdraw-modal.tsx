@@ -175,16 +175,12 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
               {payoutEstimate && (
                 <div className="bg-muted rounded-lg p-3 space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">{t.grossAmount}</span>
-                    <span className="text-foreground">{amount.toLocaleString()} {currency}</span>
+                    <span className="font-medium text-foreground">{t.netAmount}</span>
+                    <span className="font-bold text-primary">{payoutEstimate.netAmount.toLocaleString("fr-FR")} {currency}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %)</span>
                     <span className="text-foreground">{payoutEstimate.fees.toLocaleString("fr-FR")} {currency}</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-2">
-                    <span className="font-medium text-foreground">{t.netAmount}</span>
-                    <span className="font-bold text-primary">{payoutEstimate.netAmount.toLocaleString("fr-FR")} {currency}</span>
                   </div>
                 </div>
               )}
