@@ -24,14 +24,16 @@ export default function RulesPage() {
   const rS1b2 = getContent(settings, "content_rulespage_s1b2", "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.");
   const rS1b3 = getContent(settings, "content_rulespage_s1b3", "Consultez les informations du produit avant de confirmer.");
   const productRangeTitle = getContent(settings, "content_rulespage_productRangeTitle", "FAQ — Gamme des produits Explore, Parcours et Offres");
-  const exploreQuestion = getContent(settings, "content_rulespage_exploreQuestion", "Comment fonctionne la gamme Explore ?");
-  const exploreAnswer = getContent(settings, "content_rulespage_exploreAnswer", "Explore est la gamme de départ. La fiche de chaque produit indique son prix, son revenu quotidien, la durée du cycle et le revenu total. Ces conditions varient selon le produit.");
-  const parcoursQuestion = getContent(settings, "content_rulespage_parcoursQuestion", "Que comprend la gamme Parcours ?");
-  const parcoursAnswer = getContent(settings, "content_rulespage_parcoursAnswer", "Parcours regroupe des produits dans une catégorie distincte. Chaque fiche présente ses propres conditions et revenus. Pour acheter un produit Parcours, vous devez posséder au moins un produit Explore actif.");
-  const offresQuestion = getContent(settings, "content_rulespage_offresQuestion", "Que comprennent les produits Offres ?");
-  const offresAnswer = getContent(settings, "content_rulespage_offresAnswer", "Offres regroupe des produits dans une catégorie distincte. Chaque fiche présente ses propres conditions et revenus. Pour acheter un produit Offres, vous devez posséder au moins un produit Explore actif.");
+  const exploreQuestion = getContent(settings, "content_rulespage_exploreQuestion", "Pourquoi la gamme Explore est-elle obligatoire ?");
+  const exploreAnswer = getContent(settings, "content_rulespage_exploreAnswer", "Explore est la gamme d’entrée obligatoire. Vous devez posséder au moins un produit Explore actif avant de pouvoir acheter un produit Parcours ou Offres. Consultez chaque fiche pour connaître son prix, sa durée et les revenus annoncés.");
+  const parcoursQuestion = getContent(settings, "content_rulespage_parcoursQuestion", "Quelles sont les conditions d’achat des produits Parcours ?");
+  const parcoursAnswer = getContent(settings, "content_rulespage_parcoursAnswer", "Après avoir acheté au moins un produit Explore actif, vous pouvez accéder à la gamme Parcours. Tous les produits Parcours ne sont pas automatiquement accessibles : chaque fiche peut comporter ses propres conditions, notamment un niveau VIP minimum. La progression VIP tient compte du total investi dans vos produits et des investissements de vos filleuls, selon les critères définis par l’administration.");
+  const offresQuestion = getContent(settings, "content_rulespage_offresQuestion", "Comment fonctionnent les produits Offres ?");
+  const offresAnswer = getContent(settings, "content_rulespage_offresAnswer", "De nouveaux produits Offres sont lancés chaque semaine et le nombre d’achats est limité. Ces produits annoncent des revenus potentiellement plus élevés, selon les conditions de leur fiche. Une fois la limite d’achats atteinte, l’offre peut ne plus être disponible. Vérifiez toujours le prix, la durée et les revenus affichés avant l’achat; aucun revenu n’est garanti.");
   const productAccessQuestion = getContent(settings, "content_rulespage_productAccessQuestion", "Un produit Explore doit-il rester actif pour acheter Parcours ou Offres ?");
   const productAccessAnswer = getContent(settings, "content_rulespage_productAccessAnswer", "Oui. Il faut posséder au moins un produit Explore actif. Un produit terminé, révoqué ou inactif ne satisfait pas cette condition.");
+  const vipProgressQuestion = getContent(settings, "content_rulespage_vipProgressQuestion", "Comment progresse-t-on dans les niveaux VIP ?");
+  const vipProgressAnswer = getContent(settings, "content_rulespage_vipProgressAnswer", "La progression VIP prend en compte le total investi dans vos produits ainsi que les investissements de vos filleuls. Les seuils et conditions de chaque niveau sont définis par l’administration; certains produits Parcours nécessitent d’atteindre un niveau VIP précis.");
   const rS2Title = getContent(settings, "content_rulespage_s2Title", "2. Dépôts et retraits");
   const rS3Title = getContent(settings, "content_rulespage_s3Title", "3. Programme de parrainage");
   const rS3b4 = getContent(settings, "content_rulespage_s3b4", "Toute fraude, tentative de manipulation ou utilisation de comptes multiples peut entraîner la suspension du compte.");
@@ -71,6 +73,7 @@ export default function RulesPage() {
               { question: parcoursQuestion, answer: parcoursAnswer },
               { question: offresQuestion, answer: offresAnswer },
               { question: productAccessQuestion, answer: productAccessAnswer },
+              { question: vipProgressQuestion, answer: vipProgressAnswer },
             ].map(({ question, answer }) => (
               <article key={question} className="space-y-1.5">
                 <h3 className="font-semibold text-[#26352d]">{question}</h3>
