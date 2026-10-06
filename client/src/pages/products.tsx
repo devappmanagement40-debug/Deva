@@ -44,12 +44,12 @@ const INVEST_COPY: Record<Lang, {
 }> = {
   fr: {
     ...PRODUCT_CARD_COPY.fr,
-    tabs: ["Stabiliser", "Bien-être", "Activité"],
+    tabs: ["Stabiliser", "Parcours", "Offres"],
     overview: "Découvrez les produits d’investissement DIAMANT",
     investNow: "Acheter",
     soldOut: "Épuisé",
     unavailable: "Bientôt disponible",
-    stabilityRequired: "Pour acheter un produit Bien-être ou Activité, vous devez d’abord posséder un produit Stabiliser actif.",
+    stabilityRequired: "Pour acheter un produit Parcours ou Offres, vous devez d’abord posséder un produit Stabiliser actif.",
     stabilityRequiredButton: "Stabiliser requis",
     support: "Assistance",
     purchaseHint: "Les gains sont crédités automatiquement à la fin du cycle du produit. Aucune collecte manuelle n'est nécessaire.",

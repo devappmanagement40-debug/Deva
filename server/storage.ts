@@ -625,7 +625,7 @@ export class DatabaseStorage implements IStorage {
         productType: holding.product.productType,
       })));
       if (!canPurchaseProductType(product.productType, hasActiveStabilityProduct)) {
-        throw new Error("Vous devez posséder un produit Stabiliser actif avant d'acheter des produits Bien-être ou Activité.");
+        throw new Error("Vous devez posséder un produit Stabiliser actif avant d'acheter des produits Parcours ou Offres.");
       }
     }
 
