@@ -1,4 +1,4 @@
-export const DEFAULT_WITHDRAWAL_FEE_PERCENT = 12;
+export { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "./financial-settings";
 
 export interface WithdrawalPayoutAmounts {
   fees: number;

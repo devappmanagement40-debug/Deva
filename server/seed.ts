@@ -10,6 +10,7 @@ import {
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
@@ -481,7 +482,7 @@ export async function seed() {
     { key: "groupEnabled", value: "false" },
     { key: "minDeposit", value: "2500" },
     { key: "depositPresetAmounts", value: "2500,5000,7000,10000,15000,20000,50000,70000" },
-    { key: "minWithdrawal", value: "1000" },
+    { key: "minWithdrawal", value: String(DEFAULT_MIN_WITHDRAWAL_XOF) },
     { key: "withdrawalEnabled", value: "true" },
     { key: "withdrawalMode", value: "manual" },
     { key: "withdrawalFees", value: String(DEFAULT_WITHDRAWAL_FEE_PERCENT) },

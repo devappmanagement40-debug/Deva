@@ -19,6 +19,7 @@ import {
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 
 const commissionRateSchema = z.string()
   .trim()
@@ -254,7 +255,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       groupEnabled: false,
       minDeposit: "2500",
       depositPresetAmounts: "2500,5000,7000,10000,15000,20000,50000,70000",
-      minWithdrawal: "1000",
+      minWithdrawal: String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal: "1000000",
       withdrawalEnabled: true,
@@ -302,7 +303,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       groupEnabled:           settings.groupEnabled           !== "false",
       minDeposit:             settings.minDeposit             ?? "2500",
       depositPresetAmounts:   settings.depositPresetAmounts   ?? "2500,5000,7000,10000,15000,20000,50000,70000",
-      minWithdrawal:          settings.minWithdrawal          ?? "1000",
+      minWithdrawal:          settings.minWithdrawal          ?? String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees:         settings.withdrawalFees         ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal:          settings.maxWithdrawal          ?? "1000000",
       withdrawalEnabled:      settings.withdrawalEnabled      !== "false",

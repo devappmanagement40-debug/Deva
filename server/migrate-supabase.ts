@@ -2,6 +2,7 @@ import pg from "pg";
 import bcrypt from "bcryptjs";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "../shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "../shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "../shared/financial-settings";
 
 const { Pool } = pg;
 
@@ -342,7 +343,7 @@ async function run() {
 
     // ── Seed platform settings ──
     const settings = [
-      ["minDeposit", "2500"], ["minWithdrawal", "1000"], ["withdrawalFees", String(DEFAULT_WITHDRAWAL_FEE_PERCENT)],
+      ["minDeposit", "2500"], ["minWithdrawal", String(DEFAULT_MIN_WITHDRAWAL_XOF)], ["withdrawalFees", String(DEFAULT_WITHDRAWAL_FEE_PERCENT)],
       ["withdrawalStartHour", "9"], ["withdrawalEndHour", "17"], ["maxWithdrawalsPerDay", "1"],
       ["level1Commission", DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission],
       ["level2Commission", DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission],

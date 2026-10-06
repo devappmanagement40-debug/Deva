@@ -40,6 +40,7 @@ import {
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 
 /**
  * Résout les paramètres WestPay.
@@ -2124,7 +2125,9 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Les retraits sont disponibles de ${startHour}h à ${endHour}h` });
         }
       }
-      const minWithdrawal = parseInt(settingsForWithdrawal.minWithdrawal || "1000");
+      const minWithdrawal = parseInt(
+        settingsForWithdrawal.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF),
+      );
       if (amount < minWithdrawal) {
         return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} XOF` });
       }
@@ -2634,7 +2637,9 @@ export async function registerRoutes(
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
         maxWithdrawalsPerDay: parseInt(settings.maxWithdrawalsPerDay || "1"),
-        minWithdrawal: parseInt(settings.minWithdrawal || "1000"),
+        minWithdrawal: parseInt(
+          settings.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF),
+        ),
         withdrawalFees,
       });
     } catch (error: any) {

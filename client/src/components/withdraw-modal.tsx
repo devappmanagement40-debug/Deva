@@ -17,6 +17,7 @@ import {
   calculateWithdrawalPayoutAmounts,
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
 } from "@shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 
 const withdrawSchemaFactory = (msg: string) =>
   z.object({ amount: z.string().min(1, msg) });
@@ -88,7 +89,7 @@ export default function WithdrawModal({ open, onClose }: WithdrawModalProps) {
   const balance = parseFloat(user.balance || "0");
   const defaultWallet = wallets?.find(w => w.isDefault);
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled ?? true;
-  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
+  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? DEFAULT_MIN_WITHDRAWAL_XOF;
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const currency = "XOF";
 

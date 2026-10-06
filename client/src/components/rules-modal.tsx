@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { formatSettingPlaceholders, getContent } from "@/lib/content";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
 interface RulesModalProps {
@@ -15,7 +16,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
   });
 
   const minDeposit = settings?.minDeposit || "2500";
-  const minWithdrawal = settings?.minWithdrawal || "1000";
+  const minWithdrawal = settings?.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF);
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
   const maxWithdrawalsPerDay = settings?.maxWithdrawalsPerDay || "1";

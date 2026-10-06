@@ -11,6 +11,7 @@ import {
   calculateWithdrawalPayoutAmounts,
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
 } from "@shared/withdrawal-fees";
+import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 
 interface WalletData {
   id: number;
@@ -89,7 +90,7 @@ export default function WithdrawalPage() {
     queryKey: ["/api/settings"],
   });
 
-  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? 1000;
+  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? DEFAULT_MIN_WITHDRAWAL_XOF;
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const grossWithdrawalAmount = typeof amount === "number" && Number.isSafeInteger(amount) && amount >= minWithdrawal
     ? amount
