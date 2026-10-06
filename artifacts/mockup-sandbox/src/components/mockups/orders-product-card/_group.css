@@ -352,6 +352,74 @@
   box-shadow: none;
 }
 
+.diamant-invest-product-card.is-order-compact {
+  padding: 8px;
+  border-radius: 14px;
+  box-shadow: 0 5px 12px rgba(1, 5, 28, .24), inset 0 1px 0 #fff;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-main {
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 8px;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-title-row { margin-bottom: 4px; }
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy h3 { font-size: 14px; }
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px;
+  row-gap: 1px;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dl > div {
+  gap: 4px;
+  padding: 1px 0;
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dt {
+  flex: 1;
+  font-size: 9px;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dd {
+  max-width: 58%;
+  font-size: 10px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dd small { font-size: 7px; }
+.diamant-invest-product-card.is-order-compact .diamant-order-date-row dd { max-width: 68%; font-size: 9px; }
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-visual { height: 96px; border-radius: 10px; }
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-visual > span { padding: 3px; font-size: 7px; }
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-product-footer {
+  gap: 6px;
+  margin-top: 6px;
+  padding: 3px 6px 3px 8px;
+  border-radius: 9px;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-invest-price strong { font-size: 16px; }
+
+.diamant-invest-product-card.is-order-compact .diamant-order-status {
+  min-width: 90px;
+  min-height: 31px;
+  padding: 3px 7px;
+  border-width: 1.5px;
+  border-bottom-width: 4px;
+  border-radius: 8px;
+  box-shadow: 0 3px 0 #351c9b, 0 4px 8px rgba(63, 52, 125, .24);
+  font-size: 10px;
+}
+
+.diamant-invest-product-card.is-order-compact .diamant-order-status.is-complete { box-shadow: none; }
+
 @media (min-width: 600px) {
   .diamant-invest-product-card { padding: 17px 18px 15px; }
   .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 132px; }
@@ -368,6 +436,15 @@
   .diamant-invest-buy { min-width: 103px; min-height: 43px; padding-inline: 8px; font-size: 11px; }
   .diamant-invest-price strong { font-size: 16px; }
   .diamant-order-status { min-width: 103px; min-height: 40px; padding-inline: 8px; font-size: 11px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-main { grid-template-columns: minmax(0, 1fr) 82px; gap: 6px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-visual { height: 82px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-copy h3 { font-size: 12px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dl > div { font-size: 9px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dt,
+  .diamant-invest-product-card.is-order-compact .diamant-invest-product-copy dd { font-size: 8px; }
+  .diamant-invest-product-card.is-order-compact .diamant-order-date-row dd { font-size: 8px; }
+  .diamant-invest-product-card.is-order-compact .diamant-invest-price strong { font-size: 14px; }
+  .diamant-invest-product-card.is-order-compact .diamant-order-status { min-width: 76px; min-height: 29px; padding-inline: 5px; font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) { .diamant-invest-buy { transition: none; } }

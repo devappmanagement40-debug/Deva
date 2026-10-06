@@ -35,7 +35,7 @@ export function PurchasedData() {
           <h1>Commande</h1>
         </header>
         <article
-          className="diamant-invest-product-card"
+          className="diamant-invest-product-card is-order-compact"
           data-testid="order-card-preview"
           style={{
             backgroundColor: `color-mix(in srgb, ${product.cardColor} 38%, #f5f7ff)`,

@@ -11,6 +11,7 @@ interface ProductCardFrameProps {
   displayName: string;
   details: ReactNode;
   footer: ReactNode;
+  compact?: boolean;
   onCardClick?: () => void;
   rootTestId?: string;
 }
@@ -26,6 +27,7 @@ export function ProductCardFrame({
   displayName,
   details,
   footer,
+  compact = false,
   onCardClick,
   rootTestId,
 }: ProductCardFrameProps) {
@@ -33,7 +35,7 @@ export function ProductCardFrame({
 
   return (
     <article
-      className={`diamant-invest-product-card${onCardClick ? " is-card-clickable" : ""}`}
+      className={`diamant-invest-product-card${compact ? " is-order-compact" : ""}${onCardClick ? " is-card-clickable" : ""}`}
       data-card-colored={!!product.cardColor}
       style={product.cardColor ? {
         backgroundColor: `color-mix(in srgb, ${product.cardColor} 38%, #f5f7ff)`,

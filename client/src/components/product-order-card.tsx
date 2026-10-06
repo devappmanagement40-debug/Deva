@@ -31,6 +31,7 @@ export function ProductOrderCard({
     <ProductCardFrame
       product={product}
       displayName={displayName}
+      compact
       rootTestId={rootTestId}
       details={details.map((detail) => (
         <div className={detail.className} key={detail.label}>
