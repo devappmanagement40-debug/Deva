@@ -2,7 +2,6 @@ import { Image as ImageIcon } from "lucide-react";
 import "./_group.css";
 
 const product = {
-  price: 18,
   dailyEarnings: 300,
   cycleDays: 360,
   totalReturn: 108000,
@@ -73,10 +72,6 @@ export function PurchasedData() {
             </div>
           </div>
           <div className="diamant-invest-product-footer">
-            <div className="diamant-invest-price">
-              <span className="sr-only">Prix</span>
-              <strong>{formatXof(product.price)} <small>XOF</small></strong>
-            </div>
             <span className="diamant-order-status" role="status">En cours</span>
           </div>
         </article>

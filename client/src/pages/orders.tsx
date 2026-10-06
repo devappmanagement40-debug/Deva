@@ -142,7 +142,6 @@ export default function OrdersPage() {
                   details={details}
                   active={productIsActive}
                   statusLabel={productIsActive ? t.ordersOngoing : t.ordersStatusDone}
-                  priceLabel={t.price}
                   rootTestId={`order-card-${up.id}`}
                 />
               );

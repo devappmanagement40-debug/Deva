@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Product } from "@shared/schema";
-import { formatProductCardAmount, ProductCardFrame } from "@/components/product-card-frame";
+import { ProductCardFrame } from "@/components/product-card-frame";
 
 export interface ProductOrderCardDetail {
   label: string;
@@ -9,12 +9,11 @@ export interface ProductOrderCardDetail {
 }
 
 interface ProductOrderCardProps {
-  product: Pick<Product, "imageUrl" | "cardColor" | "price">;
+  product: Pick<Product, "imageUrl" | "cardColor">;
   displayName: string;
   details: ProductOrderCardDetail[];
   statusLabel: string;
   active: boolean;
-  priceLabel: string;
   rootTestId?: string;
 }
 
@@ -24,7 +23,6 @@ export function ProductOrderCard({
   details,
   statusLabel,
   active,
-  priceLabel,
   rootTestId,
 }: ProductOrderCardProps) {
   return (
@@ -40,18 +38,12 @@ export function ProductOrderCard({
         </div>
       ))}
       footer={
-        <>
-          <div className="diamant-invest-price">
-            <span className="sr-only">{priceLabel}</span>
-            <strong>{formatProductCardAmount(Number(product.price))} <small>XOF</small></strong>
-          </div>
-          <span
-            className={`diamant-order-status${active ? "" : " is-complete"}`}
-            role="status"
-          >
-            {statusLabel}
-          </span>
-        </>
+        <span
+          className={`diamant-order-status${active ? "" : " is-complete"}`}
+          role="status"
+        >
+          {statusLabel}
+        </span>
       }
     />
   );

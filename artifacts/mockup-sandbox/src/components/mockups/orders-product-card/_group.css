@@ -328,6 +328,7 @@
 
 .diamant-order-status {
   display: inline-flex;
+  margin-inline-start: auto;
   min-width: 116px;
   min-height: 40px;
   align-items: center;
