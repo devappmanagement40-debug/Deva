@@ -89,7 +89,17 @@ export type AdminTelegramNotification =
   | { kind: "admin_login"; userId: number; country: string }
   | { kind: "purchase"; userId: number; country?: string; productName: string; amount: number }
   | {
-      kind: "deposit_created" | "deposit_status";
+      kind: "deposit_created";
+      id: number;
+      userId: number;
+      amount: number;
+      country: string;
+      paymentMethod: string;
+      reference: string | null;
+      status: string;
+    }
+  | {
+      kind: "deposit_status";
       id: number;
       amount: number;
       country: string;
@@ -270,6 +280,29 @@ function numericValue(value: unknown): number | undefined {
 function formatXof(value: unknown): string {
   const amount = numericValue(value);
   return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(amount ?? 0)} XOF`;
+}
+
+function escapeTelegramField(value: unknown): string {
+  const normalized = String(value ?? "")
+    .replace(/[\r\n\t]+/g, " ")
+    .trim()
+    .slice(0, 180);
+  return escapeTelegramHtml(normalized || "—");
+}
+
+function formatDepositStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    pending: "En attente",
+    processing: "En traitement",
+    review: "À vérifier",
+    approved: "Approuvé",
+    rejected: "Rejeté",
+    failed: "Échoué",
+    cancelled: "Annulé",
+    expired: "Expiré",
+  };
+  const normalized = status.trim().toLowerCase();
+  return labels[normalized] || normalized.replace(/_/g, " ") || "—";
 }
 
 function formatDecimal(value: number): string {
@@ -580,8 +613,20 @@ function formatNotification(event: AdminTelegramNotification): string {
     const country = event.country ? ` · ${escapeTelegramHtml(event.country)}` : "";
     return `🛒 <b>Achat confirmé</b>\nCompte #${event.userId}${country}\n${escapeTelegramHtml(event.productName)} · ${formatXof(event.amount)}`;
   }
-  if (event.kind === "deposit_created" || event.kind === "deposit_status") {
-    const title = event.kind === "deposit_created" ? "Nouvelle demande de dépôt" : "Statut du dépôt modifié";
+  if (event.kind === "deposit_created") {
+    const lines = [
+      "💳 Nouvelle demande de dépôt",
+      `ID : ${event.id}`,
+      `Utilisateur ID : ${event.userId}`,
+      `Montant : ${formatXof(event.amount)}`,
+      `Méthode : ${escapeTelegramField(event.paymentMethod)}`,
+      `Pays : ${escapeTelegramField(event.country)}`,
+      `Référence : ${escapeTelegramField(event.reference)}`,
+      `Statut : ${escapeTelegramField(formatDepositStatusLabel(event.status))}`,
+    ];
+    return `<b>${lines.join("\n")}</b>`;
+  }
+  if (event.kind === "deposit_status") {
     const normalizedProviderStatus =
       typeof event.providerStatus === "string"
         ? event.providerStatus.replace(/[^a-z0-9_-]/gi, "").slice(0, 40)
@@ -589,7 +634,7 @@ function formatNotification(event: AdminTelegramNotification): string {
     const providerStatus = normalizedProviderStatus
       ? `\nStatut prestataire : ${escapeTelegramHtml(normalizedProviderStatus)}`
       : "";
-    return `💰 <b>${title}</b>\nDépôt #${event.id} · ${formatXof(event.amount)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
+    return `💰 <b>Statut du dépôt modifié</b>\nDépôt #${event.id} · ${formatXof(event.amount)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
   }
   if (event.kind === "withdrawal_created" || event.kind === "withdrawal_status") {
     const title = event.kind === "withdrawal_created" ? "Nouvelle demande de retrait" : "Statut du retrait modifié";

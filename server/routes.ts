@@ -1459,9 +1459,11 @@ export async function registerRoutes(
       notifyAdminTelegram({
         kind: "deposit_created",
         id: deposit.id,
+        userId: deposit.userId,
         amount: deposit.amount,
         country: deposit.country,
         paymentMethod: "NOWPayments · USDT BEP20",
+        reference: deposit.reference,
         status: deposit.status,
       });
 
@@ -1931,9 +1933,11 @@ export async function registerRoutes(
       notifyAdminTelegram({
         kind: "deposit_created",
         id: deposit.id,
+        userId: deposit.userId,
         amount: deposit.amount,
         country: deposit.country,
         paymentMethod: "Signalement de dépôt",
+        reference: deposit.reference,
         status: deposit.status,
       });
 
@@ -2090,9 +2094,11 @@ export async function registerRoutes(
       notifyAdminTelegram({
         kind: "deposit_created",
         id: deposit.id,
+        userId: deposit.userId,
         amount: deposit.amount,
         country: deposit.country,
         paymentMethod: deposit.paymentMethod,
+        reference: deposit.reference,
         status: deposit.status,
       });
 
@@ -2175,9 +2181,11 @@ export async function registerRoutes(
       notifyAdminTelegram({
         kind: "deposit_created",
         id: deposit.id,
+        userId: deposit.userId,
         amount: deposit.amount,
         country: deposit.country,
         paymentMethod: deposit.paymentMethod,
+        reference: deposit.reference,
         status: deposit.status,
       });
 

@@ -251,3 +251,36 @@ test("échappe le HTML dans les notifications Telegram dynamiques", () => {
   assert.match(message, /&lt;VIP &amp; 1&gt;/);
   assert.doesNotMatch(message, /<VIP/);
 });
+
+test("formate les nouveaux dépôts avec tous les identifiants en gras", () => {
+  const message = formatAdminTelegramNotification({
+    kind: "deposit_created",
+    id: 194,
+    userId: 534,
+    amount: 3500,
+    paymentMethod: "Moov Africa Togo",
+    country: "TG",
+    reference: "040916977093",
+    status: "pending",
+  });
+
+  assert.match(message, /^<b>💳 Nouvelle demande de dépôt\nID : 194\nUtilisateur ID : 534\n/);
+  assert.match(message, /Montant : .*XOF\nMéthode : Moov Africa Togo\nPays : TG\nRéférence : 040916977093\nStatut : En attente<\/b>$/);
+});
+
+test("échappe et limite les champs saisis avant de les envoyer à Telegram", () => {
+  const message = formatAdminTelegramNotification({
+    kind: "deposit_created",
+    id: 195,
+    userId: 535,
+    amount: 2500,
+    paymentMethod: "Moov <Africa>\nTogo",
+    country: "TG",
+    reference: "<ref>&123",
+    status: "pending",
+  });
+
+  assert.match(message, /Méthode : Moov &lt;Africa&gt; Togo/);
+  assert.match(message, /Référence : &lt;ref&gt;&amp;123/);
+  assert.doesNotMatch(message, /Moov <Africa>|Référence : <ref>/);
+});
