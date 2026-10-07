@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { users, referralCodeAliases, products, tasks, paymentChannels, paymentNumbers, platformSettings, countries, stakingProducts, depositChannels, productSeries } from "@shared/schema";
+import { users, referralCodeAliases, tasks, paymentChannels, paymentNumbers, platformSettings, countries, depositChannels } from "@shared/schema";
 import bcrypt from "bcryptjs";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { REFERRAL_CODE_PATTERN, generateReferralCode } from "./referral-codes";
@@ -16,7 +16,6 @@ import {
   DEFAULT_MIN_WITHDRAWAL_XOF,
   DEFAULT_XOF_PER_USDT,
 } from "@shared/financial-settings";
-import { DEFAULT_EXPLORE_CYCLE_DAYS } from "@shared/product-settings";
 import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
@@ -300,44 +299,14 @@ export async function seed() {
     await db.delete(platformSettings).where(eq(platformSettings.key, obsoleteKey));
   }
 
-  // Remove free products from DB if any still exist (migration)
-  await db.delete(products).where(eq(products.isFree, true));
-
-  // Initialize the catalog once. Keep the marker after an intentional full
-  // deletion so a later restart cannot recreate the old hard-coded catalog.
-  const defaultProductPrice = 18;
-  const defaultProductPriceStep = 10;
-  const defaultProducts = [
-    { name: "VIP 1", dailyEarnings: "300",   cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "45000",    imageUrl: null, sortOrder: 1 },
-    { name: "VIP 2", dailyEarnings: "800",   cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "120000",   imageUrl: null, sortOrder: 2 },
-    { name: "VIP 3", dailyEarnings: "1500",  cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "225000",   imageUrl: null, sortOrder: 3 },
-    { name: "VIP 4", dailyEarnings: "2000",  cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "300000",   imageUrl: null, sortOrder: 4 },
-    { name: "VIP 5", dailyEarnings: "3500",  cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "525000",   imageUrl: null, sortOrder: 5 },
-    { name: "VIP 6", dailyEarnings: "10000", cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "1500000",  imageUrl: null, sortOrder: 6 },
-    { name: "VIP 7", dailyEarnings: "30000", cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "4500000",  imageUrl: null, sortOrder: 7 },
-    { name: "VIP 8", dailyEarnings: "60",    cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "9000",     imageUrl: null, sortOrder: 8 },
-    { name: "VIP 9", dailyEarnings: "120",   cycleDays: DEFAULT_EXPLORE_CYCLE_DAYS, totalReturn: "18000",    imageUrl: null, sortOrder: 9 },
-  ].map((product) => ({
-    ...product,
-    price: String(defaultProductPrice + (product.sortOrder - 1) * defaultProductPriceStep),
-  }));
+  // Product records are kept in the database and maintained through the admin panel.
+  // Record the cutover without inserting, deleting, or changing catalog rows.
   await db.transaction(async (tx) => {
     const [claim] = await tx.insert(platformSettings)
       .values({ key: PRODUCT_CATALOG_INITIALIZED_KEY, value: "true" })
       .onConflictDoNothing()
       .returning({ id: platformSettings.id });
-    if (!claim) return;
-
-    const existingProducts = await tx.select({ id: products.id })
-      .from(products)
-      .where(eq(products.isFree, false))
-      .limit(1);
-    if (existingProducts.length === 0) {
-      await tx.insert(products).values(defaultProducts);
-      console.log("Products seeded (first install)");
-    } else {
-      console.log(`Products skipped — ${existingProducts.length} existing products preserved`);
-    }
+    if (claim) console.log("Product catalog remains database-managed");
   });
 
   // Seed the initial catalog once. Afterward, admins are authoritative: intentional
@@ -852,45 +821,15 @@ export async function seed() {
 
   console.log("Settings check complete");
 
-  // Initialize this catalog once; intentional deletions remain deleted on restart.
+  // Staking product records are also database-owned and managed from the admin panel.
+  // Record the cutover without inserting, deleting, or changing catalog rows.
   await db.transaction(async (tx) => {
     const [claim] = await tx.insert(platformSettings)
       .values({ key: STAKING_CATALOG_INITIALIZED_KEY, value: "true" })
       .onConflictDoNothing()
       .returning({ id: platformSettings.id });
-    if (!claim) return;
-
-    const existingStakingProducts = await tx.select({ id: stakingProducts.id })
-      .from(stakingProducts)
-      .limit(1);
-    if (existingStakingProducts.length === 0) {
-      await tx.insert(stakingProducts).values([
-      { name: "Produit 1", description: "5% par jour pendant 3 jours. Capital récupérable à la fin.", price: 2000, returnAmount: 2300, lockDays: 3, isActive: true },
-      { name: "Produit 2", description: "5% par jour pendant 7 jours. Capital récupérable à la fin.", price: 5000, returnAmount: 6750, lockDays: 7, isActive: true },
-      { name: "Produit 3", description: "5% par jour pendant 12 jours. Capital récupérable à la fin.", price: 10000, returnAmount: 16000, lockDays: 12, isActive: true },
-      { name: "Produit 4", description: "5% par jour pendant 16 jours. Capital récupérable à la fin.", price: 20000, returnAmount: 36000, lockDays: 16, isActive: true },
-      { name: "Produit 5", description: "5% par jour pendant 20 jours. Capital récupérable à la fin.", price: 50000, returnAmount: 100000, lockDays: 20, isActive: true },
-      ]);
-      console.log("Staking products seeded (first install)");
-    } else {
-      console.log(`Staking products skipped — ${existingStakingProducts.length} existing staking products preserved`);
-    }
+    if (claim) console.log("Staking catalog remains database-managed");
   });
-
-  // ─── Product Series seed data ────────────────────────────────────────────────
-  // Seed default series (Série A & Série B) if none exist
-  const existingSeries = await db.select({ id: productSeries.id }).from(productSeries).limit(1);
-  if (existingSeries.length === 0) {
-    const [serieA] = await db.insert(productSeries).values([
-      { name: "Série A", sortOrder: 1, isActive: true },
-      { name: "Série B", sortOrder: 2, isActive: true },
-    ]).returning();
-    // Assign all existing products to Série A by default
-    await db.execute(sql`UPDATE "products" SET "series_id" = ${serieA.id} WHERE "series_id" IS NULL AND "is_free" = false`);
-    console.log("Product series seeded (Série A, Série B) — existing products assigned to Série A");
-  } else {
-    console.log("Product series skipped — already exists");
-  }
 
   console.log("Database seeding complete!");
 }

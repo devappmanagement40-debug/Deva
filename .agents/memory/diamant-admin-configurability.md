@@ -7,6 +7,8 @@ For DIAMANT, operational business values and the live customer-facing text that 
 
 The user scoped admin configurability to operational settings and business content only; do not turn every static interface label into a CMS field.
 
-**Why:** On 2026-10-06 and 2026-10-07, the user reiterated that business values and explanations belong in the admin panel while the rest of the interface can stay static.
+Product and staking catalog rows are database-owned. Preserve existing rows and let the admin panel create, edit, and delete them; startup code must not seed or delete catalog entries.
 
-**How to apply:** Before adding a business rule or its explanatory copy, verify the admin field, persisted value, server-side behavior, and every live UI surface all use the same setting. Centralize defaults and seed only once or when missing; never overwrite admin edits or resurrect intentionally deleted catalog records. Hardcoded examples in tests are fine; fixed operational values in live UI are not.
+**Why:** On 2026-10-07, the user explicitly said to keep all current products, make them editable in the admin panel, and not hardcode catalog entries.
+
+**How to apply:** Before adding a business rule or its explanatory copy, verify the admin field, persisted value, server-side behavior, and every live UI surface all use the same setting. Preserve operational settings, existing product rows, and intentional deletions; keep only essential centralized fallback defaults. Hardcoded examples in tests are fine; fixed operational values and catalog entries in startup code are not.
