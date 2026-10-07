@@ -4,8 +4,7 @@ import "./index.css";
 import { getCanonicalInitialUrl } from "./lib/opaque-routes";
 
 // Convert old direct and hash-based page URLs to the /index/... routes.
-// Keep the public root invitation link exactly as
-// /?invite=CODE so it can open the registration form.
+// Invitations now use /index?invite=CODE, while older root links are redirected.
 (function normalizeInitialAppUrl() {
   const { pathname, search, hash } = window.location;
   const canonicalUrl = getCanonicalInitialUrl(window.location);

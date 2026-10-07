@@ -129,7 +129,7 @@ export function toInternalRoute(value: string): string {
 
 export function toIndexPath(value: string): string {
   const { path, suffix } = splitRouteAndSuffix(toInternalRoute(value));
-  if (path === "/") return `${path}${suffix}`;
+  if (path === "/") return `${INDEX_ROUTE_PREFIX}${suffix}`;
   return `${INDEX_ROUTE_PREFIX}${path}${suffix}`;
 }
 
@@ -155,11 +155,7 @@ export function getSearchFromLocation(location: BrowserRouteLocation): string {
   return location.search;
 }
 
-export function getCanonicalInitialUrl(location: BrowserRouteLocation): string | null {
-  if (!location.hash && normalizePath(location.pathname) === "/") {
-    return null;
-  }
-
+export function getCanonicalInitialUrl(location: BrowserRouteLocation): string {
   const routeSource = location.hash
     ? location.hash.slice(1)
     : `${location.pathname}${location.search}`;
@@ -171,5 +167,5 @@ export function buildIndexRouteUrl(origin: string, route: string): string {
 }
 
 export function buildInvitationUrl(origin: string, invitationCode: string): string {
-  return `${origin.replace(/\/+$/, "")}/?invite=${encodeURIComponent(invitationCode.trim())}`;
+  return `${origin.replace(/\/+$/, "")}${INDEX_ROUTE_PREFIX}?invite=${encodeURIComponent(invitationCode.trim())}`;
 }
