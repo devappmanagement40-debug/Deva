@@ -1,10 +1,16 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Check, FileText, Inbox, LoaderCircle, Pencil, Send, X } from "lucide-react";
+import { ArrowLeft, Check, FileText, ImagePlus, Inbox, LoaderCircle, Pencil, Send, X } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import type { SupportChatConversation, SupportChatMessage } from "@shared/schema";
 import "./support-chat.css";
+
+type SupportChatUploadResult = {
+  url: string;
+  type: "image";
+  name: string;
+};
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Une erreur est survenue.";
@@ -127,10 +133,13 @@ export default function AdminSupportInbox() {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [threadView, setThreadView] = useState<"messages" | "images">("messages");
   const [draft, setDraft] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
   const [sendError, setSendError] = useState("");
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [editError, setEditError] = useState("");
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
   const lastMessageIdRef = useRef<number | null>(null);
 
@@ -168,19 +177,52 @@ export default function AdminSupportInbox() {
   const thread = threadQuery.data || [];
 
   const sendReply = useMutation({
-    mutationFn: async ({ userId, message }: { userId: number; message: string }) => {
-      const response = await apiRequest("POST", `/api/admin/support-chat/conversations/${userId}/messages`, { message });
+    mutationFn: async ({ userId, message, image }: { userId: number; message: string; image?: File }) => {
+      let attachment: SupportChatUploadResult | undefined;
+      if (image) {
+        const formData = new FormData();
+        formData.append("file", image);
+        const uploadResponse = await fetch("/api/support-chat/upload", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        if (!uploadResponse.ok) {
+          const body = await uploadResponse.json().catch(() => null);
+          throw new Error(body?.message || "L’image n’a pas pu être téléversée.");
+        }
+        const uploaded = await uploadResponse.json();
+        if (uploaded?.type !== "image" || typeof uploaded.url !== "string" || typeof uploaded.name !== "string") {
+          throw new Error("La réponse du téléversement est invalide.");
+        }
+        attachment = uploaded as SupportChatUploadResult;
+      }
+
+      const response = await apiRequest("POST", `/api/admin/support-chat/conversations/${userId}/messages`, {
+        message,
+        ...(attachment ? {
+          attachmentUrl: attachment.url,
+          attachmentType: attachment.type,
+          attachmentName: attachment.name || image?.name,
+        } : {}),
+      });
       return response.json() as Promise<SupportChatMessage>;
     },
-    onSuccess: () => {
-      setDraft("");
-      setSendError("");
-      if (selectedUserId !== null) {
-        queryClient.invalidateQueries({ queryKey: ["/api/admin/support-chat/conversations", selectedUserId, "messages"] });
+    onSuccess: (_message, variables) => {
+      if (selectedUserId === variables.userId) {
+        setDraft("");
+        setSelectedImage(null);
+        setSendError("");
+        if (imageInputRef.current) imageInputRef.current.value = "";
       }
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support-chat/conversations", variables.userId, "messages"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/support-chat/conversations"] });
     },
-    onError: (error: Error) => setSendError(error.message || "La réponse n’a pas pu être envoyée."),
+    onError: (error: Error, variables) => {
+      if (selectedUserId === variables.userId) {
+        setSendError(error.message || "La réponse n’a pas pu être envoyée.");
+      }
+    },
   });
 
   const editReply = useMutation({
@@ -207,6 +249,17 @@ export default function AdminSupportInbox() {
   }, [selectedUserId]);
 
   useEffect(() => {
+    if (!selectedImage) {
+      setImagePreviewUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedImage);
+    setImagePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedImage]);
+
+  useEffect(() => {
     const newest = thread[thread.length - 1];
     if (!newest || newest.id === lastMessageIdRef.current) return;
     lastMessageIdRef.current = newest.id;
@@ -216,9 +269,35 @@ export default function AdminSupportInbox() {
   const submitReply = (event?: FormEvent) => {
     event?.preventDefault();
     const cleanDraft = draft.trim();
-    if (!selectedUserId || !cleanDraft || sendReply.isPending) return;
+    if (selectedUserId === null || (!cleanDraft && !selectedImage) || sendReply.isPending) return;
     setSendError("");
-    sendReply.mutate({ userId: selectedUserId, message: cleanDraft });
+    sendReply.mutate({ userId: selectedUserId, message: cleanDraft, image: selectedImage || undefined });
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const image = input.files?.[0];
+    input.value = "";
+    if (!image) return;
+
+    setSendError("");
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(image.type)) {
+      setSelectedImage(null);
+      setSendError("Formats d’image acceptés : JPG, PNG, WebP ou GIF.");
+      return;
+    }
+    if (image.size > 10 * 1024 * 1024) {
+      setSelectedImage(null);
+      setSendError("L’image dépasse la taille maximale de 10 Mo.");
+      return;
+    }
+    setSelectedImage(image);
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    setSendError("");
+    if (imageInputRef.current) imageInputRef.current.value = "";
   };
 
   const onDraftKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -295,10 +374,15 @@ export default function AdminSupportInbox() {
                     className="sc-conversation-button"
                     data-selected={selectedUserId === conversation.user.id}
                     onClick={() => {
+                      if (selectedUserId !== conversation.user.id) {
+                        setDraft("");
+                        setSelectedImage(null);
+                        setSendError("");
+                        if (imageInputRef.current) imageInputRef.current.value = "";
+                      }
                       setSelectedUserId(conversation.user.id);
                       setThreadView("messages");
                       cancelEditing();
-                      setSendError("");
                     }}
                     aria-current={selectedUserId === conversation.user.id ? "true" : undefined}
                     data-testid={`button-support-conversation-${conversation.user.id}`}
@@ -433,6 +517,22 @@ export default function AdminSupportInbox() {
               )}
 
               <form className="sc-admin-composer" onSubmit={submitReply}>
+                {selectedImage && (
+                  <div className="sc-attachment-preview" data-testid="admin-support-attachment-preview">
+                    <img src={imagePreviewUrl} alt="" />
+                    <span className="sc-preview-name">{selectedImage.name}</span>
+                    <button
+                      type="button"
+                      className="sc-preview-remove"
+                      onClick={removeSelectedImage}
+                      disabled={sendReply.isPending}
+                      aria-label="Retirer l’image jointe"
+                      data-testid="button-remove-admin-support-image"
+                    >
+                      <X size={17} aria-hidden="true" />
+                    </button>
+                  </div>
+                )}
                 <textarea
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}
@@ -443,14 +543,34 @@ export default function AdminSupportInbox() {
                   data-testid="input-admin-support-reply"
                 />
                 <button
+                  className="sc-tool-button"
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={sendReply.isPending}
+                  aria-label="Joindre une image"
+                  data-testid="button-admin-support-attach-image"
+                >
+                  <ImagePlus size={21} aria-hidden="true" />
+                </button>
+                <button
                   className="sc-admin-send"
                   type="submit"
-                  disabled={!draft.trim() || sendReply.isPending}
+                  disabled={(!draft.trim() && !selectedImage) || sendReply.isPending}
                   data-testid="button-admin-support-send"
                 >
                   {sendReply.isPending ? <LoaderCircle size={16} className="animate-spin" aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
                   <span>Envoyer</span>
                 </button>
+                <input
+                  ref={imageInputRef}
+                  className="sc-hidden-file"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageChange}
+                  aria-label="Choisir une image à envoyer"
+                  tabIndex={-1}
+                  data-testid="input-admin-support-image"
+                />
               </form>
               {sendError && <p className="sc-admin-error" role="alert" data-testid="admin-support-send-error">{sendError}</p>}
             </>

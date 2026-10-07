@@ -788,15 +788,22 @@ body.ielp-route-theme .sc-page .sc-compose-line textarea::placeholder {
 
 .sc-admin-composer {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 10px;
   padding: 12px;
   border-top: 1px solid #e9eef4;
 }
 
+.sc-admin-composer .sc-attachment-preview {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+}
+
 .sc-admin-composer textarea {
   min-height: 42px;
   max-height: 120px;
+  min-width: 0;
   flex: 1;
   resize: vertical;
   padding: 10px 12px;
@@ -807,6 +814,10 @@ body.ielp-route-theme .sc-page .sc-compose-line textarea::placeholder {
   outline: none;
   font: inherit;
   font-size: 13px;
+}
+
+.sc-admin-composer .sc-tool-button {
+  flex: 0 0 38px;
 }
 
 .sc-admin-composer textarea:focus {

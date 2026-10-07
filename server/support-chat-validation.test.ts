@@ -13,6 +13,22 @@ test("accepts the private URL returned by a support-chat image upload", () => {
   assert.equal(result.success, true);
 });
 
+test("accepts a support-chat reply containing both text and an image", () => {
+  const result = supportChatMessageSchema.safeParse({
+    message: "Voici le document demandé.",
+    attachmentUrl: `/api/support-chat/files/support-${"b".repeat(32)}.jpg`,
+    attachmentType: "image",
+    attachmentName: "document.jpg",
+  });
+
+  assert.equal(result.success, true);
+});
+
+test("accepts a text-only support-chat reply", () => {
+  const result = supportChatMessageSchema.safeParse({ message: "Bonjour, je vous réponds." });
+  assert.equal(result.success, true);
+});
+
 test("rejects public upload paths and malformed support-chat attachment URLs", () => {
   for (const attachmentUrl of [
     "/uploads/proof.png",
