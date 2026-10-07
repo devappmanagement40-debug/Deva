@@ -3485,6 +3485,13 @@ export async function registerRoutes(
         return res.status(401).json({ code: "INVALID_ACCOUNT_PASSWORD" });
       }
 
+      if (newPin === accountPassword) {
+        return res.status(400).json({ code: "ADMIN_PIN_SAME_AS_PASSWORD" });
+      }
+      if (user.adminPin && (await verifyAdminAccessPin(newPin, user.adminPin)).valid) {
+        return res.status(400).json({ code: "ADMIN_PIN_UNCHANGED" });
+      }
+
       const adminPin = await hashAdminAccessPin(newPin);
       await storage.updateUser(user.id, { adminPin });
       clearAdminAccessPinAttempts(req, user.id);
@@ -3830,7 +3837,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/users/:id/:action", requireAdmin, async (req, res) => {
+  app.post("/api/admin/users/:id/:action", requireAdmin, requireSameOrigin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id as string);
       const action = req.params.action;

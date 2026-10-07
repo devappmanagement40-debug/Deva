@@ -175,8 +175,8 @@ export async function seed() {
   const adminPhone = "0501682811";
   const existingAdmins = await db.select().from(users).where(eq(users.phone, adminPhone));
   const existingAdmin = existingAdmins.find((user) => user.referralCode === "ADMIN1" || user.isSuperAdmin);
-  // Use ADMIN_PASSWORD only when creating the initial account. Existing
-  // passwords are managed explicitly and must not be reset on every startup.
+  // Seed credentials are for initial account creation. Existing admin access
+  // credentials are managed explicitly and must not be reset on every startup.
   const adminPassword = process.env.ADMIN_PASSWORD;
   const adminPin = process.env.ADMIN_PIN || "1990";
 
@@ -191,7 +191,7 @@ export async function seed() {
       balance: "0",
       isAdmin: true,
       isSuperAdmin: true,
-      adminPin,
+      adminPin: await bcrypt.hash(adminPin, 12),
     });
     console.log("Super admin created");
   } else {
@@ -201,9 +201,8 @@ export async function seed() {
       country: string;
       isAdmin: boolean;
       isSuperAdmin: boolean;
-      adminPin: string;
       password?: string;
-    } = { country: "CI", isAdmin: true, isSuperAdmin: true, adminPin };
+    } = { country: "CI", isAdmin: true, isSuperAdmin: true };
     if (adminPassword) {
       adminUpdate.password = await bcrypt.hash(adminPassword, 12);
     }

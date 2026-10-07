@@ -7,6 +7,7 @@
 - [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — admin-managed rate defaults to XOF ÷ 500; credits stay XOF and the rate stays hidden from members.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
+- [DIAMANT admin panel PIN](diamant-admin-panel-pin.md) — hash panel PINs, keep them out of user responses, and preserve admin-managed PIN changes across restarts.
 - [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.
 - [TGOOD customer service hours](tgood-service-hours.md) — support availability and link activation follow the configured start/end hour window.
 - [TGOOD task rewards](tgood-task-rewards.md) — task rewards support decimal USDT amounts; startup adds missing levels without overwriting admin-configured values.

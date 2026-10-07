@@ -22,7 +22,8 @@
     "test:task-rewards": "tsx --test server/task-rewards-policy.test.ts",
     "test:product-categories": "tsx --test shared/product-categories.test.ts",
     "test:product-card-color": "tsx --test shared/product-card-color.test.ts",
-    "test:vip-progress": "tsx --test shared/vip-progress.test.ts"
+    "test:vip-progress": "tsx --test shared/vip-progress.test.ts",
+    "test:admin-pin": "tsx --test server/admin-pin-security.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
