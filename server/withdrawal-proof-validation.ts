@@ -40,3 +40,22 @@ export function maskPhoneForWithdrawalProof(phone: string): string {
   const hiddenLength = digits.length - startLength - endLength;
   return `${hasInternationalPrefix ? "+" : ""}${digits.slice(0, startLength)}${"•".repeat(hiddenLength)}${digits.slice(-endLength)}`;
 }
+
+export function toPublicWithdrawalProofFeedItem(proof: {
+  id: number;
+  message: string;
+  shareBonusXof: number;
+  displayAmountXof: number;
+  createdAt: Date;
+  proofImage2: string | null;
+  user: { phone: string };
+}) {
+  return {
+    id: proof.id,
+    message: proof.message,
+    displayAmountXof: proof.displayAmountXof,
+    createdAt: proof.createdAt,
+    imageCount: proof.proofImage2 ? 2 : 1,
+    maskedPhone: maskPhoneForWithdrawalProof(proof.user.phone),
+  };
+}

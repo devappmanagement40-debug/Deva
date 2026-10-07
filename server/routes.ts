@@ -30,7 +30,7 @@ import crypto from "crypto";
 import { isSecureShareLink } from "./share-report-validation";
 import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
 import {
-  maskPhoneForWithdrawalProof,
+  toPublicWithdrawalProofFeedItem,
   withdrawalProofReviewSchema,
   withdrawalProofSubmissionSchema,
 } from "./withdrawal-proof-validation";
@@ -1793,14 +1793,7 @@ export async function registerRoutes(
   app.get("/api/withdrawal-proofs", requireAuth, async (_req, res) => {
     try {
       const proofs = await storage.getWithdrawalProofs("approved", 100);
-      return res.json(proofs.map(({ id, message, displayAmountXof, createdAt, user, proofImage2 }) => ({
-        id,
-        message,
-        displayAmountXof,
-        createdAt,
-        imageCount: proofImage2 ? 2 : 1,
-        maskedPhone: maskPhoneForWithdrawalProof(user.phone),
-      })));
+      return res.json(proofs.map(toPublicWithdrawalProofFeedItem));
     } catch (error) {
       console.error("Withdrawal proof feed error:", error);
       return res.status(500).json({ message: "Impossible de charger les preuves de retrait" });

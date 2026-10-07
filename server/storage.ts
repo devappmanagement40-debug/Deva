@@ -1513,7 +1513,7 @@ export class DatabaseStorage implements IStorage {
 
   async reviewPendingWithdrawalProof(
     id: number,
-    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "processedAt" | "processedBy">,
+    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "displayAmountXof" | "processedAt" | "processedBy">,
   ): Promise<WithdrawalProof | undefined> {
     const [proof] = await db.update(withdrawalProofs)
       .set(data)

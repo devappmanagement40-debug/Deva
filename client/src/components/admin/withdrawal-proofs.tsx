@@ -14,6 +14,7 @@ type AdminProof = {
   imageCount: 1 | 2;
   status: string;
   shareBonusXof: number;
+  displayAmountXof: number;
   createdAt: string;
   processedAt: string | null;
   processedBy: number | null;
@@ -38,6 +39,7 @@ export default function AdminWithdrawalProofs() {
   const locale = localeForLang(lang);
   const [status, setStatus] = useState<ReviewStatus>("pending");
   const [bonusAmounts, setBonusAmounts] = useState<Record<number, string>>({});
+  const [displayAmounts, setDisplayAmounts] = useState<Record<number, string>>({});
   const [openImage, setOpenImage] = useState<{ id: number; imageNumber: number } | null>(null);
 
   const proofs = useQuery<AdminProof[]>({
@@ -52,7 +54,12 @@ export default function AdminWithdrawalProofs() {
   });
 
   const reviewProof = useMutation({
-    mutationFn: async (payload: { id: number; action: "approve"; shareBonusXof: number } | { id: number; action: "reject" }) => {
+    mutationFn: async (payload: {
+      id: number;
+      action: "approve";
+      shareBonusXof: number;
+      displayAmountXof: number;
+    } | { id: number; action: "reject" }) => {
       const { id, ...body } = payload;
       const response = await apiRequest("POST", `/api/admin/withdrawal-proofs/${id}/review`, body);
       return response.json();
@@ -72,7 +79,12 @@ export default function AdminWithdrawalProofs() {
   const approve = (proof: AdminProof) => {
     const rawAmount = bonusAmounts[proof.id] ?? String(proof.shareBonusXof ?? 0);
     const amount = Number(rawAmount);
-    if (!Number.isSafeInteger(amount) || amount < 0 || amount > 2_147_483_647) {
+    const rawDisplayAmount = displayAmounts[proof.id] ?? String(proof.displayAmountXof ?? 0);
+    const displayAmount = Number(rawDisplayAmount);
+    if (
+      !Number.isSafeInteger(amount) || amount < 0 || amount > 2_147_483_647
+      || !Number.isSafeInteger(displayAmount) || displayAmount < 0 || displayAmount > 2_147_483_647
+    ) {
       toast({
         title: "Montant invalide",
         description: "Saisissez un montant entier compris entre 0 et 2 147 483 647 XOF.",
@@ -80,7 +92,12 @@ export default function AdminWithdrawalProofs() {
       });
       return;
     }
-    reviewProof.mutate({ id: proof.id, action: "approve", shareBonusXof: amount });
+    reviewProof.mutate({
+      id: proof.id,
+      action: "approve",
+      shareBonusXof: amount,
+      displayAmountXof: displayAmount,
+    });
   };
 
   return (
@@ -93,8 +110,8 @@ export default function AdminWithdrawalProofs() {
         </div>
       </div>
       <aside className="admin-proof-review__note">
-        <strong>Note sur la prime de partage</strong>
-        <span>La prime est créditée au solde des gains du membre lors de l’approbation, puis affichée avec la preuve. Un montant de 0 XOF ne crée aucun crédit.</span>
+        <strong>Montants de la preuve</strong>
+        <span>La prime réelle est créditée au membre. Le montant indicatif est séparé, affiché comme non crédité et ne modifie pas son solde.</span>
       </aside>
 
       <div className="admin-proof-review__filters" role="group" aria-label="Filtrer les preuves">
@@ -180,7 +197,7 @@ export default function AdminWithdrawalProofs() {
               {proof.status === "pending" ? (
                 <div className="admin-proof-card__actions">
                   <label className="admin-proof-card__amount">
-                    <span>Prime à créditer (XOF)</span>
+                    <span>Prime réellement créditée (XOF)</span>
                     <input
                       type="number"
                       min="0"
@@ -189,8 +206,22 @@ export default function AdminWithdrawalProofs() {
                       inputMode="numeric"
                       value={bonusAmounts[proof.id] ?? String(proof.shareBonusXof ?? 0)}
                       onChange={(event) => setBonusAmounts((current) => ({ ...current, [proof.id]: event.target.value }))}
-                      aria-label="Prime à créditer (XOF)"
+                      aria-label="Prime réellement créditée (XOF)"
                       data-testid={`input-withdrawal-proof-bonus-${proof.id}`}
+                    />
+                  </label>
+                  <label className="admin-proof-card__amount">
+                    <span>Montant indicatif public (XOF)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="2147483647"
+                      step="1"
+                      inputMode="numeric"
+                      value={displayAmounts[proof.id] ?? String(proof.displayAmountXof ?? 0)}
+                      onChange={(event) => setDisplayAmounts((current) => ({ ...current, [proof.id]: event.target.value }))}
+                      aria-label="Montant indicatif public (XOF)"
+                      data-testid={`input-withdrawal-proof-display-amount-${proof.id}`}
                     />
                   </label>
                   <div className="admin-proof-card__buttons">
@@ -219,13 +250,14 @@ export default function AdminWithdrawalProofs() {
                   {proof.status === "approved" ? <Check size={14} /> : <X size={14} />}
                   <span>
                     {proof.status === "approved"
-                      ? Number(proof.shareBonusXof || 0) > 0
-                        ? "Prime affichée"
-                        : "Approuvée sans prime affichée"
+                      ? "Preuve approuvée"
                       : "Preuve rejetée"}
                   </span>
                   {proof.status === "approved" && Number(proof.shareBonusXof || 0) > 0 && (
-                    <span data-no-static-translation>· {Number(proof.shareBonusXof).toLocaleString(locale)} XOF</span>
+                    <span>· Prime réellement créditée : <span data-no-static-translation>{Number(proof.shareBonusXof).toLocaleString(locale)} XOF</span></span>
+                  )}
+                  {proof.status === "approved" && Number(proof.displayAmountXof || 0) > 0 && (
+                    <span>· Montant indicatif public : <span data-no-static-translation>{Number(proof.displayAmountXof).toLocaleString(locale)} XOF</span></span>
                   )}
                   {proof.processedAt && (
                     <small>

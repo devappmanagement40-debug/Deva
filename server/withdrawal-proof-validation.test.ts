@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   maskPhoneForWithdrawalProof,
+  toPublicWithdrawalProofFeedItem,
   withdrawalProofReviewSchema,
   withdrawalProofSubmissionSchema,
 } from "./withdrawal-proof-validation";
@@ -64,6 +65,10 @@ test("review amounts must be non-negative whole XOF values", () => {
   }).success, true);
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
+    shareBonusXof: 500,
+  }).success, false);
+  assert.equal(withdrawalProofReviewSchema.safeParse({
+    action: "approve",
     shareBonusXof: -1,
     displayAmountXof: 1500,
   }).success, false);
@@ -78,4 +83,21 @@ test("review amounts must be non-negative whole XOF values", () => {
 test("public proof phone numbers keep a short prefix and suffix only", () => {
   assert.equal(maskPhoneForWithdrawalProof("+2250701234960"), "+225070••••960");
   assert.equal(maskPhoneForWithdrawalProof("07012345"), "070••345");
+});
+
+test("public proof feed exposes only its distinct indicative amount, never the credited bonus", () => {
+  const item = toPublicWithdrawalProofFeedItem({
+    id: 12,
+    message: "Retrait reçu",
+    shareBonusXof: 500,
+    displayAmountXof: 1500,
+    createdAt: new Date("2026-10-07T12:00:00.000Z"),
+    proofImage2: null,
+    user: { phone: "+2250701234960" },
+  });
+
+  assert.equal(item.displayAmountXof, 1500);
+  assert.equal("shareBonusXof" in item, false);
+  assert.equal(item.maskedPhone, "+225070••••960");
+  assert.equal(item.imageCount, 1);
 });
