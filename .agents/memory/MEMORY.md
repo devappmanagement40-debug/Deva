@@ -20,7 +20,7 @@
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
 - [TGOOD product cycle credits](tgood-product-earnings-collection.md) — gains accrue through the full cycle and credit once; settle legacy unpaid gains without repeating prior credits.
 - [DIAMANT purchase snapshots](diamant-purchase-snapshots.md) — existing purchases keep their purchase-time terms; catalog edits or removal must not rewrite or revoke them.
-- [DIAMANT product sections](diamant-product-sections.md) — active Explore gates Parcours/Offres; VIP starts with Parcours, then counts personal paid purchases across all categories.
+- [DIAMANT product sections](diamant-product-sections.md) — active Explore gates Parcours/Offres; VIP and product eligibility never depend on invitation counts.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
 - [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
