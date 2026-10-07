@@ -126,3 +126,45 @@ mtime_ms = 1790930700333
 storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/a945b565-fafe-45eb-8885-fa9f162abd24/7265dbfe-33c0-4b7b-81ad-27786139341e"
 storage_version_token = "1790930779021013"
 content_type = "image/png"
+
+[[outputs]]
+id = "bhi-qoQD0UNPbv7qfbj3y"
+uri = "file://client/public/diamant-logo-dark.png"
+type = "image"
+title = "Logo DIAMANT — connexion et inscription"
+description = "PNG du logo complet réellement utilisé sur les écrans de connexion et d’inscription."
+logical_id = "da176db1-7834-4e19-8b7a-4b4ad01e4b86"
+content_hash = "sha256:1ac477f7bdf09029f6ab92afde5219dbb7bc688b092d24ba7eda3a03a2ea57c6"
+size = 125448
+mtime_ms = 1790770789327
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/da176db1-7834-4e19-8b7a-4b4ad01e4b86/ef2bf5ee-4955-47e2-a73b-ccaf1132e8ce"
+storage_version_token = "1791386223418878"
+content_type = "image/png"
+
+[[outputs]]
+id = "w1mO7XUDfhlYAzTyvmPUL"
+uri = "file://client/public/favicon.svg"
+type = "image"
+title = "Favicon DIAMANT"
+description = "Fichier SVG exact utilisé comme favicon du site."
+logical_id = "22479c82-088a-4c57-a9b7-cb49d48f482d"
+content_hash = "sha256:34f3b261bee6c2d32e4589a916f10172bd1691efe0c8c01d4acde7b0496a79d1"
+size = 579
+mtime_ms = 1790770961832
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/22479c82-088a-4c57-a9b7-cb49d48f482d/993901e5-77c8-4439-a40f-2c8eff948f10"
+storage_version_token = "1791386224008149"
+content_type = "image/svg+xml"
+
+[[outputs]]
+id = "KS4gcRlzi8binPUYrZjob"
+uri = "file://client/public/diamant-mark.svg"
+type = "image"
+title = "Symbole DIAMANT"
+description = "Version vectorielle du symbole seul utilisé dans la marque du site."
+logical_id = "8fa4c7e1-d931-4045-b1e5-bb15f28aa648"
+content_hash = "sha256:8414129e10ee84bb572024518867b475cf25d5b0961627bbe138521facbf6946"
+size = 521
+mtime_ms = 1790770958464
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:cd23e460-5276-4000-8eaa-346da89077e6/8fa4c7e1-d931-4045-b1e5-bb15f28aa648/77f807fa-b70f-4f94-8f9f-1b54930154ba"
+storage_version_token = "1791386224572607"
+content_type = "image/svg+xml"
