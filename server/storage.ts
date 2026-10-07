@@ -32,6 +32,7 @@ import {
   ownsActiveStabilityProduct,
 } from "@shared/product-categories";
 import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
+import { isSupportedMarketCountryCode } from "@shared/country-codes";
 
 export class TaskHasClaimsError extends Error {
   constructor() {
@@ -408,7 +409,11 @@ export class DatabaseStorage implements IStorage {
         .from(countries)
         .where(eq(countries.code, data.country))
         .for("share");
-      if (!country || !country.isActive) {
+      if (
+        !country ||
+        !country.isActive ||
+        !isSupportedMarketCountryCode(country.code)
+      ) {
         const error = new Error("Ce pays n’est pas actif pour les inscriptions.");
         error.name = "CountryNotAvailableError";
         throw error;
@@ -2819,9 +2824,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveCountries(): Promise<Country[]> {
-    return await db.select().from(countries)
+    const activeCountries = await db.select().from(countries)
       .where(eq(countries.isActive, true))
       .orderBy(asc(countries.name));
+    return activeCountries.filter((country) => isSupportedMarketCountryCode(country.code));
   }
 
   async getCountry(id: number): Promise<Country | undefined> {

@@ -3,7 +3,7 @@ import { pgTable, text, varchar, integer, boolean, timestamp, decimal, numeric, 
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import type { SpinWheelSegment } from "./spin-wheel";
-import { isCountryCode } from "./country-codes";
+import { isCountryCode, isSupportedMarketCountryCode } from "./country-codes";
 
 // Countries table (admin-managed)
 export const countries = pgTable("countries", {
@@ -541,8 +541,8 @@ export const registerSchema = z.object({
   fullName: z.string().min(2, "Le nom complet est requis"),
   phone: z.string().min(8, "Numéro de téléphone invalide"),
   country: z.string().refine(
-    isCountryCode,
-    "Le code pays doit contenir deux lettres majuscules",
+    isSupportedMarketCountryCode,
+    "Seuls la Côte d’Ivoire et le Togo sont disponibles.",
   ),
   password: z.string().min(6, "Le mot de passe doit avoir au moins 6 caractères"),
   invitationCode: z.string().optional(),
@@ -554,8 +554,8 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   phone: z.string().min(8, "Numéro de téléphone invalide"),
   country: z.string().refine(
-    isCountryCode,
-    "Le code pays doit contenir deux lettres majuscules",
+    isSupportedMarketCountryCode,
+    "Seuls la Côte d’Ivoire et le Togo sont disponibles.",
   ),
   password: z.string().min(1, "Le mot de passe est requis"),
 });

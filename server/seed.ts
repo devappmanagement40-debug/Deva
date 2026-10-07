@@ -220,15 +220,6 @@ export async function seed() {
   // country after an administrator intentionally deletes it.
   const countryDefaults = [
     {
-      code: "CD",
-      name: "République démocratique du Congo",
-      currency: "USDT",
-      phonePrefix: "243",
-      operators: JSON.stringify(["Airtel Money RDC", "Orange Money RDC", "M-Pesa RDC"]),
-      isActive: true,
-      autoPaymentEnabled: true,
-    },
-    {
       code: "CI",
       name: "Côte d’Ivoire",
       currency: "USDT",

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "../shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "../shared/withdrawal-fees";
 import { DEFAULT_MIN_WITHDRAWAL_XOF } from "../shared/financial-settings";
+import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const { Pool } = pg;
 
@@ -299,7 +300,20 @@ async function run() {
 
     // ── Seed countries ──
     const countriesData = [
-      { code: "CD", name: "République démocratique du Congo", currency: "USDT", phone_prefix: "243", operators: '["Airtel Money RDC","Orange Money RDC","M-Pesa RDC"]' },
+      {
+        code: "CI",
+        name: "Côte d’Ivoire",
+        currency: "USDT",
+        phone_prefix: "225",
+        operators: JSON.stringify(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.CI),
+      },
+      {
+        code: "TG",
+        name: "Togo",
+        currency: "USDT",
+        phone_prefix: "228",
+        operators: JSON.stringify(DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY.TG),
+      },
     ];
     for (const c of countriesData) {
       await client.query(

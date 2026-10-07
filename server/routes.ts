@@ -15,7 +15,10 @@ import { normalizeProductCardColor } from "@shared/product-card-color";
 import { calculateVipProgress, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
-import { isCountryCode } from "@shared/country-codes";
+import {
+  isCountryCode,
+  isSupportedMarketCountryCode,
+} from "@shared/country-codes";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -4583,7 +4586,9 @@ export async function registerRoutes(
   app.get("/api/auth/countries", async (_req, res) => {
     try {
       const allCountries = await storage.getCountries();
-      res.json(allCountries.map((country) => ({ ...country, currency: "USDT" })));
+      res.json(allCountries
+        .filter((country) => isSupportedMarketCountryCode(country.code))
+        .map((country) => ({ ...country, currency: "USDT" })));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
