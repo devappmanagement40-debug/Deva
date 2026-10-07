@@ -349,7 +349,7 @@ export default function AdminWithdrawalProofs() {
           <AlertDialogHeader>
             <AlertDialogTitle>Supprimer la preuve de retrait ?</AlertDialogTitle>
             <AlertDialogDescription>
-              La preuve et ses captures seront supprimées du fil. Une prime déjà créditée restera dans le solde du membre et dans son historique financier.
+              La preuve et ses captures seront supprimées définitivement. Une prime déjà créditée restera dans le solde du membre et dans son historique financier.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

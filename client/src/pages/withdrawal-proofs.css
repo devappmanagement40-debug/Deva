@@ -323,15 +323,19 @@
 .admin-proof-card__message { margin: 0; color: #433d50; font-size: 12px; line-height: 1.55; }
 .admin-proof-card__images { display: grid; }
 .admin-proof-card__images.is-multiple { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.admin-proof-card__image-item { position: relative; min-width: 0; }
 .admin-proof-card__image-button { position: relative; display: block; width: 100%; max-height: 270px; overflow: hidden; border: 1px solid #e8e4ed; border-radius: 11px; background: #f4f2f7; }
 .admin-proof-card__image-button img { display: block; width: 100%; max-height: 270px; object-fit: contain; }
 .admin-proof-card__image-button > span { position: absolute; right: 7px; bottom: 7px; display: flex; align-items: center; gap: 5px; padding: 6px 8px; border-radius: 7px; color: #fff; background: rgba(28,24,39,.72); font-size: 10px; }
+.admin-proof-card__download { position: absolute; top: 7px; right: 7px; display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid rgba(255,255,255,.24); border-radius: 7px; color: #fff; background: rgba(28,24,39,.78); font-size: 10px; font-weight: 600; text-decoration: none; }
+.admin-proof-card__download:hover { background: rgba(28,24,39,.94); }
 .admin-proof-card__actions { display: grid; gap: 10px; padding-top: 3px; }
 .admin-proof-card__amount { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #635d70; font-size: 11px; font-weight: 600; }
 .admin-proof-card__amount input { width: 118px; height: 36px; border: 1px solid #ddd7e8; border-radius: 8px; padding: 0 9px; color: #362d4f; background: #fbfaff; font-size: 13px; }
 .admin-proof-card__buttons { display: flex; gap: 8px; }
 .admin-proof-card__buttons button { min-height: 38px; flex: 1; gap: 6px; font-size: 11px; }
 .admin-proof-card__buttons .admin-proof-card__approve { color: #fff; background: #5941a9; }
+.admin-proof-card__delete { justify-self: start; min-height: 34px; gap: 6px; padding-inline: 11px; font-size: 11px; }
 .admin-proof-card__processed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; color: #6f6781; font-size: 10px; }
 .admin-proof-card__processed small { width: 100%; padding-left: 20px; color: #948da1; }
 .admin-proof-review__state { display: grid; justify-items: center; gap: 8px; padding: 32px 18px; border: 1px dashed #ddd6e8; border-radius: 14px; color: #756d83; background: #fcfbfe; text-align: center; }
