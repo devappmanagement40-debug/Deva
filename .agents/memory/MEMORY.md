@@ -39,3 +39,4 @@
 - [DIAMANT Mobile Money verification](diamant-mobile-money-verification.md) — shared six-minute screen follows the checkout's navy, white, orange, and blue style; retry checks the same deposit.
 - [DIAMANT Togo Mobile Money](diamant-togo-mobile-money.md) — collect +228, show admin-managed instructions, require a transaction ID after payment, and preserve CI.
 - [PDF processing in the JS workspace](pdf-processing-js-workspace.md) — handle temporary Python/PDF tooling without leaving generated scaffolding or changing Replit settings.
+- [DIAMANT URL-only scope](diamant-url-only-scope.md) — URL changes must preserve page design, business rules, content, and stored data.

@@ -5,6 +5,7 @@ import { CalendarDays, MessageSquare, Send, UsersRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useToast } from "@/hooks/use-toast";
+import { buildInvitationUrl } from "@/lib/opaque-routes";
 import { LanguagePicker } from "@/components/language-picker";
 import { DiamantBrand } from "@/components/diamant-brand";
 import { FloatingSupport } from "@/components/floating-support";
@@ -191,7 +192,7 @@ export default function TeamPage() {
   if (!user) return null;
 
   const referralCode = user.referralCode || "";
-  const referralLink = `${window.location.origin}/#/register?invite_code=${encodeURIComponent(referralCode)}`;
+  const referralLink = buildInvitationUrl(window.location.origin, referralCode);
   const levelCounts = [stats?.level1Count || 0, stats?.level2Count || 0, stats?.level3Count || 0];
   const levelValidCounts = [
     stats?.level1ValidCount || 0,

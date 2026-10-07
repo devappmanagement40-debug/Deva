@@ -8,17 +8,14 @@ import {
   ToastDescription,
   ToastViewport,
 } from "@/components/ui/toast"
+import { internalPathFromLocation } from "@/lib/opaque-routes"
 import "./feedback-popup.css"
 
 const LEGACY_TOAST_ROUTES = new Set(["/spin-wheel", "/checkin"])
 
 function getCurrentRoutePath() {
   if (typeof window === "undefined") return "/"
-
-  const hashPath = window.location.hash.replace(/^#/, "").split("?")[0]
-  const path = hashPath || window.location.pathname
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`
-  return normalizedPath === "/" ? normalizedPath : normalizedPath.replace(/\/+$/, "")
+  return internalPathFromLocation(window.location)
 }
 
 function useCurrentRoutePath() {

@@ -1,3 +1,5 @@
+import { buildInvitationUrl, buildOpaqueRouteUrl } from "@/lib/opaque-routes";
+
 /**
  * Popup carte blanche — affiché quand GO est pressé sans tour disponible.
  * Rappelle à l'utilisateur de partager son lien ou d'acheter un produit.
@@ -12,8 +14,8 @@ export default function WheelNoToursModal({ open, onClose, referralCode }: Props
   if (!open) return null;
 
   const link = referralCode
-    ? `${window.location.origin}/register?ref=${referralCode}`
-    : `${window.location.origin}/register`;
+    ? buildInvitationUrl(window.location.origin, referralCode)
+    : buildOpaqueRouteUrl(window.location.origin, "/register");
 
   function copyLink() {
     navigator.clipboard.writeText(link).catch(() => {});

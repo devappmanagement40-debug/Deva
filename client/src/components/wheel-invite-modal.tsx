@@ -1,6 +1,7 @@
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/lib/i18n";
+import { buildInvitationUrl } from "@/lib/opaque-routes";
 import WheelBoardModal from "./wheel-board-modal";
 
 /**
@@ -25,7 +26,7 @@ export default function WheelInviteModal({
   const { toast } = useToast();
   const { t } = useI18n();
   const referralLink = referralCode
-    ? `${window.location.origin}/#/register?invite_code=${encodeURIComponent(referralCode)}`
+    ? buildInvitationUrl(window.location.origin, referralCode)
     : "";
 
   const copyReferralLink = async () => {
