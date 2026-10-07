@@ -33,7 +33,7 @@
 - [DIAMANT production reliability](diamant-production-reliability.md) — treat features as part of a large production app; prioritize resilient flows and data integrity.
 - [DIAMANT mining articles](diamant-mining-articles.md) — keep gold, diamond and copper articles aspirational, with images and all copy editable from a clear admin entry.
 - [DIAMANT account application entry](diamant-account-application-entry.md) — replace the duplicate About item with an Application entry for installing the user-facing app.
-- [Supabase account migration](supabase-account-migration.md) — Replit PostgreSQL is the confirmed legacy source; Supabase is the working target; global settings and sessions stay separate.
+- [Supabase account migration](supabase-account-migration.md) — Supabase is the current account database for Replit and Plesk; Replit PostgreSQL remains legacy; settings and sessions stay separate.
 - [DIAMANT transaction receipts](diamant-transaction-receipts.md) — use white field text on dark receipt bodies, pure green/red status badges, and keep earnings layout distinct.
 - [DIAMANT withdrawal error messages](diamant-error-messaging.md) — explain the safe, specific cause in withdrawal notices; never show generic titles or raw technical details.
 - [DIAMANT Mobile Money verification](diamant-mobile-money-verification.md) — shared six-minute screen follows the checkout's navy, white, orange, and blue style; retry checks the same deposit.
