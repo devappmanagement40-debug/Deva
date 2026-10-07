@@ -253,6 +253,9 @@
 .withdrawal-proof-card__content > p { margin: 1px 0 0; color: #e0e3f5; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
 .withdrawal-proof-card__images { display: grid; }
 .withdrawal-proof-card__images.is-multiple { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.withdrawal-proof-card__content.is-multiple { grid-template-columns: minmax(0, 1fr); }
+.withdrawal-proof-card__content.is-multiple .withdrawal-proof-card__images { gap: 8px; }
+.withdrawal-proof-card__content.is-multiple .withdrawal-proof-card__image-button img { height: clamp(230px, 78vw, 360px); object-fit: contain; }
 .withdrawal-proof-card__image-button { position: relative; display: block; width: 100%; overflow: hidden; padding: 0; border: 1px solid rgba(167, 188, 255, .35); border-radius: 14px; background: #080d28; box-shadow: 0 5px 16px rgba(0,0,0,.24); cursor: zoom-in; }
 .withdrawal-proof-card__image-button img { display: block; width: 100%; height: 110px; object-fit: cover; transition: transform .2s ease; }
 .withdrawal-proof-card__image-button:hover img { transform: scale(1.035); }

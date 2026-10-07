@@ -319,7 +319,7 @@ export default function WithdrawalProofsPage() {
                     </div>
                     <span className="withdrawal-proof-card__verified"><ShieldCheck size={15} strokeWidth={2.8} /> Vérifié</span>
                   </div>
-                  <div className="withdrawal-proof-card__content">
+                  <div className={`withdrawal-proof-card__content ${item.imageCount > 1 ? "is-multiple" : ""}`}>
                     <p data-no-static-translation>{item.message}</p>
                       <div className={`withdrawal-proof-card__images ${item.imageCount > 1 ? "is-multiple" : ""}`}>
                         {Array.from({ length: item.imageCount }, (_, imageIndex) => {
