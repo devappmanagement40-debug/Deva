@@ -374,7 +374,7 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Trust proxy for production HTTPS (Replit deployment)
+  // Trust proxy for production HTTPS (Développer Studio deployment)
   app.set("trust proxy", 1);
 
   // Health check — verifies DB connectivity without exposing sensitive data

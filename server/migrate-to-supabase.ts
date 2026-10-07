@@ -275,7 +275,7 @@ async function main() {
     console.log(
       JSON.stringify({
         mode: applyChanges ? "apply" : "dry-run",
-        source: "Replit DATABASE_URL",
+        source: "Développer Studio DATABASE_URL",
         target: "Supabase SUPABASE_DATABASE_URL",
         tables: plans.map(({ table, sourceRows, targetRows }) => ({
           table,
