@@ -31,7 +31,8 @@ export default function RegisterPage() {
   const countryTriggerRef = useRef<HTMLButtonElement>(null);
   const searchParams = new URLSearchParams(searchString);
   const refCode = (
-    searchParams.get("invitation_code")
+    searchParams.get("invite")
+    || searchParams.get("invitation_code")
     || searchParams.get("ref")
     || searchParams.get("invite_code")
     || searchParams.get("money")

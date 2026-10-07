@@ -34,11 +34,15 @@ test("opaque dynamic routes preserve identifiers and query strings", () => {
   assert.equal(toInternalRoute(external), "/admin/team/17?tab=members");
 });
 
-test("root invitation links open registration and prefill invitation_code", () => {
-  const location = { pathname: "/", search: "?invitation_code=ABCD", hash: "" };
+test("root invitation links open registration and prefill invite", () => {
+  const location = { pathname: "/", search: "?invite=ABCD", hash: "" };
   assert.equal(internalPathFromLocation(location), "/register");
   assert.equal(getCanonicalInitialUrl(location), null);
-  assert.equal(buildInvitationUrl("https://golddiamant.site", "ABCD"), "https://golddiamant.site/?invitation_code=ABCD");
+  assert.equal(buildInvitationUrl("https://golddiamant.site", "ABCD"), "https://golddiamant.site/?invite=ABCD");
+  assert.equal(
+    internalPathFromLocation({ pathname: "/", search: "?invitation_code=OLD", hash: "" }),
+    "/register",
+  );
 });
 
 test("direct legacy page URLs are normalized to opaque routes", () => {

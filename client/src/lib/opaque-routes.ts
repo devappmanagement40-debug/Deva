@@ -57,7 +57,7 @@ const LEGACY_ROUTE_ALIASES: Record<string, string> = {
   "/my-products": "/orders",
 };
 
-const INVITATION_QUERY_KEYS = ["invitation_code", "invite_code", "ref", "money", "reg"];
+const INVITATION_QUERY_KEYS = ["invite", "invitation_code", "invite_code", "ref", "money", "reg"];
 
 function normalizePath(path: string): string {
   const leadingSlash = path.startsWith("/") ? path : `/${path}`;
@@ -169,5 +169,5 @@ export function buildOpaqueRouteUrl(origin: string, route: string): string {
 }
 
 export function buildInvitationUrl(origin: string, invitationCode: string): string {
-  return `${origin.replace(/\/+$/, "")}/?invitation_code=${encodeURIComponent(invitationCode.trim())}`;
+  return `${origin.replace(/\/+$/, "")}/?invite=${encodeURIComponent(invitationCode.trim())}`;
 }
