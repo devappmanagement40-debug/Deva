@@ -45,6 +45,7 @@ import {
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import {
+  DEFAULT_MIN_DEPOSIT_XOF,
   DEFAULT_MIN_WITHDRAWAL_XOF,
   DEFAULT_XOF_PER_USDT,
   parseXofPerUsdt,
@@ -1400,7 +1401,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "2500", 10);
+      const minDeposit = parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF), 10);
       if (amountXof < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
       }
@@ -1903,7 +1904,7 @@ export async function registerRoutes(
       if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
 
       const settings = await storage.getSettings();
-      const minDeposit = Number.parseInt(settings.minDeposit || "2500", 10);
+      const minDeposit = Number.parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF), 10);
       if (data.amount < minDeposit) {
         return res.status(400).json({
           message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
@@ -1960,7 +1961,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "2500");
+      const minDeposit = parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF));
       const amountValue = Number(amount);
       if (!Number.isSafeInteger(amountValue) || amountValue < minDeposit) {
         return res.status(400).json({ message: `Montant minimum: ${minDeposit.toLocaleString()} XOF` });
@@ -2123,7 +2124,7 @@ export async function registerRoutes(
       }
 
       const settings = await storage.getSettings();
-      const minDeposit = parseInt(settings.minDeposit || "2500");
+      const minDeposit = parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF));
       if (Number(amount) < minDeposit)
         return res.status(400).json({
           message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
@@ -2894,6 +2895,8 @@ export async function registerRoutes(
         westpayApiKey_TG, westpayApiKey_CM, westpayApiKey_ML,
         xofPerUsdt,
         __migration_referral_commission_defaults_v1,
+        __migration_product_catalog_initialized_v1,
+        __migration_staking_catalog_initialized_v1,
         ...publicSettings
       } = settings;
        res.json(normalizePublicSettings(publicSettings));

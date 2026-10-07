@@ -20,6 +20,8 @@ import {
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import {
+  DEFAULT_DEPOSIT_PRESET_AMOUNTS,
+  DEFAULT_MIN_DEPOSIT_XOF,
   DEFAULT_MIN_WITHDRAWAL_XOF,
   DEFAULT_XOF_PER_USDT,
   parseXofPerUsdt,
@@ -266,9 +268,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled: false,
       channelEnabled: true,
       groupEnabled: false,
-      minDeposit: "2500",
+      minDeposit: String(DEFAULT_MIN_DEPOSIT_XOF),
       xofPerUsdt: String(DEFAULT_XOF_PER_USDT),
-      depositPresetAmounts: "2500,5000,7000,10000,15000,20000,50000,70000",
+      depositPresetAmounts: DEFAULT_DEPOSIT_PRESET_AMOUNTS,
       minWithdrawal: String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal: "1000000",
@@ -315,9 +317,9 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled:        settings.support2Enabled        !== "false",
       channelEnabled:         settings.channelEnabled         !== "false",
       groupEnabled:           settings.groupEnabled           !== "false",
-      minDeposit:             settings.minDeposit             ?? "2500",
+      minDeposit:             settings.minDeposit             ?? String(DEFAULT_MIN_DEPOSIT_XOF),
       xofPerUsdt:             settings.xofPerUsdt             ?? String(DEFAULT_XOF_PER_USDT),
-      depositPresetAmounts:   settings.depositPresetAmounts   ?? "2500,5000,7000,10000,15000,20000,50000,70000",
+      depositPresetAmounts:   settings.depositPresetAmounts   ?? DEFAULT_DEPOSIT_PRESET_AMOUNTS,
       minWithdrawal:          settings.minWithdrawal          ?? String(DEFAULT_MIN_WITHDRAWAL_XOF),
       withdrawalFees:         settings.withdrawalFees         ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       maxWithdrawal:          settings.maxWithdrawal          ?? "1000000",
@@ -795,7 +797,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               <FormField control={form.control} name="depositPresetAmounts" render={({ field }) => (
                 <FormItem className="col-span-2">
                   <FormLabel>Montants rapides de recharge (XOF)</FormLabel>
-                  <FormControl><Input {...field} placeholder="2500,5000,7000,10000,15000,20000,50000,70000" /></FormControl>
+                  <FormControl><Input {...field} placeholder={DEFAULT_DEPOSIT_PRESET_AMOUNTS} /></FormControl>
                   <FormDescription>Liste de montants séparés par des virgules, affichés comme boutons rapides sur la page de recharge.</FormDescription>
                   <FormMessage />
                 </FormItem>

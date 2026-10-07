@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { formatSettingPlaceholders, getContent } from "@/lib/content";
-import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { DEFAULT_MIN_DEPOSIT_XOF, DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
 interface RulesModalProps {
@@ -15,7 +15,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
     queryKey: ["/api/settings"],
   });
 
-  const minDeposit = settings?.minDeposit || "2500";
+  const minDeposit = settings?.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF);
   const minWithdrawal = settings?.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF);
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
@@ -36,7 +36,7 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
     settings,
   );
   const s3Title = getContent(settings, "content_rules_section3Title", "3. Products");
-  const s3Body = getContent(settings, "content_rules_section3Body", "- Standard cycle: 80 days\n- Product earnings are credited automatically to the earnings balance when the cycle ends\n- No manual collection is required");
+  const s3Body = getContent(settings, "content_rules_section3Body", "");
   const s4Title = getContent(settings, "content_rules_section4Title", "4. Referral");
   const s4Body = getContent(settings, "content_rules_section4Body", `- Level 1: ${lv1}% commission\n- Level 2: ${lv2}% commission\n- Level 3: ${lv3}% commission\n- Commissions on product purchases`);
 

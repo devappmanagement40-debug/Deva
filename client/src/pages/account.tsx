@@ -63,9 +63,7 @@ type AccountCopy = {
   rewards: string;
   vipTitle: string;
   vipAmountRemaining: string;
-  vipFirstPurchase: string;
   vipThresholdPending: string;
-  vipAction: string;
   vipMax: string;
   idCopied: string;
   idCopyFailed: string;
@@ -103,9 +101,7 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
     vipAmountRemaining: "Il manque encore {amount} XOF pour atteindre le niveau VIP suivant",
-    vipFirstPurchase: "Achetez votre premier produit Parcours pour devenir VIP 1.",
     vipThresholdPending: "Le seuil du prochain niveau VIP doit être configuré dans l’administration.",
-    vipAction: "Votre niveau progresse avec vos achats personnels payants, toutes catégories confondues.",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
     idCopyFailed: "Impossible de copier l’ID.",
@@ -141,9 +137,7 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "Rewards",
     vipTitle: "VIP level",
     vipAmountRemaining: "{amount} XOF still needed to reach the next VIP level",
-    vipFirstPurchase: "Buy your first Parcours product to become VIP 1.",
     vipThresholdPending: "The next VIP threshold must be configured by an administrator.",
-    vipAction: "Your level progresses with your personal paid purchases across all product categories.",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
     idCopyFailed: "Could not copy the ID.",
@@ -179,9 +173,7 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
     vipAmountRemaining: "يتبقى {amount} XOF للوصول إلى مستوى VIP التالي",
-    vipFirstPurchase: "اشترِ أول منتج Parcours لتصبح VIP 1.",
     vipThresholdPending: "يجب على المسؤول إعداد حد مستوى VIP التالي.",
-    vipAction: "يتقدم مستواك من خلال مشترياتك الشخصية المدفوعة في جميع فئات المنتجات.",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
     idCopyFailed: "تعذر نسخ المعرّف.",
@@ -217,9 +209,7 @@ const COPY: Record<Lang, AccountCopy> = {
     rewards: "奖励",
     vipTitle: "VIP等级",
     vipAmountRemaining: "距离下一个VIP等级还差 {amount} XOF",
-    vipFirstPurchase: "购买您的第一个 Parcours 产品即可成为 VIP 1。",
     vipThresholdPending: "下一个 VIP 等级门槛需要由管理员设置。",
-    vipAction: "您的等级会根据您在所有产品类别中的个人付费购买而提升。",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
     idCopyFailed: "无法复制编号。",
@@ -308,7 +298,7 @@ export default function AccountPage() {
   const nextVip = vipProgress.nextLevel === null ? null : vipConfigs[vipProgress.nextLevel] ?? null;
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
   const nextVipMessage = vipLevel === 0
-    ? copy.vipFirstPurchase
+    ? currentVip.description
     : !nextVip
       ? copy.vipMax
       : vipProgress.amountRemainingXof === null
@@ -541,7 +531,7 @@ export default function AccountPage() {
                 <span style={{ width: `${vipProgress.progressPercent}%` }} />
               </div>
               <div className="ielp-account-vip-footer">
-                <span>{copy.vipAction}</span>
+                <span>{currentVip.advantages}</span>
               </div>
             </div>
             <svg className="ielp-account-vip-emblem" viewBox="0 0 90 104" aria-hidden="true">

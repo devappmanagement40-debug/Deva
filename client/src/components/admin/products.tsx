@@ -19,6 +19,7 @@ import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, Users, ShoppingBag } f
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
+import { DEFAULT_EXPLORE_CYCLE_DAYS } from "@shared/product-settings";
 import { MAX_VIP_LEVEL } from "@shared/vip-progress";
 import ImageUploader from "@/components/admin/image-uploader";
 import { getProductImageUrl } from "@/lib/product-visuals";
@@ -313,7 +314,7 @@ export default function AdminProducts() {
   });
 
   const defaultValues: ProductForm = {
-    name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: "80",
+    name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: String(DEFAULT_EXPLORE_CYCLE_DAYS),
     imageUrl: "", cardColor: "", minInviteCount: "0", requiredVipLevel: "0", maxOwned: "0", stockPercentage: 0,
   };
 
