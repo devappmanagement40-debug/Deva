@@ -37,6 +37,8 @@ const INVEST_COPY: Record<Lang, {
   support: string;
   purchaseHint: string;
   multipleHint: string;
+  purchaseLimit: string;
+  unlimitedPurchases: string;
   paymentBreakdown: string;
   depositBalance: string;
   earningsBalance: string;
@@ -56,6 +58,8 @@ const INVEST_COPY: Record<Lang, {
     support: "Assistance",
     purchaseHint: "Les gains sont crédités automatiquement à la fin du cycle du produit. Aucune collecte manuelle n'est nécessaire.",
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
+    purchaseLimit: "Max. achats par utilisateur : {0}",
+    unlimitedPurchases: "Illimité",
     paymentBreakdown: "Répartition du paiement",
     depositBalance: "Solde des dépôts",
     earningsBalance: "Solde des gains",
@@ -75,6 +79,8 @@ const INVEST_COPY: Record<Lang, {
     support: "Support",
     purchaseHint: "Product earnings are credited automatically at the end of the cycle. No manual collection is needed.",
     multipleHint: "You can purchase multiple products to increase your earnings.",
+    purchaseLimit: "Maximum purchases per user: {0}",
+    unlimitedPurchases: "Unlimited",
     paymentBreakdown: "Payment breakdown",
     depositBalance: "Deposit balance",
     earningsBalance: "Earnings balance",
@@ -94,6 +100,8 @@ const INVEST_COPY: Record<Lang, {
     support: "الدعم",
     purchaseHint: "تُضاف أرباح المنتج تلقائيًا عند انتهاء الدورة. لا حاجة إلى التحصيل اليدوي.",
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
+    purchaseLimit: "الحد الأقصى للمشتريات لكل مستخدم: {0}",
+    unlimitedPurchases: "غير محدود",
     paymentBreakdown: "تفاصيل الدفع",
     depositBalance: "رصيد الإيداعات",
     earningsBalance: "رصيد الأرباح",
@@ -113,6 +121,8 @@ const INVEST_COPY: Record<Lang, {
     support: "客服",
     purchaseHint: "产品周期结束时，收益将自动计入收益余额，无需手动领取。",
     multipleHint: "您可以购买多个产品以增加收益。",
+    purchaseLimit: "每位用户最多购买：{0}",
+    unlimitedPurchases: "不限",
     paymentBreakdown: "支付明细",
     depositBalance: "存款余额",
     earningsBalance: "收益余额",
@@ -314,6 +324,17 @@ export default function ProductsPage() {
                 </div>
                 <p className="diamant-purchase-dialog__hint">{copy.purchaseHint}</p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
+                <p
+                  className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle"
+                  data-testid="purchase-limit"
+                >
+                  {copy.purchaseLimit.replace(
+                    "{0}",
+                    Number(confirmProduct.maxOwned) > 0
+                      ? String(confirmProduct.maxOwned)
+                      : copy.unlimitedPurchases,
+                  )}
+                </p>
                 {availableBalance < parseFloat(String(confirmProduct.price)) && (
                   <div className="diamant-purchase-alert">
                     <AlertTriangle size={17} aria-hidden="true" />
