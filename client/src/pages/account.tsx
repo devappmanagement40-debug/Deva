@@ -20,6 +20,7 @@ import {
   LockKeyhole,
   MessageSquare,
   ReceiptText,
+  ShieldCheck,
   UsersRound,
   WalletCards,
   type LucideIcon,
@@ -71,6 +72,7 @@ type AccountCopy = {
   faq: string;
   password: string;
   securityPin: string;
+  adminAccessPin: string;
   support: string;
   companyDetails: string;
   application: string;
@@ -110,6 +112,7 @@ const COPY: Record<Lang, AccountCopy> = {
     faq: "FAQ",
     password: "Mot de passe",
     securityPin: "PIN de retrait",
+    adminAccessPin: "Changer le PIN administrateur",
     support: "Soutien",
     companyDetails: "Détails de l'entreprise DIAMANT",
     application: "Application",
@@ -147,6 +150,7 @@ const COPY: Record<Lang, AccountCopy> = {
     faq: "FAQ",
     password: "Password",
     securityPin: "Withdrawal PIN",
+    adminAccessPin: "Change admin access PIN",
     support: "Support",
     companyDetails: "DIAMANT company details",
     application: "App",
@@ -184,6 +188,7 @@ const COPY: Record<Lang, AccountCopy> = {
     faq: "الأسئلة الشائعة",
     password: "كلمة المرور",
     securityPin: "رمز PIN للسحب",
+    adminAccessPin: "تغيير رمز دخول الإدارة",
     support: "الدعم",
     companyDetails: "تفاصيل شركة DIAMANT",
     application: "التطبيق",
@@ -221,6 +226,7 @@ const COPY: Record<Lang, AccountCopy> = {
     faq: "常见问题",
     password: "密码",
     securityPin: "提现 PIN",
+    adminAccessPin: "更改管理员访问 PIN",
     support: "支持",
     companyDetails: "DIAMANT 公司详情",
     application: "应用",
@@ -258,13 +264,14 @@ const BUSINESS_ACTIONS: {
 ];
 
 const ACCOUNT_LINKS: {
-  copyKey: "faq" | "password" | "securityPin" | "support" | "companyDetails" | "application";
+  copyKey: "faq" | "password" | "securityPin" | "adminAccessPin" | "support" | "companyDetails" | "application";
   href?: string;
   Icon: LucideIcon;
 }[] = [
   { copyKey: "faq", href: "/rules", Icon: CircleHelp },
   { copyKey: "password", href: "/change-password", Icon: KeyRound },
   { copyKey: "securityPin", Icon: LockKeyhole },
+  { copyKey: "adminAccessPin", href: "/change-admin-pin", Icon: ShieldCheck },
   { copyKey: "support", href: "/service", Icon: Headphones },
   { copyKey: "companyDetails", href: "/about", Icon: BookOpen },
   { copyKey: "application", Icon: Download },
@@ -581,7 +588,9 @@ export default function AccountPage() {
           </section>
 
           <section className="ielp-account-links" aria-label={copy.accountMenu}>
-            {ACCOUNT_LINKS.map(({ copyKey, href, Icon }, index) => (
+            {ACCOUNT_LINKS
+              .filter(({ copyKey }) => copyKey !== "adminAccessPin" || user.isAdmin)
+              .map(({ copyKey, href, Icon }, index) => (
               <button
                 key={copyKey}
                 type="button"
@@ -594,7 +603,9 @@ export default function AccountPage() {
                 data-testid={`account-link-${copyKey}`}
               >
                 <Icon size={24} strokeWidth={2.1} aria-hidden="true" />
-                <span>{copy[copyKey]}</span>
+                <span>
+                  {copyKey === "securityPin" && user.isAdmin ? t.adminPanel : copy[copyKey]}
+                </span>
                 {index !== 1 && copyKey !== "application" && <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />}
               </button>
             ))}

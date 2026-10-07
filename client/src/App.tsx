@@ -70,6 +70,7 @@ import SupportChatPage from "@/components/support-chat/SupportChatPage";
 import WalletPage from "@/pages/wallet";
 import ChangePasswordPage from "@/pages/change-password";
 import ChangeWithdrawalPinPage from "@/pages/change-withdrawal-pin";
+import ChangeAdminPinPage from "@/pages/change-admin-pin";
 import AboutPage from "@/pages/about";
 import RulesPage from "@/pages/rules";
 import GiftCodePage from "@/pages/gift-code";
@@ -389,6 +390,11 @@ function RouterComponent() {
       <Route path="/change-withdrawal-pin">
         <ProtectedRoute>
           <ChangeWithdrawalPinPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/change-admin-pin">
+        <ProtectedRoute>
+          <ChangeAdminPinPage />
         </ProtectedRoute>
       </Route>
       <Route path="/about">

@@ -50,6 +50,11 @@ import {
   parseXofPerUsdt,
 } from "@shared/financial-settings";
 import { notifyAdminTelegram } from "./telegram-admin";
+import {
+  hashAdminAccessPin,
+  isValidAdminAccessPin,
+  verifyAdminAccessPin,
+} from "./admin-pin-security";
 
 function parsePositiveIntegerSetting(value: string | undefined, fallback: number): number | null {
   const parsed = value?.trim() ? Number(value.trim()) : fallback;
@@ -213,6 +218,7 @@ import {
 // --- Brute-force protection (in-memory) ---
 const loginAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const transactionPinAttempts = new Map<string, { count: number; blockedUntil: number }>();
+const adminAccessPinAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_LOGIN_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -282,6 +288,44 @@ function recordFailedTransactionPinAttempt(req: Request, userId: number) {
 
 function clearTransactionPinAttempts(req: Request, userId: number) {
   transactionPinAttempts.delete(transactionPinAttemptKey(req, userId));
+}
+
+function adminAccessPinAttemptKey(req: Request, userId: number) {
+  return `${userId}:${getClientKey(req)}`;
+}
+
+function checkAdminAccessPinAttempts(req: Request, res: Response, userId: number): boolean {
+  const key = adminAccessPinAttemptKey(req, userId);
+  const record = adminAccessPinAttempts.get(key);
+  const now = Date.now();
+
+  if (record && record.blockedUntil > now) {
+    const minutesLeft = Math.ceil((record.blockedUntil - now) / 60000);
+    res.status(429).json({
+      code: "ADMIN_PIN_TEMPORARILY_LOCKED",
+      message: `Trop de tentatives. Réessayez dans ${minutesLeft} minute(s).`,
+    });
+    return true;
+  }
+  if (record && record.blockedUntil > 0 && record.blockedUntil <= now) {
+    adminAccessPinAttempts.delete(key);
+  }
+  return false;
+}
+
+function recordFailedAdminAccessPinAttempt(req: Request, userId: number) {
+  const key = adminAccessPinAttemptKey(req, userId);
+  const record = adminAccessPinAttempts.get(key) || { count: 0, blockedUntil: 0 };
+  record.count += 1;
+  if (record.count >= MAX_LOGIN_ATTEMPTS) {
+    record.blockedUntil = Date.now() + BLOCK_DURATION_MS;
+    record.count = 0;
+  }
+  adminAccessPinAttempts.set(key, record);
+}
+
+function clearAdminAccessPinAttempts(req: Request, userId: number) {
+  adminAccessPinAttempts.delete(adminAccessPinAttemptKey(req, userId));
 }
 // --- end brute-force protection ---
 
@@ -578,7 +622,14 @@ export async function registerRoutes(
 
       req.session.userId = user.id;
       const currentUser = await storage.getUser(user.id);
-      res.json({ user: { ...(currentUser || user), password: undefined, transactionPassword: undefined } });
+      res.json({
+        user: {
+          ...(currentUser || user),
+          password: undefined,
+          transactionPassword: undefined,
+          adminPin: undefined,
+        },
+      });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
@@ -636,7 +687,9 @@ export async function registerRoutes(
           country: user.country,
         });
       }
-      res.json({ user: { ...user, password: undefined, transactionPassword: undefined } });
+      res.json({
+        user: { ...user, password: undefined, transactionPassword: undefined, adminPin: undefined },
+      });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: error.errors[0].message });
@@ -655,7 +708,9 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ message: "Non authentifié" });
       }
-      res.json({ user: { ...user, password: undefined, transactionPassword: undefined } });
+      res.json({
+        user: { ...user, password: undefined, transactionPassword: undefined, adminPin: undefined },
+      });
     } catch (error: any) {
       console.error("Auth/me error:", error);
       res.status(500).json({ message: "Erreur serveur" });
@@ -3365,9 +3420,9 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/verify-pin", requireAuth, async (req, res) => {
+  app.post("/api/admin/verify-pin", requireAuth, requireSameOrigin, async (req, res) => {
     try {
-      const { pin } = req.body;
+      const pin = typeof req.body?.pin === "string" ? req.body.pin : "";
       const user = await storage.getUser(req.session.userId!);
       
       if (!user?.isAdmin) {
@@ -3382,14 +3437,66 @@ export async function registerRoutes(
       if (!user.adminPin) {
         return res.status(400).json({ message: "Code PIN non configure" });
       }
-      
-      if (user.adminPin !== pin) {
-        return res.status(401).json({ message: "Code PIN incorrect" });
+
+      if (checkAdminAccessPinAttempts(req, res, user.id)) return;
+      const verification = await verifyAdminAccessPin(pin, user.adminPin);
+      if (!verification.valid) {
+        recordFailedAdminAccessPinAttempt(req, user.id);
+        return res.status(401).json({ code: "INVALID_ADMIN_PIN", message: "Code PIN incorrect" });
       }
-      
+
+      clearAdminAccessPinAttempts(req, user.id);
+      if (verification.upgradedHash) {
+        await storage.updateUser(user.id, { adminPin: verification.upgradedHash });
+      }
       res.json({ success: true });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      console.error("Admin PIN verification error:", error);
+      res.status(500).json({ message: "Impossible de vérifier le code administrateur" });
+    }
+  });
+
+  app.post("/api/admin/change-pin", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const accountPassword =
+        typeof req.body?.accountPassword === "string" ? req.body.accountPassword : "";
+      const newPin = typeof req.body?.newPin === "string" ? req.body.newPin : "";
+      const confirmPin = typeof req.body?.confirmPin === "string" ? req.body.confirmPin : "";
+
+      if (!accountPassword) {
+        return res.status(400).json({ code: "ACCOUNT_PASSWORD_REQUIRED" });
+      }
+      if (!isValidAdminAccessPin(newPin)) {
+        return res.status(400).json({ code: "INVALID_ADMIN_PIN_FORMAT" });
+      }
+      if (newPin !== confirmPin) {
+        return res.status(400).json({ code: "ADMIN_PIN_MISMATCH" });
+      }
+
+      const user = await storage.getUser(req.session.userId!);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ code: "ADMIN_REQUIRED" });
+      }
+      if (checkAdminAccessPinAttempts(req, res, user.id)) return;
+
+      const validPassword = await bcrypt.compare(accountPassword, user.password);
+      if (!validPassword) {
+        recordFailedAdminAccessPinAttempt(req, user.id);
+        return res.status(401).json({ code: "INVALID_ACCOUNT_PASSWORD" });
+      }
+
+      const adminPin = await hashAdminAccessPin(newPin);
+      await storage.updateUser(user.id, { adminPin });
+      clearAdminAccessPinAttempts(req, user.id);
+      try {
+        await storage.logAdminAction(user.id, "change_admin_pin", user.id, "PIN d’accès administrateur modifié");
+      } catch (auditError) {
+        console.error("Admin PIN audit logging error:", auditError);
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Admin PIN change error:", error);
+      res.status(500).json({ message: "Impossible de modifier le code administrateur" });
     }
   });
 
@@ -3647,6 +3754,7 @@ export async function registerRoutes(
           ...user,
           password: undefined,
           transactionPassword: undefined,
+          adminPin: undefined,
           hasTransactionPassword: Boolean(user.transactionPassword),
           ...teamStats,
           referrerName: null,
@@ -3764,11 +3872,16 @@ export async function registerRoutes(
           }
           const user5 = await storage.getUser(userId);
           const newAdminStatus = !user5?.isAdmin;
+          if (newAdminStatus && !isValidAdminAccessPin(value)) {
+            return res.status(400).json({
+              message: "Le code administrateur doit contenir de 6 à 8 chiffres.",
+            });
+          }
           await storage.updateUser(userId, { 
             isAdmin: newAdminStatus,
             adminSetBy: req.session.userId,
             adminSetAt: new Date(),
-            adminPin: newAdminStatus && value ? value : null,
+            adminPin: newAdminStatus ? await hashAdminAccessPin(value as string) : null,
           });
           await storage.logAdminAction(req.session.userId!, "toggle_admin", userId, `Admin: ${newAdminStatus}`);
           break;
@@ -3776,7 +3889,12 @@ export async function registerRoutes(
           if (!adminUser?.isSuperAdmin) {
             return res.status(403).json({ message: "Action réservée au super admin" });
           }
-          await storage.updateUser(userId, { adminPin: value });
+          if (!isValidAdminAccessPin(value)) {
+            return res.status(400).json({
+              message: "Le code administrateur doit contenir de 6 à 8 chiffres.",
+            });
+          }
+          await storage.updateUser(userId, { adminPin: await hashAdminAccessPin(value) });
           await storage.logAdminAction(req.session.userId!, "update_admin_pin", userId, `PIN admin mis à jour`);
           break;
         case "toggle-password-required":
