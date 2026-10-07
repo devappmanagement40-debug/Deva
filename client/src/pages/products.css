@@ -620,6 +620,74 @@
   font-size: 11px;
 }
 
+.diamant-purchase-quantity {
+  display: grid;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 10px 11px;
+  border: 2px solid #6966a4;
+  border-radius: 10px;
+  background: #171e46;
+}
+
+.diamant-purchase-quantity__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #f0eeff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.diamant-purchase-quantity__heading small,
+.diamant-purchase-quantity__cap {
+  color: #c4c5e2;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: end;
+}
+
+.diamant-purchase-quantity__controls {
+  display: grid;
+  grid-template-columns: 38px minmax(45px, 1fr) 38px;
+  align-items: center;
+  gap: 9px;
+}
+
+.diamant-purchase-quantity__controls button {
+  display: grid;
+  width: 38px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid #817bd0;
+  border-radius: 9px;
+  color: #fff;
+  background: #352a7d;
+}
+
+.diamant-purchase-quantity__controls button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.diamant-purchase-quantity__controls button:focus-visible {
+  outline: 2px solid #c9bdff;
+  outline-offset: 2px;
+}
+
+.diamant-purchase-quantity__controls output {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.diamant-purchase-quantity__cap {
+  margin: -2px 0 0;
+  text-align: center;
+}
+
 .diamant-purchase-alert {
   display: flex;
   align-items: flex-start;
@@ -781,6 +849,19 @@
 
   .diamant-purchase-alert p { font-size: 10px; }
 
+  .diamant-purchase-quantity {
+    gap: 5px;
+    margin-top: 7px;
+    padding: 7px 8px;
+  }
+
+  .diamant-purchase-quantity__heading { font-size: 10px; }
+  .diamant-purchase-quantity__heading small,
+  .diamant-purchase-quantity__cap { font-size: 9px; }
+  .diamant-purchase-quantity__controls { grid-template-columns: 34px minmax(40px, 1fr) 34px; gap: 7px; }
+  .diamant-purchase-quantity__controls button { width: 34px; height: 32px; }
+  .diamant-purchase-quantity__controls output { font-size: 14px; }
+
   .diamant-payment-breakdown {
     gap: 5px;
     margin-top: 8px;
@@ -832,6 +913,8 @@
     margin-top: 6px;
     padding: 6px 7px;
   }
+
+  .diamant-purchase-quantity { margin-top: 5px; }
 
   .diamant-payment-breakdown {
     gap: 4px;

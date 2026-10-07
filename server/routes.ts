@@ -49,6 +49,7 @@ import {
   DEFAULT_XOF_PER_USDT,
   parseXofPerUsdt,
 } from "@shared/financial-settings";
+import { parseProductPurchaseQuantity } from "@shared/product-purchase-policy";
 import { notifyAdminTelegram } from "./telegram-admin";
 import {
   hashAdminAccessPin,
@@ -908,56 +909,45 @@ export async function registerRoutes(
 
   app.post("/api/products/:id/purchase", requireAuth, async (req, res) => {
     try {
-      const productId = parseInt(req.params.id as string);
+      const productId = Number(req.params.id);
+      if (!Number.isSafeInteger(productId) || productId <= 0) {
+        return res.status(400).json({ message: "Identifiant de produit invalide" });
+      }
+      const quantity = parseProductPurchaseQuantity(req.body?.quantity);
       const product = await storage.getProduct(productId);
       
       if (!product) {
         return res.status(404).json({ message: "Produit non trouvé" });
       }
-      
-      if (product.isFree) {
-        return res.status(400).json({ message: "Ce produit n'est pas disponible à l'achat" });
-      }
-      if (product.isUnavailable) {
-        return res.status(400).json({ message: "Ce produit n'est pas encore disponible" });
-      }
-      if ((product.stockPercentage ?? 0) >= 100) {
-        return res.status(400).json({ message: "Ce produit est épuisé — stock complet" });
+
+      const expectedPriceInput = req.body?.expectedUnitPriceCents;
+      let expectedUnitPriceCents: number | undefined;
+      if (expectedPriceInput !== undefined) {
+        expectedUnitPriceCents = Number(expectedPriceInput);
+        if (!Number.isSafeInteger(expectedUnitPriceCents) || expectedUnitPriceCents < 0) {
+          return res.status(400).json({ message: "Prix affiché invalide." });
+        }
       }
 
       const userId = req.session.userId!;
-
-      // Check invite condition
-      const minInvite = Number(product.minInviteCount) || 0;
-      if (minInvite > 0) {
-        const inviteCount = await storage.getProductInviteCount(userId);
-        if (inviteCount < minInvite) {
-          return res.status(400).json({
-            message: `Vous devez inviter au moins ${minInvite} personne(s) avant d'acheter ce produit (actuellement : ${inviteCount}).`,
-          });
-        }
-      }
-
-      // Check max-owned condition
-      const maxOwned = Number(product.maxOwned) || 0;
-      if (maxOwned > 0) {
-        const userProds = await storage.getUserProducts(userId);
-        const owned = userProds.filter(up => up.productId === productId && up.isActive).length;
-        if (owned >= maxOwned) {
-          return res.status(400).json({
-            message: `Vous avez atteint la limite d'achat pour ce produit (max ${maxOwned}).`,
-          });
-        }
-      }
-
-      const userProduct = await storage.purchaseProduct(userId, productId);
+      const result = await storage.purchaseProducts(
+        userId,
+        productId,
+        quantity,
+        expectedUnitPriceCents,
+      );
       notifyAdminTelegram({
         kind: "purchase",
         userId,
-        productName: product.name,
-        amount: Number(product.price) || 0,
+        productName: quantity > 1 ? `${result.product.name} ×${quantity}` : result.product.name,
+        amount: Number(result.totalAmount) || 0,
       });
-      res.json(userProduct);
+      res.json({
+        ...result.purchases[0],
+        quantity,
+        totalAmount: result.totalAmount,
+        purchases: result.purchases,
+      });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }

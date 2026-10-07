@@ -33,6 +33,11 @@ import {
 } from "@shared/product-categories";
 import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
 import { isSupportedMarketCountryCode } from "@shared/country-codes";
+import {
+  amountToXofCents,
+  calculatePurchaseDebitAllocation,
+  parseProductPurchaseQuantity,
+} from "@shared/product-purchase-policy";
 
 export class TaskHasClaimsError extends Error {
   constructor() {
@@ -111,6 +116,12 @@ export type WithdrawalRequestCreationResult =
   | { status: "insufficient_balance" }
   | { status: "daily_limit"; limit: number };
 
+export type ProductPurchaseBatchResult = {
+  product: Product;
+  purchases: UserProduct[];
+  totalAmount: string;
+};
+
 function spinWheelResultFromRow(row: SpinWheelRequestRow): SpinWheelResult {
   return {
     segmentId: Number(row.segment_id),
@@ -144,6 +155,12 @@ export interface IStorage {
   getUserProducts(userId: number): Promise<(UserProduct & { product: Product })[]>;
   getAllUserProducts(userId: number): Promise<{ userProduct: UserProduct; product: Product }[]>;
   purchaseProduct(userId: number, productId: number, assignedByAdmin?: boolean): Promise<UserProduct>;
+  purchaseProducts(
+    userId: number,
+    productId: number,
+    quantity: number,
+    expectedUnitPriceCents?: number,
+  ): Promise<ProductPurchaseBatchResult>;
   updateUserProduct(id: number, data: Partial<UserProduct>): Promise<UserProduct>;
   revokeUserProduct(userId: number, userProductId: number): Promise<boolean>;
   processEarnings(): Promise<void>;
@@ -624,6 +641,294 @@ export class DatabaseStorage implements IStorage {
       const dateA = a.userProduct.purchaseDate ? new Date(a.userProduct.purchaseDate).getTime() : 0;
       const dateB = b.userProduct.purchaseDate ? new Date(b.userProduct.purchaseDate).getTime() : 0;
       return dateB - dateA;
+    });
+  }
+
+  async purchaseProducts(
+    userId: number,
+    productId: number,
+    requestedQuantity: number,
+    expectedUnitPriceCents?: number,
+  ): Promise<ProductPurchaseBatchResult> {
+    const quantity = parseProductPurchaseQuantity(requestedQuantity);
+    if (
+      expectedUnitPriceCents !== undefined &&
+      (!Number.isSafeInteger(expectedUnitPriceCents) || expectedUnitPriceCents < 0)
+    ) {
+      throw new Error("Prix affiché invalide.");
+    }
+    const [settings, buyerSpinSetting, referralSpinSetting] = await Promise.all([
+      this.getSettings(),
+      this.getSetting("spinWheelSelfPurchaseSpins"),
+      this.getSetting("spinWheelReferralPurchaseSpins"),
+    ]);
+    const buyerSpinReward = parseWheelPurchaseSpins(buyerSpinSetting, 3);
+    const referralSpinReward = parseWheelPurchaseSpins(referralSpinSetting, 2);
+    const getRate = (value: string | undefined, fallback: string) => {
+      const parsed = value?.trim() ? Number(value) : Number.NaN;
+      return (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100
+        ? parsed
+        : Number(fallback)) / 100;
+    };
+    const commissionRates = [
+      getRate(settings.level1Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission),
+      getRate(settings.level2Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission),
+      getRate(settings.level3Commission, DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission),
+    ];
+
+    return db.transaction(async (tx) => {
+      // Lock the buyer first so simultaneous orders cannot spend the same
+      // balance or both pass the same per-user product limit.
+      const [user] = await tx.select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .for("update");
+      if (!user) throw new Error("Utilisateur non trouvé");
+
+      const [product] = await tx.select()
+        .from(products)
+        .where(eq(products.id, productId))
+        .for("update");
+      if (!product) throw new Error("Produit non trouvé");
+      if (!product.isActive) throw new Error("Ce produit n'est plus disponible");
+      if (product.isFree) throw new Error("Ce produit n'est pas disponible à l'achat");
+      if (product.isUnavailable) throw new Error("Ce produit n'est pas encore disponible");
+      if ((product.stockPercentage ?? 0) >= 100) {
+        throw new Error("Ce produit est épuisé — stock complet");
+      }
+      if (
+        expectedUnitPriceCents !== undefined &&
+        amountToXofCents(product.price) !== expectedUnitPriceCents
+      ) {
+        throw new Error(
+          "Le prix du produit a changé. Rouvrez la fenêtre d'achat pour vérifier le nouveau montant.",
+        );
+      }
+
+      const minInviteCount = Math.max(0, Number(product.minInviteCount) || 0);
+      if (minInviteCount > 0) {
+        const [inviteCountRow] = await tx.select({
+          count: sql<number>`count(*)::int`,
+        })
+          .from(users)
+          .where(eq(users.referredBy, user.referralCode));
+        const inviteCount = Number(inviteCountRow?.count) || 0;
+        if (inviteCount < minInviteCount) {
+          throw new Error(
+            `Vous devez inviter au moins ${minInviteCount} personne(s) avant d'acheter ce produit (actuellement : ${inviteCount}).`,
+          );
+        }
+      }
+
+      const [activeOwnedCountRow] = await tx.select({
+        count: sql<number>`count(*)::int`,
+      })
+        .from(userProducts)
+        .where(and(
+          eq(userProducts.userId, userId),
+          eq(userProducts.productId, productId),
+          eq(userProducts.isActive, true),
+        ));
+      const activeOwnedCount = Number(activeOwnedCountRow?.count) || 0;
+      const maxOwned = Math.max(0, Number(product.maxOwned) || 0);
+      if (maxOwned > 0 && quantity > maxOwned - activeOwnedCount) {
+        const remaining = Math.max(0, maxOwned - activeOwnedCount);
+        throw new Error(
+          remaining > 0
+            ? `Vous pouvez encore acheter ${remaining} unité(s) de ce produit (maximum ${maxOwned}).`
+            : `Vous avez atteint la limite d'achat pour ce produit (maximum ${maxOwned}).`,
+        );
+      }
+
+      const historyRows = await tx.select({
+        userProduct: userProducts,
+        product: products,
+      })
+        .from(userProducts)
+        .innerJoin(products, eq(userProducts.productId, products.id))
+        .where(eq(userProducts.userId, userId));
+      const purchaseHistory = historyRows.map((row) => {
+        const snapshot = row.userProduct.productSnapshot ?? row.product;
+        return {
+          userProduct: row.userProduct,
+          product: {
+            ...snapshot,
+            imageUrl: snapshot.imageUrl || row.product.imageUrl,
+            cardColor: row.product.cardColor,
+          },
+        };
+      });
+
+      if (!canPurchaseProductType(product.productType, false)) {
+        const hasActiveExploreProduct = ownsActiveStabilityProduct(
+          purchaseHistory.map(({ userProduct, product: heldProduct }) => ({
+            isActive: userProduct.isActive,
+            daysRemaining: userProduct.daysRemaining,
+            productType: heldProduct.productType,
+          })),
+        );
+        if (!canPurchaseProductType(product.productType, hasActiveExploreProduct)) {
+          throw new Error(
+            "Vous devez posséder un produit Explore actif avant d'acheter des produits Parcours ou Offres.",
+          );
+        }
+      }
+
+      if (normalizeProductType(product.productType) === "wellness") {
+        const currentVipLevel = calculateVipProgress(purchaseHistory, settings).level;
+        if (!isVipLevelUnlocked(currentVipLevel, product.requiredVipLevel)) {
+          throw new Error(
+            `Vous devez atteindre le niveau VIP ${product.requiredVipLevel} pour acheter ce produit Parcours.`,
+          );
+        }
+      }
+
+      const unitPriceCents = amountToXofCents(product.price);
+      const depositBalanceCents = amountToXofCents(user.balance);
+      const earningsBalanceCents = amountToXofCents(user.totalEarnings);
+      const allocation = calculatePurchaseDebitAllocation({
+        unitPriceCents,
+        quantity,
+        depositBalanceCents,
+        earningsBalanceCents,
+      });
+      if (!allocation) throw new Error("Montant total de l'achat invalide.");
+      if (allocation.shortfallCents > 0) throw new Error("Solde insuffisant");
+      const { totalPriceCents, depositDebitCents, earningsDebitCents } = allocation;
+
+      // Keep the established priority: deposits first, then earnings.
+      const buyerUpdate: Record<string, unknown> = {
+        balance: ((depositBalanceCents - depositDebitCents) / 100).toFixed(2),
+        totalEarnings: ((earningsBalanceCents - earningsDebitCents) / 100).toFixed(2),
+        hasActiveProduct: true,
+      };
+      if (buyerSpinReward > 0) {
+        buyerUpdate.spinTokens = sql`COALESCE(${users.spinTokens}, 0) + ${buyerSpinReward * quantity}`;
+      }
+      await tx.update(users).set(buyerUpdate as any).where(eq(users.id, userId));
+
+      const productTransactions = Array.from({ length: quantity }, () => ({
+        userId,
+        type: "purchase",
+        amount: (-(unitPriceCents / 100)).toFixed(2),
+        description: `Achat ${product.name}`,
+      }));
+      await tx.insert(transactions).values(productTransactions);
+
+      const referralChain: User[] = [];
+      const findUserByReferralCode = async (code: string): Promise<User | undefined> => {
+        const normalizedCode = code.trim().toUpperCase();
+        const [directUser] = await tx.select()
+          .from(users)
+          .where(sql`UPPER(${users.referralCode}) = ${normalizedCode}`)
+          .limit(1);
+        if (directUser) return directUser;
+
+        const [alias] = await tx.select()
+          .from(referralCodeAliases)
+          .where(sql`UPPER(${referralCodeAliases.aliasCode}) = ${normalizedCode}`)
+          .limit(1);
+        if (!alias) return undefined;
+
+        const [aliasedUser] = await tx.select()
+          .from(users)
+          .where(eq(users.id, alias.userId))
+          .limit(1);
+        return aliasedUser;
+      };
+      let referralCode = user.referredBy;
+      const seenSponsorIds = new Set<number>([userId]);
+      for (let level = 0; level < commissionRates.length && referralCode; level += 1) {
+        const sponsor = await findUserByReferralCode(referralCode);
+        if (!sponsor || seenSponsorIds.has(sponsor.id)) break;
+        seenSponsorIds.add(sponsor.id);
+        referralChain.push(sponsor);
+        referralCode = sponsor.referredBy;
+      }
+
+      const commissionTotalsCents = new Map<number, number>();
+      const commissionRows: Array<{
+        userId: number;
+        fromUserId: number;
+        level: number;
+        amount: string;
+        productId: number;
+      }> = [];
+      const commissionTransactions: Array<{
+        userId: number;
+        type: string;
+        amount: string;
+        description: string;
+      }> = [];
+
+      for (let purchaseIndex = 0; purchaseIndex < quantity; purchaseIndex += 1) {
+        referralChain.forEach((sponsor, index) => {
+          const commissionCents = Math.round(unitPriceCents * commissionRates[index]);
+          const commissionAmount = (commissionCents / 100).toFixed(2);
+          commissionTotalsCents.set(
+            sponsor.id,
+            (commissionTotalsCents.get(sponsor.id) || 0) + commissionCents,
+          );
+          commissionRows.push({
+            userId: sponsor.id,
+            fromUserId: userId,
+            level: index + 1,
+            amount: commissionAmount,
+            productId,
+          });
+          commissionTransactions.push({
+            userId: sponsor.id,
+            type: "commission",
+            amount: commissionAmount,
+            description: index === 0
+              ? `Commission niveau 1 de ${user.fullName}`
+              : `Commission niveau ${index + 1}`,
+          });
+        });
+      }
+
+      if (commissionRows.length > 0) {
+        await tx.insert(referralCommissions).values(commissionRows);
+        await tx.insert(transactions).values(commissionTransactions);
+      }
+      for (const [sponsorId, totalCommissionCents] of Array.from(commissionTotalsCents.entries())) {
+        await tx.update(users)
+          .set({
+            totalEarnings: sql`(COALESCE(${users.totalEarnings}, 0)::numeric + ${(totalCommissionCents / 100).toFixed(2)}::numeric)::numeric(15, 2)`,
+          })
+          .where(eq(users.id, sponsorId));
+      }
+
+      const levelOneSponsor = referralChain[0];
+      if (levelOneSponsor && referralSpinReward > 0) {
+        await tx.update(users)
+          .set({
+            spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${referralSpinReward * quantity}`,
+          })
+          .where(eq(users.id, levelOneSponsor.id));
+      }
+
+      const purchaseDate = new Date();
+      const purchases = await tx.insert(userProducts)
+        .values(Array.from({ length: quantity }, () => ({
+          userId,
+          productId,
+          productSnapshot: product,
+          daysRemaining: product.cycleDays,
+          assignedByAdmin: false,
+          lastEarningDate: purchaseDate,
+          totalEarned: "0",
+          pendingEarnings: "0",
+          earningsPaidAt: null,
+          isActive: product.cycleDays > 0,
+        })))
+        .returning();
+
+      return {
+        product,
+        purchases,
+        totalAmount: (totalPriceCents / 100).toFixed(2),
+      };
     });
   }
 

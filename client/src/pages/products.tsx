@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CircleHelp, Image as ImageIcon, Loader2, MessageSquare, RefreshCw } from "lucide-react";
+import { AlertTriangle, CircleHelp, Image as ImageIcon, Loader2, MessageSquare, Minus, Plus, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +16,11 @@ import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
 import { PRODUCT_CARD_COPY } from "@/lib/product-card-copy";
 import { ProductCatalogCard } from "@/components/product-catalog-card";
+import {
+  amountToXofCents,
+  calculatePurchaseDebitAllocation,
+  getMaxAffordableProductQuantity,
+} from "@shared/product-purchase-policy";
 import "./products.css";
 
 const PRODUCT_TAB_TYPES = ["stability", "wellness", "activity"] as const;
@@ -39,6 +44,13 @@ const INVEST_COPY: Record<Lang, {
   multipleHint: string;
   purchaseLimit: string;
   unlimitedPurchases: string;
+  quantity: string;
+  maxQuantity: string;
+  increaseQuantity: string;
+  decreaseQuantity: string;
+  purchaseLimitReached: string;
+  totalAmount: string;
+  unitPrice: string;
   paymentBreakdown: string;
   depositBalance: string;
   earningsBalance: string;
@@ -60,6 +72,13 @@ const INVEST_COPY: Record<Lang, {
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
     purchaseLimit: "Max. achats par utilisateur : {0}",
     unlimitedPurchases: "Illimité",
+    quantity: "Quantité",
+    maxQuantity: "Maximum pour cet achat : {0}",
+    increaseQuantity: "Augmenter la quantité",
+    decreaseQuantity: "Réduire la quantité",
+    purchaseLimitReached: "Vous avez atteint la limite d’achats configurée pour ce produit.",
+    totalAmount: "Total à payer",
+    unitPrice: "Prix unitaire : {0} XOF",
     paymentBreakdown: "Répartition du paiement",
     depositBalance: "Solde des dépôts",
     earningsBalance: "Solde des gains",
@@ -81,6 +100,13 @@ const INVEST_COPY: Record<Lang, {
     multipleHint: "You can purchase multiple products to increase your earnings.",
     purchaseLimit: "Maximum purchases per user: {0}",
     unlimitedPurchases: "Unlimited",
+    quantity: "Quantity",
+    maxQuantity: "Maximum for this order: {0}",
+    increaseQuantity: "Increase quantity",
+    decreaseQuantity: "Decrease quantity",
+    purchaseLimitReached: "You have reached the configured purchase limit for this product.",
+    totalAmount: "Total to pay",
+    unitPrice: "Unit price: {0} XOF",
     paymentBreakdown: "Payment breakdown",
     depositBalance: "Deposit balance",
     earningsBalance: "Earnings balance",
@@ -102,6 +128,13 @@ const INVEST_COPY: Record<Lang, {
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
     purchaseLimit: "الحد الأقصى للمشتريات لكل مستخدم: {0}",
     unlimitedPurchases: "غير محدود",
+    quantity: "الكمية",
+    maxQuantity: "الحد الأقصى لهذا الطلب: {0}",
+    increaseQuantity: "زيادة الكمية",
+    decreaseQuantity: "تقليل الكمية",
+    purchaseLimitReached: "لقد وصلت إلى حد الشراء المحدد لهذا المنتج.",
+    totalAmount: "الإجمالي المطلوب",
+    unitPrice: "سعر الوحدة: {0} XOF",
     paymentBreakdown: "تفاصيل الدفع",
     depositBalance: "رصيد الإيداعات",
     earningsBalance: "رصيد الأرباح",
@@ -123,6 +156,13 @@ const INVEST_COPY: Record<Lang, {
     multipleHint: "您可以购买多个产品以增加收益。",
     purchaseLimit: "每位用户最多购买：{0}",
     unlimitedPurchases: "不限",
+    quantity: "数量",
+    maxQuantity: "本次订单最多：{0}",
+    increaseQuantity: "增加数量",
+    decreaseQuantity: "减少数量",
+    purchaseLimitReached: "您已达到此产品设置的购买上限。",
+    totalAmount: "应付总额",
+    unitPrice: "单价：{0} XOF",
     paymentBreakdown: "支付明细",
     depositBalance: "存款余额",
     earningsBalance: "收益余额",
@@ -137,6 +177,14 @@ function formatXof(value: number) {
     : "0.00";
 }
 
+function safeXofCents(value: number): number | null {
+  try {
+    return amountToXofCents(value);
+  } catch {
+    return null;
+  }
+}
+
 type ProductWithOwnership = Product & {
   isOwned?: boolean;
   ownedCount?: number;
@@ -149,7 +197,8 @@ export default function ProductsPage() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const { t, lang } = useI18n();
-  const [confirmProduct, setConfirmProduct] = useState<Product | null>(null);
+  const [confirmProduct, setConfirmProduct] = useState<ProductWithOwnership | null>(null);
+  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
   const [selectedTab, setSelectedTab] = useState(0);
   const copy = INVEST_COPY[lang];
 
@@ -158,8 +207,19 @@ export default function ProductsPage() {
   });
 
   const purchaseMutation = useMutation({
-    mutationFn: async (productId: number) => {
-      const response = await apiRequest("POST", `/api/products/${productId}/purchase`, {});
+    mutationFn: async ({
+      productId,
+      quantity,
+      expectedUnitPriceCents,
+    }: {
+      productId: number;
+      quantity: number;
+      expectedUnitPriceCents: number;
+    }) => {
+      const response = await apiRequest("POST", `/api/products/${productId}/purchase`, {
+        quantity,
+        expectedUnitPriceCents,
+      });
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || t.errorOccurred);
@@ -171,10 +231,12 @@ export default function ProductsPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/products"] });
       refreshUser();
       setConfirmProduct(null);
+      setPurchaseQuantity(1);
       toast({ title: t.purchaseSuccess, description: t.purchaseSuccessDescription });
     },
     onError: (error: Error) => {
       setConfirmProduct(null);
+      setPurchaseQuantity(1);
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
     },
   });
@@ -183,7 +245,42 @@ export default function ProductsPage() {
 
   const depositBalance = Number.isFinite(parseFloat(user.balance || "0")) ? parseFloat(user.balance || "0") : 0;
   const earningsBalance = Number.isFinite(parseFloat(user.totalEarnings || "0")) ? parseFloat(user.totalEarnings || "0") : 0;
-  const availableBalance = depositBalance + earningsBalance;
+  const depositBalanceCents = safeXofCents(Math.max(0, depositBalance)) ?? 0;
+  const earningsBalanceCents = safeXofCents(Math.max(0, earningsBalance)) ?? 0;
+  const availableBalanceCents = depositBalanceCents + earningsBalanceCents;
+  const rawConfirmUnitPrice = Number(confirmProduct?.price);
+  const confirmUnitPriceCentsValue = confirmProduct !== null &&
+    Number.isFinite(rawConfirmUnitPrice) && rawConfirmUnitPrice >= 0
+    ? safeXofCents(rawConfirmUnitPrice)
+    : null;
+  const confirmPriceIsValid = confirmUnitPriceCentsValue !== null;
+  const confirmUnitPriceCents = confirmUnitPriceCentsValue ?? 0;
+  const configuredPurchaseLimit = Math.max(0, Number(confirmProduct?.maxOwned) || 0);
+  const activeOwnedCount = Math.max(0, Number(confirmProduct?.ownedCount) || 0);
+  const remainingProductLimit = configuredPurchaseLimit > 0
+    ? Math.max(0, configuredPurchaseLimit - activeOwnedCount)
+    : null;
+  const maxSelectableQuantity = confirmPriceIsValid
+    ? getMaxAffordableProductQuantity({
+      unitPriceCents: confirmUnitPriceCents,
+      availableBalanceCents,
+      remainingProductLimit,
+    })
+    : 0;
+  const purchaseAllocation = confirmPriceIsValid
+    ? calculatePurchaseDebitAllocation({
+      unitPriceCents: confirmUnitPriceCents,
+      quantity: purchaseQuantity,
+      depositBalanceCents,
+      earningsBalanceCents,
+    })
+    : null;
+  const totalPurchaseCents = purchaseAllocation?.totalPriceCents ?? 0;
+  const totalPurchase = totalPurchaseCents / 100;
+  const insufficientAmountCents = purchaseAllocation?.shortfallCents ?? 0;
+  const depositDebitCents = purchaseAllocation?.depositDebitCents ?? 0;
+  const earningsDebitCents = purchaseAllocation?.earningsDebitCents ?? 0;
+  const productLimitReached = remainingProductLimit === 0;
   const paidProducts = (products || []).filter((product) => !product.isFree);
   const selectedProductType = PRODUCT_TAB_TYPES[selectedTab] ?? PRODUCT_TAB_TYPES[0];
   const hasActiveStabilityProduct = products?.some((product) => product.userHasActiveStabilityProduct === true) ?? false;
@@ -197,7 +294,10 @@ export default function ProductsPage() {
   const confirmProductIndex = confirmProduct
     ? Math.max(0, sectionProducts.findIndex((product) => product.id === confirmProduct.id))
     : 0;
-  const handleBuy = (product: Product) => setConfirmProduct(product);
+  const handleBuy = (product: ProductWithOwnership) => {
+    setPurchaseQuantity(1);
+    setConfirmProduct(product);
+  };
 
   return (
     <main className="ielp-home-page diamant-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
@@ -261,7 +361,7 @@ export default function ProductsPage() {
             ) : (
               sectionProducts.map((product) => {
                 const index = productIndexes.get(product.id) ?? 0;
-                const isPending = purchaseMutation.isPending && purchaseMutation.variables === product.id;
+                const isPending = purchaseMutation.isPending && purchaseMutation.variables?.productId === product.id;
                 const stock = Math.min(100, Math.max(0, Number(product.stockPercentage) || 0));
                 const isSoldOut = stock >= 100;
                 const isUnavailable = !!product.isUnavailable;
@@ -304,7 +404,15 @@ export default function ProductsPage() {
 
         <FloatingSupport placement="home" />
 
-        <Dialog open={!!confirmProduct} onOpenChange={(open) => !open && setConfirmProduct(null)}>
+        <Dialog
+          open={!!confirmProduct}
+          onOpenChange={(open) => {
+            if (!open) {
+              setConfirmProduct(null);
+              setPurchaseQuantity(1);
+            }
+          }}
+        >
           {confirmProduct && (
             <DialogContent className="diamant-purchase-dialog">
               <DialogTitle className="sr-only">{t.investConfirmDesc} — {getDisplayName(confirmProduct)}</DialogTitle>
@@ -319,10 +427,13 @@ export default function ProductsPage() {
               </div>
               <div className="diamant-purchase-dialog__body">
                 <div className="diamant-purchase-dialog__heading">
-                  <div><span>DIAMANT / XOF</span><h2>{getDisplayName(confirmProduct)}</h2></div>
-                  <strong>{formatXof(Number(confirmProduct.price))}<small> XOF</small></strong>
+                  <div><span>DIAMANT / {copy.totalAmount}</span><h2>{getDisplayName(confirmProduct)}</h2></div>
+                  <strong data-testid="purchase-total">{formatXof(totalPurchase)}<small> XOF</small></strong>
                 </div>
                 <p className="diamant-purchase-dialog__hint">{copy.purchaseHint}</p>
+                <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">
+                  {copy.unitPrice.replace("{0}", formatXof(Number(confirmProduct.price)))}
+                </p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
                 <p
                   className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle"
@@ -335,37 +446,79 @@ export default function ProductsPage() {
                       : copy.unlimitedPurchases,
                   )}
                 </p>
-                {availableBalance < parseFloat(String(confirmProduct.price)) && (
+                {maxSelectableQuantity > 0 && (
+                  <div className="diamant-purchase-quantity" data-testid="purchase-quantity-control">
+                    <div className="diamant-purchase-quantity__heading">
+                      <span>{copy.quantity}</span>
+                      <small>{copy.maxQuantity.replace("{0}", String(maxSelectableQuantity))}</small>
+                    </div>
+                    <div className="diamant-purchase-quantity__controls">
+                      <button
+                        type="button"
+                        aria-label={copy.decreaseQuantity}
+                        onClick={() => setPurchaseQuantity((quantity) => Math.max(1, quantity - 1))}
+                        disabled={purchaseMutation.isPending || purchaseQuantity <= 1}
+                      >
+                        <Minus size={16} aria-hidden="true" />
+                      </button>
+                      <output aria-live="polite" data-testid="purchase-quantity-value">{purchaseQuantity}</output>
+                      <button
+                        type="button"
+                        aria-label={copy.increaseQuantity}
+                        onClick={() => setPurchaseQuantity((quantity) => Math.min(maxSelectableQuantity, quantity + 1))}
+                        disabled={purchaseMutation.isPending || purchaseQuantity >= maxSelectableQuantity}
+                      >
+                        <Plus size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {productLimitReached && (
+                  <div className="diamant-purchase-alert" role="alert">
+                    <AlertTriangle size={17} aria-hidden="true" />
+                    <p>{copy.purchaseLimitReached}</p>
+                  </div>
+                )}
+                {insufficientAmountCents > 0 && !productLimitReached && (
                   <div className="diamant-purchase-alert">
                     <AlertTriangle size={17} aria-hidden="true" />
-                    <p>{t.investInsufficient.replace("{0}", `${formatXof(
-                      parseFloat(String(confirmProduct.price)) - availableBalance
-                    )} XOF`)}</p>
+                    <p>{t.investInsufficient.replace("{0}", `${formatXof(insufficientAmountCents / 100)} XOF`)}</p>
                   </div>
                 )}
                 <div className="diamant-payment-breakdown">
                   <p>{copy.paymentBreakdown}</p>
-                  <div><span>{copy.depositBalance}</span><strong>−{formatXof(Math.min(Math.max(0, depositBalance), Number(confirmProduct.price)))} XOF</strong></div>
-                  {Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)) > 0 && (
-                    <div><span>{copy.earningsBalance}</span><strong>−{formatXof(Math.max(0, Number(confirmProduct.price) - Math.max(0, depositBalance)))} XOF</strong></div>
+                  <div><span>{copy.depositBalance}</span><strong>−{formatXof(depositDebitCents / 100)} XOF</strong></div>
+                  {earningsDebitCents > 0 && (
+                    <div><span>{copy.earningsBalance}</span><strong>−{formatXof(earningsDebitCents / 100)} XOF</strong></div>
                   )}
                 </div>
                 <div className="diamant-purchase-stats">
                   {[
                     { value: `${confirmProduct.cycleDays} ${t.ordersDaysLbl}`, label: t.duration },
-                    { value: `${formatXof(Number(confirmProduct.dailyEarnings))} XOF`, label: t.dailyRevenue },
-                    { value: `${formatXof(Number(confirmProduct.totalReturn))} XOF`, label: t.totalRevenue },
+                    { value: `${formatXof(Number(confirmProduct.dailyEarnings) * purchaseQuantity)} XOF`, label: t.dailyRevenue },
+                    { value: `${formatXof(Number(confirmProduct.totalReturn) * purchaseQuantity)} XOF`, label: t.totalRevenue },
                   ].map((stat) => (
                     <div key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>
                   ))}
                 </div>
               </div>
               <div className="diamant-purchase-actions">
-                <button type="button" onClick={() => setConfirmProduct(null)} data-testid="button-cancel-purchase">{t.cancel}</button>
+                <button type="button" onClick={() => { setConfirmProduct(null); setPurchaseQuantity(1); }} data-testid="button-cancel-purchase">{t.cancel}</button>
                 <button
                   type="button"
-                  onClick={() => purchaseMutation.mutate(confirmProduct.id)}
-                  disabled={purchaseMutation.isPending || availableBalance < parseFloat(String(confirmProduct.price))}
+                  onClick={() => purchaseMutation.mutate({
+                    productId: confirmProduct.id,
+                    quantity: purchaseQuantity,
+                    expectedUnitPriceCents: confirmUnitPriceCents,
+                  })}
+                  disabled={
+                    purchaseMutation.isPending ||
+                    !confirmPriceIsValid ||
+                    !purchaseAllocation ||
+                    maxSelectableQuantity === 0 ||
+                    purchaseQuantity > maxSelectableQuantity ||
+                    purchaseAllocation.shortfallCents > 0
+                  }
                   data-testid="button-confirm-purchase"
                 >
                   {purchaseMutation.isPending && <Loader2 size={17} className="animate-spin" />}
