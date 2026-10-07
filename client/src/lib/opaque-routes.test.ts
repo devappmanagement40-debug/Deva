@@ -1,37 +1,40 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  OPAQUE_ROUTES,
+  LEGACY_OPAQUE_ROUTES,
   buildInvitationUrl,
+  buildHashRouteUrl,
   getCanonicalInitialUrl,
   internalPathFromLocation,
   toInternalRoute,
-  toOpaqueRoute,
 } from "./opaque-routes";
 
-test("every app route has a unique opaque URL and round-trips", () => {
-  const opaquePaths = OPAQUE_ROUTES.map(({ opaque }) => opaque);
-  assert.equal(new Set(opaquePaths).size, OPAQUE_ROUTES.length);
-
-  for (const route of OPAQUE_ROUTES) {
+test("previous opaque URLs continue to resolve to their readable routes", () => {
+  for (const route of LEGACY_OPAQUE_ROUTES) {
     const examplePath = route.internal
       .replace(":id", "42")
       .replace(":level", "2");
-    const opaquePath = toOpaqueRoute(examplePath);
-    assert.equal(toInternalRoute(opaquePath), examplePath);
+    const oldOpaquePath = route.opaque
+      .replace(":id", "42")
+      .replace(":level", "2");
+    assert.equal(toInternalRoute(oldOpaquePath), examplePath);
   }
 });
 
-test("legacy paths remain aliases and map to their current pages", () => {
-  assert.equal(toOpaqueRoute("/login"), OPAQUE_ROUTES.find((route) => route.internal === "/login")?.opaque);
+test("readable routes remain readable and legacy paths map to their current pages", () => {
+  assert.equal(toInternalRoute("/login"), "/login");
   assert.equal(toInternalRoute("/invitation"), "/register");
   assert.equal(toInternalRoute("/rejoindre"), "/register");
   assert.equal(toInternalRoute("/my-products"), "/orders");
 });
 
-test("opaque dynamic routes preserve identifiers and query strings", () => {
-  const external = toOpaqueRoute("/admin/team/17?tab=members");
-  assert.equal(toInternalRoute(external), "/admin/team/17?tab=members");
+test("readable dynamic routes preserve identifiers and query strings", () => {
+  const route = "/admin/team/17?tab=members";
+  assert.equal(toInternalRoute(route), route);
+  assert.equal(
+    buildHashRouteUrl("https://golddiamant.site", route),
+    "https://golddiamant.site/#/admin/team/17?tab=members",
+  );
 });
 
 test("root invitation links open registration and prefill invite", () => {
@@ -48,9 +51,18 @@ test("root invitation links open registration and prefill invite", () => {
   }
 });
 
-test("direct legacy page URLs are normalized to opaque routes", () => {
+test("direct legacy page URLs are normalized to readable hash routes", () => {
   assert.equal(
     getCanonicalInitialUrl({ pathname: "/login", search: "", hash: "" }),
-    `/#${toOpaqueRoute("/login")}`,
+    "/#/login",
+  );
+  assert.equal(getCanonicalInitialUrl({ pathname: "/", search: "", hash: "" }), null);
+  assert.equal(
+    getCanonicalInitialUrl({
+      pathname: LEGACY_OPAQUE_ROUTES.find((route) => route.internal === "/login")!.opaque,
+      search: "",
+      hash: "",
+    }),
+    "/#/login",
   );
 });

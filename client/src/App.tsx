@@ -1,9 +1,8 @@
 import { Switch, Route, useLocation, Redirect, Router } from "wouter";
 import { useState, useEffect, useCallback } from "react";
-import { getSearchFromLocation, internalPathFromLocation, toOpaqueRoute } from "@/lib/opaque-routes";
+import { getSearchFromLocation, internalPathFromLocation, toInternalRoute } from "@/lib/opaque-routes";
 
-// Keep the existing hash router, but expose opaque, distinct page URLs.
-// Wouter continues to receive the original internal route names.
+// Keep the original readable hash routes, such as /#/login and /#/register.
 function useHashPath(_opts?: object): [string, (to: string, opts?: object) => void] {
   const getPath = () => internalPathFromLocation(window.location);
   const [loc, setLoc] = useState(getPath);
@@ -18,13 +17,13 @@ function useHashPath(_opts?: object): [string, (to: string, opts?: object) => vo
   }, []);
   const navigate = useCallback((to: string, opts?: any) => {
     const method = opts?.replace ? "replaceState" : "pushState";
-    history[method](opts?.state ?? null, "", `/#${toOpaqueRoute(to)}`);
+    history[method](opts?.state ?? null, "", `${window.location.pathname}#${toInternalRoute(to)}`);
     window.dispatchEvent(new Event("hashchange"));
   }, []);
   return [loc, navigate];
 }
-// Expose opaque hash URLs to <Link> and <Redirect>.
-(useHashPath as any).hrefs = (href: string) => `#${toOpaqueRoute(href)}`;
+// Expose readable hash URLs to <Link> and <Redirect>.
+(useHashPath as any).hrefs = (href: string) => `#${toInternalRoute(href)}`;
 
 // Read query parameters from either an opaque hash route or the root invitation URL.
 function useHashSearch(_opts?: object): string {

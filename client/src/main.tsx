@@ -3,8 +3,8 @@ import App from "./App";
 import "./index.css";
 import { getCanonicalInitialUrl } from "./lib/opaque-routes";
 
-// Convert direct and legacy page URLs to their opaque hash routes before
-// rendering. Keep the public root invitation link exactly as
+// Convert direct page URLs to the readable hash routes used by the app.
+// Keep the public root invitation link exactly as
 // /?invite=CODE so it can open the registration form.
 (function normalizeInitialAppUrl() {
   const { pathname, search, hash } = window.location;

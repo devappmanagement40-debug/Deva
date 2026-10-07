@@ -9,7 +9,9 @@ type BrowserRouteLocation = {
   hash: string;
 };
 
-export const OPAQUE_ROUTES: readonly RouteMapping[] = [
+// Keep these mappings only to redirect links shared before the URL change.
+// New links and navigation use the readable route names again.
+export const LEGACY_OPAQUE_ROUTES: readonly RouteMapping[] = [
   { internal: "/", opaque: "/c1b13097434d4a869044e4f1865d10ff" },
   { internal: "/login", opaque: "/01321e66d5f74918aea0dbcbca46ba07" },
   { internal: "/register", opaque: "/d2cb9cc633c645ebb46515f328cb60a4" },
@@ -104,22 +106,10 @@ function fillTemplate(template: string, values: string[]): string {
   return filled.length ? `/${filled.join("/")}` : "/";
 }
 
-export function toOpaqueRoute(value: string): string {
-  const { path, suffix } = splitRouteAndSuffix(value);
-  const canonicalPath = LEGACY_ROUTE_ALIASES[path] ?? path;
-
-  for (const route of OPAQUE_ROUTES) {
-    const values = matchTemplate(route.internal, canonicalPath);
-    if (values) return `${fillTemplate(route.opaque, values)}${suffix}`;
-  }
-
-  return `${path}${suffix}`;
-}
-
 export function toInternalRoute(value: string): string {
   const { path, suffix } = splitRouteAndSuffix(value);
 
-  for (const route of OPAQUE_ROUTES) {
+  for (const route of LEGACY_OPAQUE_ROUTES) {
     const values = matchTemplate(route.opaque, path);
     if (values) return `${fillTemplate(route.internal, values)}${suffix}`;
   }
@@ -152,8 +142,7 @@ export function getSearchFromLocation(location: BrowserRouteLocation): string {
 export function getCanonicalInitialUrl(location: BrowserRouteLocation): string | null {
   if (
     !location.hash &&
-    normalizePath(location.pathname) === "/" &&
-    hasInvitationCode(location.search)
+    normalizePath(location.pathname) === "/"
   ) {
     return null;
   }
@@ -161,11 +150,11 @@ export function getCanonicalInitialUrl(location: BrowserRouteLocation): string |
   const routeSource = location.hash
     ? location.hash.slice(1)
     : `${location.pathname}${location.search}`;
-  return `/#${toOpaqueRoute(routeSource)}`;
+  return `/#${toInternalRoute(routeSource)}`;
 }
 
-export function buildOpaqueRouteUrl(origin: string, route: string): string {
-  return `${origin.replace(/\/+$/, "")}/#${toOpaqueRoute(route)}`;
+export function buildHashRouteUrl(origin: string, route: string): string {
+  return `${origin.replace(/\/+$/, "")}/#${toInternalRoute(route)}`;
 }
 
 export function buildInvitationUrl(origin: string, invitationCode: string): string {
