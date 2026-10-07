@@ -705,21 +705,6 @@ export class DatabaseStorage implements IStorage {
         );
       }
 
-      const minInviteCount = Math.max(0, Number(product.minInviteCount) || 0);
-      if (minInviteCount > 0) {
-        const [inviteCountRow] = await tx.select({
-          count: sql<number>`count(*)::int`,
-        })
-          .from(users)
-          .where(eq(users.referredBy, user.referralCode));
-        const inviteCount = Number(inviteCountRow?.count) || 0;
-        if (inviteCount < minInviteCount) {
-          throw new Error(
-            `Vous devez inviter au moins ${minInviteCount} personne(s) avant d'acheter ce produit (actuellement : ${inviteCount}).`,
-          );
-        }
-      }
-
       const [activeOwnedCountRow] = await tx.select({
         count: sql<number>`count(*)::int`,
       })

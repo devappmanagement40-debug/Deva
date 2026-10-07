@@ -109,7 +109,8 @@ export const products = pgTable("products", {
   sortOrder: integer("sort_order").notNull().default(0),
   // Series & purchase conditions
   seriesId: integer("series_id").references(() => productSeries.id),
-  minInviteCount: integer("min_invite_count").notNull().default(0),   // 0 = aucune condition
+  // Legacy database column retained for compatibility; product invite gates are disabled.
+  minInviteCount: integer("min_invite_count").notNull().default(0),
   requiredVipLevel: integer("required_vip_level").notNull().default(0),
   maxOwned: integer("max_owned").notNull().default(0),                // 0 = illimité
   // Legacy payout mode retained to interpret uncredited earnings on old purchases.

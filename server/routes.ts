@@ -3990,7 +3990,7 @@ export async function registerRoutes(
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
-      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, minInviteCount, requiredVipLevel, maxOwned, stockPercentage } = req.body;
+      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, requiredVipLevel, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType;
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
@@ -4025,7 +4025,7 @@ export async function registerRoutes(
         isActive: true,
         sortOrder: 0,
         seriesId: null,
-        minInviteCount: parseInt(minInviteCount) || 0,
+        minInviteCount: 0,
         requiredVipLevel: parsedRequiredVipLevel,
         maxOwned: parseInt(maxOwned) || 0,
         collectAtEnd: false,
@@ -4044,6 +4044,9 @@ export async function registerRoutes(
       // This legacy switch no longer controls payout behavior. Preserve stored
       // values so existing purchases can still be interpreted correctly.
       delete body.collectAtEnd;
+      // Product invitation gates are retired; ignore stale clients that still
+      // submit the legacy field.
+      delete body.minInviteCount;
       if (body.productType !== undefined && !PRODUCT_TYPES.includes(body.productType)) {
         return res.status(400).json({ message: "Type de produit invalide" });
       }
@@ -4062,7 +4065,6 @@ export async function registerRoutes(
         body.requiredVipLevel = requiredVipLevel;
       }
       // Normalize numeric fields when present
-      if (body.minInviteCount !== undefined) body.minInviteCount = parseInt(body.minInviteCount) || 0;
       if (body.maxOwned !== undefined) body.maxOwned = parseInt(body.maxOwned) || 0;
       if (body.stockPercentage !== undefined) body.stockPercentage = Math.min(100, Math.max(0, parseInt(body.stockPercentage) || 0));
       const product = await storage.updateProduct(parseInt(req.params.id as string), body);

@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
-import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, Users, ShoppingBag } from "lucide-react";
+import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
@@ -35,7 +35,6 @@ const productSchema = z.object({
     (value) => value === undefined || value === "" || isValidProductCardColor(value),
     "Choisis une couleur valide",
   ),
-  minInviteCount: z.string().optional(),
   requiredVipLevel: z.string(),
   maxOwned: z.string().optional(),
   stockPercentage: z.number().min(0).max(100).optional(),
@@ -194,18 +193,6 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
           <ShoppingBag className="w-4 h-4" /> Conditions d'achat
         </p>
         <div className="grid grid-cols-2 gap-3">
-          <FormField control={form.control} name="minInviteCount" render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs flex items-center gap-1">
-                <Users className="w-3 h-3" /> Min. invitations
-              </FormLabel>
-              <FormControl>
-                <Input {...field} type="number" min="0" placeholder="0 = aucune" />
-              </FormControl>
-              <p className="text-[10px] text-muted-foreground">0 = pas de condition</p>
-              <FormMessage />
-            </FormItem>
-          )} />
           <FormField control={form.control} name="maxOwned" render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs">Max achats / utilisateur</FormLabel>
@@ -315,7 +302,7 @@ export default function AdminProducts() {
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: String(DEFAULT_EXPLORE_CYCLE_DAYS),
-    imageUrl: "", cardColor: "", minInviteCount: "0", requiredVipLevel: "0", maxOwned: "0", stockPercentage: 0,
+    imageUrl: "", cardColor: "", requiredVipLevel: "0", maxOwned: "0", stockPercentage: 0,
   };
 
   const editForm = useForm<ProductForm>({ resolver: zodResolver(productSchema), defaultValues });
@@ -348,7 +335,6 @@ export default function AdminProducts() {
         totalReturn: parseFloat((parseFloat(data.dailyEarnings) * parseInt(data.cycleDays)).toFixed(2)),
         imageUrl: data.imageUrl || null,
         cardColor: data.cardColor || null,
-        minInviteCount: parseInt(data.minInviteCount || "0") || 0,
         requiredVipLevel: Number.parseInt(data.requiredVipLevel, 10),
         maxOwned: parseInt(data.maxOwned || "0") || 0,
         stockPercentage: Math.min(100, Math.max(0, data.stockPercentage ?? 0)),
@@ -419,7 +405,6 @@ export default function AdminProducts() {
       cycleDays: product.cycleDays.toString(),
       imageUrl: product.imageUrl || "",
       cardColor: product.cardColor || "",
-      minInviteCount: String(product.minInviteCount ?? 0),
       requiredVipLevel: String(product.requiredVipLevel ?? 0),
       maxOwned: String(product.maxOwned ?? 0),
       stockPercentage: product.stockPercentage ?? 0,
@@ -482,11 +467,6 @@ export default function AdminProducts() {
                       {normalizeProductType(product.productType) === "wellness" && (
                         <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
                           VIP minimum : {Number(product.requiredVipLevel) || 0}
-                        </span>
-                      )}
-                      {Number(product.minInviteCount) > 0 && (
-                        <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full">
-                          👥 {product.minInviteCount} invitations requises
                         </span>
                       )}
                       {Number(product.maxOwned) > 0 && (
