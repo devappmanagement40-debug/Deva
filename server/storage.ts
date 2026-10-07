@@ -196,6 +196,12 @@ export interface IStorage {
   }): Promise<WithdrawalProof>;
   getWithdrawalProofs(status?: WithdrawalProofStatus | "all", limit?: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser })[]>;
   getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined>;
+  deleteWithdrawalProof(id: number, deletedBy: number): Promise<{
+    id: number;
+    userId: number;
+    status: WithdrawalProofStatus;
+    shareBonusXof: number;
+  } | undefined>;
   approvePendingWithdrawalProof(
     id: number,
     data: { shareBonusXof: number; displayAmountXof: number; processedAt: Date; processedBy: number },
@@ -1462,6 +1468,37 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return result ? { ...result.proof, user: result.user } : undefined;
+  }
+
+  async deleteWithdrawalProof(
+    id: number,
+    deletedBy: number,
+  ): Promise<{
+    id: number;
+    userId: number;
+    status: WithdrawalProofStatus;
+    shareBonusXof: number;
+  } | undefined> {
+    return db.transaction(async (tx) => {
+      const [proof] = await tx.delete(withdrawalProofs)
+        .where(eq(withdrawalProofs.id, id))
+        .returning({
+          id: withdrawalProofs.id,
+          userId: withdrawalProofs.userId,
+          status: withdrawalProofs.status,
+          shareBonusXof: withdrawalProofs.shareBonusXof,
+        });
+      if (!proof) return undefined;
+
+      await tx.insert(adminAuditLog).values({
+        adminId: deletedBy,
+        action: "delete_withdrawal_proof",
+        targetUserId: proof.userId,
+        details: `Preuve de retrait ${proof.id} supprimée (statut ${proof.status}); aucun ajustement du solde ni de l’historique financier`,
+      });
+
+      return proof;
+    });
   }
 
   async approvePendingWithdrawalProof(

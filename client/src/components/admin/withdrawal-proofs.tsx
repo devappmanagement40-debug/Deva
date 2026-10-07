@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Clock3, ImageIcon, RefreshCw, ShieldCheck, X } from "lucide-react";
+import { Check, Clock3, Download, ImageIcon, RefreshCw, ShieldCheck, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -41,6 +51,7 @@ export default function AdminWithdrawalProofs() {
   const [bonusAmounts, setBonusAmounts] = useState<Record<number, string>>({});
   const [displayAmounts, setDisplayAmounts] = useState<Record<number, string>>({});
   const [openImage, setOpenImage] = useState<{ id: number; imageNumber: number } | null>(null);
+  const [proofToDelete, setProofToDelete] = useState<AdminProof | null>(null);
 
   const proofs = useQuery<AdminProof[]>({
     queryKey: ["/api/admin/withdrawal-proofs", status],
@@ -72,6 +83,30 @@ export default function AdminWithdrawalProofs() {
     onError: () => toast({
       title: "Action impossible",
       description: "La décision n’a pas été enregistrée. Actualisez la liste et réessayez.",
+      variant: "destructive",
+    }),
+  });
+
+  const deleteProof = useMutation({
+    mutationFn: async ({ id }: { id: number }) => {
+      const response = await apiRequest("DELETE", `/api/admin/withdrawal-proofs/${id}`);
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.message || "Impossible de supprimer cette preuve.");
+      }
+    },
+    onSuccess: () => {
+      setProofToDelete(null);
+      void queryClient.invalidateQueries({ queryKey: ["/api/admin/withdrawal-proofs"] });
+      void queryClient.invalidateQueries({ queryKey: ["/api/withdrawal-proofs"] });
+      toast({
+        title: "Preuve supprimée",
+        description: "La preuve a été retirée. Le solde et l’historique financier restent inchangés.",
+      });
+    },
+    onError: () => toast({
+      title: "Action impossible",
+      description: "La preuve n’a pas été supprimée. Actualisez la liste et réessayez.",
       variant: "destructive",
     }),
   });
@@ -175,22 +210,33 @@ export default function AdminWithdrawalProofs() {
                 {Array.from({ length: proof.imageCount }, (_, imageIndex) => {
                   const imageNumber = imageIndex + 1;
                   return (
-                    <button
-                      key={imageNumber}
-                      type="button"
-                      className="admin-proof-card__image-button"
-                      onClick={() => setOpenImage({ id: proof.id, imageNumber })}
-                      data-testid={imageNumber === 1
-                        ? `button-view-withdrawal-proof-${proof.id}`
-                        : `button-view-withdrawal-proof-${proof.id}-2`}
-                    >
-                      <img
-                        src={`/api/admin/withdrawal-proofs/${proof.id}/image?image=${imageNumber}`}
-                        alt="Capture de preuve de retrait"
-                        loading="lazy"
-                      />
-                      <span><ImageIcon size={15} /> Agrandir la capture</span>
-                    </button>
+                    <div className="admin-proof-card__image-item" key={imageNumber}>
+                      <button
+                        type="button"
+                        className="admin-proof-card__image-button"
+                        onClick={() => setOpenImage({ id: proof.id, imageNumber })}
+                        data-testid={imageNumber === 1
+                          ? `button-view-withdrawal-proof-${proof.id}`
+                          : `button-view-withdrawal-proof-${proof.id}-2`}
+                      >
+                        <img
+                          src={`/api/admin/withdrawal-proofs/${proof.id}/image?image=${imageNumber}`}
+                          alt="Capture de preuve de retrait"
+                          loading="lazy"
+                        />
+                        <span><ImageIcon size={15} /> Agrandir la capture</span>
+                      </button>
+                      <a
+                        className="admin-proof-card__download"
+                        href={`/api/admin/withdrawal-proofs/${proof.id}/image?image=${imageNumber}&download=1`}
+                        download
+                        aria-label="Télécharger la capture"
+                        data-testid={`link-download-withdrawal-proof-${proof.id}-${imageNumber}`}
+                      >
+                        <Download size={14} />
+                        <span>Télécharger</span>
+                      </a>
+                    </div>
                   );
                 })}
               </div>
@@ -267,6 +313,17 @@ export default function AdminWithdrawalProofs() {
                   )}
                 </div>
               )}
+              <Button
+                type="button"
+                variant="destructive"
+                className="admin-proof-card__delete"
+                onClick={() => setProofToDelete(proof)}
+                disabled={deleteProof.isPending || reviewProof.isPending}
+                data-testid={`button-delete-withdrawal-proof-${proof.id}`}
+              >
+                <Trash2 size={15} />
+                Supprimer
+              </Button>
             </article>
           ))}
         </div>
@@ -281,6 +338,35 @@ export default function AdminWithdrawalProofs() {
           />
         </div>
       )}
+
+      <AlertDialog
+        open={proofToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !deleteProof.isPending) setProofToDelete(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer la preuve de retrait ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La preuve et ses captures seront supprimées du fil. Une prime déjà créditée restera dans le solde du membre et dans son historique financier.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteProof.isPending}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteProof.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                if (proofToDelete) deleteProof.mutate({ id: proofToDelete.id });
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

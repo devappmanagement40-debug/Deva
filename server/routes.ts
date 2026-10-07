@@ -1780,13 +1780,21 @@ export async function registerRoutes(
     }
   });
 
-  const sendWithdrawalProofImage = (res: Response, dataUrl: string) => {
+  const sendWithdrawalProofImage = (
+    res: Response,
+    dataUrl: string,
+    downloadFileStem?: string,
+  ) => {
     const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
     if (!match) return res.status(500).json({ message: "Image de preuve invalide" });
 
     res.setHeader("Content-Type", match[1]);
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "private, no-store");
+    if (downloadFileStem && /^withdrawal-proof-\d+-[12]$/.test(downloadFileStem)) {
+      const extension = match[1] === "image/jpeg" ? "jpg" : match[1].slice("image/".length);
+      res.setHeader("Content-Disposition", `attachment; filename="${downloadFileStem}.${extension}"`);
+    }
     return res.status(200).send(Buffer.from(match[2], "base64"));
   };
 
@@ -3167,16 +3175,39 @@ export async function registerRoutes(
     if (requestedImage !== undefined && requestedImage !== "1" && requestedImage !== "2") {
       return res.status(400).json({ message: "Numéro de capture invalide" });
     }
+    const requestedDownload = req.query.download;
+    if (requestedDownload !== undefined && requestedDownload !== "1") {
+      return res.status(400).json({ message: "Paramètre de téléchargement invalide" });
+    }
 
     try {
       const proof = await storage.getWithdrawalProof(id);
       if (!proof) return res.status(404).json({ message: "Image introuvable" });
       const image = requestedImage === "2" ? proof.proofImage2 : proof.proofImage;
       if (!image) return res.status(404).json({ message: "Image introuvable" });
-      return sendWithdrawalProofImage(res, image);
+      const fileStem = requestedDownload === "1"
+        ? `withdrawal-proof-${id}-${requestedImage === "2" ? 2 : 1}`
+        : undefined;
+      return sendWithdrawalProofImage(res, image, fileStem);
     } catch (error) {
       console.error("Admin withdrawal proof image error:", error);
       return res.status(500).json({ message: "Impossible de charger cette image" });
+    }
+  });
+
+  app.delete("/api/admin/withdrawal-proofs/:id", requireAdmin, requireSameOrigin, async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) {
+      return res.status(400).json({ message: "Identifiant de preuve invalide" });
+    }
+
+    try {
+      const deleted = await storage.deleteWithdrawalProof(id, req.session.userId!);
+      if (!deleted) return res.status(404).json({ message: "Preuve introuvable" });
+      return res.status(204).end();
+    } catch (error) {
+      console.error("Admin withdrawal proof deletion error:", error);
+      return res.status(500).json({ message: "Impossible de supprimer cette preuve pour le moment" });
     }
   });
 
