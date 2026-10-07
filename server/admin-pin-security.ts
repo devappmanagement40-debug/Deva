@@ -1,16 +1,15 @@
 import { timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 
-export const ADMIN_ACCESS_PIN_MIN_LENGTH = 6;
-export const ADMIN_ACCESS_PIN_MAX_LENGTH = 8;
+export const ADMIN_ACCESS_PIN_MIN_LENGTH = 4;
+export const ADMIN_ACCESS_PIN_MAX_LENGTH = 4;
 
 const BCRYPT_HASH_PATTERN = /^\$2[ab]\$\d{2}\$/;
 
 export function isValidAdminAccessPin(value: unknown): value is string {
   return (
     typeof value === "string" &&
-    value.length >= ADMIN_ACCESS_PIN_MIN_LENGTH &&
-    value.length <= ADMIN_ACCESS_PIN_MAX_LENGTH &&
+    value.length === ADMIN_ACCESS_PIN_MIN_LENGTH &&
     /^\d+$/.test(value)
   );
 }

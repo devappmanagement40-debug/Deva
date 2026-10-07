@@ -802,10 +802,10 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                             inputMode="numeric"
                             autoComplete="new-password"
                             value={adminPinInput}
-                            onChange={(e) => setAdminPinInput(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                            placeholder="6 à 8 chiffres"
+                            onChange={(e) => setAdminPinInput(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                            placeholder="4 chiffres"
                             className="mt-1"
-                            maxLength={8}
+                            maxLength={4}
                             data-testid="input-new-admin-pin"
                           />
                         </div>
@@ -820,7 +820,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                           });
                           setAdminPinInput("");
                         }}
-                        disabled={updateMutation.isPending || (!selectedUser.isAdmin && !/^\d{6,8}$/.test(adminPinInput))}
+                        disabled={updateMutation.isPending || (!selectedUser.isAdmin && !/^\d{4}$/.test(adminPinInput))}
                         className="w-full"
                       >
                         <Shield className="w-4 h-4 mr-2" />

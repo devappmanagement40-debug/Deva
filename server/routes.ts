@@ -3881,7 +3881,7 @@ export async function registerRoutes(
           const newAdminStatus = !user5?.isAdmin;
           if (newAdminStatus && !isValidAdminAccessPin(value)) {
             return res.status(400).json({
-              message: "Le code administrateur doit contenir de 6 à 8 chiffres.",
+              message: "Le code administrateur doit contenir exactement 4 chiffres.",
             });
           }
           await storage.updateUser(userId, { 
@@ -3898,7 +3898,7 @@ export async function registerRoutes(
           }
           if (!isValidAdminAccessPin(value)) {
             return res.status(400).json({
-              message: "Le code administrateur doit contenir de 6 à 8 chiffres.",
+              message: "Le code administrateur doit contenir exactement 4 chiffres.",
             });
           }
           await storage.updateUser(userId, { adminPin: await hashAdminAccessPin(value) });

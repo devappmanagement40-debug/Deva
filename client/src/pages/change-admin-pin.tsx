@@ -28,7 +28,7 @@ const COPY: Record<Lang, {
 }> = {
   fr: {
     title: "Changer le PIN administrateur",
-    description: "Confirme le mot de passe de ton compte et choisis un nouveau code de 6 à 8 chiffres. Ne partage pas ce code.",
+    description: "Confirme le mot de passe de ton compte et choisis un nouveau code de 4 chiffres. Ne partage pas ce code.",
     accountPassword: "Mot de passe du compte",
     newPin: "Nouveau PIN d’accès",
     confirmPin: "Confirmer le nouveau PIN",
@@ -36,7 +36,7 @@ const COPY: Record<Lang, {
     success: "PIN administrateur modifié",
     required: "Renseigne le mot de passe et les deux champs PIN.",
     passwordIncorrect: "Mot de passe du compte incorrect.",
-    invalidPin: "Le PIN doit contenir de 6 à 8 chiffres.",
+    invalidPin: "Le PIN doit contenir exactement 4 chiffres.",
     mismatch: "Les deux PIN ne correspondent pas.",
     unchanged: "Choisis un PIN différent de l’ancien.",
     sameAsPassword: "Le PIN doit être différent du mot de passe du compte.",
@@ -45,7 +45,7 @@ const COPY: Record<Lang, {
   },
   en: {
     title: "Change admin access PIN",
-    description: "Confirm your account password and choose a new 6-to-8 digit code. Do not share it.",
+    description: "Confirm your account password and choose a new 4-digit code. Do not share it.",
     accountPassword: "Account password",
     newPin: "New access PIN",
     confirmPin: "Confirm new PIN",
@@ -53,7 +53,7 @@ const COPY: Record<Lang, {
     success: "Admin PIN changed",
     required: "Enter your account password and both PIN fields.",
     passwordIncorrect: "The account password is incorrect.",
-    invalidPin: "The PIN must contain 6 to 8 digits.",
+    invalidPin: "The PIN must contain exactly 4 digits.",
     mismatch: "The PIN entries do not match.",
     unchanged: "Choose a PIN different from the current one.",
     sameAsPassword: "The PIN must be different from your account password.",
@@ -62,7 +62,7 @@ const COPY: Record<Lang, {
   },
   ar: {
     title: "تغيير رمز دخول الإدارة",
-    description: "أكد كلمة مرور حسابك واختر رمزاً جديداً من 6 إلى 8 أرقام. لا تشاركه.",
+    description: "أكد كلمة مرور حسابك واختر رمزاً جديداً من 4 أرقام. لا تشاركه.",
     accountPassword: "كلمة مرور الحساب",
     newPin: "رمز الدخول الجديد",
     confirmPin: "تأكيد الرمز الجديد",
@@ -70,7 +70,7 @@ const COPY: Record<Lang, {
     success: "تم تغيير رمز الإدارة",
     required: "أدخل كلمة مرور الحساب والرمز مرتين.",
     passwordIncorrect: "كلمة مرور الحساب غير صحيحة.",
-    invalidPin: "يجب أن يتكون الرمز من 6 إلى 8 أرقام.",
+    invalidPin: "يجب أن يتكون الرمز من 4 أرقام بالضبط.",
     mismatch: "الرمزان غير متطابقين.",
     unchanged: "اختر رمزاً مختلفاً عن الرمز الحالي.",
     sameAsPassword: "يجب أن يختلف الرمز عن كلمة مرور الحساب.",
@@ -79,7 +79,7 @@ const COPY: Record<Lang, {
   },
   zh: {
     title: "更改管理员访问 PIN",
-    description: "请验证账户密码，并设置一个新的 6 至 8 位数字 PIN。请勿分享。",
+    description: "请验证账户密码，并设置一个新的 4 位数字 PIN。请勿分享。",
     accountPassword: "账户密码",
     newPin: "新的访问 PIN",
     confirmPin: "确认新的 PIN",
@@ -87,7 +87,7 @@ const COPY: Record<Lang, {
     success: "管理员 PIN 已更改",
     required: "请输入账户密码并填写两次 PIN。",
     passwordIncorrect: "账户密码不正确。",
-    invalidPin: "PIN 必须为 6 至 8 位数字。",
+    invalidPin: "PIN 必须恰好为 4 位数字。",
     mismatch: "两次输入的 PIN 不一致。",
     unchanged: "请设置一个与当前不同的 PIN。",
     sameAsPassword: "PIN 必须与账户密码不同。",
@@ -158,7 +158,7 @@ export default function ChangeAdminPinPage() {
       toast({ title: copy.required, variant: "destructive" });
       return;
     }
-    if (!/^\d{6,8}$/.test(newPin)) {
+    if (!/^\d{4}$/.test(newPin)) {
       toast({ title: copy.invalidPin, variant: "destructive" });
       return;
     }
@@ -218,10 +218,10 @@ export default function ChangeAdminPinPage() {
             type="password"
             inputMode="numeric"
             autoComplete="new-password"
-            pattern="[0-9]{6,8}"
-            maxLength={8}
+            pattern="[0-9]{4}"
+            maxLength={4}
             value={newPin}
-            onChange={(event) => setNewPin(event.target.value.replace(/\D/g, "").slice(0, 8))}
+            onChange={(event) => setNewPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
             className="mb-5 h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
             data-testid="input-admin-pin-new"
           />
@@ -234,10 +234,10 @@ export default function ChangeAdminPinPage() {
             type="password"
             inputMode="numeric"
             autoComplete="new-password"
-            pattern="[0-9]{6,8}"
-            maxLength={8}
+            pattern="[0-9]{4}"
+            maxLength={4}
             value={confirmPin}
-            onChange={(event) => setConfirmPin(event.target.value.replace(/\D/g, "").slice(0, 8))}
+            onChange={(event) => setConfirmPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
             className="h-[52px] w-full rounded-lg border border-[#dddddd] bg-[#f9f9f9] px-3 outline-none focus:border-[#653de9]"
             data-testid="input-admin-pin-confirm"
           />

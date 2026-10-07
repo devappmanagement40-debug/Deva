@@ -1057,7 +1057,7 @@ const fr: Translations = {
     checkinNextMonth: "Mois suivant",
     checkinDayClaimed: "Pointage validé",
     checkinDayNotClaimed: "Aucun pointage",
-    pinMinLength:       "Entrez au moins 4 caractères pour le PIN",
+    pinMinLength:       "Entrez les 4 chiffres du PIN",
     aboutTitle:         "À propos de DIAMANT",
     aboutDesc1:         "DIAMANT est une entreprise technologique engagée dans les solutions énergétiques et les infrastructures électriques intelligentes.",
     aboutDesc2:         "Notre mission : offrir des opportunités d'investissement accessibles et transparentes à tous, avec un support disponible 7j/7.",

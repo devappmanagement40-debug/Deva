@@ -634,21 +634,21 @@ export default function AccountPage() {
             <Input
               type="password"
               value={adminPin}
-              onChange={(event) => setAdminPin(event.target.value)}
+              onChange={(event) => setAdminPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
               placeholder={t.pinPlaceholder}
               className="text-center text-2xl tracking-widest"
-              maxLength={8}
+              maxLength={4}
               data-testid="input-admin-pin"
             />
             <Button
               onClick={() => {
-                if (adminPin.length < 4) {
+                if (adminPin.length !== 4) {
                   toast({ title: t.pinMinLength, variant: "destructive" });
                   return;
                 }
                 verifyPinMutation.mutate(adminPin);
               }}
-              disabled={verifyPinMutation.isPending || adminPin.length < 4}
+              disabled={verifyPinMutation.isPending || adminPin.length !== 4}
               className="w-full"
               data-testid="button-verify-pin"
               style={{ backgroundColor: "#0789e9" }}

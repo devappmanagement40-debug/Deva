@@ -334,7 +334,7 @@ export const ENGLISH_TRANSLATIONS = {
     withdrawalSubmitting: "Sending...",
     checkinBtn: "Check in",
     checkinComeBack: "Come back in {0} hours",
-    pinMinLength:       "Enter at least 4 characters for the PIN",
+    pinMinLength:       "Enter all 4 PIN digits",
     aboutTitle:         "About DIAMANT",
     aboutDesc1:         "DIAMANT is a technology company committed to energy solutions and smart electrical infrastructure.",
     aboutDesc2:         "Our mission: provide accessible and transparent investment opportunities to everyone, with 24/7 support.",

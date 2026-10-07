@@ -6,22 +6,21 @@ import {
   verifyAdminAccessPin,
 } from "./admin-pin-security";
 
-test("accepts only six-to-eight digit admin access PINs for new settings", () => {
-  assert.equal(isValidAdminAccessPin("839174"), true);
-  assert.equal(isValidAdminAccessPin("83917426"), true);
-  assert.equal(isValidAdminAccessPin("8391"), false);
-  assert.equal(isValidAdminAccessPin("839174261"), false);
-  assert.equal(isValidAdminAccessPin("83917x"), false);
+test("accepts only exactly four digits for new admin access PINs", () => {
+  assert.equal(isValidAdminAccessPin("8391"), true);
+  assert.equal(isValidAdminAccessPin("839"), false);
+  assert.equal(isValidAdminAccessPin("83917"), false);
+  assert.equal(isValidAdminAccessPin("839x"), false);
   assert.equal(isValidAdminAccessPin(null), false);
 });
 
 test("hashes new admin PINs and verifies them without exposing the plain value", async () => {
-  const pin = "83917426";
+  const pin = "8391";
   const storedHash = await hashAdminAccessPin(pin);
 
   assert.notEqual(storedHash, pin);
   assert.equal((await verifyAdminAccessPin(pin, storedHash)).valid, true);
-  assert.equal((await verifyAdminAccessPin("11111111", storedHash)).valid, false);
+  assert.equal((await verifyAdminAccessPin("1111", storedHash)).valid, false);
 });
 
 test("upgrades a legacy plain admin PIN to a hash after a successful check", async () => {
