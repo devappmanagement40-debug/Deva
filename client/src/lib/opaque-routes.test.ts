@@ -39,10 +39,13 @@ test("root invitation links open registration and prefill invite", () => {
   assert.equal(internalPathFromLocation(location), "/register");
   assert.equal(getCanonicalInitialUrl(location), null);
   assert.equal(buildInvitationUrl("https://golddiamant.site", "ABCD"), "https://golddiamant.site/?invite=ABCD");
-  assert.equal(
-    internalPathFromLocation({ pathname: "/", search: "?invitation_code=OLD", hash: "" }),
-    "/register",
-  );
+  for (const legacyKey of ["invitation_code", "invite_code", "ref", "money", "reg"]) {
+    assert.equal(
+      internalPathFromLocation({ pathname: "/", search: `?${legacyKey}=OLD`, hash: "" }),
+      "/register",
+      `${legacyKey} should keep opening registration`,
+    );
+  }
 });
 
 test("direct legacy page URLs are normalized to opaque routes", () => {

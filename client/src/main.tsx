@@ -5,7 +5,7 @@ import { getCanonicalInitialUrl } from "./lib/opaque-routes";
 
 // Convert direct and legacy page URLs to their opaque hash routes before
 // rendering. Keep the public root invitation link exactly as
-// /?invitation_code=CODE so it can open the registration form.
+// /?invite=CODE so it can open the registration form.
 (function normalizeInitialAppUrl() {
   const { pathname, search, hash } = window.location;
   const canonicalUrl = getCanonicalInitialUrl(window.location);
