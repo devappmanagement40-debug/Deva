@@ -31,3 +31,4 @@ npm run db:push   # push schema to database
 - See `.agents/memory/` for architecture decisions and known quirks
 
 ## User Preferences
+- After each requested change is complete and verified, commit the finished project changes and push them to `origin/main` on `devappmanagement40-debug/Deva`. Do not push unfinished intermediate work. This repository is public, so never commit secrets or sensitive data.
