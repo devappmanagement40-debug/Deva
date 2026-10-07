@@ -264,8 +264,8 @@ test("formate les nouveaux dépôts avec tous les identifiants en gras", () => {
     status: "pending",
   });
 
-  assert.match(message, /^<b>💳 Nouvelle demande de dépôt\nID : 194\nUtilisateur ID : 534\n/);
-  assert.match(message, /Montant : .*XOF\nMéthode : Moov Africa Togo\nPays : TG\nRéférence : 040916977093\nStatut : En attente<\/b>$/);
+  assert.match(message, /^<b>💳 Nouvelle demande de dépôt<\/b>\n<b>ID :<\/b> <b>194<\/b>\n<b>Utilisateur ID :<\/b> <b>534<\/b>\n/);
+  assert.match(message, /<b>Montant :<\/b> <b>.*XOF<\/b>\n<b>Méthode :<\/b> Moov Africa Togo\n<b>Pays :<\/b> TG\n<b>Référence :<\/b> <b>040916977093<\/b>\n<b>Statut :<\/b> <b>En attente<\/b>$/);
 });
 
 test("échappe et limite les champs saisis avant de les envoyer à Telegram", () => {
@@ -280,7 +280,20 @@ test("échappe et limite les champs saisis avant de les envoyer à Telegram", ()
     status: "pending",
   });
 
-  assert.match(message, /Méthode : Moov &lt;Africa&gt; Togo/);
-  assert.match(message, /Référence : &lt;ref&gt;&amp;123/);
+  assert.match(message, /<b>Méthode :<\/b> Moov &lt;Africa&gt; Togo/);
+  assert.match(message, /<b>Référence :<\/b> <b>&lt;ref&gt;&amp;123<\/b>/);
   assert.doesNotMatch(message, /Moov <Africa>|Référence : <ref>/);
+});
+
+test("annonce une nouvelle inscription avec une félicitation concise et professionnelle", () => {
+  const message = formatAdminTelegramNotification({
+    kind: "signup",
+    userId: 534,
+    country: "TG",
+  });
+
+  assert.equal(
+    message,
+    "🎉 <b>Félicitations, vous venez d’accueillir un nouveau membre !</b>\nCompte #<b>534</b> · TG",
+  );
 });

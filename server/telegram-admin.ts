@@ -604,7 +604,7 @@ export function createAdminTelegramCommandHandler(dependencies: CommandDependenc
 
 function formatNotification(event: AdminTelegramNotification): string {
   if (event.kind === "signup") {
-    return `🆕 <b>Nouvelle inscription</b>\nCompte #${event.userId} · ${escapeTelegramHtml(event.country)}`;
+    return `🎉 <b>Félicitations, vous venez d’accueillir un nouveau membre !</b>\nCompte #<b>${event.userId}</b> · ${escapeTelegramHtml(event.country)}`;
   }
   if (event.kind === "admin_login") {
     return `🔐 <b>Connexion administrateur</b>\nCompte #${event.userId} · ${escapeTelegramHtml(event.country)}`;
@@ -615,16 +615,16 @@ function formatNotification(event: AdminTelegramNotification): string {
   }
   if (event.kind === "deposit_created") {
     const lines = [
-      "💳 Nouvelle demande de dépôt",
-      `ID : ${event.id}`,
-      `Utilisateur ID : ${event.userId}`,
-      `Montant : ${formatXof(event.amount)}`,
-      `Méthode : ${escapeTelegramField(event.paymentMethod)}`,
-      `Pays : ${escapeTelegramField(event.country)}`,
-      `Référence : ${escapeTelegramField(event.reference)}`,
-      `Statut : ${escapeTelegramField(formatDepositStatusLabel(event.status))}`,
+      "<b>💳 Nouvelle demande de dépôt</b>",
+      `<b>ID :</b> <b>${event.id}</b>`,
+      `<b>Utilisateur ID :</b> <b>${event.userId}</b>`,
+      `<b>Montant :</b> <b>${formatXof(event.amount)}</b>`,
+      `<b>Méthode :</b> ${escapeTelegramField(event.paymentMethod)}`,
+      `<b>Pays :</b> ${escapeTelegramField(event.country)}`,
+      `<b>Référence :</b> <b>${escapeTelegramField(event.reference)}</b>`,
+      `<b>Statut :</b> <b>${escapeTelegramField(formatDepositStatusLabel(event.status))}</b>`,
     ];
-    return `<b>${lines.join("\n")}</b>`;
+    return lines.join("\n");
   }
   if (event.kind === "deposit_status") {
     const normalizedProviderStatus =
