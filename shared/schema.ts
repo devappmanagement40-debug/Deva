@@ -199,6 +199,7 @@ export const withdrawalProofs = pgTable("withdrawal_proofs", {
   message: text("message").notNull(),
   status: text("status").$type<WithdrawalProofStatus>().notNull().default("pending"),
   shareBonusXof: integer("share_bonus_xof").notNull().default(0),
+  displayAmountXof: integer("display_amount_xof").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   processedAt: timestamp("processed_at"),
   processedBy: integer("processed_by").references(() => users.id, { onDelete: "set null" }),

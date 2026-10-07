@@ -198,11 +198,11 @@ export interface IStorage {
   getWithdrawalProof(id: number): Promise<(WithdrawalProof & { user: WithdrawalProofUser }) | undefined>;
   approvePendingWithdrawalProof(
     id: number,
-    data: { shareBonusXof: number; processedAt: Date; processedBy: number },
+    data: { shareBonusXof: number; displayAmountXof: number; processedAt: Date; processedBy: number },
   ): Promise<WithdrawalProof | undefined>;
   reviewPendingWithdrawalProof(
     id: number,
-    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "processedAt" | "processedBy">,
+    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "displayAmountXof" | "processedAt" | "processedBy">,
   ): Promise<WithdrawalProof | undefined>;
 
   // Internal customer support chat
@@ -1466,7 +1466,7 @@ export class DatabaseStorage implements IStorage {
 
   async approvePendingWithdrawalProof(
     id: number,
-    data: { shareBonusXof: number; processedAt: Date; processedBy: number },
+    data: { shareBonusXof: number; displayAmountXof: number; processedAt: Date; processedBy: number },
   ): Promise<WithdrawalProof | undefined> {
     return db.transaction(async (tx) => {
       const [proof] = await tx.update(withdrawalProofs)
@@ -1497,11 +1497,14 @@ export class DatabaseStorage implements IStorage {
       const bonusDetails = proof.shareBonusXof > 0
         ? `prime de partage ${proof.shareBonusXof} XOF créditée au solde des gains`
         : "aucune prime de partage";
+      const displayDetails = proof.displayAmountXof > 0
+        ? `montant indicatif ${proof.displayAmountXof} XOF affiché publiquement sans crédit`
+        : "aucun montant indicatif affiché";
       await tx.insert(adminAuditLog).values({
         adminId: data.processedBy,
         action: "approve_withdrawal_proof",
         targetUserId: proof.userId,
-        details: `Preuve de retrait ${proof.id} approuvée; ${bonusDetails}`,
+        details: `Preuve de retrait ${proof.id} approuvée; ${bonusDetails}; ${displayDetails}`,
       });
 
       return proof;

@@ -52,10 +52,26 @@ test("withdrawal proof submissions reject empty messages and unsupported image t
 });
 
 test("review amounts must be non-negative whole XOF values", () => {
-  assert.equal(withdrawalProofReviewSchema.safeParse({ action: "approve", shareBonusXof: 1200 }).success, true);
-  assert.equal(withdrawalProofReviewSchema.safeParse({ action: "approve", shareBonusXof: 0 }).success, true);
-  assert.equal(withdrawalProofReviewSchema.safeParse({ action: "approve", shareBonusXof: -1 }).success, false);
-  assert.equal(withdrawalProofReviewSchema.safeParse({ action: "approve", shareBonusXof: 1.5 }).success, false);
+  assert.equal(withdrawalProofReviewSchema.safeParse({
+    action: "approve",
+    shareBonusXof: 500,
+    displayAmountXof: 1500,
+  }).success, true);
+  assert.equal(withdrawalProofReviewSchema.safeParse({
+    action: "approve",
+    shareBonusXof: 0,
+    displayAmountXof: 0,
+  }).success, true);
+  assert.equal(withdrawalProofReviewSchema.safeParse({
+    action: "approve",
+    shareBonusXof: -1,
+    displayAmountXof: 1500,
+  }).success, false);
+  assert.equal(withdrawalProofReviewSchema.safeParse({
+    action: "approve",
+    shareBonusXof: 500,
+    displayAmountXof: 1.5,
+  }).success, false);
   assert.equal(withdrawalProofReviewSchema.safeParse({ action: "reject" }).success, true);
 });
 

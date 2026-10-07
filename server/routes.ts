@@ -1793,10 +1793,10 @@ export async function registerRoutes(
   app.get("/api/withdrawal-proofs", requireAuth, async (_req, res) => {
     try {
       const proofs = await storage.getWithdrawalProofs("approved", 100);
-      return res.json(proofs.map(({ id, message, shareBonusXof, createdAt, user, proofImage2 }) => ({
+      return res.json(proofs.map(({ id, message, displayAmountXof, createdAt, user, proofImage2 }) => ({
         id,
         message,
-        shareBonusXof,
+        displayAmountXof,
         createdAt,
         imageCount: proofImage2 ? 2 : 1,
         maskedPhone: maskPhoneForWithdrawalProof(user.phone),
@@ -3207,6 +3207,7 @@ export async function registerRoutes(
       if (action === "approve") {
         const updated = await storage.approvePendingWithdrawalProof(id, {
           shareBonusXof: payload.shareBonusXof,
+          displayAmountXof: payload.displayAmountXof,
           processedAt,
           processedBy,
         });
@@ -3217,6 +3218,7 @@ export async function registerRoutes(
       const updated = await storage.reviewPendingWithdrawalProof(id, {
         status: "rejected",
         shareBonusXof: 0,
+        displayAmountXof: 0,
         processedAt,
         processedBy,
       });

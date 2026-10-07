@@ -15,6 +15,7 @@ export const withdrawalProofReviewSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("approve"),
     shareBonusXof: z.number().int().min(0).max(2_147_483_647),
+    displayAmountXof: z.number().int().min(0).max(2_147_483_647),
   }),
   z.object({
     action: z.literal("reject"),
