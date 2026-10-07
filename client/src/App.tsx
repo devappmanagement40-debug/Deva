@@ -1,32 +1,28 @@
 import { Switch, Route, useLocation, Redirect, Router } from "wouter";
 import { useState, useEffect, useCallback } from "react";
-import { getSearchFromLocation, internalPathFromLocation, toInternalRoute } from "@/lib/opaque-routes";
+import { getSearchFromLocation, internalPathFromLocation, toIndexPath } from "@/lib/opaque-routes";
 
-// Keep the original readable hash routes, such as /#/login and /#/register.
-function useHashPath(_opts?: object): [string, (to: string, opts?: object) => void] {
+// Use readable /index/... page URLs instead of hash-based navigation.
+function useIndexPath(_opts?: object): [string, (to: string, opts?: object) => void] {
   const getPath = () => internalPathFromLocation(window.location);
   const [loc, setLoc] = useState(getPath);
   useEffect(() => {
     const handler = () => setLoc(getPath());
-    window.addEventListener("hashchange", handler);
     window.addEventListener("popstate", handler);
-    return () => {
-      window.removeEventListener("hashchange", handler);
-      window.removeEventListener("popstate", handler);
-    };
+    return () => window.removeEventListener("popstate", handler);
   }, []);
   const navigate = useCallback((to: string, opts?: any) => {
     const method = opts?.replace ? "replaceState" : "pushState";
-    history[method](opts?.state ?? null, "", `${window.location.pathname}#${toInternalRoute(to)}`);
-    window.dispatchEvent(new Event("hashchange"));
+    history[method](opts?.state ?? null, "", toIndexPath(to));
+    window.dispatchEvent(new PopStateEvent("popstate", { state: opts?.state ?? null }));
   }, []);
   return [loc, navigate];
 }
-// Expose readable hash URLs to <Link> and <Redirect>.
-(useHashPath as any).hrefs = (href: string) => `#${toInternalRoute(href)}`;
+// Expose readable /index/... URLs to <Link> and <Redirect>.
+(useIndexPath as any).hrefs = (href: string) => toIndexPath(href);
 
-// Read query parameters from either an opaque hash route or the root invitation URL.
-function useHashSearch(_opts?: object): string {
+// Read query parameters from the page URL or the public root invitation URL.
+function useIndexSearch(_opts?: object): string {
   const getSearch = () => getSearchFromLocation(window.location);
   const [search, setSearch] = useState(getSearch);
   useEffect(() => {
@@ -474,7 +470,7 @@ function App() {
       <I18nProvider>
         <TooltipProvider>
           <AuthProvider>
-            <Router hook={useHashPath} searchHook={useHashSearch}>
+            <Router hook={useIndexPath} searchHook={useIndexSearch}>
               <RouterComponent />
             </Router>
             <NavigationLoader />

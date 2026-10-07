@@ -1,4 +1,4 @@
-import { buildHashRouteUrl, buildInvitationUrl } from "@/lib/opaque-routes";
+import { buildIndexRouteUrl, buildInvitationUrl } from "@/lib/opaque-routes";
 
 /**
  * Popup carte blanche — affiché quand GO est pressé sans tour disponible.
@@ -15,7 +15,7 @@ export default function WheelNoToursModal({ open, onClose, referralCode }: Props
 
   const link = referralCode
     ? buildInvitationUrl(window.location.origin, referralCode)
-    : buildHashRouteUrl(window.location.origin, "/register");
+    : buildIndexRouteUrl(window.location.origin, "/register");
 
   function copyLink() {
     navigator.clipboard.writeText(link).catch(() => {});

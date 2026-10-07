@@ -3,9 +3,10 @@ import test from "node:test";
 import {
   LEGACY_OPAQUE_ROUTES,
   buildInvitationUrl,
-  buildHashRouteUrl,
+  buildIndexRouteUrl,
   getCanonicalInitialUrl,
   internalPathFromLocation,
+  toIndexPath,
   toInternalRoute,
 } from "./opaque-routes";
 
@@ -28,12 +29,14 @@ test("readable routes remain readable and legacy paths map to their current page
   assert.equal(toInternalRoute("/my-products"), "/orders");
 });
 
-test("readable dynamic routes preserve identifiers and query strings", () => {
+test("index URLs preserve readable dynamic routes, identifiers, and query strings", () => {
   const route = "/admin/team/17?tab=members";
   assert.equal(toInternalRoute(route), route);
+  assert.equal(toInternalRoute(`/index${route}`), route);
+  assert.equal(toIndexPath(route), `/index${route}`);
   assert.equal(
-    buildHashRouteUrl("https://golddiamant.site", route),
-    "https://golddiamant.site/#/admin/team/17?tab=members",
+    buildIndexRouteUrl("https://golddiamant.site", route),
+    "https://golddiamant.site/index/admin/team/17?tab=members",
   );
 });
 
@@ -51,10 +54,10 @@ test("root invitation links open registration and prefill invite", () => {
   }
 });
 
-test("direct legacy page URLs are normalized to readable hash routes", () => {
+test("direct and hash-based legacy page URLs are normalized to /index routes", () => {
   assert.equal(
     getCanonicalInitialUrl({ pathname: "/login", search: "", hash: "" }),
-    "/#/login",
+    "/index/login",
   );
   assert.equal(getCanonicalInitialUrl({ pathname: "/", search: "", hash: "" }), null);
   assert.equal(
@@ -63,6 +66,14 @@ test("direct legacy page URLs are normalized to readable hash routes", () => {
       search: "",
       hash: "",
     }),
-    "/#/login",
+    "/index/login",
+  );
+  assert.equal(
+    getCanonicalInitialUrl({ pathname: "/", search: "", hash: "#/register" }),
+    "/index/register",
+  );
+  assert.equal(
+    getCanonicalInitialUrl({ pathname: "/index/register", search: "?invite=ABCD", hash: "" }),
+    "/index/register?invite=ABCD",
   );
 });

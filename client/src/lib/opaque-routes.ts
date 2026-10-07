@@ -60,6 +60,7 @@ const LEGACY_ROUTE_ALIASES: Record<string, string> = {
 };
 
 const INVITATION_QUERY_KEYS = ["invite", "invitation_code", "invite_code", "ref", "money", "reg"];
+const INDEX_ROUTE_PREFIX = "/index";
 
 function normalizePath(path: string): string {
   const leadingSlash = path.startsWith("/") ? path : `/${path}`;
@@ -106,8 +107,17 @@ function fillTemplate(template: string, values: string[]): string {
   return filled.length ? `/${filled.join("/")}` : "/";
 }
 
+function stripIndexPrefix(path: string): string {
+  if (path === INDEX_ROUTE_PREFIX) return "/";
+  if (path.startsWith(`${INDEX_ROUTE_PREFIX}/`)) {
+    return normalizePath(path.slice(INDEX_ROUTE_PREFIX.length));
+  }
+  return path;
+}
+
 export function toInternalRoute(value: string): string {
-  const { path, suffix } = splitRouteAndSuffix(value);
+  const { path: rawPath, suffix } = splitRouteAndSuffix(value);
+  const path = stripIndexPrefix(rawPath);
 
   for (const route of LEGACY_OPAQUE_ROUTES) {
     const values = matchTemplate(route.opaque, path);
@@ -115,6 +125,12 @@ export function toInternalRoute(value: string): string {
   }
 
   return `${LEGACY_ROUTE_ALIASES[path] ?? path}${suffix}`;
+}
+
+export function toIndexPath(value: string): string {
+  const { path, suffix } = splitRouteAndSuffix(toInternalRoute(value));
+  if (path === "/") return `${path}${suffix}`;
+  return `${INDEX_ROUTE_PREFIX}${path}${suffix}`;
 }
 
 function hasInvitationCode(search: string): boolean {
@@ -140,21 +156,18 @@ export function getSearchFromLocation(location: BrowserRouteLocation): string {
 }
 
 export function getCanonicalInitialUrl(location: BrowserRouteLocation): string | null {
-  if (
-    !location.hash &&
-    normalizePath(location.pathname) === "/"
-  ) {
+  if (!location.hash && normalizePath(location.pathname) === "/") {
     return null;
   }
 
   const routeSource = location.hash
     ? location.hash.slice(1)
     : `${location.pathname}${location.search}`;
-  return `/#${toInternalRoute(routeSource)}`;
+  return toIndexPath(routeSource);
 }
 
-export function buildHashRouteUrl(origin: string, route: string): string {
-  return `${origin.replace(/\/+$/, "")}/#${toInternalRoute(route)}`;
+export function buildIndexRouteUrl(origin: string, route: string): string {
+  return `${origin.replace(/\/+$/, "")}${toIndexPath(route)}`;
 }
 
 export function buildInvitationUrl(origin: string, invitationCode: string): string {
