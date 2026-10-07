@@ -15,6 +15,7 @@
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — match the exact orange banner/calendar reference while keeping real history and reward rules.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first/fixed-nav layout; preserve floaters/photos; route draggable support buttons on click, not pointer-up.
+- [DIAMANT interface scope](diamant-ui-scope.md) — preserve existing pages and layout; make only the UI changes required to deliver the requested behavior.
 - [DIAMANT withdrawal proofs](diamant-withdrawal-proofs.md) — publish only after approval, mask phone numbers, and credit any sharing bonus to earnings exactly once.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
