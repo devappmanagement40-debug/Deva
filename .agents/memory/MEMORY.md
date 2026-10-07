@@ -25,6 +25,7 @@
 - [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
 - [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
+- [GitHub push policy](github-push-policy.md) — push verified project changes, including future modifications, to the connected repository.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
 - [DIAMANT feedback popups](diamant-feedback-popups.md) — use the new popup style across pages; preserve current notifications on wheel and check-in.
 - [DIAMANT home announcement popup](diamant-home-announcement-popup.md) — yellow illustration, numbered admin-managed copy, Telegram CTA, and OK button; don't copy BeMine financial claims.
