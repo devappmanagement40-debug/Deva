@@ -777,9 +777,7 @@ export class DatabaseStorage implements IStorage {
       if (normalizeProductType(product.productType) === "wellness") {
         const currentVipLevel = calculateVipProgress(purchaseHistory, settings).level;
         if (!isVipLevelUnlocked(currentVipLevel, product.requiredVipLevel)) {
-          throw new Error(
-            `Vous devez atteindre le niveau VIP ${product.requiredVipLevel} pour acheter ce produit Parcours.`,
-          );
+          throw new Error("Les conditions d’accès à ce produit Parcours ne sont pas remplies.");
         }
       }
 

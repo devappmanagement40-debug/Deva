@@ -19,9 +19,15 @@ export default function AdminVipSettings() {
   const [form, setForm] = useState<Record<string, string>>({});
 
   const legacyVipCopy: Record<string, string | string[]> = {
-    vip0Description: "Membre inscrit n'ayant pas encore investi.",
+    vip0Description: [
+      "Membre inscrit n'ayant pas encore investi.",
+      "Membre n'ayant pas encore acheté de produit Parcours.",
+    ],
     vip0Advantages: "Accès à la plateforme. Possibilité de déposer et d'investir.",
-    vip1Description: "Nouveau membre ayant réalisé son premier investissement.",
+    vip1Description: [
+      "Nouveau membre ayant réalisé son premier investissement.",
+      "Membre ayant réalisé son premier achat personnel payant dans Parcours.",
+    ],
     vip1Advantages: "Accès complet à la plateforme. Gains quotidiens. Commissions de parrainage actives.",
     vip2Description: [
       "Seuil d'investissement personnel cumulé dans Parcours atteint.",
@@ -95,7 +101,7 @@ export default function AdminVipSettings() {
       <div>
         <h2 className="text-base font-bold">⭐ Configuration des niveaux VIP</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          VIP 1 s’obtient après le premier achat personnel payant dans Parcours. À partir de là, les seuils VIP suivants dépendent du cumul des achats personnels payants de toutes les catégories, en XOF.
+          Les rangs VIP 1 à 7 sont débloqués selon le montant cumulé de vos achats personnels payants, toutes catégories confondues. Configurez ici le seuil requis pour chaque rang, en XOF.
         </p>
       </div>
 
@@ -119,15 +125,10 @@ export default function AdminVipSettings() {
               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Investissement personnel — tous les produits payants</p>
               {cfg.level === 0 && (
                 <p className="text-xs text-muted-foreground italic">
-                  Explore ne donne pas de niveau VIP. Le membre reste VIP 0 tant qu’il n’a pas effectué d’achat Parcours.
+                  Le membre reste VIP 0 jusqu’à ce que son investissement cumulé atteigne le seuil configuré pour VIP 1.
                 </p>
               )}
-              {cfg.level === 1 && (
-                <p className="text-xs text-muted-foreground italic">
-                  ✦ VIP 1 est obtenu après le premier achat personnel payant dans Parcours.
-                </p>
-              )}
-              {cfg.level >= 2 && cfg.level <= MAX_VIP_LEVEL && (
+              {cfg.level >= 1 && cfg.level <= MAX_VIP_LEVEL && (
                 <div className="flex items-center gap-2">
                   <label className="text-xs text-muted-foreground w-52 shrink-0">
                     Investissement cumulé minimum
@@ -142,9 +143,9 @@ export default function AdminVipSettings() {
                   <span className="text-xs text-muted-foreground">XOF</span>
                 </div>
               )}
-              {cfg.level >= 2 && (
+              {cfg.level >= 1 && (
                 <p className="text-[10px] text-muted-foreground">
-                  Cumul de tous les achats personnels payants (Explore, Parcours et Offres), y compris ceux réalisés avant le premier achat Parcours. Les produits gratuits et attribués par l’administration ne comptent pas. Configure les niveaux dans l’ordre avec des montants croissants.
+                  Le seuil est le total cumulé des achats personnels payants Explore, Parcours et Offres, comptés dès confirmation. Les produits gratuits, attribués par l’administration et les achats de filleuls ne comptent pas. Configure les rangs dans l’ordre avec des montants croissants.
                 </p>
               )}
             </div>

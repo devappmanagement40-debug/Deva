@@ -24,54 +24,69 @@ function personalPurchase(
 const parcoursPurchase = (id: number, price: string, overrides: Record<string, unknown> = {}) =>
   personalPurchase(id, price, "wellness", overrides);
 
-test("all paid product categories count, but Explore or Offres alone do not activate VIP", () => {
+test("all personal paid product categories count toward admin-configured VIP thresholds", () => {
   const progress = calculateVipProgress([
     personalPurchase(1, "5000.00", "stability"),
     personalPurchase(2, "5000.00", "activity"),
     parcoursPurchase(3, "5000.00", { product: { productType: "wellness", price: "5000.00", isFree: true } }),
     parcoursPurchase(4, "5000.00", { assignedByAdmin: true }),
-  ], { vip2MinInvestment: "10000" });
+  ], { vip1MinInvestment: "5000", vip2MinInvestment: "10000" });
 
-  assert.equal(progress.level, 0);
+  assert.equal(progress.level, 2);
   assert.equal(progress.totalInvestmentXof, 10000);
 });
 
-test("first paid Parcours purchase earns VIP1 and starts the next stage at zero", () => {
+test("an account with no purchases still sees the configured amount needed for VIP1", () => {
   const progress = calculateVipProgress(
-    [parcoursPurchase(1, "2000.00", {
-      isActive: true,
-      daysRemaining: 149,
-      totalEarned: "0",
-    })],
-    { vip2MinInvestment: "5000" },
+    [],
+    { vip1MinInvestment: "3000", vip2MinInvestment: "5000" },
   );
 
-  assert.equal(progress.level, 1);
-  assert.equal(progress.totalInvestmentXof, 2000);
+  assert.equal(progress.level, 0);
+  assert.equal(progress.totalInvestmentXof, 0);
+  assert.equal(progress.nextLevel, 1);
   assert.equal(progress.progressPercent, 0);
+  assert.equal(progress.nextThresholdXof, 3000);
   assert.equal(progress.amountRemainingXof, 3000);
 });
 
-test("a successful purchase counts while its product cycle is still active", () => {
+test("a personal Explore purchase can reach VIP1 as soon as it is recorded", () => {
   const progress = calculateVipProgress([
     personalPurchase(1, "3000.00", "stability", {
       isActive: true,
       daysRemaining: 149,
       totalEarned: "0",
     }),
-    parcoursPurchase(2, "2000.00", {
-      isActive: true,
-      daysRemaining: 149,
-      totalEarned: "0",
-    }),
-  ], { vip2MinInvestment: "5000" });
+  ], { vip1MinInvestment: "3000", vip2MinInvestment: "5000" });
 
-  assert.equal(progress.level, 2);
-  assert.equal(progress.totalInvestmentXof, 5000);
+  assert.equal(progress.level, 1);
+  assert.equal(progress.totalInvestmentXof, 3000);
+  assert.equal(progress.nextLevel, 2);
+  assert.equal(progress.amountRemainingXof, 2000);
 });
 
-test("cumulative personal paid purchases from all categories unlock ranks and reset stage progress", () => {
-  const settings = { vip2MinInvestment: "5000", vip3MinInvestment: "10000" };
+test("paid purchase snapshots count at their purchase-time price even if the catalog later changes", () => {
+  const progress = calculateVipProgress(
+    [{
+      id: 1,
+      purchaseDate: new Date("2026-01-01T00:00:00.000Z"),
+      assignedByAdmin: false,
+      productSnapshot: { productType: "stability", price: "3000.00", isFree: false },
+      product: { productType: "stability", price: "9000.00", isFree: true },
+    }],
+    { vip1MinInvestment: "3000" },
+  );
+
+  assert.equal(progress.level, 1);
+  assert.equal(progress.totalInvestmentXof, 3000);
+});
+
+test("cumulative purchases from all categories count immediately and reset progress at a reached rank", () => {
+  const settings = {
+    vip1MinInvestment: "3000",
+    vip2MinInvestment: "5000",
+    vip3MinInvestment: "10000",
+  };
   const purchases = [
     personalPurchase(1, "2000.00", "stability"),
     parcoursPurchase(2, "2000.00"),
@@ -86,36 +101,44 @@ test("cumulative personal paid purchases from all categories unlock ranks and re
   assert.equal(progress.amountRemainingXof, 2000);
 });
 
-test("a purchase that crosses a threshold starts progress toward the next rank at zero", () => {
+test("a purchase that crosses a configured rank starts progress toward the next rank at zero", () => {
   const progress = calculateVipProgress(
-    [
-      personalPurchase(1, "5000.00", "stability"),
-      parcoursPurchase(2, "1000.00"),
-    ],
-    { vip2MinInvestment: "5000", vip3MinInvestment: "10000" },
+    [personalPurchase(1, "5000.00", "stability")],
+    { vip1MinInvestment: "3000", vip2MinInvestment: "5000", vip3MinInvestment: "10000" },
   );
 
   assert.equal(progress.level, 2);
+  assert.equal(progress.totalInvestmentXof, 5000);
   assert.equal(progress.progressPercent, 0);
-  assert.equal(progress.amountRemainingXof, 4000);
+  assert.equal(progress.amountRemainingXof, 5000);
 });
 
-test("personal purchases made before the first Parcours purchase count once Parcours activates VIP", () => {
-  const settings = { vip2MinInvestment: "5000" };
-  const purchases = [
-    personalPurchase(1, "3000.00", "stability"),
-    personalPurchase(2, "3000.00", "activity"),
-  ];
-  const beforeParcours = calculateVipProgress(purchases, settings);
-  const afterParcours = calculateVipProgress([
-    ...purchases,
-    parcoursPurchase(3, "1000.00"),
-  ], settings);
+test("one purchase can skip multiple ranks when its amount reaches higher configured thresholds", () => {
+  const progress = calculateVipProgress(
+    [personalPurchase(1, "12000.00", "stability")],
+    {
+      vip1MinInvestment: "3000",
+      vip2MinInvestment: "5000",
+      vip3MinInvestment: "10000",
+    },
+  );
 
-  assert.equal(beforeParcours.level, 0);
-  assert.equal(beforeParcours.totalInvestmentXof, 6000);
-  assert.equal(afterParcours.level, 2);
-  assert.equal(afterParcours.totalInvestmentXof, 7000);
+  assert.equal(progress.level, 3);
+  assert.equal(progress.totalInvestmentXof, 12000);
+  assert.equal(progress.nextLevel, 4);
+  assert.equal(progress.amountRemainingXof, null);
+});
+
+test("a missing VIP1 threshold prevents higher unconfigured-rank access", () => {
+  const progress = calculateVipProgress(
+    [personalPurchase(1, "12000.00", "stability")],
+    { vip2MinInvestment: "5000" },
+  );
+
+  assert.equal(progress.level, 0);
+  assert.equal(progress.nextLevel, 1);
+  assert.equal(progress.nextThresholdXof, null);
+  assert.equal(progress.amountRemainingXof, null);
 });
 
 test("product level requirement is a minimum and invalid requirements fail closed", () => {
@@ -125,21 +148,33 @@ test("product level requirement is a minimum and invalid requirements fail close
   assert.equal(isVipLevelUnlocked(7, 8), false);
 });
 
-test("VIP investment thresholds must be positive, contiguous, and increasing", () => {
+test("VIP investment thresholds from VIP1 must be positive, contiguous, and increasing", () => {
   assert.equal(validateVipInvestmentThresholds({
+    vip1MinInvestment: "3000",
     vip2MinInvestment: "5000",
     vip3MinInvestment: "10000",
   }), null);
   assert.match(
-    validateVipInvestmentThresholds({ vip2MinInvestment: "5000", vip4MinInvestment: "20000" }) || "",
+    validateVipInvestmentThresholds({ vip2MinInvestment: "5000" }) || "",
     /sans laisser de palier vide/,
   );
   assert.match(
-    validateVipInvestmentThresholds({ vip2MinInvestment: "5000", vip3MinInvestment: "4000" }) || "",
+    validateVipInvestmentThresholds({
+      vip1MinInvestment: "3000",
+      vip2MinInvestment: "5000",
+      vip4MinInvestment: "20000",
+    }) || "",
+    /sans laisser de palier vide/,
+  );
+  assert.match(
+    validateVipInvestmentThresholds({
+      vip1MinInvestment: "5000",
+      vip2MinInvestment: "4000",
+    }) || "",
     /supérieur/,
   );
   assert.match(
-    validateVipInvestmentThresholds({ vip2MinInvestment: "0" }) || "",
+    validateVipInvestmentThresholds({ vip1MinInvestment: "0" }) || "",
     /entier positif/,
   );
 });

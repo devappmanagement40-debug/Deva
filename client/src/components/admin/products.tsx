@@ -220,7 +220,7 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                Le premier achat Parcours donne VIP 1. Choisis VIP 0 pour rendre le produit de départ achetable après Explore.
+                Ce niveau d’accès reste distinct du montant nécessaire pour progresser : configure les seuils monétaires dans les paramètres VIP. Les cartes publiques n’affichent pas le niveau requis.
               </p>
               <FormMessage />
             </FormItem>

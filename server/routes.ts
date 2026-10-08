@@ -4494,11 +4494,11 @@ export async function registerRoutes(
       const entries: [string, unknown][] = isSingleSettingPayload
         ? [[body.key, body.value]]
         : Object.entries(body);
-      const vipInvestmentSettingKeyPattern = /^vip[2-7]MinInvestment$/;
+      const vipInvestmentSettingKeyPattern = /^vip[1-7]MinInvestment$/;
       if (entries.some(([key]) => vipInvestmentSettingKeyPattern.test(key))) {
         const currentSettings = await storage.getSettings();
         const candidateSettings: Record<string, unknown> = { ...currentSettings };
-        for (const [key, value] of entries) {
+      for (const [key, value] of entries) {
           if (vipInvestmentSettingKeyPattern.test(key)) {
             candidateSettings[key] = value;
           }

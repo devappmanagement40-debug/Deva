@@ -488,9 +488,9 @@ export async function seed() {
     { key: "westpayApiKey_CM", value: "" },
     { key: "westpayApiKey_ML", value: "" }, // gardé pour WestPay même si Mali retiré du login
     // VIP descriptions & advantages (insert only — never force-update custom copy)
-    { key: "vip0Description", value: "Membre n'ayant pas encore acheté de produit Parcours." },
+    { key: "vip0Description", value: "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1." },
     { key: "vip0Advantages", value: "Les produits Explore restent disponibles selon leurs conditions." },
-    { key: "vip1Description", value: "Membre ayant réalisé son premier achat personnel payant dans Parcours." },
+    { key: "vip1Description", value: "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint." },
     { key: "vip1Advantages", value: "Rang d'entrée pour l'accès aux produits Parcours." },
     { key: "vip2Description", value: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint." },
     { key: "vip2Advantages", value: "Accès aux produits Parcours dont le niveau VIP requis est atteint." },
@@ -589,7 +589,12 @@ export async function seed() {
     {
       key: "vip0Description",
       oldValue: "Membre inscrit n'ayant pas encore investi.",
-      newValue: "Membre n'ayant pas encore acheté de produit Parcours.",
+      newValue: "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1.",
+    },
+    {
+      key: "vip0Description",
+      oldValue: "Membre n'ayant pas encore acheté de produit Parcours.",
+      newValue: "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1.",
     },
     {
       key: "vip0Advantages",
@@ -599,7 +604,12 @@ export async function seed() {
     {
       key: "vip1Description",
       oldValue: "Nouveau membre ayant réalisé son premier investissement.",
-      newValue: "Membre ayant réalisé son premier achat personnel payant dans Parcours.",
+      newValue: "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint.",
+    },
+    {
+      key: "vip1Description",
+      oldValue: "Membre ayant réalisé son premier achat personnel payant dans Parcours.",
+      newValue: "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint.",
     },
     {
       key: "vip1Advantages",

@@ -15,13 +15,13 @@ export interface VipLevelConfig {
 export const DEFAULT_VIP_CONFIGS: VipLevelConfig[] = [
   {
     level: 0, label: "VIP 0",
-    description: "Membre n'ayant pas encore acheté de produit Parcours.",
+    description: "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1.",
     advantages: "Les produits Explore restent disponibles selon leurs conditions.",
     minInvestment: null,
   },
   {
     level: 1, label: "VIP 1",
-    description: "Membre ayant réalisé son premier achat personnel payant dans Parcours.",
+    description: "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint.",
     advantages: "Rang d'entrée pour l'accès aux produits Parcours.",
     minInvestment: null,
   },

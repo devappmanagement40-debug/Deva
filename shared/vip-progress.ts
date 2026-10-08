@@ -1,5 +1,3 @@
-import { normalizeProductType } from "./product-categories";
-
 export const MAX_VIP_LEVEL = 7;
 
 export interface VipProgress {
@@ -15,7 +13,6 @@ interface EligiblePurchase {
   amountCents: number;
   purchaseDate: number;
   id: number;
-  startsVip: boolean;
 }
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -56,7 +53,10 @@ function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurcha
 
     if (!snapshot) continue;
     if (purchase.assignedByAdmin === true || root.assignedByAdmin === true) continue;
-    if (snapshot.isFree === true || currentProduct?.isFree === true) continue;
+    const isFree = snapshot.isFree === undefined
+      ? currentProduct?.isFree === true
+      : snapshot.isFree === true;
+    if (isFree) continue;
 
     const amountCents = amountToCents(snapshot.price ?? currentProduct?.price);
     if (amountCents <= 0) continue;
@@ -74,7 +74,6 @@ function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurcha
       amountCents,
       purchaseDate: Number.isFinite(parsedDate) ? parsedDate : Number.MAX_SAFE_INTEGER,
       id: Number.isSafeInteger(parsedId) ? parsedId : Number.MAX_SAFE_INTEGER,
-      startsVip: normalizeProductType(snapshot.productType ?? currentProduct?.productType) === "wellness",
     });
   }
 
@@ -84,9 +83,9 @@ function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurcha
 }
 
 /**
- * VIP1 is earned by the first personal paid Parcours purchase. Later ranks use
- * cumulative personal paid purchases from every product category as soon as
- * each purchase is recorded; cycle completion is not required. The progress
+ * Every rank, including VIP1, is unlocked by its admin-configured cumulative
+ * personal paid-investment threshold across all product categories. Purchases
+ * count as soon as recorded; cycle completion is not required. The progress
  * bar measures only the current stage, starting from the purchase that reached
  * the current rank.
  */
@@ -95,17 +94,6 @@ export function calculateVipProgress(
   settings: Record<string, unknown>,
 ): VipProgress {
   const eligiblePurchases = getPersonalPaidPurchases(purchases);
-  if (eligiblePurchases.length === 0) {
-    return {
-      level: 0,
-      totalInvestmentXof: 0,
-      progressPercent: 0,
-      nextLevel: 1,
-      nextThresholdXof: null,
-      amountRemainingXof: null,
-    };
-  }
-
   let totalCents = 0;
   let level = 0;
   let currentStageStartCents = 0;
@@ -116,12 +104,7 @@ export function calculateVipProgress(
       throw new Error("Le cumul des investissements dépasse la limite autorisée.");
     }
 
-    if (level === 0 && purchase.startsVip) {
-      level = 1;
-      currentStageStartCents = totalCents;
-    }
-
-    while (level > 0 && level < MAX_VIP_LEVEL) {
+    while (level < MAX_VIP_LEVEL) {
       const nextThresholdCents = thresholdToCents(settings[`vip${level + 1}MinInvestment`]);
       if (nextThresholdCents === null || totalCents < nextThresholdCents) break;
       level++;
@@ -173,7 +156,7 @@ export function isVipLevelUnlocked(currentLevel: number, requiredLevel: unknown)
 }
 
 /**
- * VIP2+ investment thresholds must be positive, contiguous, and strictly
+ * VIP investment thresholds must be positive, contiguous, and strictly
  * increasing. Empty values disable that rank and every rank above it.
  */
 export function validateVipInvestmentThresholds(
@@ -182,7 +165,7 @@ export function validateVipInvestmentThresholds(
   let previousThreshold: number | null = null;
   let foundGap = false;
 
-  for (let level = 2; level <= MAX_VIP_LEVEL; level++) {
+  for (let level = 1; level <= MAX_VIP_LEVEL; level++) {
     const raw = settings[`vip${level}MinInvestment`];
     if (raw === undefined || raw === null || String(raw).trim() === "") {
       foundGap = true;

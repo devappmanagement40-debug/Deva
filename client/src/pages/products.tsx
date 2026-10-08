@@ -38,7 +38,7 @@ const INVEST_COPY: Record<Lang, {
   unavailable: string;
   stabilityRequired: string;
   stabilityRequiredButton: string;
-  vipRequired: string;
+  accessConditionsRequired: string;
   support: string;
   purchaseHint: string;
   multipleHint: string;
@@ -66,7 +66,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Bientôt disponible",
     stabilityRequired: "Pour acheter un produit Parcours ou Offres, vous devez d’abord posséder un produit Explore actif.",
     stabilityRequiredButton: "Explore requis",
-    vipRequired: "VIP {level} requis",
+    accessConditionsRequired: "Conditions requises",
     support: "Assistance",
     purchaseHint: "Les gains sont crédités automatiquement à la fin du cycle du produit. Aucune collecte manuelle n'est nécessaire.",
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
@@ -94,7 +94,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Unavailable",
     stabilityRequired: "You must own an active Stability product before buying a Wellness or Activity product.",
     stabilityRequiredButton: "Stability required",
-    vipRequired: "VIP {level} required",
+    accessConditionsRequired: "Requirements not met",
     support: "Support",
     purchaseHint: "Product earnings are credited automatically at the end of the cycle. No manual collection is needed.",
     multipleHint: "You can purchase multiple products to increase your earnings.",
@@ -122,7 +122,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "غير متاح",
     stabilityRequired: "يجب أن تمتلك منتج استقرار نشطًا قبل شراء منتج العافية أو النشاط.",
     stabilityRequiredButton: "الاستقرار مطلوب",
-    vipRequired: "مطلوب VIP {level}",
+    accessConditionsRequired: "لم تُستوفَ الشروط",
     support: "الدعم",
     purchaseHint: "تُضاف أرباح المنتج تلقائيًا عند انتهاء الدورة. لا حاجة إلى التحصيل اليدوي.",
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
@@ -150,7 +150,7 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "暂不可用",
     stabilityRequired: "购买健康或活力产品前，您必须先拥有一个有效的稳健产品。",
     stabilityRequiredButton: "需要稳健产品",
-    vipRequired: "需要 VIP {level}",
+    accessConditionsRequired: "尚未满足条件",
     support: "客服",
     purchaseHint: "产品周期结束时，收益将自动计入收益余额，无需手动领取。",
     multipleHint: "您可以购买多个产品以增加收益。",
@@ -377,7 +377,7 @@ export default function ProductsPage() {
                     : stabilityPrerequisiteApplies
                       ? copy.stabilityRequiredButton
                       : vipLocked
-                        ? copy.vipRequired.replace("{level}", String(requiredVipLevel))
+                        ? copy.accessConditionsRequired
                         : undefined;
 
                 return (

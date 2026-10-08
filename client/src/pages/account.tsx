@@ -100,8 +100,8 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipAmountRemaining: "Il manque encore {amount} XOF pour atteindre le niveau VIP suivant",
-    vipThresholdPending: "Le seuil du prochain niveau VIP doit être configuré dans l’administration.",
+    vipAmountRemaining: "Passer au VIP {level} : il vous manque encore {amount} XOF",
+    vipThresholdPending: "Le seuil du VIP {level} doit être configuré dans l’administration.",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
     idCopyFailed: "Impossible de copier l’ID.",
@@ -136,8 +136,8 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipAmountRemaining: "{amount} XOF still needed to reach the next VIP level",
-    vipThresholdPending: "The next VIP threshold must be configured by an administrator.",
+    vipAmountRemaining: "Reach VIP {level}: {amount} XOF remaining",
+    vipThresholdPending: "The VIP {level} threshold must be configured by an administrator.",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
     idCopyFailed: "Could not copy the ID.",
@@ -172,8 +172,8 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipAmountRemaining: "يتبقى {amount} XOF للوصول إلى مستوى VIP التالي",
-    vipThresholdPending: "يجب على المسؤول إعداد حد مستوى VIP التالي.",
+    vipAmountRemaining: "للوصول إلى VIP {level}، يتبقى {amount} XOF",
+    vipThresholdPending: "يجب على المسؤول إعداد حد VIP {level}.",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
     idCopyFailed: "تعذر نسخ المعرّف.",
@@ -208,8 +208,8 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipAmountRemaining: "距离下一个VIP等级还差 {amount} XOF",
-    vipThresholdPending: "下一个 VIP 等级门槛需要由管理员设置。",
+    vipAmountRemaining: "距离 VIP {level} 还差 {amount} XOF",
+    vipThresholdPending: "VIP {level} 的门槛需要由管理员设置。",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
     idCopyFailed: "无法复制编号。",
@@ -295,15 +295,14 @@ export default function AccountPage() {
   const vipProgress = calculateVipProgress(userProducts, settings);
   const vipLevel = vipProgress.level;
   const currentVip = vipConfigs[vipLevel] ?? DEFAULT_VIP_CONFIGS[0];
-  const nextVip = vipProgress.nextLevel === null ? null : vipConfigs[vipProgress.nextLevel] ?? null;
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
-  const nextVipMessage = vipLevel === 0
-    ? currentVip.description
-    : !nextVip
-      ? copy.vipMax
-      : vipProgress.amountRemainingXof === null
-        ? copy.vipThresholdPending
-        : copy.vipAmountRemaining.replace(
+  const nextVipMessage = vipProgress.nextLevel === null
+    ? copy.vipMax
+    : vipProgress.amountRemainingXof === null
+      ? copy.vipThresholdPending.replace("{level}", String(vipProgress.nextLevel))
+      : copy.vipAmountRemaining
+          .replace("{level}", String(vipProgress.nextLevel))
+          .replace(
             "{amount}",
             Math.ceil(vipProgress.amountRemainingXof).toLocaleString(lang, { maximumFractionDigits: 0 }),
           );
