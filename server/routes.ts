@@ -29,6 +29,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { isSecureShareLink } from "./share-report-validation";
 import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
+import { hasSupportInboxAccess } from "./authorization";
 import {
   toPublicWithdrawalProofFeedItem,
   withdrawalProofReviewSchema,
@@ -402,6 +403,17 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
   const user = await storage.getUser(req.session.userId);
   if (!user?.isAdmin) {
+    return res.status(403).json({ message: "Accès refusé" });
+  }
+  next();
+}
+
+async function requireSupportStaff(req: Request, res: Response, next: NextFunction) {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Non authentifié" });
+  }
+  const user = await storage.getUser(req.session.userId);
+  if (!hasSupportInboxAccess(user)) {
     return res.status(403).json({ message: "Accès refusé" });
   }
   next();
@@ -3263,7 +3275,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/support-chat/conversations", requireAdmin, async (_req, res) => {
+  app.get("/api/admin/support-chat/conversations", requireSupportStaff, async (_req, res) => {
     try {
       return res.json(await storage.getSupportChatConversations());
     } catch (error) {
@@ -3272,7 +3284,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/admin/support-chat/conversations/:userId/messages", requireAdmin, async (req, res) => {
+  app.get("/api/admin/support-chat/conversations/:userId/messages", requireSupportStaff, async (req, res) => {
     try {
       const userId = Number.parseInt(String(req.params.userId), 10);
       if (!Number.isInteger(userId) || userId < 1) {
@@ -3290,7 +3302,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/support-chat/conversations/:userId/messages", requireAdmin, requireSameOrigin, async (req, res) => {
+  app.post("/api/admin/support-chat/conversations/:userId/messages", requireSupportStaff, requireSameOrigin, async (req, res) => {
     try {
       const userId = Number.parseInt(String(req.params.userId), 10);
       if (!Number.isInteger(userId) || userId < 1) {
@@ -3320,7 +3332,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/admin/support-chat/conversations/:userId/messages/:messageId", requireAdmin, requireSameOrigin, async (req, res) => {
+  app.patch("/api/admin/support-chat/conversations/:userId/messages/:messageId", requireSupportStaff, requireSameOrigin, async (req, res) => {
     try {
       const userId = Number(req.params.userId);
       const messageId = Number(req.params.messageId);
@@ -3913,6 +3925,7 @@ export async function registerRoutes(
           }
           await storage.updateUser(userId, { 
             isAdmin: newAdminStatus,
+            ...(newAdminStatus ? { isSupportAgent: false } : {}),
             adminSetBy: req.session.userId,
             adminSetAt: new Date(),
             adminPin: newAdminStatus ? await hashAdminAccessPin(value as string) : null,
@@ -3964,6 +3977,7 @@ export async function registerRoutes(
           await storage.updateUser(userId, {
             isSuperAdmin: newSuperAdminStatus,
             isAdmin: newSuperAdminStatus ? true : userSA?.isAdmin,
+            ...(newSuperAdminStatus ? { isSupportAgent: false } : {}),
           });
           await storage.logAdminAction(req.session.userId!, "toggle_super_admin", userId, `Super Admin: ${newSuperAdminStatus}`);
           break;
@@ -3975,10 +3989,29 @@ export async function registerRoutes(
           const newBankerStatus = !userBanker?.isBanker;
           await storage.updateUser(userId, { 
             isBanker: newBankerStatus,
+            ...(newBankerStatus ? { isSupportAgent: false } : {}),
             bankerSetBy: newBankerStatus ? req.session.userId : null,
           });
           await storage.logAdminAction(req.session.userId!, "toggle_banker", userId, `Bankier: ${newBankerStatus}`);
           break;
+        case "toggle-support-agent": {
+          const supportTarget = await storage.getUser(userId);
+          if (!supportTarget) {
+            return res.status(404).json({ message: "Utilisateur introuvable" });
+          }
+          if (supportTarget.isAdmin || supportTarget.isSuperAdmin || supportTarget.isBanker) {
+            return res.status(400).json({ message: "Le rôle service client est réservé aux comptes membres non administrateurs." });
+          }
+          const isSupportAgent = !supportTarget.isSupportAgent;
+          await storage.updateUser(userId, { isSupportAgent });
+          await storage.logAdminAction(
+            req.session.userId!,
+            "toggle_support_agent",
+            userId,
+            `Accès service client ${isSupportAgent ? "accordé" : "retiré"}`,
+          );
+          break;
+        }
         case "total-earnings":
           await storage.updateUser(userId, { totalEarnings: Number(value).toFixed(2) });
           await storage.logAdminAction(req.session.userId!, "update_total_earnings", userId, `Solde des gains modifié: ${value} XOF`);
@@ -4973,7 +5006,7 @@ export async function registerRoutes(
 
       const attachmentUrl = `/api/support-chat/files/${fileName}`;
       const ownerId = await storage.getSupportChatAttachmentUserId(attachmentUrl);
-      if (ownerId === undefined || (!viewer.isAdmin && ownerId !== viewer.id)) {
+      if (ownerId === undefined || (!hasSupportInboxAccess(viewer) && ownerId !== viewer.id)) {
         return res.status(404).json({ message: "Fichier introuvable" });
       }
 
