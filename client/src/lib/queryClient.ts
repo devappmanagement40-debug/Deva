@@ -1,21 +1,59 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+function looksLikeHtmlDocument(value: string): boolean {
+  return /<!doctype\s+html\b|<html(?:\s|>)/i.test(value.slice(0, 2048));
+}
+
+export function errorMessageFromResponse(
+  body: string,
+  contentType: string,
+  status: number,
+  statusText = "",
+): string {
+  const genericMessage = `Le serveur a renvoyé une erreur (${status}). Réessayez dans quelques instants.`;
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    // Reverse proxies and hosting panels sometimes return an HTML error page
+    // with a missing or incorrect content type.
+  }
+
+  if (parsed && typeof parsed === "object") {
+    const payload = parsed as { message?: unknown; error?: unknown };
+    const message = payload.message ?? payload.error;
+    if (typeof message === "string") {
+      return looksLikeHtmlDocument(message) ? genericMessage : message;
+    }
+  }
+
+  if (
+    typeof parsed === "string" &&
+    looksLikeHtmlDocument(parsed)
+  ) {
+    return genericMessage;
+  }
+
+  if (
+    contentType.toLowerCase().includes("text/html") ||
+    looksLikeHtmlDocument(body)
+  ) {
+    return genericMessage;
+  }
+
+  return body || statusText || genericMessage;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = await res.text();
-    let message = res.statusText;
-    try {
-      const json = JSON.parse(text);
-      message = json.message || json.error || res.statusText;
-    } catch {
-      // Reverse proxies and hosting panels often return a complete HTML
-      // error document for an API request. Never expose that document in a
-      // toast or runtime error overlay.
-      const contentType = res.headers.get("content-type") || "";
-      message = contentType.toLowerCase().includes("text/html")
-        ? `Le serveur a renvoyé une erreur (${res.status}). Vérifiez la connexion du domaine à l'API.`
-        : text || res.statusText;
-    }
+    const message = errorMessageFromResponse(
+      text,
+      res.headers.get("content-type") || "",
+      res.status,
+      res.statusText,
+    );
     throw new Error(message);
   }
 }
