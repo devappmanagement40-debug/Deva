@@ -285,11 +285,9 @@ export default function ProductsPage() {
   const selectedProductType = PRODUCT_TAB_TYPES[selectedTab] ?? PRODUCT_TAB_TYPES[0];
   const hasActiveStabilityProduct = products?.some((product) => product.userHasActiveStabilityProduct === true) ?? false;
   const stabilityPrerequisiteApplies = selectedProductType !== "stability" && !hasActiveStabilityProduct;
-  const sectionProducts = paidProducts
-    .filter((product) => normalizeProductType(product.productType) === selectedProductType)
-    .sort((left, right) => selectedProductType === "wellness"
-      ? (Number(left.requiredVipLevel) || 0) - (Number(right.requiredVipLevel) || 0)
-      : 0);
+  const sectionProducts = paidProducts.filter(
+    (product) => normalizeProductType(product.productType) === selectedProductType,
+  );
   const productIndexes = new Map(paidProducts.map((product, index) => [product.id, index]));
   const getDisplayName = (product: Product) => rebrandText(product.name);
   const getProductImage = (product: Product) => getProductImageUrl(product.imageUrl);

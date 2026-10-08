@@ -4057,7 +4057,6 @@ export async function registerRoutes(
         cardColor: normalizeProductCardColor(cardColor),
         isFree: false,
         isActive: true,
-        sortOrder: 0,
         seriesId: null,
         minInviteCount: 0,
         requiredVipLevel: parsedRequiredVipLevel,

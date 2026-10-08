@@ -556,7 +556,9 @@ export class DatabaseStorage implements IStorage {
 
   // Products
   async getProducts(): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.isActive, true)).orderBy(products.sortOrder);
+    return await db.select().from(products)
+      .where(eq(products.isActive, true))
+      .orderBy(products.sortOrder, products.id);
   }
 
   async getProduct(id: number): Promise<Product | undefined> {
@@ -565,7 +567,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(data: Partial<Product>): Promise<Product> {
-    const [product] = await db.insert(products).values(data as any).returning();
+    const [lastProduct] = await db.select({ sortOrder: products.sortOrder })
+      .from(products)
+      .orderBy(desc(products.sortOrder), desc(products.id))
+      .limit(1);
+    const nextSortOrder = Math.max(0, (lastProduct?.sortOrder ?? -1) + 1);
+    const [product] = await db.insert(products)
+      .values({ ...data, sortOrder: nextSortOrder } as any)
+      .returning();
     return product;
   }
 
@@ -3407,7 +3416,7 @@ export class DatabaseStorage implements IStorage {
 
   // ── Product Series ──────────────────────────────────────────────────────────
   async getAllProductsAdmin(): Promise<Product[]> {
-    return db.select().from(products).orderBy(products.sortOrder);
+    return db.select().from(products).orderBy(products.sortOrder, products.id);
   }
 
   async getProductInviteCount(userId: number): Promise<number> {
