@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
 import { formatCurrency } from "@/lib/countries";
-import { Search, Edit, Ban, Shield, Lock, Unlock, Star, Users, Loader2, UserPlus, ChevronDown, ChevronUp, Trash2, ChevronLeft, ChevronRight, Landmark } from "lucide-react";
+import { Search, Edit, Ban, Shield, Lock, Unlock, Star, Users, Loader2, UserPlus, ChevronDown, ChevronUp, Trash2, ChevronLeft, ChevronRight, Landmark, Headphones } from "lucide-react";
 import type { User, Product } from "@shared/schema";
 
 interface UserProductItem {
@@ -317,6 +317,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-medium text-foreground">{user.fullName}</p>
                       {user.isAdmin && <Badge variant="destructive" className="text-xs">Admin</Badge>}
+                      {user.isSupportAgent && <Badge variant="secondary" className="text-xs">Service client</Badge>}
                       {(user as any).isBanker && <Badge className="text-xs bg-black">Bankier</Badge>}
                       {user.isPromoter && <Badge className="text-xs">Promoteur</Badge>}
                       {user.isBanned && <Badge variant="destructive" className="text-xs">Banni</Badge>}
@@ -764,6 +765,24 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                       <Landmark className="w-4 h-4 mr-2" />
                       {(selectedUser as any).isBanker ? "Retirer role Bankier" : "Nommer Bankier"}
                     </Button>
+                  )}
+
+                  {!selectedUser.isAdmin && !selectedUser.isSuperAdmin && !selectedUser.isBanker && (
+                    <div className="col-span-2 space-y-2">
+                      <Button
+                        variant={selectedUser.isSupportAgent ? "secondary" : "outline"}
+                        className="w-full"
+                        onClick={() => updateMutation.mutate({ userId: selectedUser.id, action: "toggle-support-agent" })}
+                        disabled={updateMutation.isPending}
+                        data-testid="button-toggle-support-agent"
+                      >
+                        <Headphones className="w-4 h-4 mr-2" />
+                        {selectedUser.isSupportAgent ? "Retirer l’accès service client" : "Nommer service client"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Cet accès permet de consulter et répondre aux conversations, sans ouvrir les autres fonctions administrateur.
+                      </p>
+                    </div>
                   )}
 
                   {isSuperAdmin && selectedUser.isAdmin && !selectedUser.isSuperAdmin && (

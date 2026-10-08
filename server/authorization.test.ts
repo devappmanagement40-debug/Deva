@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hasSupportInboxAccess } from "./authorization";
+import { hasAdminPanelAccess, hasSupportInboxAccess } from "./authorization";
 
 test("support inbox is denied to ordinary members", () => {
   assert.equal(hasSupportInboxAccess({ isAdmin: false, isSupportAgent: false }), false);
@@ -8,9 +8,13 @@ test("support inbox is denied to ordinary members", () => {
 });
 
 test("support agents can access the support inbox without being admins", () => {
-  assert.equal(hasSupportInboxAccess({ isAdmin: false, isSupportAgent: true }), true);
+  const supportAgent = { isAdmin: false, isSupportAgent: true };
+  assert.equal(hasSupportInboxAccess(supportAgent), true);
+  assert.equal(hasAdminPanelAccess(supportAgent), false);
 });
 
 test("administrators retain access to the support inbox", () => {
-  assert.equal(hasSupportInboxAccess({ isAdmin: true, isSupportAgent: false }), true);
+  const admin = { isAdmin: true, isSupportAgent: false };
+  assert.equal(hasSupportInboxAccess(admin), true);
+  assert.equal(hasAdminPanelAccess(admin), true);
 });

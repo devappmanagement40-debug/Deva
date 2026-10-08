@@ -145,3 +145,26 @@ export default function AdminPage() {
     </div>
   );
 }
+
+export function SupportAgentPage() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+
+  if (!user?.isSupportAgent || user.isAdmin) return null;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="bg-secondary px-4 py-4 flex items-center gap-4 sticky top-0 z-50">
+        <Button size="icon" variant="ghost" onClick={() => navigate("/account")} data-testid="button-back">
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+        <h1 className="text-xl font-bold text-secondary-foreground" data-testid="text-support-agent-title">
+          Service client
+        </h1>
+      </header>
+      <div className="p-4">
+        <AdminSupportInbox />
+      </div>
+    </div>
+  );
+}

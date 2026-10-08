@@ -54,7 +54,7 @@ import TeamPage from "@/pages/team";
 import ShareInformationPage from "@/pages/share-information";
 import WithdrawalProofsPage from "@/pages/withdrawal-proofs";
 import AccountPage from "@/pages/account";
-import AdminPage from "@/pages/admin";
+import AdminPage, { SupportAgentPage } from "@/pages/admin";
 import AdminTeamPage from "@/pages/admin-team";
 import BankerPage from "@/pages/banker";
 import DepositPage from "@/pages/deposit";
@@ -441,6 +441,11 @@ function RouterComponent() {
           <AppLayout>
             <NewsDetailPage />
           </AppLayout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/support-agent">
+        <ProtectedRoute>
+          <SupportAgentPage />
         </ProtectedRoute>
       </Route>
       <Route path="/admin">

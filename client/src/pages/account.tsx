@@ -383,6 +383,8 @@ export default function AccountPage() {
     setShowPinModal(true);
   };
 
+  const openSupportAgentDesk = () => navigate("/support-agent");
+
   const handleSecurityPin = () => {
     if (user.isAdmin) {
       openAdmin();
@@ -445,8 +447,8 @@ export default function AccountPage() {
               <button
                 type="button"
                 className="ielp-account-avatar-button"
-                onClick={user.isAdmin ? openAdmin : undefined}
-                aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
+                onClick={user.isAdmin ? openAdmin : user.isSupportAgent ? openSupportAgentDesk : undefined}
+                aria-label={user.isAdmin ? t.adminPanel : user.isSupportAgent ? "Espace service client" : copy.accountMenu}
                 data-testid="button-account-menu"
               >
                 <span className="ielp-account-avatar" aria-hidden="true">
@@ -460,8 +462,8 @@ export default function AccountPage() {
                   <button
                     type="button"
                     className="ielp-account-phone-menu"
-                    onClick={user.isAdmin ? openAdmin : undefined}
-                    aria-label={user.isAdmin ? t.adminPanel : copy.accountMenu}
+                    onClick={user.isAdmin ? openAdmin : user.isSupportAgent ? openSupportAgentDesk : undefined}
+                    aria-label={user.isAdmin ? t.adminPanel : user.isSupportAgent ? "Espace service client" : copy.accountMenu}
                     data-testid="button-account-menu-phone"
                   >
                     {maskedPhone}
@@ -578,6 +580,18 @@ export default function AccountPage() {
           </section>
 
           <section className="ielp-account-links" aria-label={copy.accountMenu}>
+            {user.isSupportAgent && !user.isAdmin && (
+              <button
+                type="button"
+                className="ielp-account-link"
+                onClick={openSupportAgentDesk}
+                data-testid="account-link-support-agent"
+              >
+                <Headphones size={24} strokeWidth={2.1} aria-hidden="true" />
+                <span>Espace service client</span>
+                <ChevronRight size={20} strokeWidth={1.8} aria-hidden="true" />
+              </button>
+            )}
             {ACCOUNT_LINKS
               .filter(({ copyKey }) => copyKey !== "adminAccessPin" || user.isAdmin)
               .map(({ copyKey, href, Icon }, index) => (

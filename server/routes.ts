@@ -29,7 +29,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { isSecureShareLink } from "./share-report-validation";
 import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
-import { hasSupportInboxAccess } from "./authorization";
+import { hasAdminPanelAccess, hasSupportInboxAccess } from "./authorization";
 import {
   toPublicWithdrawalProofFeedItem,
   withdrawalProofReviewSchema,
@@ -402,7 +402,7 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ message: "Non authentifié" });
   }
   const user = await storage.getUser(req.session.userId);
-  if (!user?.isAdmin) {
+  if (!hasAdminPanelAccess(user)) {
     return res.status(403).json({ message: "Accès refusé" });
   }
   next();
