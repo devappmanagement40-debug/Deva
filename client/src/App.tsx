@@ -84,7 +84,6 @@ import SpinWheelPage from "@/pages/spin-wheel";
 import NotFound from "@/pages/not-found";
 import { Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import NavigationLoader from "@/components/navigation-loader";
 import "./ielp-member-theme.css";
 
 function BannedMessage() {
@@ -478,7 +477,6 @@ function App() {
             <Router hook={useIndexPath} searchHook={useIndexSearch}>
               <RouterComponent />
             </Router>
-            <NavigationLoader />
             <Toaster />
           </AuthProvider>
         </TooltipProvider>

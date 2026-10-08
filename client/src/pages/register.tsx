@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/lib/auth";
 import { CountrySelector } from "@/components/country-selector";
 import { useI18n } from "@/lib/i18n";
-import { setAppLoading } from "@/components/navigation-loader";
 import { AuthScene } from "@/components/auth-scene";
 import { fetchPublicCountries, type CountryOption } from "@/lib/countries";
 import { isCountryCode } from "@shared/country-codes";
@@ -99,7 +98,6 @@ export default function RegisterPage() {
 
   async function onSubmit(data: RegisterForm) {
     setIsLoading(true);
-    setAppLoading(true);
     try {
       await register({
         fullName: `User_${data.phone}`,
@@ -117,7 +115,6 @@ export default function RegisterPage() {
       toast({ title: error.message || t.errRegisterFailed, variant: "destructive" });
     } finally {
       setIsLoading(false);
-      setAppLoading(false);
     }
   }
 
