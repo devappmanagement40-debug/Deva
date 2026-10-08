@@ -65,6 +65,18 @@ test("a personal Explore purchase can reach VIP1 as soon as it is recorded", () 
   assert.equal(progress.amountRemainingXof, 2000);
 });
 
+test("a completed or expired product remains in historical VIP investment", () => {
+  const progress = calculateVipProgress([
+    personalPurchase(1, "3000.00", "stability", {
+      isActive: false,
+      daysRemaining: 0,
+    }),
+  ], { vip1MinInvestment: "3000" });
+
+  assert.equal(progress.level, 1);
+  assert.equal(progress.totalInvestmentXof, 3000);
+});
+
 test("paid purchase snapshots count at their purchase-time price even if the catalog later changes", () => {
   const progress = calculateVipProgress(
     [{
