@@ -401,33 +401,63 @@ async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Non authentifié" });
   }
-  const user = await storage.getUser(req.session.userId);
-  if (!hasAdminPanelAccess(user)) {
-    return res.status(403).json({ message: "Accès refusé" });
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!hasAdminPanelAccess(user)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+    return next();
+  } catch (error) {
+    console.error(
+      "[auth] Admin authorization lookup failed:",
+      error instanceof Error ? error.message : "Unknown database error",
+    );
+    return res.status(503).json({
+      message: "La vérification d’accès est temporairement indisponible. Réessayez dans quelques instants.",
+    });
   }
-  next();
 }
 
 async function requireSupportStaff(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Non authentifié" });
   }
-  const user = await storage.getUser(req.session.userId);
-  if (!hasSupportInboxAccess(user)) {
-    return res.status(403).json({ message: "Accès refusé" });
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!hasSupportInboxAccess(user)) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+    return next();
+  } catch (error) {
+    console.error(
+      "[auth] Support authorization lookup failed:",
+      error instanceof Error ? error.message : "Unknown database error",
+    );
+    return res.status(503).json({
+      message: "La vérification d’accès est temporairement indisponible. Réessayez dans quelques instants.",
+    });
   }
-  next();
 }
 
 async function requireBanker(req: Request, res: Response, next: NextFunction) {
   if (!req.session.userId) {
     return res.status(401).json({ message: "Non authentifié" });
   }
-  const user = await storage.getUser(req.session.userId);
-  if (!user?.isAdmin && !user?.isBanker) {
-    return res.status(403).json({ message: "Accès refusé" });
+  try {
+    const user = await storage.getUser(req.session.userId);
+    if (!user?.isAdmin && !user?.isBanker) {
+      return res.status(403).json({ message: "Accès refusé" });
+    }
+    return next();
+  } catch (error) {
+    console.error(
+      "[auth] Banker authorization lookup failed:",
+      error instanceof Error ? error.message : "Unknown database error",
+    );
+    return res.status(503).json({
+      message: "La vérification d’accès est temporairement indisponible. Réessayez dans quelques instants.",
+    });
   }
-  next();
 }
 
 export async function registerRoutes(
