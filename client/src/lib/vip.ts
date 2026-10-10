@@ -69,7 +69,7 @@ export function mergeAdminVipConfig(
   settings: Record<string, string>,
 ): VipLevelConfig[] {
   return defaults.map((cfg) => {
-    const rawThreshold = settings[`vip${cfg.level}MinInvestment`];
+    const rawThreshold = settings[`vip${cfg.level}MinInvestmentUsdt`];
     const parsedThreshold = rawThreshold?.trim() ? Number(rawThreshold) : null;
     return {
       ...cfg,

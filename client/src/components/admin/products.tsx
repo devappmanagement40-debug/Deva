@@ -221,7 +221,7 @@ function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }:
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                Ce niveau d’accès reste distinct du montant nécessaire pour progresser : configure les seuils monétaires dans les paramètres VIP. Les cartes publiques n’affichent pas le niveau requis.
+                Pour bloquer un produit Parcours jusqu’au montant voulu, configurez le seuil correspondant dans les paramètres VIP puis choisissez le niveau minimum ici. La barre du compte suit les achats personnels payants en USDT. Les cartes publiques n’affichent pas le niveau requis.
               </p>
               <FormMessage />
             </FormItem>

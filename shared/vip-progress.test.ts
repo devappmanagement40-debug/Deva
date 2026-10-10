@@ -61,6 +61,30 @@ test("an account with no purchases still sees the configured amount needed for V
   assert.equal(progress.amountRemainingUsdt, 3000);
 });
 
+test("VIP1 threshold gates the first Parcours product and the bar shows exact USDT progress", () => {
+  const settings = {
+    vip1MinInvestmentUsdt: "20",
+    vip2MinInvestmentUsdt: "50",
+  };
+  const belowThreshold = calculateVipProgress(
+    [personalPurchase(1, "19.50", "stability")],
+    settings,
+  );
+
+  assert.equal(belowThreshold.level, 0);
+  assert.equal(belowThreshold.progressPercent, 97.5);
+  assert.equal(belowThreshold.amountRemainingUsdt, 0.5);
+  assert.equal(isVipLevelUnlocked(belowThreshold.level, 1), false);
+
+  const thresholdReached = calculateVipProgress(
+    [personalPurchase(1, "20.00", "stability")],
+    settings,
+  );
+
+  assert.equal(thresholdReached.level, 1);
+  assert.equal(isVipLevelUnlocked(thresholdReached.level, 1), true);
+});
+
 test("a personal Explore purchase can reach VIP1 as soon as it is recorded", () => {
   const progress = calculateVipProgress([
     personalPurchase(1, "3000.00", "stability", {

@@ -103,6 +103,9 @@ export default function AdminVipSettings() {
         <p className="text-xs text-muted-foreground mt-0.5">
           Les rangs VIP 1 à 7 sont débloqués selon le montant cumulé de vos achats personnels payants en USDT, toutes catégories confondues. Configurez ici le seuil requis pour chaque rang.
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Pour exiger un montant avant le premier produit Parcours, configurez le seuil VIP 1 ici, puis choisissez « VIP 1 » comme niveau minimum sur la fiche de ce produit. La barre du compte suit ce même seuil.
+        </p>
       </div>
 
       {DEFAULT_VIP_CONFIGS.map((cfg) => (

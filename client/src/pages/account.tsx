@@ -306,7 +306,7 @@ export default function AccountPage() {
           .replace("{level}", String(vipProgress.nextLevel))
           .replace(
             "{amount}",
-            Math.ceil(vipProgress.amountRemainingUsdt).toLocaleString(lang, { maximumFractionDigits: 0 }),
+            vipProgress.amountRemainingUsdt.toLocaleString(lang, { maximumFractionDigits: 2 }),
           );
 
   useEffect(() => {
