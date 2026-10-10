@@ -457,7 +457,7 @@ export async function seed() {
     { key: "popupButtonLabel", value: "Rejoindre le groupe Telegram" },
     { key: "popupTitle", value: "DIAMANT" },
     { key: "popupLine1", value: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-    { key: "popupLine2", value: "🤝 Dépôt minimum : 13 USDT — Dépôt sécurisé en USDT BEP20" },
+    { key: "popupLine2", value: "🤝 Dépôts sécurisés en USDT BEP20 — consultez le minimum sur l’écran de dépôt" },
     { key: "popupLine3", value: "💚 Les frais de retrait sont affichés avant confirmation." },
     { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
@@ -616,7 +616,12 @@ export async function seed() {
     {
       key: "popupLine2",
       oldValue: "🤝 Dépôt minimum : 2 USDT — Dépôt sécurisé en USDT BEP20",
-      newValue: "🤝 Dépôt minimum : 13 USDT — Dépôt sécurisé en USDT BEP20",
+      newValue: "🤝 Dépôts sécurisés en USDT BEP20 — consultez le minimum sur l’écran de dépôt",
+    },
+    {
+      key: "popupLine2",
+      oldValue: "🤝 Dépôt minimum : 13 USDT — Dépôt sécurisé en USDT BEP20",
+      newValue: "🤝 Dépôts sécurisés en USDT BEP20 — consultez le minimum sur l’écran de dépôt",
     },
     {
       key: "spinWheelSelfPurchaseSpins",
