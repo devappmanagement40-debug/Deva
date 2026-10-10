@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { CountrySelector } from "@/components/country-selector";
 import { useI18n } from "@/lib/i18n";
 import { AuthScene } from "@/components/auth-scene";
-import { fetchLoginCountries, type CountryOption } from "@/lib/countries";
+import { fetchAuthCountries, type CountryOption } from "@/lib/countries";
 import { isCountryCode } from "@shared/country-codes";
 
 const REMEMBERED_PHONE_KEY = "ielp-auth-phone";
@@ -48,7 +48,7 @@ export default function LoginPage() {
     isError: countriesError,
   } = useQuery<CountryOption[]>({
     queryKey: ["/api/auth/countries"],
-    queryFn: fetchLoginCountries,
+    queryFn: fetchAuthCountries,
   });
 
   const loginSchema = z.object({
@@ -67,6 +67,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (countries.length === 0 || countries.some(country => country.code === selectedCountry)) return;
     const defaultCountry = countries.find(country => country.code === savedLogin.country)
+      ?? countries.find(country => country.code === "CI")
       ?? countries.find(country => country.isActive)
       ?? countries[0];
     form.setValue("country", defaultCountry.code, { shouldValidate: true });

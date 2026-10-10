@@ -425,23 +425,6 @@ export class DatabaseStorage implements IStorage {
         throw error;
       }
 
-      const [country] = await tx.select({
-        code: countries.code,
-        isActive: countries.isActive,
-      })
-        .from(countries)
-        .where(eq(countries.code, data.country))
-        .for("share");
-      if (
-        !country ||
-        !country.isActive ||
-        !isSupportedMarketCountryCode(country.code)
-      ) {
-        const error = new Error("Ce pays n’est pas actif pour les inscriptions.");
-        error.name = "CountryNotAvailableError";
-        throw error;
-      }
-
       let referralCode = "";
       for (let attempt = 0; attempt < 10; attempt++) {
         const candidate = generateReferralCode();

@@ -606,7 +606,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       });
       return;
     }
-    createMobileMoneyDeposit.mutate();
+    createMobileMoneyDeposit.mutate(undefined);
   };
 
   const submitTogoMobileMoneyDeposit = (

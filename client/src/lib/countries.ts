@@ -41,7 +41,7 @@ export function fetchPublicCountries(): Promise<ApiCountry[]> {
   return fetchCountries("/api/countries");
 }
 
-export async function fetchLoginCountries(): Promise<CountryOption[]> {
+export async function fetchAuthCountries(): Promise<CountryOption[]> {
   const countries = await fetchCountries("/api/auth/countries");
   return countries.map(({ code, name, phonePrefix, isActive }) => ({
     code,

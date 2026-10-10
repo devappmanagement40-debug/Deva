@@ -17,8 +17,8 @@ import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import {
   isCountryCode,
-  isSupportedMarketCountryCode,
 } from "@shared/country-codes";
+import { AUTH_COUNTRY_CATALOG } from "@shared/auth-country-catalog";
 import { z } from "zod";
 import ConnectPgSimple from "connect-pg-simple";
 import { db, pool } from "./db";
@@ -628,10 +628,6 @@ export async function registerRoutes(
       }
 
       const data = registerSchema.parse(req.body);
-      const activeCountries = await storage.getActiveCountries();
-      if (!activeCountries.some((country) => country.code === data.country)) {
-        return res.status(400).json({ message: "Ce pays n’est pas actif pour les inscriptions." });
-      }
       const existing = await storage.getUserByPhone(data.phone, data.country);
       if (existing) {
         return res.status(400).json({ message: "Ce numéro est déjà utilisé" });
@@ -4798,19 +4794,13 @@ export async function registerRoutes(
     }
   });
 
-  // Login keeps inactive countries available so existing users can still sign in.
+  // Authentication countries are independent of the admin-managed payment markets.
   app.get("/api/auth/countries", async (_req, res) => {
-    try {
-      const allCountries = await storage.getCountries();
-      res.json(allCountries
-        .filter((country) => isSupportedMarketCountryCode(country.code))
-        .map((country) => ({ ...country, currency: "USDT" })));
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.json(AUTH_COUNTRY_CATALOG);
   });
 
-  // Registration and country-dependent public controls use active countries only.
+  // Country-dependent public controls use active payment markets only.
   app.get("/api/countries", async (req, res) => {
     try {
       const activeCountries = await storage.getActiveCountries();

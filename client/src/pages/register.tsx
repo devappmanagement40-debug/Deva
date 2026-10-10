@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { CountrySelector } from "@/components/country-selector";
 import { useI18n } from "@/lib/i18n";
 import { AuthScene } from "@/components/auth-scene";
-import { fetchPublicCountries, type CountryOption } from "@/lib/countries";
+import { fetchAuthCountries, type CountryOption } from "@/lib/countries";
 import { isCountryCode } from "@shared/country-codes";
 
 interface CaptchaResponse {
@@ -44,8 +44,8 @@ export default function RegisterPage() {
     isLoading: countriesLoading,
     isError: countriesError,
   } = useQuery<CountryOption[]>({
-    queryKey: ["/api/countries"],
-    queryFn: fetchPublicCountries,
+    queryKey: ["/api/auth/countries"],
+    queryFn: fetchAuthCountries,
   });
 
   const registerSchema = z.object({
@@ -93,7 +93,8 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (countries.length === 0 || countries.some(country => country.code === selectedCountry)) return;
-    form.setValue("country", countries[0].code, { shouldValidate: true });
+    const defaultCountry = countries.find(country => country.code === "CI") ?? countries[0];
+    form.setValue("country", defaultCountry.code, { shouldValidate: true });
   }, [countries, form, selectedCountry]);
 
   async function onSubmit(data: RegisterForm) {

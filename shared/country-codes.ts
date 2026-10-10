@@ -1,10 +1,14 @@
+import { getCountries } from "libphonenumber-js";
+
 export type CountryCode = string;
 
 export const SUPPORTED_MARKET_COUNTRY_CODES = ["CI", "TG"] as const;
 export type SupportedMarketCountryCode = (typeof SUPPORTED_MARKET_COUNTRY_CODES)[number];
 
+const phoneCountryCodes = new Set<string>(getCountries());
+
 export function isCountryCode(value: unknown): value is CountryCode {
-  return typeof value === "string" && /^[A-Z]{2}$/.test(value);
+  return typeof value === "string" && phoneCountryCodes.has(value);
 }
 
 export function isSupportedMarketCountryCode(
