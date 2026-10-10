@@ -1,10 +1,10 @@
 ---
-name: Legacy XOF/USDT deposit conversion
-description: Historical CI/Togo crypto deposits credited XOF; the new global USDT target requires an explicit migration rule.
+name: Global USDT deposit crediting
+description: CI/Togo Mobile Money accepts XOF but credits USDT using the configured XOF/USDT rate; preserve original payment history.
 ---
 
-This documents the legacy CI/Togo deposit behavior: USDT BEP20 deposits were requested and credited in XOF using the admin-managed XOF-per-USDT rate, while Mobile Money also credited XOF. The user's current target is USDT across every country, so this legacy behavior must not be treated as the future policy. Before changing local deposits, confirm whether XOF payment rails remain and at what approved rate confirmed XOF payments credit USDT. Preserve pending quotes and original historical records unless the user explicitly approves their conversion.
+CI/Togo Mobile Money deposits remain paid in XOF, but confirmed payments must credit the account in USDT using the configured XOF-per-USDT rate. The admin-configured rate is the source of truth; do not display or use a hardcoded rate. All countries share the global USDT account currency. Preserve pending quotes and historical ledger entries in their original currency.
 
-**Why:** the prior CI/Togo policy credited XOF from crypto deposits, but the user has since changed the target currency to USDT site-wide; silently carrying forward the old credit behavior would contradict the new request.
+**Why:** the user now wants a site-wide USDT account currency while explicitly keeping CI/Togo Mobile Money payments in XOF.
 
-**How to apply:** Treat this as historical context until the user confirms the new local-deposit conversion rule. Do not credit XOF deposits as USDT 1:1 or convert them at a guessed rate. Keep original provider amounts and currency in the ledger for auditability and preserve pending deposits.
+**How to apply:** For confirmed CI/Togo Mobile Money payments, convert the credited account amount using the current configured XOF/USDT rate; never credit XOF as though it were USDT 1:1. Store the original paid XOF amount and the resulting USDT credit so the ledger remains auditable. Preserve pending deposits. Existing XOF balances require a separate user-approved conversion decision.

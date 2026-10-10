@@ -1,10 +1,10 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global USDT currency migration](rdc-only-market.md) — USDT is the target for every country; existing XOF balances, plans, and deposit handling need an explicit conversion rule before migration.
+- [Global USDT currency migration](rdc-only-market.md) — use one admin-configured product catalog in USDT, keep CI/Togo XOF Mobile Money deposits with USDT credits, and use BEP20-only withdrawals.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — legacy XOF minimum and fee rules apply until the site-wide USDT migration is defined.
-- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — old CI/Togo crypto deposits credited XOF; do not carry this into the global USDT target without an approved conversion rule.
+- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — CI/Togo Mobile Money still collects XOF, but the member balance is now targeted for USDT credit at the configured rate.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [DIAMANT admin panel PIN](diamant-admin-panel-pin.md) — hash panel PINs, keep them out of user responses, and preserve admin-managed PIN changes across restarts.
