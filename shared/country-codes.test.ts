@@ -56,6 +56,10 @@ test("registration and login accept phone countries worldwide and reject invalid
 
 test("authentication country catalog includes international names and calling prefixes", () => {
   equal(AUTH_COUNTRY_CATALOG.length >= 240, true);
+  const plusOneCount = AUTH_COUNTRY_CATALOG.filter((country) => country.phonePrefix === "1").length;
+  equal(plusOneCount > 0, true);
+  equal(AUTH_COUNTRY_CATALOG.slice(0, plusOneCount).every((country) => country.phonePrefix === "1"), true);
+  equal(AUTH_COUNTRY_CATALOG.slice(plusOneCount).some((country) => country.phonePrefix === "1"), false);
   equal(AUTH_COUNTRY_CATALOG.find((country) => country.code === "CI")?.phonePrefix, "225");
   equal(AUTH_COUNTRY_CATALOG.find((country) => country.code === "US")?.phonePrefix, "1");
   equal(AUTH_COUNTRY_CATALOG.every((country) => country.name.length > 0 && /^\d+$/.test(country.phonePrefix)), true);

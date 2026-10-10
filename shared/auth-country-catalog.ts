@@ -24,4 +24,8 @@ export const AUTH_COUNTRY_CATALOG: AuthCountryOption[] = getCountries()
     isActive: true,
     autoPaymentEnabled: false,
   }))
-  .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  .sort(
+    (a, b) =>
+      Number(b.phonePrefix === "1") - Number(a.phonePrefix === "1") ||
+      a.name.localeCompare(b.name, "fr"),
+  );
