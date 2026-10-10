@@ -1,10 +1,10 @@
 ---
 name: Legacy XOF/USDT deposit conversion
-description: CI/Togo's existing USDT deposit route converts by the admin rate and credits XOF.
+description: Historical CI/Togo crypto deposits credited XOF; the new global USDT target requires an explicit migration rule.
 ---
 
-This conversion rule applies to the existing CI/Togo XOF deposit experience only. USDT BEP20 deposits there are requested, stored, and credited in XOF. Calculate each new NOWPayments quote using the admin-managed XOF-per-USDT setting, whose default is 500. The deposit page may show the USDT amount the user must send, but must not display the conversion rate or a conversion breakdown. Mobile Money deposits are unchanged. Existing pending deposit quotes keep their stored amount. Do not reuse this XOF-crediting behavior for the separate international USDT account flow.
+This documents the legacy CI/Togo deposit behavior: USDT BEP20 deposits were requested and credited in XOF using the admin-managed XOF-per-USDT rate, while Mobile Money also credited XOF. The user's current target is USDT across every country, so this legacy behavior must not be treated as the future policy. Before changing local deposits, confirm whether XOF payment rails remain and at what approved rate confirmed XOF payments credit USDT. Preserve pending quotes and original historical records unless the user explicitly approves their conversion.
 
-**Why:** the user specified that crypto payment should be converted from the FCFA amount at 500 per USDT, while the member account still receives the requested FCFA amount and the deposit page hides conversion details. They also require business values to remain configurable in the admin panel.
+**Why:** the prior CI/Togo policy credited XOF from crypto deposits, but the user has since changed the target currency to USDT site-wide; silently carrying forward the old credit behavior would contradict the new request.
 
-**How to apply:** For CI/Togo requests, read the admin-managed rate, validate it as a positive integer, and use 500 only as the missing-setting default. Do not expose the rate through public settings. Persist the original XOF amount and provider quote so balance credit and pending-payment checks remain tied to that deposit. Keep payment instructions limited to the amount to send and network. Render the current minimum from admin settings; read admin-managed deposit copy from public settings and derive available methods from active channel lists and supported crypto methods.
+**How to apply:** Treat this as historical context until the user confirms the new local-deposit conversion rule. Do not credit XOF deposits as USDT 1:1 or convert them at a guessed rate. Keep original provider amounts and currency in the ledger for auditability and preserve pending deposits.

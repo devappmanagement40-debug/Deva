@@ -1,10 +1,10 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Market-specific currencies and catalogs](rdc-only-market.md) — preserve CI/Togo XOF flows; other countries use a separate USDT plan catalog and deposit path.
+- [Global USDT currency migration](rdc-only-market.md) — USDT is the target for every country; existing XOF balances, plans, and deposit handling need an explicit conversion rule before migration.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
-- [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — current minimum is 1,200 XOF; withhold the configured fee from gross, debit once, and pay net.
-- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — CI/Togo's existing USDT deposit route converts by the admin rate and credits XOF.
+- [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — legacy XOF minimum and fee rules apply until the site-wide USDT migration is defined.
+- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — old CI/Togo crypto deposits credited XOF; do not carry this into the global USDT target without an approved conversion rule.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [DIAMANT admin panel PIN](diamant-admin-panel-pin.md) — hash panel PINs, keep them out of user responses, and preserve admin-managed PIN changes across restarts.
