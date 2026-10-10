@@ -536,8 +536,8 @@ export async function seed() {
     { key: "vip6Reward", value: "5000" },
     { key: "vip7Reward", value: "7500" },
     // Spin wheel settings (insert only — admin can override)
-    { key: "spinWheelSelfPurchaseSpins", value: "3" },
-    { key: "spinWheelReferralPurchaseSpins", value: "2" },
+    { key: "spinWheelSelfPurchaseSpins", value: "1" },
+    { key: "spinWheelReferralPurchaseSpins", value: "1" },
     { key: "spinWheelInviteText", value: DEFAULT_SPIN_WHEEL_INVITE_TEXT },
     { key: "spinWheelInviteHighlight", value: DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT },
     { key: "spinWheelRulesText", value: DEFAULT_SPIN_WHEEL_RULES_TEXT },
@@ -595,8 +595,18 @@ export async function seed() {
       .onConflictDoNothing();
   }
 
-  // Update only known default copy. Custom admin content remains untouched.
-  const knownDefaultCopyUpdates = [
+  // Upgrade only untouched default settings and copy; preserve admin overrides.
+  const knownDefaultSettingUpdates = [
+    {
+      key: "spinWheelSelfPurchaseSpins",
+      oldValue: "3",
+      newValue: "1",
+    },
+    {
+      key: "spinWheelReferralPurchaseSpins",
+      oldValue: "2",
+      newValue: "1",
+    },
     {
       key: "vip0Description",
       oldValue: "Membre inscrit n'ayant pas encore investi.",
@@ -809,13 +819,13 @@ export async function seed() {
     },
   ];
 
-  for (const update of knownDefaultCopyUpdates) {
+  for (const update of knownDefaultSettingUpdates) {
     const existing = existingSettings.find((setting) => setting.key === update.key);
     if (existing?.value === update.oldValue) {
       await db.update(platformSettings)
         .set({ value: update.newValue })
         .where(eq(platformSettings.key, update.key));
-      console.log(`Default copy updated: ${update.key}`);
+      console.log(`Default setting updated: ${update.key}`);
     }
   }
 

@@ -13,12 +13,12 @@ export const SPIN_WHEEL_SELF_REWARD_TOKEN = "{{selfPurchaseReward}}";
 export const SPIN_WHEEL_REFERRAL_REWARD_TOKEN = "{{referralPurchaseReward}}";
 
 export const DEFAULT_SPIN_WHEEL_INVITE_TEXT =
-  `Partagez votre lien personnel avec vos amis. À chaque achat payant effectué par un ami inscrit grâce à ce lien, l’acheteur reçoit ${SPIN_WHEEL_SELF_REWARD_TOKEN} et vous recevez ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} en tant que parrain direct. Les tours sont crédités automatiquement après l’achat. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.`;
+  `Partagez votre lien personnel avec vos amis. Pour chaque produit payant acheté par un filleul direct inscrit grâce à ce lien, l’acheteur reçoit ${SPIN_WHEEL_SELF_REWARD_TOKEN} et vous recevez ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} en tant que parrain direct. Les tours sont crédités automatiquement pour chaque produit acheté. Chaque tour permet un lancer unique de la roue. Utilisez « Copier mon lien » pour partager facilement votre invitation.`;
 
 export const DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT = SPIN_WHEEL_REFERRAL_REWARD_TOKEN;
 
 export const DEFAULT_SPIN_WHEEL_RULES_TEXT =
-  `Chaque achat payant que vous effectuez vous accorde automatiquement ${SPIN_WHEEL_SELF_REWARD_TOKEN}. À chaque achat payant effectué par un filleul direct inscrit grâce à votre lien, vous recevez ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN}. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en XOF sur votre solde.`;
+  `Chaque produit payant que vous achetez vous accorde automatiquement ${SPIN_WHEEL_SELF_REWARD_TOKEN}. Pour chaque produit payant acheté par un filleul direct inscrit grâce à votre lien, ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue.`;
 
 function spinRewardPhrase(value: number | string, fallback: number): string {
   const count = Number(value);
@@ -35,9 +35,27 @@ export function interpolateSpinWheelRewards(
 ): string {
   return text
     .split(SPIN_WHEEL_SELF_REWARD_TOKEN)
-    .join(spinRewardPhrase(selfPurchaseSpins, 3))
+    .join(spinRewardPhrase(selfPurchaseSpins, 1))
     .split(SPIN_WHEEL_REFERRAL_REWARD_TOKEN)
-    .join(spinRewardPhrase(referralPurchaseSpins, 2));
+    .join(spinRewardPhrase(referralPurchaseSpins, 1));
+}
+
+export function calculateSpinWheelPurchaseReward(
+  spinsPerProduct: number,
+  quantity: number,
+): number {
+  if (!Number.isSafeInteger(spinsPerProduct) || spinsPerProduct < 0) {
+    throw new Error("Le nombre de tours par produit doit être un entier positif ou nul.");
+  }
+  if (!Number.isSafeInteger(quantity) || quantity < 1) {
+    throw new Error("La quantité de produits achetés doit être un entier positif.");
+  }
+
+  const reward = spinsPerProduct * quantity;
+  if (!Number.isSafeInteger(reward)) {
+    throw new Error("Le total des tours de la roue dépasse la valeur autorisée.");
+  }
+  return reward;
 }
 
 export const DEFAULT_SPIN_WHEEL_SEGMENTS: SpinWheelSegment[] = [

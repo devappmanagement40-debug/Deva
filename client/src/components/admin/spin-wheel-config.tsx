@@ -184,8 +184,8 @@ function PopupTextsEditor() {
   const [inviteHighlight, setInviteHighlight] = useState("");
   const [rulesText,       setRulesText]       = useState("");
   const [rulesHighlight,  setRulesHighlight]  = useState("");
-  const [selfPurchaseSpins, setSelfPurchaseSpins] = useState("3");
-  const [referralPurchaseSpins, setReferralPurchaseSpins] = useState("2");
+  const [selfPurchaseSpins, setSelfPurchaseSpins] = useState("1");
+  const [referralPurchaseSpins, setReferralPurchaseSpins] = useState("1");
   const [textDirty, setTextDirty] = useState(false);
 
   // Charge les valeurs depuis le serveur uniquement si l'admin n'a pas
@@ -196,8 +196,8 @@ function PopupTextsEditor() {
     setInviteHighlight(settings.spinWheelInviteHighlight ?? DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT);
     setRulesText(settings.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT);
     setRulesHighlight(settings.spinWheelRulesHighlight ?? "");
-    setSelfPurchaseSpins(settings.spinWheelSelfPurchaseSpins ?? "3");
-    setReferralPurchaseSpins(settings.spinWheelReferralPurchaseSpins ?? "2");
+    setSelfPurchaseSpins(settings.spinWheelSelfPurchaseSpins ?? "1");
+    setReferralPurchaseSpins(settings.spinWheelReferralPurchaseSpins ?? "1");
   // "textDirty" est intentionnellement absent : on veut relire le serveur
   // seulement quand settings change, pas quand l'admin tape.
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -262,7 +262,7 @@ function PopupTextsEditor() {
           <p className="text-sm font-semibold">Tours accordés à chaque achat payant</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Achat effectué par l'utilisateur</label>
+              <label className="text-xs text-muted-foreground">Par produit payant acheté par l'utilisateur</label>
               <Input
                 type="number"
                 min={0}
@@ -274,7 +274,7 @@ function PopupTextsEditor() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Achat effectué par son filleul direct</label>
+              <label className="text-xs text-muted-foreground">Par produit payant acheté par son filleul direct</label>
               <Input
                 type="number"
                 min={0}
@@ -287,7 +287,7 @@ function PopupTextsEditor() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Ces valeurs s'appliquent aux prochains achats. Les balises {"{{selfPurchaseReward}}"} et {"{{referralPurchaseReward}}"} se mettent à jour automatiquement dans les aperçus et sur la roue. Conservez-les dans vos textes personnalisés pour qu'ils restent synchronisés.
+            Le nombre saisi est crédité pour chaque produit payé; le parrain direct reçoit ses tours à chaque achat de son filleul. Les balises {"{{selfPurchaseReward}}"} et {"{{referralPurchaseReward}}"} se mettent à jour dans les aperçus.
           </p>
         </div>
 

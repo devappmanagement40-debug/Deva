@@ -20,6 +20,7 @@ import type { AdminTaskCreateInput, AdminTaskUpdateInput } from "@shared/task-va
 import bcrypt from "bcryptjs";
 import { generateReferralCode } from "./referral-codes";
 import {
+  calculateSpinWheelPurchaseReward,
   parseSpinWheelSegments,
   SPIN_WHEEL_SETTING_KEY,
   type SpinWheelSegment,
@@ -693,8 +694,8 @@ export class DatabaseStorage implements IStorage {
       this.getSetting("spinWheelSelfPurchaseSpins"),
       this.getSetting("spinWheelReferralPurchaseSpins"),
     ]);
-    const buyerSpinReward = parseWheelPurchaseSpins(buyerSpinSetting, 3);
-    const referralSpinReward = parseWheelPurchaseSpins(referralSpinSetting, 2);
+    const buyerSpinReward = parseWheelPurchaseSpins(buyerSpinSetting, 1);
+    const referralSpinReward = parseWheelPurchaseSpins(referralSpinSetting, 1);
     const getRate = (value: string | undefined, fallback: string) => {
       const parsed = value?.trim() ? Number(value) : Number.NaN;
       return (Number.isFinite(parsed) && parsed >= 0 && parsed <= 100
@@ -829,7 +830,7 @@ export class DatabaseStorage implements IStorage {
         buyerUpdate.totalEarnings = ((earningsBalanceCents - earningsDebitCents) / 100).toFixed(2);
       }
       if (buyerSpinReward > 0) {
-        buyerUpdate.spinTokens = sql`COALESCE(${users.spinTokens}, 0) + ${buyerSpinReward * quantity}`;
+        buyerUpdate.spinTokens = sql`COALESCE(${users.spinTokens}, 0) + ${calculateSpinWheelPurchaseReward(buyerSpinReward, quantity)}`;
       }
       await tx.update(users).set(buyerUpdate as any).where(eq(users.id, userId));
 
@@ -941,7 +942,7 @@ export class DatabaseStorage implements IStorage {
       if (levelOneSponsor && referralSpinReward > 0) {
         await tx.update(users)
           .set({
-            spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${referralSpinReward * quantity}`,
+            spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${calculateSpinWheelPurchaseReward(referralSpinReward, quantity)}`,
           })
           .where(eq(users.id, levelOneSponsor.id));
       }
@@ -1007,8 +1008,8 @@ export class DatabaseStorage implements IStorage {
         this.getSetting("spinWheelSelfPurchaseSpins"),
         this.getSetting("spinWheelReferralPurchaseSpins"),
       ]);
-      buyerSpinReward = parseWheelPurchaseSpins(buyerRewardSetting, 3);
-      referralSpinReward = parseWheelPurchaseSpins(referralRewardSetting, 2);
+      buyerSpinReward = parseWheelPurchaseSpins(buyerRewardSetting, 1);
+      referralSpinReward = parseWheelPurchaseSpins(referralRewardSetting, 1);
     }
 
     if (!product.isFree && !assignedByAdmin) {
@@ -1048,7 +1049,7 @@ export class DatabaseStorage implements IStorage {
       // Add spin rewards atomically so concurrent paid purchases cannot overwrite each other.
       if (buyerSpinReward > 0) {
         await db.update(users)
-          .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${buyerSpinReward}` })
+          .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${calculateSpinWheelPurchaseReward(buyerSpinReward, 1)}` })
           .where(eq(users.id, userId));
       }
 
@@ -1057,7 +1058,7 @@ export class DatabaseStorage implements IStorage {
         const sponsor = await this.getUserByReferralCode(user.referredBy);
         if (sponsor) {
           await db.update(users)
-            .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${referralSpinReward}` })
+            .set({ spinTokens: sql`COALESCE(${users.spinTokens}, 0) + ${calculateSpinWheelPurchaseReward(referralSpinReward, 1)}` })
             .where(eq(users.id, sponsor.id));
         }
       }

@@ -345,8 +345,8 @@ export default function SpinWheelPage() {
   const { data: platformSettings } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
-  const selfPurchaseSpins = platformSettings?.spinWheelSelfPurchaseSpins ?? "3";
-  const referralPurchaseSpins = platformSettings?.spinWheelReferralPurchaseSpins ?? "2";
+  const selfPurchaseSpins = platformSettings?.spinWheelSelfPurchaseSpins ?? "1";
+  const referralPurchaseSpins = platformSettings?.spinWheelReferralPurchaseSpins ?? "1";
   const referralCommissionRates = [
     {
       level: 1,
@@ -763,11 +763,7 @@ export default function SpinWheelPage() {
             }}
           >
             <p className="mb-4 font-medium">Notre programme de parrainage est désormais disponible !</p>
-            <p className="mb-5">
-              Pour chaque utilisateur qui s'inscrit via votre lien, vous recevrez un tour de roulette gratuit
-              avec 100 % de chance de gagner. Vous pourrez retirer jusqu'à 5 000 francs{" "}
-              <span style={{ color: "#3389e8", fontWeight: 700 }}>CFA</span> immédiatement.
-            </p>
+            <p className="mb-5">{t.wheelReferralSpinIntro}</p>
             <p className="mb-2">De plus, vous recevrez une commission sur les investissements de votre équipe :</p>
             <div className="mb-3 space-y-1" aria-label={t.teamCommissionRate}>
               {referralCommissionRates.map(({ level, value }) => (

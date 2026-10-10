@@ -449,6 +449,7 @@ export type Translations = {
   // wheel rules modal
   wheelRulesTitle: string;
   wheelRulesHowToGet: string;
+  wheelReferralSpinIntro: string;
   wheelRulesBuyGet: string;
   wheelRulesReferralGet: string;
   wheelRulesHowToPlay: string;
@@ -1096,8 +1097,9 @@ const fr: Translations = {
     wheelLinkCopyError:         "Impossible de copier le lien. Veuillez réessayer.",
     wheelRulesTitle:    "Règles du Tirage",
     wheelRulesHowToGet: "Comment obtenir des tours",
-    wheelRulesBuyGet:   "Achetez un produit payant → 3 tours crédités immédiatement",
-    wheelRulesReferralGet: "Un filleul achète un produit payant → 2 tours crédités sur votre compte",
+    wheelReferralSpinIntro: "Chaque produit payant que vous achetez vous donne 1 tour. Chaque produit payant acheté par un filleul direct vous donne aussi 1 tour.",
+    wheelRulesBuyGet:   "Chaque produit payant acheté → 1 tour crédité immédiatement",
+    wheelRulesReferralGet: "Chaque produit payant acheté par un filleul direct → 1 tour crédité sur votre compte",
     wheelRulesHowToPlay:"Comment jouer",
     wheelRulesHowToPlayDesc: "Appuyez sur la roue pour lancer le tirage",
     wheelRulesSpinOnce: "1 tour consommé par tirage",
