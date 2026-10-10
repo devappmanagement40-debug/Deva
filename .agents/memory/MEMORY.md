@@ -1,10 +1,10 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Supported country markets](rdc-only-market.md) — only Côte d’Ivoire and Togo are selectable; preserve legacy country-linked records.
+- [Market-specific currencies and catalogs](rdc-only-market.md) — preserve CI/Togo XOF flows; other countries use a separate USDT plan catalog and deposit path.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — current minimum is 1,200 XOF; withhold the configured fee from gross, debit once, and pay net.
-- [DIAMANT USDT deposit conversion](diamant-usdt-deposit-conversion.md) — admin-managed rate defaults to XOF ÷ 500; credits stay XOF and the rate stays hidden from members.
+- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — CI/Togo's existing USDT deposit route converts by the admin rate and credits XOF.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [DIAMANT admin panel PIN](diamant-admin-panel-pin.md) — hash panel PINs, keep them out of user responses, and preserve admin-managed PIN changes across restarts.
