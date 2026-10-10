@@ -19,7 +19,7 @@
 - [DIAMANT withdrawal proofs](diamant-withdrawal-proofs.md) — publish only after approval, mask phone numbers, and credit any sharing bonus to earnings exactly once.
 - [TGOOD earnings ledger](tgood-earnings-ledger.md) — all rewards and gains credit totalEarnings; balance remains the deposit balance.
 - [TGOOD signup bonus removal](tgood-signup-bonus.md) — new accounts receive no signup bonus; keep old balances and transaction history unchanged.
-- [TGOOD product cycle credits](tgood-product-earnings-collection.md) — gains accrue through the full cycle and credit once; settle legacy unpaid gains without repeating prior credits.
+- [DIAMANT product earnings schedule](tgood-product-earnings-collection.md) — Explore credits every full 24 hours; Parcours and Offres stay cycle-end, with no manual collection.
 - [DIAMANT purchase snapshots](diamant-purchase-snapshots.md) — existing purchases keep their purchase-time terms; catalog edits or removal must not rewrite or revoke them.
 - [DIAMANT product sections](diamant-product-sections.md) — active Explore gates Parcours/Offres; VIP and product eligibility never depend on invitation counts.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.

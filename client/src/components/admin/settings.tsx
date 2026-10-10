@@ -345,7 +345,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
         popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
        popupLine6:             rebrandText(settings.popupLine6 || "🕘 Retraits et support disponibles de 09:00 à 17:00"),
-       popupLine7:             rebrandText(settings.popupLine7 || "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit"),
+       popupLine7:             rebrandText(settings.popupLine7 || "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle"),
       westpayMerchantSlug:    settings.westpayMerchantSlug    ?? "",
       westpayWebhookSecret:   settings.westpayWebhookSecret   ?? "",
       westpayApiKey_CI:       settings.westpayApiKey_CI       ?? "",
@@ -997,7 +997,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
               { name: "popupLine6" as const, label: "Ligne 6 — Horaires", placeholder: "🕘 Withdrawals and support: 09:00–17:00" },
-              { name: "popupLine7" as const, label: "Ligne 7 — Gains", placeholder: "🔥 Product earnings are automatically credited at the end of the cycle" },
+              { name: "popupLine7" as const, label: "Ligne 7 — Gains", placeholder: "🔥 Explore earnings every 24 hours; Parcours and Offres at cycle end" },
             ]).map(({ name, label, placeholder }) => (
               <FormField key={name} control={form.control} name={name} render={({ field }) => (
                 <FormItem>

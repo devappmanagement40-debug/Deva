@@ -32,6 +32,7 @@ import {
   normalizeProductType,
   ownsActiveStabilityProduct,
 } from "@shared/product-categories";
+import { calculateProductEarningsSettlement } from "@shared/product-earnings";
 import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
 import { getCustomerMarket, getMarketCurrency, isSupportedMarketCountryCode } from "@shared/country-codes";
 import { formatUsdtWithdrawalAmount, parseUsdtWithdrawalAmount } from "@shared/withdrawal-fees";
@@ -1456,16 +1457,11 @@ export class DatabaseStorage implements IStorage {
             throw new Error(`Date de cycle invalide pour l'achat ${current.id}`);
           }
 
-          const cyclesSinceLastEarning = Math.floor(
-            (now.getTime() - lastEarning.getTime()) / dayInMilliseconds,
+          const cyclesSinceLastEarning = Math.max(
+            0,
+            Math.floor((now.getTime() - lastEarning.getTime()) / dayInMilliseconds),
           );
-          const daysSincePurchase = Math.floor(
-            (now.getTime() - purchaseDate.getTime()) / dayInMilliseconds,
-          );
-          if (cyclesSinceLastEarning < 1 || daysSincePurchase < 1) return;
-
           const cyclesToAccrue = Math.min(cyclesSinceLastEarning, current.daysRemaining);
-          if (cyclesToAccrue < 1) return;
 
           const earningsPerCycle = Number(originalProduct.dailyEarnings);
           const previousTotal = Number(current.totalEarned || "0");
@@ -1479,19 +1475,25 @@ export class DatabaseStorage implements IStorage {
             throw new Error(`Montant de gain invalide pour l'achat ${current.id}`);
           }
 
-          const accrued = Number((earningsPerCycle * cyclesToAccrue).toFixed(2));
-          const newTotal = Number((previousTotal + accrued).toFixed(2));
-          const newPending = originalProduct.collectAtEnd
-            ? previousPending
-            : Number((previousPending + accrued).toFixed(2));
+          const settlement = calculateProductEarningsSettlement({
+            productType: originalProduct.productType ?? currentProduct.productType,
+            dailyEarnings: earningsPerCycle,
+            cyclesToAccrue,
+            previousTotal,
+            previousPending,
+            cycleCompleted: cyclesToAccrue >= current.daysRemaining,
+            collectAtEnd: Boolean(originalProduct.collectAtEnd),
+          });
+          if (cyclesToAccrue < 1 && settlement.payout <= 0) return;
+
+          const newTotal = settlement.totalEarned;
+          const newPending = settlement.pendingEarnings;
           const newDaysRemaining = Math.max(0, current.daysRemaining - cyclesToAccrue);
           const completedAt = newDaysRemaining === 0 ? new Date() : null;
-          const newLastEarningDate = new Date(
-            lastEarning.getTime() + cyclesToAccrue * dayInMilliseconds,
-          );
-          const payout = completedAt
-            ? originalProduct.collectAtEnd ? newTotal : newPending
-            : 0;
+          const newLastEarningDate = cyclesToAccrue > 0
+            ? new Date(lastEarning.getTime() + cyclesToAccrue * dayInMilliseconds)
+            : lastEarning;
+          const payout = settlement.payout;
 
           if (payout > 0) {
             const [user] = await tx.select()
@@ -1519,7 +1521,9 @@ export class DatabaseStorage implements IStorage {
               type: "earning",
               amount: payout.toFixed(2),
               currency: earningCurrency,
-              description: `Crédit automatique — fin du cycle ${originalProduct.name}`,
+              description: settlement.isExplore
+                ? `Crédit automatique — gains journaliers Explore ${originalProduct.name}`
+                : `Crédit automatique — fin du cycle ${originalProduct.name}`,
             });
           }
 

@@ -31,6 +31,15 @@ function formatTransactionAmount(value: number, currency: string | null | undefi
 function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
   const patterns = [
     {
+      pattern: /^Crédit automatique — gains journaliers Explore (.+)$/,
+      labels: {
+        fr: "Crédit automatique — gains journaliers Explore : {name}",
+        en: "Automatic credit — Explore daily earnings: {name}",
+        ar: "إضافة تلقائية — أرباح Explore اليومية: {name}",
+        zh: "自动入账——Explore 每日收益：{name}",
+      },
+    },
+    {
       pattern: /^Crédit automatique — fin du cycle (.+)$/,
       labels: {
         fr: "Crédit automatique — fin du cycle : {name}",

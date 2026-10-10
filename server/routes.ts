@@ -974,7 +974,7 @@ export async function registerRoutes(
   // Deprecated compatibility route: product gains can no longer be collected manually.
   app.post("/api/user/collect-final/:userProductId", requireAuth, (_req, res) => {
     return res.status(410).json({
-      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement à la fin du cycle.",
+      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement selon la catégorie du produit.",
     });
   });
 
@@ -1028,25 +1028,39 @@ export async function registerRoutes(
   app.get("/api/user/products", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
-      // Accrue full 24-hour periods and automatically pay out when the cycle ends.
+      // Accrue complete 24-hour periods; Explore pays daily and other categories at cycle end.
       await storage.processEarningsForUser(userId);
       const userProductsList = await storage.getAllUserProducts(userId);
       
-      const formattedProducts = userProductsList.map(up => ({
-        id: up.userProduct.id,
-        productId: up.userProduct.productId,
-        purchasedAt: up.userProduct.purchaseDate,
-        lastEarningDate: up.userProduct.lastEarningDate,
-        daysRemaining: up.userProduct.daysRemaining,
-        totalEarned: up.userProduct.totalEarned,
-        pendingEarnings: up.userProduct.pendingEarnings,
-        assignedByAdmin: up.userProduct.assignedByAdmin,
-        nextCollectionAt: up.userProduct.lastEarningDate
-          ? new Date(new Date(up.userProduct.lastEarningDate).getTime() + 24 * 60 * 60 * 1000)
-          : null,
-        status: up.userProduct.isActive && up.userProduct.daysRemaining > 0 ? 'active' : 'completed',
-        product: up.product
-      }));
+      const formattedProducts = userProductsList.map(up => {
+        const isActive = up.userProduct.isActive && up.userProduct.daysRemaining > 0;
+        const isExplore = normalizeProductType(up.product.productType) === "stability";
+        const lastEarningDate = up.userProduct.lastEarningDate
+          ? new Date(up.userProduct.lastEarningDate)
+          : null;
+        const purchasedAt = new Date(up.userProduct.purchaseDate);
+        const nextCollectionAt = !isActive
+          ? null
+          : isExplore && lastEarningDate
+            ? new Date(lastEarningDate.getTime() + 24 * 60 * 60 * 1000)
+            : !isExplore
+              ? new Date(purchasedAt.getTime() + Number(up.product.cycleDays) * 24 * 60 * 60 * 1000)
+              : null;
+
+        return {
+          id: up.userProduct.id,
+          productId: up.userProduct.productId,
+          purchasedAt: up.userProduct.purchaseDate,
+          lastEarningDate: up.userProduct.lastEarningDate,
+          daysRemaining: up.userProduct.daysRemaining,
+          totalEarned: up.userProduct.totalEarned,
+          pendingEarnings: up.userProduct.pendingEarnings,
+          assignedByAdmin: up.userProduct.assignedByAdmin,
+          nextCollectionAt,
+          status: isActive ? "active" : "completed",
+          product: up.product,
+        };
+      });
       
       res.json(formattedProducts);
     } catch (error: any) {
@@ -1057,7 +1071,7 @@ export async function registerRoutes(
   // Keep the old paths explicit for outdated clients; neither route can pay out manually.
   app.post("/api/user/collect-earnings", requireAuth, (_req, res) => {
     return res.status(410).json({
-      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement à la fin du cycle.",
+      message: "La collecte manuelle n'est plus disponible. Les gains sont crédités automatiquement selon la catégorie du produit.",
     });
   });
 

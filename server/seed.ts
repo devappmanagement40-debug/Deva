@@ -462,7 +462,7 @@ export async function seed() {
     { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
     { key: "popupLine6", value: "🕘 Retraits et support disponibles de 09:00 à 17:00" },
-    { key: "popupLine7", value: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit" },
+    { key: "popupLine7", value: "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle" },
     { key: "popupLine8", value: "📖 Consultez les règles DIAMANT avant toute opération" },
     { key: "floatingSupportTarget", value: "support1" },
     { key: "supportEnabled", value: "true" },
@@ -801,32 +801,57 @@ export async function seed() {
     {
       key: "popupLine7",
       oldValue: "🔥 Les gains sont crédités chaque jour",
-      newValue: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit",
+      newValue: "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle",
     },
     {
       key: "popupLine7",
       oldValue: "🔥 Le premier gain est disponible après l'achat. Collectez vos gains dans Revenu toutes les 24 heures",
-      newValue: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit",
+      newValue: "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle",
+    },
+    {
+      key: "popupLine7",
+      oldValue: "🔥 Les gains sont crédités automatiquement à la fin du cycle du produit",
+      newValue: "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle",
+    },
+    {
+      key: "content_home_popupLine6",
+      oldValue: "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
+      newValue: "Explore : gains crédités après chaque période complète de 24 h; Parcours et Offres : gains crédités à la fin du cycle.",
     },
     {
       key: "content_orders_infoLine1",
       oldValue: "Les revenus du produit sont crédités automatiquement selon le cycle défini sur sa fiche.",
-      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin du cycle indiqué. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Explore : les gains sont crédités après chaque période complète de 24 h. Parcours et Offres : les gains sont crédités à la fin du cycle.",
     },
     {
       key: "content_orders_infoLine1",
       oldValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
-      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin du cycle indiqué. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Explore : les gains sont crédités après chaque période complète de 24 h. Parcours et Offres : les gains sont crédités à la fin du cycle.",
+    },
+    {
+      key: "content_orders_infoLine1",
+      oldValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin du cycle indiqué. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Explore : les gains sont crédités après chaque période complète de 24 h. Parcours et Offres : les gains sont crédités à la fin du cycle.",
     },
     {
       key: "content_rules_section3Body",
       oldValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les revenus suivent le cycle défini sur la fiche du produit\n- Consultez les conditions du produit avant de confirmer",
-      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les gains sont crédités automatiquement sur le solde des gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Explore : gains après chaque période complète de 24 h; Parcours et Offres : gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
     },
     {
       key: "content_rules_section3Body",
       oldValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Le premier gain est disponible immédiatement après l'achat\n- Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures",
-      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les gains sont crédités automatiquement sur le solde des gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Explore : gains après chaque période complète de 24 h; Parcours et Offres : gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+    },
+    {
+      key: "content_rules_section3Body",
+      oldValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Les gains sont crédités automatiquement sur le solde des gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+      newValue: "- Chaque produit affiche son prix, sa durée et ses revenus avant l'achat\n- Explore : gains après chaque période complète de 24 h; Parcours et Offres : gains à la fin du cycle\n- Consultez les conditions du produit avant de confirmer",
+    },
+    {
+      key: "content_rulespage_exploreAnswer",
+      oldValue: "Explore est la gamme d’entrée obligatoire. Chaque produit Explore a une durée de 150 jours. Vous devez posséder au moins un produit Explore actif avant de pouvoir acheter un produit Parcours ou Offres. Consultez chaque fiche pour connaître son prix et les revenus annoncés.",
+      newValue: "Explore est la gamme d’entrée obligatoire. Chaque produit Explore a une durée de 150 jours. Vous devez posséder au moins un produit Explore actif avant de pouvoir acheter un produit Parcours ou Offres. Les gains Explore sont crédités sur le solde des gains après chaque période complète de 24 heures suivant l’achat, sans versement supplémentaire à la fin du cycle. Consultez chaque fiche pour connaître son prix et les revenus annoncés.",
     },
     {
       key: "content_rulespage_s1b2",
@@ -859,7 +884,7 @@ export async function seed() {
     /(?:\b(?:bonus|prime)\b[\s\S]{0,60}\b(?:inscription|registration|sign[\s-]?up|welcome|bienvenue)\b|\b(?:inscription|registration|sign[\s-]?up|welcome|bienvenue)\b[\s\S]{0,60}\b(?:bonus|prime)\b)/i;
   const retiredRewardCopyReplacements: Record<string, string> = {
     popupLine4: "",
-    content_home_popupLine6: "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
+    content_home_popupLine6: "Explore : gains crédités après chaque période complète de 24 h; Parcours et Offres : gains crédités à la fin du cycle.",
     content_rules_section5Title: "5. Sécurité",
     content_rules_section5Body: "Protégez votre compte et ne partagez jamais vos identifiants ou codes de validation.",
   };
