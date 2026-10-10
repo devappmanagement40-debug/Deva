@@ -20,7 +20,7 @@ test("crédite les commissions de parrainage sur chacun des achats payants", asy
 
   service.getUser = async (id) => accounts.get(id);
   service.getSettings = async () => ({
-    level1Commission: "30",
+    level1Commission: "12",
     level2Commission: "3",
     level3Commission: "2",
   });
@@ -48,15 +48,15 @@ test("crédite les commissions de parrainage sur chacun des achats payants", asy
   assert.deepEqual(
     commissions.map(({ level, amount, productId }) => ({ level, amount, productId })),
     [
-      { level: 1, amount: "300.00", productId: 101 },
+      { level: 1, amount: "120.00", productId: 101 },
       { level: 2, amount: "30.00", productId: 101 },
       { level: 3, amount: "20.00", productId: 101 },
-      { level: 1, amount: "600.00", productId: 102 },
+      { level: 1, amount: "240.00", productId: 102 },
       { level: 2, amount: "60.00", productId: 102 },
       { level: 3, amount: "40.00", productId: 102 },
     ],
   );
-  assert.equal(accounts.get(20)?.totalEarnings, "900.00");
+  assert.equal(accounts.get(20)?.totalEarnings, "360.00");
   assert.equal(accounts.get(30)?.totalEarnings, "90.00");
   assert.equal(accounts.get(40)?.totalEarnings, "60.00");
 });

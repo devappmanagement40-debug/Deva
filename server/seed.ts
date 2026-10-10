@@ -585,7 +585,7 @@ export async function seed() {
             .where(eq(platformSettings.key, key));
         }
       });
-      console.log("Legacy referral commission defaults upgraded to 30/3/2");
+      console.log("Legacy referral commission defaults upgraded to 12/3/2");
     }
 
     await db.insert(platformSettings)
