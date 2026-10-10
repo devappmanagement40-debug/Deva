@@ -11,6 +11,8 @@ import {
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 import {
+  DEFAULT_DAILY_BONUS_MAX_USDT,
+  DEFAULT_DAILY_BONUS_MIN_USDT,
   DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT,
   DEFAULT_MIN_DEPOSIT_USDT,
   DEFAULT_MIN_WITHDRAWAL_USDT,
@@ -470,8 +472,8 @@ export async function seed() {
     { key: "depositPresetAmountsUsdt", value: DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT },
     { key: "minWithdrawalUsdt", value: DEFAULT_MIN_WITHDRAWAL_USDT },
     { key: "maxWithdrawalUsdt", value: DEFAULT_MAX_WITHDRAWAL_USDT },
-    { key: "dailyBonusMinUsdt", value: "0" },
-    { key: "dailyBonusMaxUsdt", value: "0" },
+    { key: "dailyBonusMinUsdt", value: DEFAULT_DAILY_BONUS_MIN_USDT },
+    { key: "dailyBonusMaxUsdt", value: DEFAULT_DAILY_BONUS_MAX_USDT },
     { key: "withdrawalEnabled", value: "true" },
     { key: "withdrawalMode", value: "manual" },
     { key: "withdrawalFees", value: String(DEFAULT_WITHDRAWAL_FEE_PERCENT) },
