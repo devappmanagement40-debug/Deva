@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, Copy, Info, ShieldCheck, WalletCards } from "lucide-react";
+import { AlertTriangle, Check, Copy, Info } from "lucide-react";
 import "./international-crypto.css";
 
 export type InternationalCryptoPaymentStatus =
@@ -11,6 +11,8 @@ export type InternationalCryptoPaymentStatus =
 export type InternationalCryptoPaymentDetailProps = {
   token: string;
   network: string;
+  iconSrc?: string;
+  networkIconSrc?: string;
   /** Exact amount string from the payment provider; displayed without numeric rounding. */
   exactPayAmount: string;
   /** Currency of the provider's payable amount (may differ from the credited asset). */
@@ -40,6 +42,8 @@ const statusLabels: Record<InternationalCryptoPaymentStatus, string> = {
 export function InternationalCryptoPaymentDetail({
   token,
   network,
+  iconSrc,
+  networkIconSrc,
   exactPayAmount,
   exactPayCurrency,
   creditedUsdtAmount,
@@ -59,38 +63,8 @@ export function InternationalCryptoPaymentDetail({
 
   return (
     <section className="icx icx-detail" aria-label="Détails du dépôt crypto">
-      <header className="icx-detail__top">
-        <div className="icx-detail__amount-row">
-          <div>
-            <p className="icx-eyebrow">Montant exact à envoyer</p>
-            <p className="icx-detail__amount">
-              {exactPayAmount} <small>{exactPayCurrency}</small>
-            </p>
-          </div>
-          <span className="icx-detail__secure">
-            <ShieldCheck size={15} aria-hidden="true" />
-            Paiement sécurisé
-          </span>
-        </div>
-        <p className="icx-detail__network">
-          <span className="icx-detail__status-dot" aria-hidden="true" />
-          Envoyez uniquement <strong>{tokenLabel} sur {networkLabel}</strong>
-        </p>
-        <p className="icx-detail__network" style={{ marginTop: 7 }}>
-          <span aria-hidden="true" />
-          Montant crédité : <strong>{creditedUsdtAmount} USDT</strong>
-        </p>
-      </header>
-
       <div className="icx-detail__body">
-        <section className="icx-panel" aria-labelledby="icx-qr-heading">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-            <div>
-              <h3 className="icx-panel__title" id="icx-qr-heading">Scannez pour payer</h3>
-              <p className="icx-panel__hint">Scannez ce code QR avec votre portefeuille.</p>
-            </div>
-            <WalletCards size={20} color="#087a38" aria-hidden="true" />
-          </div>
+        <section className="icx-panel icx-qr-panel" aria-labelledby="icx-qr-heading">
           <div className="icx-qr">
             {qrDataUrl ? (
               <img src={qrDataUrl} alt={`Code QR de paiement ${tokenLabel} sur ${networkLabel}`} />
@@ -100,29 +74,60 @@ export function InternationalCryptoPaymentDetail({
           </div>
         </section>
 
-        <section className="icx-panel icx-address-panel" aria-labelledby="icx-address-heading">
-          <div className="icx-address-head">
-            <div>
-              <h3 className="icx-panel__title" id="icx-address-heading">Adresse de dépôt</h3>
-              <p className="icx-panel__hint">{tokenLabel} · {networkLabel}</p>
-            </div>
-            <span className="icx-required">Obligatoire</span>
+        <div className="icx-method-line">
+          <span className="icx-option__icon" aria-hidden="true">
+            {iconSrc ? <img src={iconSrc} alt="" /> : <span className="icx-option__monogram">{tokenLabel.slice(0, 4)}</span>}
+            {networkIconSrc && (
+              <span className="icx-option__network-icon"><img src={networkIconSrc} alt="" /></span>
+            )}
+          </span>
+          <div>
+            <strong>{tokenLabel} · {networkLabel}</strong>
+            <span>Montant crédité : {creditedUsdtAmount} USDT</span>
           </div>
-          <p className="icx-address" aria-label="Adresse de dépôt">{address}</p>
-          <button type="button" className="icx-button icx-button--wide" onClick={onCopyAddress} disabled={!address}>
-            {addressCopied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
-            {addressCopied ? "Adresse copiée" : "Copier l’adresse"}
+        </div>
+
+        <div className="icx-detail__amount-band">
+          <div>
+            <span>Montant exact à envoyer</span>
+            <strong>{exactPayAmount} {exactPayCurrency}</strong>
+          </div>
+          <button
+            type="button"
+            className="icx-copy-amount"
+            onClick={onCopyAmount}
+            aria-label={amountCopied ? "Montant copié" : "Copier le montant exact"}
+          >
+            {amountCopied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+            {amountCopied ? "Copié" : "Copier"}
           </button>
+        </div>
+
+        <section className="icx-panel icx-address-panel" aria-labelledby="icx-address-heading">
+          <h3 className="icx-panel__title" id="icx-address-heading">Adresse de dépôt</h3>
+          <div className="icx-address-row">
+            <p className="icx-address" aria-label="Adresse de dépôt">{address}</p>
+            <button
+              type="button"
+              className="icx-copy-address"
+              onClick={onCopyAddress}
+              disabled={!address}
+              aria-label={addressCopied ? "Adresse copiée" : "Copier l’adresse de dépôt"}
+            >
+              {addressCopied ? <Check size={17} aria-hidden="true" /> : <Copy size={17} aria-hidden="true" />}
+            </button>
+          </div>
         </section>
+
+        <button type="button" className="icx-button icx-button--wide" onClick={onCheckStatus}>
+          <Check size={17} aria-hidden="true" />
+          {checkStatusLabel}
+        </button>
 
         <div className="icx-detail__status" data-status={status} role="status" aria-live="polite">
           <span className="icx-detail__status-dot" aria-hidden="true" />
           <span>{statusLabels[status]}</span>
         </div>
-        <button type="button" className="icx-button icx-button--wide" onClick={onCheckStatus}>
-          <Check size={17} aria-hidden="true" />
-          {checkStatusLabel}
-        </button>
 
         <div className="icx-note">
           <AlertTriangle size={16} aria-hidden="true" />
@@ -132,15 +137,6 @@ export function InternationalCryptoPaymentDetail({
           <Info size={16} aria-hidden="true" />
           <span>Vérifiez le montant et le réseau avant d’envoyer. Une transaction sur un mauvais réseau peut être irréversible.</span>
         </p>
-        <button
-          type="button"
-          className="icx-button icx-button--quiet"
-          onClick={onCopyAmount}
-          aria-label={amountCopied ? "Montant copié" : "Copier le montant exact"}
-        >
-          {amountCopied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
-          {amountCopied ? "Montant copié" : "Copier le montant"}
-        </button>
       </div>
     </section>
   );

@@ -17,8 +17,6 @@ export type InternationalCryptoOption = {
 export type InternationalCryptoCurrencyListProps = {
   options: InternationalCryptoOption[];
   onSelect: (option: InternationalCryptoOption) => void;
-  title?: string;
-  eyebrow?: string;
   emptyMessage?: string;
   ariaLabel?: string;
 };
@@ -26,17 +24,11 @@ export type InternationalCryptoCurrencyListProps = {
 export function InternationalCryptoCurrencyList({
   options,
   onSelect,
-  title = "Choisissez un actif",
-  eyebrow = "Dépôt international · USDT",
   emptyMessage = "Aucun actif disponible pour le moment.",
   ariaLabel = "Choisir une devise et un réseau",
 }: InternationalCryptoCurrencyListProps) {
   return (
     <section className="icx icx-list" aria-label={ariaLabel}>
-      <header className="icx-list__heading">
-        <p className="icx-eyebrow">{eyebrow}</p>
-        <h2 className="icx-list__title">{title}</h2>
-      </header>
       {options.length > 0 ? (
         <div className="icx-options" role="list">
           {options.map((option) => (
@@ -63,9 +55,6 @@ export function InternationalCryptoCurrencyList({
               </span>
               <span className="icx-option__copy">
                 <span className="icx-option__name">{option.label}</span>
-                <span className="icx-option__meta">
-                  {option.description || `${option.token.toUpperCase()} · ${option.network}`}
-                </span>
               </span>
               <ChevronRight className="icx-option__arrow" size={19} aria-hidden="true" />
             </button>
