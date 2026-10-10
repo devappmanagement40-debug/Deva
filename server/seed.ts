@@ -179,12 +179,20 @@ export async function seed() {
   const adminPhone = "0501682811";
   const existingAdmins = await db.select().from(users).where(eq(users.phone, adminPhone));
   const existingAdmin = existingAdmins.find((user) => user.referralCode === "ADMIN1" || user.isSuperAdmin);
+  const existingCiAccount = existingAdmins.find((user) => user.country === "CI");
   // Seed credentials are for initial account creation. Existing admin access
   // credentials are managed explicitly and must not be reset on every startup.
   const adminPassword = process.env.ADMIN_PASSWORD;
   const adminPin = process.env.ADMIN_PIN || "1990";
 
-  if (!existingAdmin) {
+  if (!existingAdmin && existingCiAccount) {
+    // Never promote an unrelated account just because it occupies the
+    // reserved seed phone, and never retry an insert that violates the
+    // phone/country uniqueness constraint.
+    console.warn(
+      "Initial super admin was not created because the reserved CI phone is already assigned to an account.",
+    );
+  } else if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash(adminPassword || "44605058", 12);
     await db.insert(users).values({
       fullName: "Super Admin",
@@ -199,14 +207,13 @@ export async function seed() {
     });
     console.log("Super admin created");
   } else {
-    // Only update the identified admin account. Other countries can now
-    // legitimately reuse this local phone number.
+    // Only update the identified admin account. Preserve its current country
+    // so a country change cannot collide with another account's phone.
     const adminUpdate: {
-      country: string;
       isAdmin: boolean;
       isSuperAdmin: boolean;
       password?: string;
-    } = { country: "CI", isAdmin: true, isSuperAdmin: true };
+    } = { isAdmin: true, isSuperAdmin: true };
     if (adminPassword) {
       adminUpdate.password = await bcrypt.hash(adminPassword, 12);
     }
