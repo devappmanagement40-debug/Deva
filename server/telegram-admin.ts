@@ -113,6 +113,10 @@ export type AdminTelegramNotification =
       amount: number;
       netAmount: number;
       fees: number;
+      currency?: string | null;
+      amountUsdt?: string | number | null;
+      netAmountUsdt?: string | number | null;
+      feesUsdt?: string | number | null;
       country: string;
       paymentMethod: string;
       status: string;
@@ -645,7 +649,15 @@ function formatNotification(event: AdminTelegramNotification): string {
     const providerStatus = normalizedProviderStatus
       ? `\nStatut prestataire : ${escapeTelegramHtml(normalizedProviderStatus)}`
       : "";
-    return `💸 <b>${title}</b>\nRetrait #${event.id} · brut ${formatXof(event.amount)} · net ${formatXof(event.netAmount)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
+    const isUsdt = event.currency?.toUpperCase() === "USDT";
+    const formatWithdrawalAmount = (value: unknown) => {
+      if (!isUsdt) return `${formatXof(value)} XOF`;
+      const amount = Number(value);
+      return `${Number.isFinite(amount) ? amount.toLocaleString("en-US", { maximumFractionDigits: 6 }) : "0"} USDT`;
+    };
+    const gross = isUsdt ? event.amountUsdt ?? event.amount : event.amount;
+    const net = isUsdt ? event.netAmountUsdt ?? event.netAmount : event.netAmount;
+    return `💸 <b>${title}</b>\nRetrait #${event.id} · brut ${formatWithdrawalAmount(gross)} · net ${formatWithdrawalAmount(net)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
   }
   if (event.kind === "payment_error") {
     const stageLabel: Record<typeof event.stage, string> = {

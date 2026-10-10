@@ -240,15 +240,21 @@ export default function AdminWithdrawals() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground">{t.grossAmount}</p>
-                      <p className="font-medium text-foreground">{withdrawal.amount.toLocaleString()} XOF</p>
+                    <p className="font-medium text-foreground">
+                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.amountUsdt : withdrawal.amount).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.netAmount}</p>
-                      <p className="font-medium text-primary">{withdrawal.netAmount.toLocaleString()} XOF</p>
+                    <p className="font-medium text-primary">
+                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.netAmountUsdt : withdrawal.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.fees}</p>
-                    <p className="font-medium text-foreground">{withdrawal.fees.toLocaleString()} XOF</p>
+                    <p className="font-medium text-foreground">
+                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.feesUsdt : withdrawal.fees).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.method}</p>
@@ -323,7 +329,7 @@ export default function AdminWithdrawals() {
 
                 {withdrawal.status === "pending" && (
                   <div className="flex gap-2">
-                    {isManual || withdrawal.paymentMethod?.startsWith("Mobile Money - ") ? (
+                    {withdrawal.currency?.toUpperCase() !== "USDT" && (isManual || withdrawal.paymentMethod?.startsWith("Mobile Money - ")) ? (
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"

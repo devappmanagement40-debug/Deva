@@ -7,6 +7,7 @@ import { ChevronDown, ChevronLeft, Check, CreditCard, Loader2, Trash2, Wifi } fr
 import { useLocation, useSearch } from "wouter";
 import type { WithdrawalWallet } from "@shared/schema";
 import { useI18n } from "@/lib/i18n";
+import { getCustomerMarket } from "@shared/country-codes";
 import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-landscape.png";
 
 type WithdrawalAsset = "Mobile Money" | "USDT";
@@ -23,6 +24,8 @@ function displayAddress(address: string) {
 
 export default function WalletPage() {
   const { user } = useAuth();
+  const isInternational = getCustomerMarket(user?.country) === "international";
+  const preferredAsset: WithdrawalAsset = isInternational ? "USDT" : WITHDRAWAL_ASSET;
   const { t } = useI18n();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -31,7 +34,7 @@ export default function WalletPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [picker, setPicker] = useState<PickerType>(null);
-  const [asset, setAsset] = useState(WITHDRAWAL_ASSET);
+  const [asset, setAsset] = useState<WithdrawalAsset>(WITHDRAWAL_ASSET);
   const [network, setNetwork] = useState("");
   const [address, setAddress] = useState("");
 
@@ -53,18 +56,19 @@ export default function WalletPage() {
         ? Array.from(new Set(values.filter((value): value is string => typeof value === "string" && value.trim().length > 0).map((value) => value.trim())))
         : [];
     },
-    enabled: Boolean(user?.country),
+    enabled: Boolean(user?.country) && !isInternational,
   });
 
   useEffect(() => {
+    if (isInternational && asset !== "USDT") setAsset("USDT");
     const nextNetwork =
-      asset === "USDT"
+      isInternational || asset === "USDT"
         ? WITHDRAWAL_NETWORK
         : mobileMoneyNetworks.includes(network)
           ? network
           : mobileMoneyNetworks[0] || "";
     if (nextNetwork !== network) setNetwork(nextNetwork);
-  }, [asset, mobileMoneyNetworks, network]);
+  }, [asset, mobileMoneyNetworks, network, isInternational]);
 
   const { data: wallets = [], isLoading } = useQuery<WithdrawalWallet[]>({
     queryKey: ["/api/wallets"],
@@ -90,7 +94,7 @@ export default function WalletPage() {
       toast({ title: "Withdrawal method added successfully" });
       setShowForm(false);
       setAddress("");
-      setAsset(WITHDRAWAL_ASSET);
+      setAsset(preferredAsset);
       setNetwork("");
     },
     onError: (error: Error) => {
@@ -133,12 +137,12 @@ export default function WalletPage() {
     setShowForm(false);
     setPicker(null);
     setAddress("");
-    setAsset(WITHDRAWAL_ASSET);
+    setAsset(preferredAsset);
     setNetwork("");
   };
 
   const handleConfirm = () => {
-    if (asset === "USDT") {
+    if (isInternational || asset === "USDT") {
       if (network !== WITHDRAWAL_NETWORK || !/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
         toast({
           title: "Invalid USDT BEP20 address",
@@ -184,8 +188,10 @@ export default function WalletPage() {
   if (!user) return null;
 
   const backLink = selectMode ? "/withdrawal" : "/account";
-  const networkOptions = asset === "Mobile Money" ? mobileMoneyNetworks : [WITHDRAWAL_NETWORK];
-  const pickerOptions = picker === "asset" ? ["Mobile Money", "USDT"] : networkOptions;
+  const networkOptions = isInternational || asset === "USDT" ? [WITHDRAWAL_NETWORK] : mobileMoneyNetworks;
+  const pickerOptions = picker === "asset"
+    ? isInternational ? ["USDT"] : ["Mobile Money", "USDT"]
+    : networkOptions;
   const pickerTitle = picker === "asset" ? "Type" : "Réseau";
 
   const selectAsset = (value: string) => {
@@ -231,7 +237,7 @@ export default function WalletPage() {
             >
               <h2 className="mb-2 text-[19px] font-medium text-[#13271e]">Informations du moyen de retrait</h2>
 
-              <button
+              {!isInternational && <button
                 type="button"
                 onClick={() => setPicker("asset")}
                 className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left active:bg-black/[0.025]"
@@ -240,20 +246,27 @@ export default function WalletPage() {
                 <span className="w-[104px] text-center text-[15px] text-[#24372e]">Type</span>
                 <span className="flex-1 text-[16px] text-[#111f18]">{asset}</span>
                 <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
-              </button>
+              </button>}
 
-              <button
-                type="button"
-                onClick={() => setPicker("network")}
-                className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left active:bg-black/[0.025]"
-                data-testid="button-select-withdrawal-network"
-              >
-                <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
-                <span className="flex-1 text-[16px] text-[#111f18]">
-                  {network || (mobileMoneyNetworksLoading ? "Chargement…" : "Sélectionner")}
-                </span>
-                <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
-              </button>
+              {isInternational ? (
+                <div className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left">
+                  <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
+                  <span className="flex-1 text-[16px] text-[#111f18]">USDT BEP20</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setPicker("network")}
+                  className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left active:bg-black/[0.025]"
+                  data-testid="button-select-withdrawal-network"
+                >
+                  <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
+                  <span className="flex-1 text-[16px] text-[#111f18]">
+                    {network || (mobileMoneyNetworksLoading ? "Chargement…" : "Sélectionner")}
+                  </span>
+                  <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
+                </button>
+              )}
 
               <div className="border-b border-[#c8d9d4] py-[12px]">
                 <label htmlFor="wallet-network-address" className="sr-only">Adresse du réseau</label>
@@ -379,7 +392,7 @@ export default function WalletPage() {
         )}
       </div>
 
-      {picker && (
+      {picker && !(isInternational && picker === "asset") && (
         <div className="fixed inset-0 z-50">
           <button
             type="button"

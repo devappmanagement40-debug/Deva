@@ -17,6 +17,8 @@ interface HistoryItem {
   id: string;
   category: string;
   amount: string;
+  currency?: string | null;
+  amountUsdt?: string | number | null;
   status: string;
   description?: string | null;
   createdAt: string;
@@ -33,6 +35,8 @@ function toReceipt(item: HistoryItem): ReceiptTransaction {
     id: item.id,
     kind: item.category === "withdrawal" ? "withdrawal" : "deposit",
     amount: item.amount,
+    currency: item.currency,
+    amountUsdt: item.amountUsdt,
     status: item.status,
     createdAt: item.createdAt,
     paymentMethod: item.extra?.paymentMethod,

@@ -12,8 +12,12 @@ import {
 interface Withdrawal {
   id: number;
   amount: string;
+  amountUsdt?: string | null;
+  currency?: string | null;
   netAmount?: string | null;
+  netAmountUsdt?: string | null;
   fees?: string | null;
+  feesUsdt?: string | null;
   status: string;
   paymentMethod?: string | null;
   accountNumber?: string | null;
@@ -30,12 +34,16 @@ export default function WithdrawalHistoryPage() {
     id: withdrawal.id,
     kind: "withdrawal",
     amount: withdrawal.amount,
+    amountUsdt: withdrawal.amountUsdt,
+    currency: withdrawal.currency,
     status: withdrawal.status,
     createdAt: withdrawal.createdAt,
     paymentMethod: withdrawal.paymentMethod || "USDT BEP20",
     accountNumber: withdrawal.accountNumber,
     fees: withdrawal.fees,
     netAmount: withdrawal.netAmount,
+    feesUsdt: withdrawal.feesUsdt,
+    netAmountUsdt: withdrawal.netAmountUsdt,
   }));
 
   return (

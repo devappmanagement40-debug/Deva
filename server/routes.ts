@@ -44,8 +44,12 @@ import {
   serializeCountryOperators,
 } from "./country-operator-policy";
 import {
+  calculateUsdtWithdrawalPayoutAmounts,
   calculateWithdrawalPayoutAmounts,
+  convertXofWithdrawalLimitToUsdt,
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
+  formatUsdtWithdrawalAmount,
+  parseUsdtWithdrawalAmount,
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import {
@@ -228,6 +232,20 @@ const transactionPinAttempts = new Map<string, { count: number; blockedUntil: nu
 const adminAccessPinAttempts = new Map<string, { count: number; blockedUntil: number }>();
 const MAX_LOGIN_ATTEMPTS = 5;
 const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+function withdrawalTelegramFields(withdrawal: {
+  currency?: string | null;
+  amountUsdt?: string | number | null;
+  netAmountUsdt?: string | number | null;
+  feesUsdt?: string | number | null;
+}) {
+  return {
+    currency: withdrawal.currency,
+    amountUsdt: withdrawal.amountUsdt,
+    netAmountUsdt: withdrawal.netAmountUsdt,
+    feesUsdt: withdrawal.feesUsdt,
+  };
+}
 
 function getClientKey(req: Request): string {
   const forwarded = req.headers["x-forwarded-for"];
@@ -1775,6 +1793,7 @@ export async function registerRoutes(
               amount: withdrawal.amount,
               netAmount: withdrawal.netAmount,
               fees: withdrawal.fees,
+              ...withdrawalTelegramFields(withdrawal),
               country: withdrawal.country,
               paymentMethod: withdrawal.paymentMethod,
               status: nextStatus,
@@ -1800,6 +1819,7 @@ export async function registerRoutes(
               amount: completed.amount,
               netAmount: completed.netAmount,
               fees: completed.fees,
+              ...withdrawalTelegramFields(completed),
               country: completed.country,
               paymentMethod: completed.paymentMethod,
               status: completed.status,
@@ -1830,6 +1850,7 @@ export async function registerRoutes(
             amount: tracked.amount,
             netAmount: tracked.netAmount,
             fees: tracked.fees,
+            ...withdrawalTelegramFields(tracked),
             country: tracked.country,
             paymentMethod: tracked.paymentMethod,
             status: tracked.status,
@@ -2481,7 +2502,9 @@ export async function registerRoutes(
         ...deposits.map((d: any) => ({
           id: `dep-${d.id}`,
           category: "deposit",
-          amount: d.amount,
+          amount: d.currency?.toUpperCase() === "USDT" ? d.amountUsdt ?? d.amount : d.amount,
+          amountUsdt: d.amountUsdt,
+          currency: d.currency || "XOF",
           status: d.status,
           description: d.paymentMethod?.toLowerCase() === "nowpayments" ? "OkayPay" : (d.paymentMethod || "Dépôt"),
           createdAt: d.createdAt,
@@ -2495,16 +2518,24 @@ export async function registerRoutes(
         ...withdrawals.map((w: any) => ({
           id: `wd-${w.id}`,
           category: "withdrawal",
-          amount: w.amount,
+          amount: w.currency?.toUpperCase() === "USDT" ? w.amountUsdt ?? "0" : w.amount,
+          amountUsdt: w.amountUsdt,
+          currency: w.currency || "XOF",
           status: w.status,
           description: w.paymentMethod || "Retrait",
           createdAt: w.createdAt,
-          extra: { fees: w.fees, netAmount: w.netAmount, paymentMethod: w.paymentMethod },
+          extra: {
+            fees: w.currency?.toUpperCase() === "USDT" ? w.feesUsdt : w.fees,
+            netAmount: w.currency?.toUpperCase() === "USDT" ? w.netAmountUsdt : w.netAmount,
+            paymentMethod: w.paymentMethod,
+          },
         })),
         ...txs.map((t: any) => ({
           id: `tx-${t.id}`,
           category: t.type,
-          amount: t.amount,
+          amount: t.currency?.toUpperCase() === "USDT" ? t.amountUsdt ?? t.amount : t.amount,
+          amountUsdt: t.amountUsdt,
+          currency: t.currency || "XOF",
           status: "completed",
           description: t.description,
           createdAt: t.createdAt,
@@ -2532,11 +2563,16 @@ export async function registerRoutes(
         : typeof rawAmount === "string" && rawAmount.trim()
           ? Number(rawAmount)
           : Number.NaN;
+      const amountUsdtMicros = parseUsdtWithdrawalAmount(rawAmount);
+      const amountUsdt = amountUsdtMicros === null
+        ? null
+        : formatUsdtWithdrawalAmount(amountUsdtMicros);
       const user = await storage.getUser(req.session.userId!);
       
       if (!user) {
         return res.status(401).json({ message: "Non authentifié" });
       }
+      const isInternational = getCustomerMarket(user.country) === "international";
 
       if (!user.transactionPassword || user.mustResetTransactionPassword) {
         return res.status(403).json({
@@ -2568,13 +2604,19 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Vous devez posséder un produit actif pour effectuer un retrait." });
       }
 
-      if (!Number.isSafeInteger(amount) || amount <= 0) {
+      if (isInternational ? amountUsdt === null : (!Number.isSafeInteger(amount) || amount <= 0)) {
         return res.status(400).json({ message: "Montant de retrait invalide" });
       }
 
       const settingsForWithdrawal = await storage.getSettings();
       if (settingsForWithdrawal.withdrawalEnabled === "false") {
         return res.status(400).json({ message: "Les retraits sont temporairement désactivés par l'administration" });
+      }
+      if (isInternational && !isNowPaymentsPayoutConfigured()) {
+        return res.status(503).json({
+          code: "NOWPAYMENTS_PAYOUT_NOT_CONFIGURED",
+          message: "Les retraits USDT ne sont pas encore configurés. Contactez l'administration.",
+        });
       }
 
       // ── Vérification jour + heure (fuseau Côte d'Ivoire = UTC+0) ──
@@ -2599,20 +2641,64 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Les retraits sont disponibles de ${startHour}h à ${endHour}h` });
         }
       }
-      const minWithdrawal = parsePositiveIntegerSetting(
+      const minWithdrawalXof = parsePositiveIntegerSetting(
         settingsForWithdrawal.minWithdrawal,
         DEFAULT_MIN_WITHDRAWAL_XOF,
       );
-      const maxWithdrawal = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawal, 1_000_000);
-      if (minWithdrawal === null || maxWithdrawal === null || maxWithdrawal < minWithdrawal) {
+      const maxWithdrawalXof = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawal, 1_000_000);
+      if (
+        minWithdrawalXof === null
+        || maxWithdrawalXof === null
+        || maxWithdrawalXof < minWithdrawalXof
+      ) {
         console.error("Invalid withdrawal amount limits in platform settings");
         return res.status(500).json({ message: "Les limites de retrait sont mal configurées. Contactez l'administration." });
       }
-      if (amount < minWithdrawal) {
-        return res.status(400).json({ message: `Montant minimum : ${minWithdrawal.toLocaleString()} XOF` });
+      let minWithdrawal = minWithdrawalXof;
+      let maxWithdrawal = maxWithdrawalXof;
+      let minWithdrawalUsdtMicros: number | null = null;
+      let maxWithdrawalUsdtMicros: number | null = null;
+      if (isInternational) {
+        const xofPerUsdt = parseXofPerUsdt(
+          settingsForWithdrawal.xofPerUsdt ?? DEFAULT_XOF_PER_USDT,
+        );
+        if (xofPerUsdt === null) {
+          return res.status(500).json({ message: "Le taux XOF/USDT n'est pas configuré correctement." });
+        }
+        const minUsdt = convertXofWithdrawalLimitToUsdt(minWithdrawalXof, xofPerUsdt, true);
+        const maxUsdt = convertXofWithdrawalLimitToUsdt(maxWithdrawalXof, xofPerUsdt, false);
+        minWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(minUsdt);
+        maxWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(maxUsdt);
+        if (minWithdrawalUsdtMicros === null || maxWithdrawalUsdtMicros === null) {
+          return res.status(500).json({ message: "Les limites USDT de retrait sont mal configurées." });
+        }
+        minWithdrawal = Number(minUsdt);
+        maxWithdrawal = Number(maxUsdt);
       }
-      if (amount > maxWithdrawal) {
-        return res.status(400).json({ message: `Montant maximum : ${maxWithdrawal.toLocaleString()} XOF` });
+      if (isInternational) {
+        if (
+          amountUsdtMicros === null
+          || minWithdrawalUsdtMicros === null
+          || maxWithdrawalUsdtMicros === null
+        ) {
+          return res.status(400).json({ message: "Montant USDT invalide — utilisez au maximum 6 décimales." });
+        }
+        if (amountUsdtMicros < minWithdrawalUsdtMicros) {
+          return res.status(400).json({
+            message: `Montant minimum : ${minWithdrawal} USDT`,
+          });
+        }
+        if (amountUsdtMicros > maxWithdrawalUsdtMicros) {
+          return res.status(400).json({
+            message: `Montant maximum : ${maxWithdrawal} USDT`,
+          });
+        }
+      } else if (amount < minWithdrawal || amount > maxWithdrawal) {
+        return res.status(400).json({
+          message: amount < minWithdrawal
+            ? `Montant minimum : ${minWithdrawal.toLocaleString()} XOF`
+            : `Montant maximum : ${maxWithdrawal.toLocaleString()} XOF`,
+        });
       }
 
       if (user.isWithdrawalBlocked) {
@@ -2633,9 +2719,14 @@ export async function registerRoutes(
         console.error("Invalid withdrawal fee percentage in platform settings");
         return res.status(500).json({ message: "Les frais de retrait sont mal configurés. Contactez l'administration." });
       }
-      let payoutAmounts: ReturnType<typeof calculateWithdrawalPayoutAmounts>;
+      let payoutAmountsXof: ReturnType<typeof calculateWithdrawalPayoutAmounts> = { fees: 0, netAmount: 0 };
+      let payoutAmountsUsdt: ReturnType<typeof calculateUsdtWithdrawalPayoutAmounts> = { fees: "0", netAmount: "0" };
       try {
-        payoutAmounts = calculateWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
+        if (isInternational) {
+          payoutAmountsUsdt = calculateUsdtWithdrawalPayoutAmounts(amountUsdt, withdrawalFeePercent);
+        } else {
+          payoutAmountsXof = calculateWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
+        }
       } catch (error) {
         console.error("Could not calculate withdrawal fee:", error);
         return res.status(500).json({ message: "Impossible de calculer les frais de retrait." });
@@ -2667,8 +2758,17 @@ export async function registerRoutes(
       const isUsdtBep20 = wallet.paymentMethod === "USDT BEP20";
       const isMobileMoney = typeof wallet.paymentMethod === "string"
         && wallet.paymentMethod.startsWith("Mobile Money - ");
+      if (isInternational && !isUsdtBep20) {
+        return res.status(400).json({ message: "Les comptes internationaux peuvent retirer uniquement en USDT BEP20." });
+      }
       if (!isUsdtBep20 && !isMobileMoney) {
         return res.status(400).json({ message: "Sélectionnez un moyen de retrait Mobile Money ou USDT BEP20 valide." });
+      }
+      if (
+        isInternational
+        && String(wallet.country || "").trim().toUpperCase() !== String(user.country || "").trim().toUpperCase()
+      ) {
+        return res.status(400).json({ message: "Sélectionnez une adresse USDT enregistrée pour votre pays." });
       }
       if (isMobileMoney) {
         const userCountry = String(user.country || "").trim().toUpperCase();
@@ -2696,9 +2796,17 @@ export async function registerRoutes(
       // insert cannot leave the user's earnings deducted without a request.
       const reservation = await storage.createWithdrawalRequest({
         userId: user.id,
-        amount,
-        netAmount: payoutAmounts.netAmount,
-        fees: payoutAmounts.fees,
+        amount: isInternational ? 0 : amount,
+        netAmount: isInternational ? 0 : payoutAmountsXof.netAmount,
+        fees: isInternational ? 0 : payoutAmountsXof.fees,
+        currency: isInternational ? "USDT" : "XOF",
+        ...(isInternational
+          ? {
+              amountUsdt,
+              netAmountUsdt: payoutAmountsUsdt.netAmount,
+              feesUsdt: payoutAmountsUsdt.fees,
+            }
+          : {}),
         accountName: wallet.accountName,
         accountNumber: wallet.accountNumber,
         country: user.country,
@@ -2729,6 +2837,10 @@ export async function registerRoutes(
           amount: withdrawal.amount,
           netAmount: withdrawal.netAmount,
           fees: withdrawal.fees,
+          amountUsdt: withdrawal.amountUsdt,
+          netAmountUsdt: withdrawal.netAmountUsdt,
+          feesUsdt: withdrawal.feesUsdt,
+          currency: withdrawal.currency,
           country: withdrawal.country,
           paymentMethod: withdrawal.paymentMethod,
           status: withdrawal.status,
@@ -2811,6 +2923,7 @@ export async function registerRoutes(
         amount: updated.amount,
         netAmount: updated.netAmount,
         fees: updated.fees,
+        ...withdrawalTelegramFields(updated),
         country: updated.country,
         paymentMethod: updated.paymentMethod,
         status: updated.status,
@@ -2831,6 +2944,7 @@ export async function registerRoutes(
             amount: reconciled.amount,
             netAmount: reconciled.netAmount,
             fees: reconciled.fees,
+            ...withdrawalTelegramFields(reconciled),
             country: reconciled.country,
             paymentMethod: reconciled.paymentMethod,
             status: reconciled.status,
@@ -2866,8 +2980,13 @@ export async function registerRoutes(
   // Wallets
   app.get("/api/wallets", requireAuth, async (req, res) => {
     try {
-      const wallets = await storage.getWallets(req.session.userId!);
-      res.json(wallets);
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      const wallets = await storage.getWallets(user.id);
+      const visibleWallets = getCustomerMarket(user.country) === "international"
+        ? wallets.filter((wallet) => wallet.paymentMethod === "USDT BEP20")
+        : wallets;
+      res.json(visibleWallets);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -2909,6 +3028,9 @@ export async function registerRoutes(
         }
         resolvedPaymentMethod = "USDT BEP20";
       } else if (normalizedType === "mobile money" || normalizedType === "mobile-money") {
+        if (getCustomerMarket(userCountry) === "international") {
+          return res.status(400).json({ message: "Les comptes internationaux peuvent enregistrer uniquement une adresse USDT BEP20." });
+        }
         if (!selectedNetwork) {
           return res.status(400).json({ message: "Sélectionnez un opérateur Mobile Money." });
         }
@@ -3187,28 +3309,43 @@ export async function registerRoutes(
   app.get("/api/settings/withdrawal", requireAuth, async (req, res) => {
     try {
       const settings = await storage.getSettings();
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      const isInternational = getCustomerMarket(user.country) === "international";
       const withdrawalFees = parseWithdrawalFeePercent(
         settings.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       );
       if (withdrawalFees === null) {
         return res.status(500).json({ message: "Les frais de retrait sont mal configurés." });
       }
-      const minWithdrawal = parsePositiveIntegerSetting(
+      const minWithdrawalXof = parsePositiveIntegerSetting(
         settings.minWithdrawal,
         DEFAULT_MIN_WITHDRAWAL_XOF,
       );
-      const maxWithdrawal = parsePositiveIntegerSetting(settings.maxWithdrawal, 1_000_000);
+      const maxWithdrawalXof = parsePositiveIntegerSetting(settings.maxWithdrawal, 1_000_000);
       const maxWithdrawalsPerDay = parsePositiveIntegerSetting(settings.maxWithdrawalsPerDay, 1);
       if (
-        minWithdrawal === null
-        || maxWithdrawal === null
-        || maxWithdrawal < minWithdrawal
+        minWithdrawalXof === null
+        || maxWithdrawalXof === null
+        || maxWithdrawalXof < minWithdrawalXof
         || maxWithdrawalsPerDay === null
       ) {
         return res.status(500).json({ message: "Les limites de retrait sont mal configurées." });
       }
+      let minWithdrawal = minWithdrawalXof;
+      let maxWithdrawal = maxWithdrawalXof;
+      if (isInternational) {
+        const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
+        if (xofPerUsdt === null) {
+          return res.status(500).json({ message: "Le taux XOF/USDT n'est pas configuré correctement." });
+        }
+        minWithdrawal = Number(convertXofWithdrawalLimitToUsdt(minWithdrawalXof, xofPerUsdt, true));
+        maxWithdrawal = Number(convertXofWithdrawalLimitToUsdt(maxWithdrawalXof, xofPerUsdt, false));
+      }
       res.json({
         withdrawalEnabled: settings.withdrawalEnabled !== "false",
+        currency: isInternational ? "USDT" : "XOF",
+        payoutConfigured: isNowPaymentsPayoutConfigured(),
         withdrawalStartHour: parseInt(settings.withdrawalStartHour || "9"),
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
@@ -3778,9 +3915,6 @@ export async function registerRoutes(
     let payoutMayExist = false;
     try {
       const settings = await storage.getSettings();
-      if (normalizeWithdrawalMode(settings.withdrawalMode) !== "semi_auto") {
-        return res.status(400).json({ message: "Le mode semi-automatique NOWPayments est désactivé" });
-      }
       if (!isNowPaymentsPayoutConfigured()) {
         return res.status(503).json({
           message: "NOWPayments payout n'est pas entièrement configuré (API, IPN HTTPS et identifiants de compte requis)",
@@ -3795,8 +3929,21 @@ export async function registerRoutes(
       if (!existingWithdrawal) {
         return res.status(404).json({ message: "Retrait introuvable" });
       }
+      const isUsdtAccountWithdrawal = existingWithdrawal.currency?.toUpperCase() === "USDT";
+      if (
+        !isUsdtAccountWithdrawal
+        && normalizeWithdrawalMode(settings.withdrawalMode) !== "semi_auto"
+      ) {
+        return res.status(400).json({ message: "Le mode semi-automatique NOWPayments est désactivé" });
+      }
       if (existingWithdrawal.paymentMethod !== "USDT BEP20") {
         return res.status(400).json({ message: "NOWPayments prend uniquement en charge les retraits USDT BEP20." });
+      }
+      const payoutAmount = Number(
+        isUsdtAccountWithdrawal ? existingWithdrawal.netAmountUsdt : existingWithdrawal.netAmount,
+      );
+      if (!Number.isFinite(payoutAmount) || payoutAmount <= 0) {
+        return res.status(400).json({ message: "Le montant net du payout est invalide." });
       }
       // NOWPayments uses this durable reference for reconciliation; do not rename it.
       const externalId = `tgood-withdrawal-${withdrawalId}`;
@@ -3815,7 +3962,11 @@ export async function registerRoutes(
       const payout = await createPayout({
         address: withdrawal.accountNumber,
         currency: "usdtbsc",
-        amount: Number(withdrawal.netAmount),
+        amount: Number(
+          withdrawal.currency?.toUpperCase() === "USDT"
+            ? withdrawal.netAmountUsdt
+            : withdrawal.netAmount,
+        ),
         uniqueExternalId: withdrawal.nowPaymentsExternalId || externalId,
         description: `Retrait DIAMANT #${withdrawal.id}`,
       });
@@ -3840,6 +3991,7 @@ export async function registerRoutes(
         amount: updated.amount,
         netAmount: updated.netAmount,
         fees: updated.fees,
+        ...withdrawalTelegramFields(updated),
         country: updated.country,
         paymentMethod: updated.paymentMethod,
         status: updated.status,
@@ -3869,6 +4021,7 @@ export async function registerRoutes(
             amount: refunded.amount,
             netAmount: refunded.netAmount,
             fees: refunded.fees,
+            ...withdrawalTelegramFields(refunded),
             country: refunded.country,
             paymentMethod: refunded.paymentMethod,
             status: refunded.status,
@@ -3895,6 +4048,7 @@ export async function registerRoutes(
             amount: reconciling.amount,
             netAmount: reconciling.netAmount,
             fees: reconciling.fees,
+            ...withdrawalTelegramFields(reconciling),
             country: reconciling.country,
             paymentMethod: reconciling.paymentMethod,
             status: reconciling.status,
@@ -3935,10 +4089,14 @@ export async function registerRoutes(
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
       }
       const isUsdtBep20 = withdrawalData.paymentMethod === "USDT BEP20";
+      const isUsdtAccountWithdrawal = withdrawalData.currency?.toUpperCase() === "USDT";
       const isMobileMoney = typeof withdrawalData.paymentMethod === "string"
         && withdrawalData.paymentMethod.startsWith("Mobile Money - ");
       if (!isUsdtBep20 && !isMobileMoney) {
         return res.status(400).json({ message: "Ce moyen de retrait n'est pas pris en charge." });
+      }
+      if (isUsdtAccountWithdrawal) {
+        return res.status(400).json({ message: "Les retraits internationaux USDT doivent être envoyés par NOWPayments." });
       }
       if (isUsdtBep20 && normalizeWithdrawalMode(settings.withdrawalMode) !== "manual") {
         return res.status(400).json({ message: "Utilisez l'action NOWPayments en mode semi-automatique" });
@@ -3957,6 +4115,10 @@ export async function registerRoutes(
         amount: withdrawal.amount,
         netAmount: withdrawal.netAmount,
         fees: withdrawal.fees,
+        currency: withdrawal.currency,
+        amountUsdt: withdrawal.amountUsdt,
+        netAmountUsdt: withdrawal.netAmountUsdt,
+        feesUsdt: withdrawal.feesUsdt,
         country: withdrawal.country,
         paymentMethod: withdrawal.paymentMethod,
         status: withdrawal.status,
@@ -3992,6 +4154,10 @@ export async function registerRoutes(
         amount: withdrawal.amount,
         netAmount: withdrawal.netAmount,
         fees: withdrawal.fees,
+        currency: withdrawal.currency,
+        amountUsdt: withdrawal.amountUsdt,
+        netAmountUsdt: withdrawal.netAmountUsdt,
+        feesUsdt: withdrawal.feesUsdt,
         country: withdrawal.country,
         paymentMethod: withdrawal.paymentMethod,
         status: withdrawal.status,
@@ -5423,6 +5589,9 @@ export async function registerRoutes(
       const allWithdrawals = await storage.getWithdrawals();
       const withdrawalData = allWithdrawals.find(w => w.id === parseInt(req.params.id as string));
       if (!withdrawalData) return res.status(404).json({ message: "Retrait non trouvé" });
+      if (withdrawalData.currency?.toUpperCase() === "USDT") {
+        return res.status(400).json({ message: "Les retraits internationaux USDT doivent être envoyés par NOWPayments." });
+      }
       if (withdrawalData.status !== "pending") {
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
       }
@@ -5438,6 +5607,10 @@ export async function registerRoutes(
         amount: withdrawal.amount,
         netAmount: withdrawal.netAmount,
         fees: withdrawal.fees,
+        currency: withdrawal.currency,
+        amountUsdt: withdrawal.amountUsdt,
+        netAmountUsdt: withdrawal.netAmountUsdt,
+        feesUsdt: withdrawal.feesUsdt,
         country: withdrawal.country,
         paymentMethod: withdrawal.paymentMethod,
         status: withdrawal.status,
@@ -5472,6 +5645,7 @@ export async function registerRoutes(
         amount: withdrawal.amount,
         netAmount: withdrawal.netAmount,
         fees: withdrawal.fees,
+        ...withdrawalTelegramFields(withdrawal),
         country: withdrawal.country,
         paymentMethod: withdrawal.paymentMethod,
         status: withdrawal.status,

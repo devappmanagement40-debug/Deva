@@ -372,15 +372,21 @@ export default function BankerPage() {
                       <div className="grid grid-cols-2 gap-2 text-sm bg-secondary/50 rounded-lg p-3 mb-3">
                         <div>
                           <p className="text-muted-foreground text-xs">{t.grossAmount}</p>
-                           <p className="font-bold text-lg">{Number(w.amount).toLocaleString()} XOF</p>
+                           <p className="font-bold text-lg">
+                             {Number(w.currency?.toUpperCase() === "USDT" ? w.amountUsdt : w.amount).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.netAmount}</p>
-                           <p className="font-bold text-lg text-primary">{Number(w.netAmount).toLocaleString()} XOF</p>
+                           <p className="font-bold text-lg text-primary">
+                             {Number(w.currency?.toUpperCase() === "USDT" ? w.netAmountUsdt : w.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.fees}</p>
-                           <p className="font-medium">{Number(w.fees).toLocaleString()} XOF</p>
+                           <p className="font-medium">
+                             {Number(w.currency?.toUpperCase() === "USDT" ? w.feesUsdt : w.fees).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                           </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.beneficiary}</p>

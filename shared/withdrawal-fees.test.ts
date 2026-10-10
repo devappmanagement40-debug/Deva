@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  calculateUsdtWithdrawalPayoutAmounts,
   calculateWithdrawalPayoutAmounts,
+  convertXofWithdrawalLimitToUsdt,
+  formatUsdtWithdrawalAmount,
+  parseUsdtWithdrawalAmount,
   parseWithdrawalFeePercent,
 } from "./withdrawal-fees";
 
@@ -31,6 +35,28 @@ test("fees are rounded to the nearest whole XOF", () => {
     fees: 120,
     netAmount: 881,
   });
+});
+
+test("USDT withdrawals preserve six-decimal precision and withhold the configured fee", () => {
+  assert.deepEqual(calculateUsdtWithdrawalPayoutAmounts("10.123456", 12), {
+    fees: "1.214815",
+    netAmount: "8.908641",
+  });
+  assert.equal(formatUsdtWithdrawalAmount(parseUsdtWithdrawalAmount("2.400000")!), "2.4");
+});
+
+test("converts the existing XOF withdrawal floor and ceiling to USDT", () => {
+  assert.equal(convertXofWithdrawalLimitToUsdt(1_200, 500, true), "2.4");
+  assert.equal(convertXofWithdrawalLimitToUsdt(1_000_000, 500, false), "2000");
+  assert.equal(convertXofWithdrawalLimitToUsdt(1_201, 500, true), "2.402");
+});
+
+test("rejects USDT amounts with excessive precision or invalid values", () => {
+  assert.equal(parseUsdtWithdrawalAmount("1.123456"), 1_123_456);
+  assert.equal(parseUsdtWithdrawalAmount("1.1234567"), null);
+  assert.equal(parseUsdtWithdrawalAmount("0"), null);
+  assert.equal(parseUsdtWithdrawalAmount("-1"), null);
+  assert.throws(() => calculateUsdtWithdrawalPayoutAmounts("0.000001", 99), RangeError);
 });
 
 test("valid fee settings allow zero through 99 percent with up to two decimals", () => {

@@ -5,6 +5,92 @@ export interface WithdrawalPayoutAmounts {
   netAmount: number;
 }
 
+export interface UsdtWithdrawalPayoutAmounts {
+  fees: string;
+  netAmount: string;
+}
+
+const USDT_WITHDRAWAL_SCALE = 1_000_000;
+
+export function parseUsdtWithdrawalAmount(value: unknown): number | null {
+  const raw = typeof value === "string"
+    ? value.trim()
+    : typeof value === "number" && Number.isFinite(value)
+      ? String(value)
+      : "";
+  if (!/^\d{1,15}(?:\.\d{1,6})?$/.test(raw)) return null;
+
+  const [whole, fractional = ""] = raw.split(".");
+  const micros = Number(whole) * USDT_WITHDRAWAL_SCALE
+    + Number(fractional.padEnd(6, "0") || "0");
+  return Number.isSafeInteger(micros) && micros > 0 ? micros : null;
+}
+
+export function formatUsdtWithdrawalAmount(micros: number): string {
+  const whole = Math.floor(micros / USDT_WITHDRAWAL_SCALE);
+  const fractional = (micros % USDT_WITHDRAWAL_SCALE)
+    .toString()
+    .padStart(6, "0")
+    .replace(/0+$/, "");
+  return fractional ? `${whole}.${fractional}` : whole.toString();
+}
+
+export function calculateUsdtWithdrawalPayoutAmounts(
+  grossAmount: unknown,
+  feePercent: number,
+): UsdtWithdrawalPayoutAmounts {
+  const grossMicros = parseUsdtWithdrawalAmount(grossAmount);
+  const parsedFee = parseWithdrawalFeePercent(feePercent);
+  if (grossMicros === null) {
+    throw new RangeError("Le montant USDT doit être positif et contenir au plus 6 décimales.");
+  }
+  if (parsedFee === null) {
+    throw new RangeError("Le taux des frais de retrait doit être compris entre 0 et 99 %.");
+  }
+
+  const feeBasisPoints = Math.round(parsedFee * 100);
+  if (!Number.isSafeInteger(grossMicros * feeBasisPoints)) {
+    throw new RangeError("Le montant USDT dépasse la précision autorisée.");
+  }
+  const feesMicros = Math.round((grossMicros * feeBasisPoints) / 10_000);
+  const netMicros = grossMicros - feesMicros;
+  if (netMicros <= 0) {
+    throw new RangeError("Le montant net du retrait doit être supérieur à zéro.");
+  }
+
+  return {
+    fees: formatUsdtWithdrawalAmount(feesMicros),
+    netAmount: formatUsdtWithdrawalAmount(netMicros),
+  };
+}
+
+export function convertXofWithdrawalLimitToUsdt(
+  amountXof: number,
+  xofPerUsdt: number,
+  roundUp: boolean,
+): string {
+  if (
+    !Number.isSafeInteger(amountXof)
+    || amountXof <= 0
+    || !Number.isSafeInteger(xofPerUsdt)
+    || xofPerUsdt <= 0
+  ) {
+    throw new RangeError("Les limites XOF et le taux XOF/USDT doivent être des entiers positifs.");
+  }
+
+  const amountMicros = amountXof * USDT_WITHDRAWAL_SCALE;
+  if (!Number.isSafeInteger(amountMicros)) {
+    throw new RangeError("La limite XOF dépasse la précision autorisée.");
+  }
+  const convertedMicros = roundUp
+    ? Math.ceil(amountMicros / xofPerUsdt)
+    : Math.floor(amountMicros / xofPerUsdt);
+  if (!Number.isSafeInteger(convertedMicros)) {
+    throw new RangeError("La limite USDT dépasse la précision autorisée.");
+  }
+  return formatUsdtWithdrawalAmount(convertedMicros);
+}
+
 export function parseWithdrawalFeePercent(value: unknown): number | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
 

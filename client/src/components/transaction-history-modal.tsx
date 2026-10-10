@@ -149,6 +149,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       id: withdrawal.id,
                       kind: "withdrawal",
                       amount: withdrawal.amount,
+                      amountUsdt: withdrawal.amountUsdt,
                       currency: withdrawal.currency,
                       status: withdrawal.status,
                       createdAt: withdrawal.createdAt,
@@ -156,6 +157,8 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       paymentMethod: "USDT BEP20",
                       fees: withdrawal.fees,
                       netAmount: withdrawal.netAmount,
+                      feesUsdt: withdrawal.feesUsdt,
+                      netAmountUsdt: withdrawal.netAmountUsdt,
                     }}
                   />
                 ))
@@ -178,9 +181,13 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                         </p>
                         <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
                       </div>
-                      <p className={`shrink-0 text-[13px] ${Number(transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
-                        {Number(transaction.amount) < 0 ? "−" : "+"}
-                        {formatTransactionAmount(Number(transaction.amount), transaction.currency, lang)}
+                      <p className={`shrink-0 text-[13px] ${Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
+                        {Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount) < 0 ? "−" : "+"}
+                        {formatTransactionAmount(
+                          Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount),
+                          transaction.currency,
+                          lang,
+                        )}
                       </p>
                     </div>
                   </article>

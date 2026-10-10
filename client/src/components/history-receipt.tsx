@@ -19,6 +19,8 @@ export interface ReceiptTransaction {
   amountUsdt?: string | number | null;
   fees?: string | number | null;
   netAmount?: string | number | null;
+  feesUsdt?: string | number | null;
+  netAmountUsdt?: string | number | null;
 }
 
 const STATUS_META: Record<string, { tone: "success" | "pending" | "danger" }> = {
@@ -264,9 +266,13 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
   const statusTitle = copy.status[normalizedStatus as keyof typeof copy.status] || `Retrait ${normalizedStatus || "en cours"}`;
   const statusBadgeClass = STATUS_BADGE_CLASSES[status.tone];
   const currency = transaction.currency || "XOF";
-  const amount = `${formatAmount(transaction.amount, locale)} ${currency}`;
-  const netAmount = transaction.netAmount == null ? null : `${formatAmount(transaction.netAmount, locale)} ${currency}`;
-  const fees = transaction.fees == null ? null : `${formatAmount(transaction.fees, locale)} ${currency}`;
+  const isUsdt = currency.toUpperCase() === "USDT";
+  const amountValue = isUsdt ? transaction.amountUsdt ?? transaction.amount : transaction.amount;
+  const netAmountValue = isUsdt ? transaction.netAmountUsdt ?? transaction.netAmount : transaction.netAmount;
+  const feesValue = isUsdt ? transaction.feesUsdt ?? transaction.fees : transaction.fees;
+  const amount = `${formatAmount(amountValue, locale)} ${currency}`;
+  const netAmount = netAmountValue == null ? null : `${formatAmount(netAmountValue, locale)} ${currency}`;
+  const fees = feesValue == null ? null : `${formatAmount(feesValue, locale)} ${currency}`;
 
   return (
     <article

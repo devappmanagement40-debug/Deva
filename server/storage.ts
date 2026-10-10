@@ -34,6 +34,7 @@ import {
 } from "@shared/product-categories";
 import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
 import { getCustomerMarket, getMarketCurrency, isSupportedMarketCountryCode } from "@shared/country-codes";
+import { formatUsdtWithdrawalAmount, parseUsdtWithdrawalAmount } from "@shared/withdrawal-fees";
 import {
   amountToXofCents,
   calculatePurchaseDebitAllocation,
@@ -2024,8 +2025,20 @@ export class DatabaseStorage implements IStorage {
     maxPerDay: number,
   ): Promise<WithdrawalRequestCreationResult> {
     const userId = Number(data.userId);
-    const amount = Number(data.amount);
-    if (!Number.isSafeInteger(userId) || userId <= 0 || !Number.isSafeInteger(amount) || amount <= 0) {
+    const currency = data.currency?.toUpperCase() === "USDT" ? "USDT" : "XOF";
+    const amount = currency === "XOF" ? Number(data.amount) : 0;
+    const amountUsdtMicros = currency === "USDT"
+      ? parseUsdtWithdrawalAmount(data.amountUsdt)
+      : null;
+    const amountUsdt = amountUsdtMicros === null
+      ? null
+      : formatUsdtWithdrawalAmount(amountUsdtMicros);
+    if (
+      !Number.isSafeInteger(userId)
+      || userId <= 0
+      || (currency === "XOF" && (!Number.isSafeInteger(amount) || amount <= 0))
+      || (currency === "USDT" && amountUsdt === null)
+    ) {
       throw new RangeError("Invalid withdrawal reservation data.");
     }
     if (!Number.isSafeInteger(maxPerDay) || maxPerDay <= 0) {
@@ -2042,6 +2055,7 @@ export class DatabaseStorage implements IStorage {
         .select({
           id: users.id,
           totalEarnings: users.totalEarnings,
+          totalEarningsUsdt: users.totalEarningsUsdt,
           isWithdrawalBlocked: users.isWithdrawalBlocked,
         })
         .from(users)
@@ -2050,8 +2064,11 @@ export class DatabaseStorage implements IStorage {
       if (!user) return { status: "user_missing" };
       if (user.isWithdrawalBlocked) return { status: "withdrawal_blocked" };
 
-      const availableEarnings = Number(user.totalEarnings || "0");
-      if (!Number.isFinite(availableEarnings) || availableEarnings < amount) {
+      const requestedAmount = currency === "USDT" ? Number(amountUsdt) : amount;
+      const availableEarnings = Number(
+        currency === "USDT" ? user.totalEarningsUsdt || "0" : user.totalEarnings || "0",
+      );
+      if (!Number.isFinite(availableEarnings) || availableEarnings < requestedAmount) {
         return { status: "insufficient_balance" };
       }
 
@@ -2067,19 +2084,42 @@ export class DatabaseStorage implements IStorage {
         return { status: "daily_limit", limit: maxPerDay };
       }
 
-      const [debitedUser] = await tx
-        .update(users)
-        .set({ totalEarnings: sql`${users.totalEarnings} - ${amount}` })
-        .where(and(
-          eq(users.id, userId),
-          sql`${users.totalEarnings} >= ${amount}`,
-        ))
-        .returning({ id: users.id });
+      const [debitedUser] = currency === "USDT"
+        ? await tx
+            .update(users)
+            .set({
+              totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric - ${amountUsdt}::numeric)::numeric(15, 8)`,
+            })
+            .where(and(
+              eq(users.id, userId),
+              sql`COALESCE(${users.totalEarningsUsdt}, 0)::numeric >= ${amountUsdt}::numeric`,
+            ))
+            .returning({ id: users.id })
+        : await tx
+            .update(users)
+            .set({ totalEarnings: sql`${users.totalEarnings} - ${amount}` })
+            .where(and(
+              eq(users.id, userId),
+              sql`${users.totalEarnings} >= ${amount}`,
+            ))
+            .returning({ id: users.id });
       if (!debitedUser) return { status: "insufficient_balance" };
 
       const [withdrawal] = await tx
         .insert(withdrawals)
-        .values({ ...data, userId, amount } as any)
+        .values({
+          ...data,
+          userId,
+          amount,
+          ...(currency === "USDT"
+            ? {
+                currency: "USDT",
+                netAmount: 0,
+                fees: 0,
+                amountUsdt,
+              }
+            : { currency: "XOF" }),
+        } as any)
         .returning();
       if (!withdrawal) throw new Error("The withdrawal request could not be saved.");
 
@@ -2274,16 +2314,27 @@ export class DatabaseStorage implements IStorage {
 
       if (!withdrawal) return undefined;
 
-      const [user] = await tx
-        .update(users)
-        .set({ totalEarnings: sql`${users.totalEarnings} + ${withdrawal.amount}` })
-        .where(eq(users.id, withdrawal.userId))
-        .returning({ id: users.id });
+      const isUsdtWithdrawal = withdrawal.currency?.toUpperCase() === "USDT";
+      const [user] = isUsdtWithdrawal
+        ? await tx
+            .update(users)
+            .set({
+              totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${withdrawal.amountUsdt || "0"}::numeric)::numeric(15, 8)`,
+            })
+            .where(eq(users.id, withdrawal.userId))
+            .returning({ id: users.id })
+        : await tx
+            .update(users)
+            .set({ totalEarnings: sql`${users.totalEarnings} + ${withdrawal.amount}` })
+            .where(eq(users.id, withdrawal.userId))
+            .returning({ id: users.id });
       if (user) {
         await tx.insert(transactions).values({
           userId: user.id,
           type: "withdrawal_refund",
-          amount: withdrawal.amount.toString(),
+          amount: isUsdtWithdrawal ? "0" : withdrawal.amount.toString(),
+          ...(isUsdtWithdrawal ? { amountUsdt: withdrawal.amountUsdt || "0" } : {}),
+          currency: isUsdtWithdrawal ? "USDT" : "XOF",
           description: `Remboursement du retrait ${withdrawal.id}: ${reason}`,
         });
       }

@@ -392,6 +392,7 @@ export const transactions = pgTable("transactions", {
   userId: integer("user_id").notNull().references(() => users.id),
   type: text("type").notNull(),
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  amountUsdt: decimal("amount_usdt", { precision: 15, scale: 8 }),
   currency: text("currency").notNull().default("XOF"),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
