@@ -1,10 +1,10 @@
 ---
-name: Global USDT deposit crediting
-description: CI/Togo Mobile Money accepts XOF but credits USDT using the configured XOF/USDT rate; preserve original payment history.
+name: Global USDT deposit policy
+description: Deposits are crypto USDT only; remove Mobile Money and automatic XOF/USDT conversion while preserving historical records.
 ---
 
-CI/Togo Mobile Money deposits remain paid in XOF, but confirmed payments must credit the account in USDT using the configured XOF-per-USDT rate. The admin-configured rate is the source of truth; do not display or use a hardcoded rate. All countries share the global USDT account currency. Preserve pending quotes and historical ledger entries in their original currency.
+All countries use USDT for new account activity. The user explicitly wants Mobile Money deposit methods removed and the automatic XOF/USDT conversion rate no longer used. Keep USDT crypto deposits as the deposit method. Do not delete old Mobile Money records or historical XOF transactions; preserve them for audit. Legacy XOF account balances require an exact admin-entered USDT credit per account, with explicit confirmation before applying it.
 
-**Why:** the user now wants a site-wide USDT account currency while explicitly keeping CI/Togo Mobile Money payments in XOF.
+**Why:** the user now wants a site-wide USDT account currency and later superseded the earlier request to keep CI/Togo Mobile Money, explicitly asking to remove Mobile Money and the conversion rate.
 
-**How to apply:** For confirmed CI/Togo Mobile Money payments, convert the credited account amount using the current configured XOF/USDT rate; never credit XOF as though it were USDT 1:1. Store the original paid XOF amount and the resulting USDT credit so the ledger remains auditable. Preserve pending deposits. Existing XOF balances require a separate user-approved conversion decision.
+**How to apply:** Disable Mobile Money deposits in both UI and server routes; accept deposits in USDT crypto only. Keep legacy Mobile Money deposit records unchanged. Add a protected admin workflow for manual legacy-balance credits; never infer an exchange rate or silently map an XOF amount to USDT.

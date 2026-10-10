@@ -25,7 +25,6 @@ import {
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
-import { DEFAULT_XOF_PER_USDT, parseXofPerUsdt } from "@shared/financial-settings";
 import { pickWinningSpinWheelSegment } from "./spin-wheel-security";
 import {
   canPurchaseProductType,
@@ -107,7 +106,7 @@ export type SpinWheelExecutionResult =
   | { status: "no_winnable_segments" };
 
 export type DailyBonusClaimResult =
-  | { status: "claimed"; amount: number; currency: "XOF" | "USDT" }
+  | { status: "claimed"; amount: number; currency: "USDT" }
   | { status: "cooldown"; hoursRemaining: number }
   | { status: "user_missing" };
 
@@ -165,6 +164,23 @@ export interface IStorage {
   ): Promise<ProductPurchaseBatchResult>;
   updateUserProduct(id: number, data: Partial<UserProduct>): Promise<UserProduct>;
   revokeUserProduct(userId: number, userProductId: number): Promise<boolean>;
+  closeLegacyPurchasedProducts(): Promise<{ closedCount: number; pendingXof: number }>;
+  getLegacyProductClosureSummary(): Promise<{ activeCount: number; pendingXof: number }>;
+  getLegacyCurrencySummary(userId: number): Promise<{
+    depositXof: string;
+    earningsXof: string;
+    todayEarningsXof: string;
+    unpaidProductEarningsXof: string;
+    migratedAt: Date | null;
+    depositCreditUsdt: string | null;
+    earningsCreditUsdt: string | null;
+  }>;
+  applyLegacyUsdtCredit(
+    userId: number,
+    adminId: number,
+    depositCreditUsdt: string,
+    earningsCreditUsdt: string,
+  ): Promise<{ depositXof: string; earningsXof: string; unpaidProductEarningsXof: string }>;
   processEarnings(): Promise<void>;
   
   // Deposits
@@ -206,11 +222,11 @@ export interface IStorage {
   } | undefined>;
   approvePendingWithdrawalProof(
     id: number,
-    data: { shareBonusXof: number; displayAmountXof: number; processedAt: Date; processedBy: number },
+    data: { shareBonusUsdt: string; displayAmountUsdt: string; processedAt: Date; processedBy: number },
   ): Promise<WithdrawalProof | undefined>;
   reviewPendingWithdrawalProof(
     id: number,
-    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "displayAmountXof" | "processedAt" | "processedBy">,
+    data: Pick<WithdrawalProof, "status" | "shareBonusUsdt" | "displayAmountUsdt" | "processedAt" | "processedBy">,
   ): Promise<WithdrawalProof | undefined>;
 
   // Internal customer support chat
@@ -302,7 +318,7 @@ export interface IStorage {
   
   // Transactions
   createTransaction(data: Partial<Transaction>): Promise<Transaction>;
-  claimDailyBonus(userId: number, amount: number): Promise<DailyBonusClaimResult>;
+  claimDailyBonus(userId: number, amountUsdt: string): Promise<DailyBonusClaimResult>;
   getUserTransactions(userId: number): Promise<Transaction[]>;
   getUserTransactionsByType(userId: number, type: string): Promise<Transaction[]>;
   getDailyBonusTransactions(userId: number): Promise<Pick<Transaction, "amount" | "createdAt">[]>;
@@ -333,6 +349,7 @@ export interface IStorage {
     amount: string;
     amountMin?: string | null;
     amountMax?: string | null;
+    currency: "USDT";
     maxUses: number;
     expiresAt: Date;
     createdBy: number;
@@ -564,7 +581,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(data: Partial<Product>): Promise<Product> {
-    const market = data.market || "legacy";
+    const market = data.market || "international";
     const [lastProduct] = await db.select({ sortOrder: products.sortOrder })
       .from(products)
       .where(eq(products.market, market))
@@ -706,13 +723,10 @@ export class DatabaseStorage implements IStorage {
       if (!product) throw new Error("Produit non trouvé");
       if (!product.isActive) throw new Error("Ce produit n'est plus disponible");
       if (product.isFree) throw new Error("Ce produit n'est pas disponible à l'achat");
-      if (product.market !== getCustomerMarket(user.country)) {
-        throw new Error("Ce produit n'est pas disponible pour le marché de votre compte.");
+      if (product.market !== "international" || product.currency !== "USDT") {
+        throw new Error("Ce plan doit être reconfiguré en USDT avant de pouvoir être acheté.");
       }
-      const productCurrency = product.currency === "USDT" ? "USDT" : "XOF";
-      if (productCurrency !== getMarketCurrency(getCustomerMarket(user.country))) {
-        throw new Error("La devise du produit ne correspond pas au marché de votre compte.");
-      }
+      const productCurrency: "USDT" = "USDT";
       if (product.isUnavailable) throw new Error("Ce produit n'est pas encore disponible");
       if ((product.stockPercentage ?? 0) >= 100) {
         throw new Error("Ce produit est épuisé — stock complet");
@@ -875,20 +889,14 @@ export class DatabaseStorage implements IStorage {
         currency: "XOF" | "USDT";
         description: string;
       }> = [];
-      const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-      if (referralChain.length > 0 && xofPerUsdt === null) {
-        throw new Error("Le taux de conversion est indisponible pour calculer les commissions.");
-      }
-
       for (let purchaseIndex = 0; purchaseIndex < quantity; purchaseIndex += 1) {
         referralChain.forEach((sponsor, index) => {
           const sourceCommissionCents = Math.round(unitPriceCents * commissionRates[index]);
           const sponsorCurrency = getMarketCurrency(getCustomerMarket(sponsor.country));
-          const commissionCents = sponsorCurrency === productCurrency
-            ? sourceCommissionCents
-            : productCurrency === "USDT"
-              ? Math.round(sourceCommissionCents * (xofPerUsdt ?? 0))
-              : Math.round(sourceCommissionCents / (xofPerUsdt ?? 1));
+          if (productCurrency !== "USDT" || sponsorCurrency !== "USDT") {
+            throw new Error("Les commissions ne peuvent être calculées que sur des achats et comptes en USDT.");
+          }
+          const commissionCents = sourceCommissionCents;
           const commissionAmount = (commissionCents / 100).toFixed(2);
           const priorTotal = commissionTotals.get(sponsor.id);
           commissionTotals.set(sponsor.id, {
@@ -1115,6 +1123,215 @@ export class DatabaseStorage implements IStorage {
         .where(eq(users.id, userId));
 
       return true;
+    });
+  }
+
+  async getLegacyProductClosureSummary(): Promise<{ activeCount: number; pendingXof: number }> {
+    const rows = await db.select({
+      purchase: userProducts,
+      product: products,
+    }).from(userProducts)
+      .innerJoin(products, eq(userProducts.productId, products.id))
+      .where(eq(userProducts.isActive, true));
+    const legacyRows = rows.filter(({ purchase, product }) =>
+      (purchase.productSnapshot ?? product).currency !== "USDT",
+    );
+    const pendingXof = legacyRows.reduce((total, { purchase, product }) => {
+      const snapshot = purchase.productSnapshot ?? product;
+      if (purchase.earningsPaidAt) return total;
+      const unpaid = snapshot.collectAtEnd
+        ? Number(purchase.totalEarned || 0)
+        : Number(purchase.pendingEarnings || 0);
+      return total + (Number.isFinite(unpaid) ? Math.max(0, unpaid) : 0);
+    }, 0);
+    return { activeCount: legacyRows.length, pendingXof: Number(pendingXof.toFixed(2)) };
+  }
+
+  async closeLegacyPurchasedProducts(): Promise<{ closedCount: number; pendingXof: number }> {
+    return db.transaction(async (tx) => {
+      const activeRows = await tx.select({
+        purchase: userProducts,
+        product: products,
+      }).from(userProducts)
+        .innerJoin(products, eq(userProducts.productId, products.id))
+        .where(eq(userProducts.isActive, true))
+        .for("update");
+
+      const legacyRows = activeRows.filter(({ purchase, product }) => {
+        const snapshot = purchase.productSnapshot ?? product;
+        return snapshot.currency !== "USDT";
+      });
+      const ids = legacyRows.map(({ purchase }) => purchase.id);
+      const affectedUserIds = Array.from(new Set(legacyRows.map(({ purchase }) => purchase.userId)));
+      const pendingXof = legacyRows.reduce((total, { purchase, product }) => {
+        const snapshot = purchase.productSnapshot ?? product;
+        if (purchase.earningsPaidAt) return total;
+        const unpaid = snapshot.collectAtEnd
+          ? Number(purchase.totalEarned || 0)
+          : Number(purchase.pendingEarnings || 0);
+        return total + (Number.isFinite(unpaid) ? Math.max(0, unpaid) : 0);
+      }, 0);
+
+      if (ids.length > 0) {
+        await tx.update(userProducts)
+          .set({ isActive: false, daysRemaining: 0 })
+          .where(inArray(userProducts.id, ids));
+      }
+      for (const userId of affectedUserIds) {
+        const [remaining] = await tx.select({ id: userProducts.id })
+          .from(userProducts)
+          .where(and(eq(userProducts.userId, userId), eq(userProducts.isActive, true)))
+          .limit(1);
+        await tx.update(users)
+          .set({ hasActiveProduct: Boolean(remaining) })
+          .where(eq(users.id, userId));
+      }
+
+      return { closedCount: ids.length, pendingXof: Number(pendingXof.toFixed(2)) };
+    });
+  }
+
+  async getLegacyCurrencySummary(userId: number): Promise<{
+    depositXof: string;
+    earningsXof: string;
+    todayEarningsXof: string;
+    unpaidProductEarningsXof: string;
+    migratedAt: Date | null;
+    depositCreditUsdt: string | null;
+    earningsCreditUsdt: string | null;
+  }> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error("Utilisateur introuvable");
+    const rows = await db.select({
+      purchase: userProducts,
+      product: products,
+    }).from(userProducts)
+      .innerJoin(products, eq(userProducts.productId, products.id))
+      .where(eq(userProducts.userId, userId));
+    const unpaidProductEarningsXof = rows.reduce((total, { purchase, product }) => {
+      const snapshot = purchase.productSnapshot ?? product;
+      if (snapshot.currency === "USDT" || purchase.earningsPaidAt) return total;
+      const unpaid = snapshot.collectAtEnd
+        ? Number(purchase.totalEarned || 0)
+        : Number(purchase.pendingEarnings || 0);
+      return total + (Number.isFinite(unpaid) ? Math.max(0, unpaid) : 0);
+    }, 0);
+
+    return {
+      depositXof: user.balance,
+      earningsXof: user.totalEarnings,
+      todayEarningsXof: user.todayEarnings,
+      unpaidProductEarningsXof: unpaidProductEarningsXof.toFixed(2),
+      migratedAt: user.legacyCurrencyMigratedAt ?? null,
+      depositCreditUsdt: user.legacyDepositCreditUsdt ?? null,
+      earningsCreditUsdt: user.legacyEarningsCreditUsdt ?? null,
+    };
+  }
+
+  async applyLegacyUsdtCredit(
+    userId: number,
+    adminId: number,
+    depositCreditUsdt: string,
+    earningsCreditUsdt: string,
+  ): Promise<{ depositXof: string; earningsXof: string; unpaidProductEarningsXof: string }> {
+    const isUsdtAmount = (value: string) => /^\d+(?:\.\d{1,8})?$/.test(value)
+      && Number.isFinite(Number(value))
+      && Number(value) >= 0
+      && Number(value) <= 1_000_000_000;
+    if (!isUsdtAmount(depositCreditUsdt) || !isUsdtAmount(earningsCreditUsdt)) {
+      throw new Error("Saisissez deux montants USDT valides, positifs ou nuls, avec 8 décimales maximum.");
+    }
+
+    return db.transaction(async (tx) => {
+      const [user] = await tx.select().from(users)
+        .where(eq(users.id, userId))
+        .for("update");
+      if (!user) throw new Error("Utilisateur introuvable");
+      if (user.legacyCurrencyMigratedAt) {
+        throw new Error("Le crédit manuel de ce compte a déjà été appliqué.");
+      }
+
+      const rows = await tx.select({
+        purchase: userProducts,
+        product: products,
+      }).from(userProducts)
+        .innerJoin(products, eq(userProducts.productId, products.id))
+        .where(eq(userProducts.userId, userId))
+        .for("update");
+      const legacyRows = rows.filter(({ purchase, product }) =>
+        (purchase.productSnapshot ?? product).currency !== "USDT",
+      );
+      const unpaidProductEarningsXof = legacyRows.reduce((total, { purchase, product }) => {
+        const snapshot = purchase.productSnapshot ?? product;
+        if (purchase.earningsPaidAt) return total;
+        const unpaid = snapshot.collectAtEnd
+          ? Number(purchase.totalEarned || 0)
+          : Number(purchase.pendingEarnings || 0);
+        return total + (Number.isFinite(unpaid) ? Math.max(0, unpaid) : 0);
+      }, 0);
+      const legacyIds = legacyRows.map(({ purchase }) => purchase.id);
+
+      const depositXof = user.balance;
+      const earningsXof = user.totalEarnings;
+      const depositCredit = Number(depositCreditUsdt);
+      const earningsCredit = Number(earningsCreditUsdt);
+      const migratedAt = new Date();
+
+      await tx.update(users).set({
+        balance: "0",
+        totalEarnings: "0",
+        todayEarnings: "0",
+        balanceUsdt: sql`(COALESCE(${users.balanceUsdt}, 0)::numeric + ${depositCreditUsdt}::numeric)::numeric(15, 8)`,
+        totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${earningsCreditUsdt}::numeric)::numeric(15, 8)`,
+        todayEarningsUsdt: "0",
+        legacyCurrencyMigratedAt: migratedAt,
+        legacyCurrencyMigratedBy: adminId,
+        legacyDepositCreditUsdt: depositCreditUsdt,
+        legacyEarningsCreditUsdt: earningsCreditUsdt,
+      }).where(eq(users.id, userId));
+
+      if (legacyIds.length > 0) {
+        await tx.update(userProducts).set({
+          isActive: false,
+          daysRemaining: 0,
+          totalEarned: "0",
+          pendingEarnings: "0",
+          earningsPaidAt: migratedAt,
+        }).where(inArray(userProducts.id, legacyIds));
+      }
+      const [remainingProduct] = await tx.select({ id: userProducts.id })
+        .from(userProducts)
+        .where(and(eq(userProducts.userId, userId), eq(userProducts.isActive, true)))
+        .limit(1);
+      await tx.update(users).set({ hasActiveProduct: Boolean(remainingProduct) })
+        .where(eq(users.id, userId));
+
+      if (depositCredit > 0) {
+        await tx.insert(transactions).values({
+          userId,
+          type: "manual_usdt_migration",
+          amount: depositCredit.toFixed(2),
+          amountUsdt: depositCreditUsdt,
+          currency: "USDT",
+          description: "Crédit USDT manuel de l’ancien solde de dépôt",
+        });
+      }
+      if (earningsCredit > 0) {
+        await tx.insert(transactions).values({
+          userId,
+          type: "manual_usdt_migration",
+          amount: earningsCredit.toFixed(2),
+          amountUsdt: earningsCreditUsdt,
+          currency: "USDT",
+          description: "Crédit USDT manuel des anciens gains",
+        });
+      }
+
+      return {
+        depositXof,
+        earningsXof,
+        unpaidProductEarningsXof: unpaidProductEarningsXof.toFixed(2),
+      };
     });
   }
 
@@ -1552,11 +1769,8 @@ export class DatabaseStorage implements IStorage {
 
   async approvePendingWithdrawalProof(
     id: number,
-    data: { shareBonusXof: number; displayAmountXof: number; processedAt: Date; processedBy: number },
+    data: { shareBonusUsdt: string; displayAmountUsdt: string; processedAt: Date; processedBy: number },
   ): Promise<WithdrawalProof | undefined> {
-    const settings = await this.getSettings();
-    const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-    if (xofPerUsdt === null) throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
     return db.transaction(async (tx) => {
       const [proof] = await tx.update(withdrawalProofs)
         .set({ ...data, status: "approved" })
@@ -1565,20 +1779,15 @@ export class DatabaseStorage implements IStorage {
       if (!proof) return undefined;
 
       let bonusDetails = "aucune prime de partage";
-      if (proof.shareBonusXof > 0) {
-        const [user] = await tx.select({ country: users.country })
+      const bonusAmount = Number(proof.shareBonusUsdt || "0");
+      if (bonusAmount > 0) {
+        const [user] = await tx.select({ id: users.id })
           .from(users)
           .where(eq(users.id, proof.userId))
           .for("update");
         if (!user) throw new Error("Utilisateur introuvable pour créditer la prime de partage.");
-        const currency = getMarketCurrency(getCustomerMarket(user.country));
-        const amount = currency === "USDT"
-          ? Number((proof.shareBonusXof / xofPerUsdt).toFixed(8))
-          : proof.shareBonusXof;
         const [creditedUser] = await tx.update(users)
-          .set(currency === "USDT"
-            ? { totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${amount.toFixed(8)}::numeric)::numeric(15, 8)` }
-            : { totalEarnings: sql`${users.totalEarnings} + ${amount}` })
+          .set({ totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${proof.shareBonusUsdt}::numeric)::numeric(15, 8)` })
           .where(eq(users.id, proof.userId))
           .returning({ id: users.id });
         if (!creditedUser) {
@@ -1588,15 +1797,15 @@ export class DatabaseStorage implements IStorage {
         await tx.insert(transactions).values({
           userId: proof.userId,
           type: "withdrawal_proof_bonus",
-          amount: currency === "USDT" ? amount.toFixed(8) : amount.toString(),
-          currency,
+          amount: proof.shareBonusUsdt,
+          currency: "USDT",
           description: `Prime de partage de preuve de retrait #${proof.id}`,
         });
-        bonusDetails = `prime de partage ${amount} ${currency} créditée au solde des gains`;
+        bonusDetails = `prime de partage ${proof.shareBonusUsdt} USDT créditée au solde des gains`;
       }
 
-      const displayDetails = proof.displayAmountXof > 0
-        ? `montant indicatif ${proof.displayAmountXof} XOF affiché publiquement sans crédit`
+      const displayDetails = Number(proof.displayAmountUsdt) > 0
+        ? `montant indicatif ${proof.displayAmountUsdt} USDT affiché publiquement sans crédit`
         : "aucun montant indicatif affiché";
       await tx.insert(adminAuditLog).values({
         adminId: data.processedBy,
@@ -1611,7 +1820,7 @@ export class DatabaseStorage implements IStorage {
 
   async reviewPendingWithdrawalProof(
     id: number,
-    data: Pick<WithdrawalProof, "status" | "shareBonusXof" | "displayAmountXof" | "processedAt" | "processedBy">,
+    data: Pick<WithdrawalProof, "status" | "shareBonusUsdt" | "displayAmountUsdt" | "processedAt" | "processedBy">,
   ): Promise<WithdrawalProof | undefined> {
     const [proof] = await db.update(withdrawalProofs)
       .set(data)
@@ -2747,12 +2956,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTask(data: AdminTaskCreateInput): Promise<Task> {
-    const [task] = await db.insert(tasks).values({ ...data, isActive: true }).returning();
+    const [task] = await db.insert(tasks).values({
+      ...data,
+      reward: 0,
+      rewardUsdt: String(data.rewardUsdt),
+      isActive: true,
+    }).returning();
     return task;
   }
 
   async updateTask(id: number, data: AdminTaskUpdateInput): Promise<Task | undefined> {
-    const [task] = await db.update(tasks).set(data).where(eq(tasks.id, id)).returning();
+    const { rewardUsdt, ...otherFields } = data;
+    const updateData = rewardUsdt === undefined
+      ? otherFields
+      : { ...otherFields, rewardUsdt: String(rewardUsdt) };
+    const [task] = await db.update(tasks).set(updateData).where(eq(tasks.id, id)).returning();
     return task;
   }
 
@@ -2782,15 +3000,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTasksWithStatus(userId: number): Promise<TaskWithStatus[]> {
-    const allTasks = await this.getTasks();
+    const allTasks = (await this.getTasks()).filter((task) => Number(task.rewardUsdt || "0") > 0);
     const user = await this.getUser(userId);
     if (!user) return [];
-    const currency = getMarketCurrency(getCustomerMarket(user.country));
-    const settings = currency === "USDT" ? await this.getSettings() : {};
-    const xofPerUsdt = currency === "USDT"
-      ? parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT)
-      : DEFAULT_XOF_PER_USDT;
-    if (xofPerUsdt === null) throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
 
     const level1Refs = await this.getReferrals(userId, 1);
     // Active member = direct referral not banned who has at least one active
@@ -2822,15 +3034,11 @@ export class DatabaseStorage implements IStorage {
     return allTasks.map((task) => {
       const claim = claimsByTaskId.get(task.id);
       const isCompleted = Boolean(claim);
-      const rewardXof = Number(formatTaskRewardAmount(task.reward));
       const configuredUsdtReward = Number(task.rewardUsdt || "0");
-      const displayReward = currency === "USDT"
-        ? configuredUsdtReward > 0 ? configuredUsdtReward : Number((rewardXof / xofPerUsdt).toFixed(8))
-        : task.reward;
       return {
         ...task,
-        reward: displayReward,
-        rewardCurrency: currency,
+        reward: configuredUsdtReward,
+        rewardCurrency: "USDT",
         isCompleted,
         canClaim: canClaimTask(currentInvites, task.requiredInvites, isCompleted),
         currentInvites,
@@ -2859,10 +3067,7 @@ export class DatabaseStorage implements IStorage {
 
     const claimant = await this.getUser(userId);
     if (!claimant) throw new Error("Utilisateur non trouvé");
-    const settings = await this.getSettings();
-    const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-    if (xofPerUsdt === null) throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
-    const rewardCurrency = getMarketCurrency(getCustomerMarket(claimant.country));
+    const rewardCurrency = "USDT" as const;
 
     let claimedReward = 0;
     try {
@@ -2885,11 +3090,8 @@ export class DatabaseStorage implements IStorage {
           throw new Error(`Invitations insuffisantes (${taskStatus.currentInvites}/${currentTask.requiredInvites})`);
         }
 
-        const rewardXof = Number(formatTaskRewardAmount(currentTask.reward));
         const configuredUsdtReward = Number(currentTask.rewardUsdt || "0");
-        const rewardAmount = rewardCurrency === "USDT"
-          ? configuredUsdtReward > 0 ? configuredUsdtReward : rewardXof / xofPerUsdt
-          : rewardXof;
+        const rewardAmount = configuredUsdtReward;
         if (!Number.isFinite(rewardAmount) || rewardAmount <= 0) {
           throw new Error("Montant de récompense invalide.");
         }
@@ -2951,24 +3153,20 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(transactions.createdAt));
   }
 
-  async claimDailyBonus(userId: number, amount: number): Promise<DailyBonusClaimResult> {
-    if (!Number.isInteger(amount) || amount < 50 || amount > 100) {
-      throw new Error("La récompense de pointage doit être un entier entre 50 et 100 XOF");
-    }
-    const settings = await this.getSettings();
-    const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-    if (xofPerUsdt === null) throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
+  async claimDailyBonus(userId: number, amountUsdt: string): Promise<DailyBonusClaimResult> {
+    const amountMicros = parseUsdtWithdrawalAmount(amountUsdt);
+    if (amountMicros === null) throw new Error("La récompense de pointage USDT est invalide.");
+    const creditedAmount = amountMicros / 1_000_000;
+    const amountString = formatUsdtWithdrawalAmount(amountMicros);
 
     return db.transaction(async (tx) => {
       const [user] = await tx
-        .select({ country: users.country, lastDailyBonusClaim: users.lastDailyBonusClaim })
+        .select({ lastDailyBonusClaim: users.lastDailyBonusClaim })
         .from(users)
         .where(eq(users.id, userId))
         .for("update");
 
       if (!user) return { status: "user_missing" };
-      const currency = getMarketCurrency(getCustomerMarket(user.country));
-      const creditedAmount = currency === "USDT" ? Number((amount / xofPerUsdt).toFixed(8)) : amount;
 
       const now = new Date();
       const hoursRemaining = getDailyBonusHoursRemaining(user.lastDailyBonusClaim, now);
@@ -2976,26 +3174,22 @@ export class DatabaseStorage implements IStorage {
         return { status: "cooldown", hoursRemaining };
       }
 
-      await tx.update(users).set(currency === "USDT" ? {
-        totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${creditedAmount.toFixed(8)}::numeric)::numeric(15, 8)`,
-        todayEarningsUsdt: sql`(COALESCE(${users.todayEarningsUsdt}, 0)::numeric + ${creditedAmount.toFixed(8)}::numeric)::numeric(15, 8)`,
-        lastDailyBonusClaim: now,
-      } : {
-        totalEarnings: sql`${users.totalEarnings} + ${creditedAmount}`,
-        todayEarnings: sql`${users.todayEarnings} + ${creditedAmount}`,
+      await tx.update(users).set({
+        totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${amountString}::numeric)::numeric(15, 8)`,
+        todayEarningsUsdt: sql`(COALESCE(${users.todayEarningsUsdt}, 0)::numeric + ${amountString}::numeric)::numeric(15, 8)`,
         lastDailyBonusClaim: now,
       }).where(eq(users.id, userId));
 
       await tx.insert(transactions).values({
         userId,
         type: "bonus",
-        amount: currency === "USDT" ? creditedAmount.toFixed(8) : String(creditedAmount),
-        currency,
-        description: `Pointage quotidien : +${creditedAmount} ${currency}`,
+        amount: amountString,
+        currency: "USDT",
+        description: `Pointage quotidien : +${amountString} USDT`,
         createdAt: now,
       });
 
-      return { status: "claimed", amount: creditedAmount, currency };
+      return { status: "claimed", amount: creditedAmount, currency: "USDT" };
     });
   }
 
@@ -3306,6 +3500,7 @@ export class DatabaseStorage implements IStorage {
     amount: string;
     amountMin?: string | null;
     amountMax?: string | null;
+    currency: "USDT";
     maxUses: number;
     expiresAt: Date;
     createdBy: number;
@@ -3329,10 +3524,7 @@ export class DatabaseStorage implements IStorage {
     userId: number,
     giftCodeId: number,
     amount: number,
-  ): Promise<{ amount: number; currency: "XOF" | "USDT" }> {
-    const settings = await this.getSettings();
-    const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-    if (xofPerUsdt === null) throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
+  ): Promise<{ amount: number; currency: "USDT" }> {
     return db.transaction(async (tx) => {
       const [giftCode] = await tx.select().from(giftCodes)
         .where(eq(giftCodes.id, giftCodeId))
@@ -3344,30 +3536,25 @@ export class DatabaseStorage implements IStorage {
       if (!giftCode) throw new Error("Code cadeau introuvable");
       if (!user) throw new Error("Utilisateur non trouvé");
 
-      const sourceCurrency = giftCode.currency || "XOF";
-      const currency = getMarketCurrency(getCustomerMarket(user.country));
-      const creditedAmount = sourceCurrency === currency
-        ? amount
-        : sourceCurrency === "XOF"
-          ? Number((amount / xofPerUsdt).toFixed(8))
-          : Number((amount * xofPerUsdt).toFixed(2));
+      if (giftCode.currency !== "USDT") {
+        throw new Error("Ce code cadeau est dans l’ancienne devise et ne peut pas être converti automatiquement. Demandez à l’administration un code USDT.");
+      }
+      if (!Number.isFinite(amount) || amount <= 0) throw new Error("Montant du code cadeau invalide.");
       await tx.insert(giftCodeClaims).values({ userId, giftCodeId });
       await tx.update(giftCodes).set({
         currentUses: sql`${giftCodes.currentUses} + 1`
       }).where(eq(giftCodes.id, giftCodeId));
-      await tx.update(users).set(currency === "USDT" ? {
-        totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${creditedAmount.toFixed(8)}::numeric)::numeric(15, 8)`,
-      } : {
-        totalEarnings: sql`${users.totalEarnings} + ${creditedAmount.toFixed(2)}`,
+      await tx.update(users).set({
+        totalEarningsUsdt: sql`(COALESCE(${users.totalEarningsUsdt}, 0)::numeric + ${amount.toFixed(8)}::numeric)::numeric(15, 8)`,
       }).where(eq(users.id, userId));
       await tx.insert(transactions).values({
         userId,
         type: "gift_code",
-        amount: currency === "USDT" ? creditedAmount.toFixed(8) : creditedAmount.toFixed(2),
-        currency,
+        amount: amount.toFixed(8),
+        currency: "USDT",
         description: `Bonus code cadeau`
       });
-      return { amount: creditedAmount, currency };
+      return { amount, currency: "USDT" };
     });
   }
 

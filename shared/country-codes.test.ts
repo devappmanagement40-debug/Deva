@@ -1,6 +1,7 @@
 import { equal } from "node:assert/strict";
 import { test } from "node:test";
 import {
+  getCustomerMarket,
   isCountryCode,
   isSupportedMarketCountryCode,
   SUPPORTED_MARKET_COUNTRY_CODES,
@@ -18,12 +19,16 @@ test("country code validation accepts known uppercase phone regions", () => {
   equal(isCountryCode("1A"), false);
 });
 
-test("only Côte d'Ivoire and Togo are supported customer markets", () => {
+test("country metadata remains available while every country uses the global market", () => {
   equal(SUPPORTED_MARKET_COUNTRY_CODES.join(","), "CI,TG");
   equal(isSupportedMarketCountryCode("CI"), true);
   equal(isSupportedMarketCountryCode("TG"), true);
   equal(isSupportedMarketCountryCode("CD"), false);
   equal(isSupportedMarketCountryCode("GH"), false);
+  equal(getCustomerMarket("CI"), "international");
+  equal(getCustomerMarket("TG"), "international");
+  equal(getCustomerMarket("CD"), "international");
+  equal(getCustomerMarket("US"), "international");
 });
 
 test("registration and login accept phone countries worldwide and reject invalid codes", () => {

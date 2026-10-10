@@ -12,7 +12,7 @@ import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-lands
 
 type WithdrawalAsset = "Mobile Money" | "USDT";
 
-const WITHDRAWAL_ASSET: WithdrawalAsset = "Mobile Money";
+const WITHDRAWAL_ASSET: WithdrawalAsset = "USDT";
 const WITHDRAWAL_NETWORK = "USDT BEP20";
 
 type PickerType = "asset" | "network" | null;

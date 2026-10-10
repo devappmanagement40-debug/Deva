@@ -20,11 +20,10 @@ import {
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import {
-  DEFAULT_DEPOSIT_PRESET_AMOUNTS,
-  DEFAULT_MIN_DEPOSIT_XOF,
-  DEFAULT_MIN_WITHDRAWAL_XOF,
-  DEFAULT_XOF_PER_USDT,
-  parseXofPerUsdt,
+  DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT,
+  DEFAULT_MAX_WITHDRAWAL_USDT,
+  DEFAULT_MIN_DEPOSIT_USDT,
+  DEFAULT_MIN_WITHDRAWAL_USDT,
 } from "@shared/financial-settings";
 
 const commissionRateSchema = z.string()
@@ -43,13 +42,13 @@ const withdrawalFeeSchema = z.string()
     "Saisissez un taux entre 0 et 99 %, avec au plus 2 décimales",
   );
 
-const xofPerUsdtSchema = z.string()
+const usdtAmountSchema = z.string()
   .trim()
-  .min(1, "Taux requis")
-  .refine(
-    (value) => parseXofPerUsdt(value) !== null,
-    "Saisissez un entier entre 1 et 1 000 000 XOF",
-  );
+  .min(1, "Montant requis")
+  .refine((value) => /^\d{1,15}(?:\.\d{1,6})?$/.test(value) && Number(value) > 0, "Saisissez un montant USDT positif avec 6 décimales maximum.");
+const nonNegativeUsdtAmountSchema = z.string()
+  .trim()
+  .refine((value) => /^\d{1,15}(?:\.\d{1,6})?$/.test(value) && Number(value) >= 0 && Number(value) <= 100_000, "Saisissez un montant compris entre 0 et 100 000 USDT.");
 
 const NETWORKS = [
   { value: "telegram", label: "Telegram" },
@@ -79,12 +78,13 @@ const settingsSchema = z.object({
   support2Enabled: z.boolean(),
   channelEnabled: z.boolean(),
   groupEnabled: z.boolean(),
-  minDeposit: z.string().min(1, "Montant requis"),
-  xofPerUsdt: xofPerUsdtSchema,
-  depositPresetAmounts: z.string().min(1, "Montants requis"),
-  minWithdrawal: z.string().min(1, "Montant requis"),
+  minDepositUsdt: usdtAmountSchema,
+  depositPresetAmountsUsdt: z.string().min(1, "Montants requis"),
+  minWithdrawalUsdt: usdtAmountSchema,
+  dailyBonusMinUsdt: nonNegativeUsdtAmountSchema,
+  dailyBonusMaxUsdt: nonNegativeUsdtAmountSchema,
   withdrawalFees: withdrawalFeeSchema,
-  maxWithdrawal: z.string().min(1, "Montant requis"),
+  maxWithdrawalUsdt: usdtAmountSchema,
   withdrawalEnabled: z.boolean(),
   maxWithdrawalsPerDay: z.string().min(1, "Requis"),
   withdrawalInstructions: z.string().optional(),
@@ -268,12 +268,13 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled: false,
       channelEnabled: true,
       groupEnabled: false,
-      minDeposit: String(DEFAULT_MIN_DEPOSIT_XOF),
-      xofPerUsdt: String(DEFAULT_XOF_PER_USDT),
-      depositPresetAmounts: DEFAULT_DEPOSIT_PRESET_AMOUNTS,
-      minWithdrawal: String(DEFAULT_MIN_WITHDRAWAL_XOF),
+      minDepositUsdt: DEFAULT_MIN_DEPOSIT_USDT,
+      depositPresetAmountsUsdt: DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT,
+      minWithdrawalUsdt: DEFAULT_MIN_WITHDRAWAL_USDT,
+      dailyBonusMinUsdt: "0",
+      dailyBonusMaxUsdt: "0",
       withdrawalFees: String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
-      maxWithdrawal: "1000000",
+      maxWithdrawalUsdt: DEFAULT_MAX_WITHDRAWAL_USDT,
       withdrawalEnabled: true,
       maxWithdrawalsPerDay: "1",
       withdrawalInstructions: "",
@@ -317,12 +318,13 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       support2Enabled:        settings.support2Enabled        !== "false",
       channelEnabled:         settings.channelEnabled         !== "false",
       groupEnabled:           settings.groupEnabled           !== "false",
-      minDeposit:             settings.minDeposit             ?? String(DEFAULT_MIN_DEPOSIT_XOF),
-      xofPerUsdt:             settings.xofPerUsdt             ?? String(DEFAULT_XOF_PER_USDT),
-      depositPresetAmounts:   settings.depositPresetAmounts   ?? DEFAULT_DEPOSIT_PRESET_AMOUNTS,
-      minWithdrawal:          settings.minWithdrawal          ?? String(DEFAULT_MIN_WITHDRAWAL_XOF),
+      minDepositUsdt:         settings.minDepositUsdt         ?? DEFAULT_MIN_DEPOSIT_USDT,
+      depositPresetAmountsUsdt: settings.depositPresetAmountsUsdt ?? DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT,
+      minWithdrawalUsdt:      settings.minWithdrawalUsdt      ?? DEFAULT_MIN_WITHDRAWAL_USDT,
+      dailyBonusMinUsdt:      settings.dailyBonusMinUsdt      ?? "0",
+      dailyBonusMaxUsdt:      settings.dailyBonusMaxUsdt      ?? "0",
       withdrawalFees:         settings.withdrawalFees         ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
-      maxWithdrawal:          settings.maxWithdrawal          ?? "1000000",
+      maxWithdrawalUsdt:      settings.maxWithdrawalUsdt      ?? DEFAULT_MAX_WITHDRAWAL_USDT,
       withdrawalEnabled:      settings.withdrawalEnabled      !== "false",
       maxWithdrawalsPerDay:   settings.maxWithdrawalsPerDay   ?? "1",
       withdrawalInstructions: settings.withdrawalInstructions ?? "",
@@ -336,7 +338,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
       popupTelegramLabel:     settings.popupTelegramLabel     ?? "",
       popupConfirmLabel:      settings.popupConfirmLabel      ?? "",
        popupLine1:             rebrandText(settings.popupLine1 || "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !"),
-       popupLine2:             rebrandText(settings.popupLine2 || "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20"),
+       popupLine2:             rebrandText(settings.popupLine2 || "💚 Dépôts crypto en USDT disponibles"),
        popupLine3:             rebrandText(settings.popupLine3 || "💚 Les frais de retrait sont affichés avant confirmation."),
         popupLine4:             rebrandText(settings.popupLine4 ?? ""),
        popupLine5:             rebrandText(settings.popupLine5 || "👥 Invitez vos amis et gagnez des commissions"),
@@ -757,7 +759,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
               <p className="text-sm font-semibold text-foreground">Mode de retrait actuel</p>
               <p className="mt-1 text-lg font-bold text-primary">USDT BEP20</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Méthode unique disponible. L'utilisateur doit fournir un numéro Mobile Money.
+                Méthode unique disponible. Le membre doit fournir une adresse USDT BEP20.
               </p>
               <FormField control={form.control} name="withdrawalEnabled" render={({ field }) => (
                 <FormItem className="mt-3 flex items-center justify-between rounded-md border bg-background/60 p-3 space-y-0">
@@ -777,35 +779,41 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             {/* Mode de traitement des retraits */}
             <WithdrawalModeToggle />
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="minDeposit" render={({ field }) => (
+              <FormField control={form.control} name="minDepositUsdt" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Recharge minimum (XOF)</FormLabel>
+                  <FormLabel>Dépôt crypto minimum (USDT)</FormLabel>
                   <FormControl><Input {...field} type="number" min="0" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="xofPerUsdt" render={({ field }) => (
+              <FormField control={form.control} name="dailyBonusMinUsdt" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Taux dépôt USDT (XOF pour 1 USDT)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="1" max="1000000" step="1" /></FormControl>
-                  <FormDescription>
-                    Utilisé pour les nouveaux dépôts USDT BEP20. Le taux n’est pas affiché aux membres; leur solde reste crédité en XOF.
-                  </FormDescription>
+                  <FormLabel>Bonus quotidien minimum (USDT)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="0" step="0.000001" /></FormControl>
+                  <FormDescription>Mettre 0 désactive le bonus jusqu’à sa configuration.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="depositPresetAmounts" render={({ field }) => (
+              <FormField control={form.control} name="dailyBonusMaxUsdt" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bonus quotidien maximum (USDT)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="0" step="0.000001" /></FormControl>
+                  <FormDescription>Doit être supérieur ou égal au minimum.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="depositPresetAmountsUsdt" render={({ field }) => (
                 <FormItem className="col-span-2">
-                  <FormLabel>Montants rapides de recharge (XOF)</FormLabel>
-                  <FormControl><Input {...field} placeholder={DEFAULT_DEPOSIT_PRESET_AMOUNTS} /></FormControl>
-                  <FormDescription>Liste de montants séparés par des virgules, affichés comme boutons rapides sur la page de recharge.</FormDescription>
+                  <FormLabel>Montants rapides de dépôt (USDT)</FormLabel>
+                  <FormControl><Input {...field} placeholder={DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT} /></FormControl>
+                  <FormDescription>Montants séparés par des virgules. Aucun taux de conversion n’est appliqué.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="minWithdrawal" render={({ field }) => (
+              <FormField control={form.control} name="minWithdrawalUsdt" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Retrait minimum (XOF)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormLabel>Retrait minimum (USDT)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="0" step="0.000001" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -819,10 +827,10 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="maxWithdrawal" render={({ field }) => (
+              <FormField control={form.control} name="maxWithdrawalUsdt" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Retrait maximum (XOF)</FormLabel>
-                  <FormControl><Input {...field} type="number" min="0" /></FormControl>
+                  <FormLabel>Retrait maximum (USDT)</FormLabel>
+                  <FormControl><Input {...field} type="number" min="0" step="0.000001" /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -845,7 +853,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
                   <textarea
                     {...field}
                     rows={6}
-                    placeholder={"1. Le montant minimum de retrait est de 1 000 XOF\n2. Des frais sont retenus sur le montant demandé\n3. Choisissez Mobile Money ou USDT BEP20 selon les options disponibles\n4. Maximum 1 retrait par jour"}
+                    placeholder={"1. Le montant minimum de retrait est configuré en USDT\n2. Des frais sont retenus sur le montant demandé\n3. Les retraits sont effectués uniquement en USDT BEP20\n4. Maximum 1 retrait par jour"}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-y"
                   />
                 </FormControl>
@@ -982,7 +990,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             ))}
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
+              { name: "popupLine2" as const, label: "Ligne 2 — Dépôt minimum", placeholder: "🤝 Dépôt minimum : 2 USDT — Dépôt sécurisé en USDT BEP20" },
               { name: "popupLine3" as const, label: "Ligne 3 — Frais de retrait", placeholder: "💚 Les frais de retrait sont affichés avant confirmation." },
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
@@ -1016,7 +1024,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-gray-400">
-              Configurez votre compte WestPay pour activer les dépôts automatiques Mobile Money.
+              WestPay et Mobile Money sont désactivés. Les nouveaux dépôts sont traités en USDT via NOWPayments.
               Le slug marchand se trouve dans votre tableau de bord WestPay.
               Le secret webhook est généré automatiquement à la création de votre URL webhook.
             </p>

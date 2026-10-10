@@ -100,7 +100,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipAmountRemaining: "Passer au VIP {level} : il vous manque encore {amount} XOF",
+    vipAmountRemaining: "Passer au VIP {level} : il vous manque encore {amount} USDT",
     vipThresholdPending: "Le seuil du VIP {level} doit être configuré dans l’administration.",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
@@ -136,7 +136,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipAmountRemaining: "Reach VIP {level}: {amount} XOF remaining",
+    vipAmountRemaining: "Reach VIP {level}: {amount} USDT remaining",
     vipThresholdPending: "The VIP {level} threshold must be configured by an administrator.",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
@@ -172,7 +172,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipAmountRemaining: "للوصول إلى VIP {level}، يتبقى {amount} XOF",
+    vipAmountRemaining: "للوصول إلى VIP {level}، يتبقى {amount} USDT",
     vipThresholdPending: "يجب على المسؤول إعداد حد VIP {level}.",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
@@ -208,7 +208,7 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipAmountRemaining: "距离 VIP {level} 还差 {amount} XOF",
+    vipAmountRemaining: "距离 VIP {level} 还差 {amount} USDT",
     vipThresholdPending: "VIP {level} 的门槛需要由管理员设置。",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
@@ -273,8 +273,10 @@ export default function AccountPage() {
   const { toast } = useToast();
   const { t, lang } = useI18n();
   const copy = COPY[lang];
-  const depositAmount = Number(user?.balance);
-  const earningsAmount = Number(user?.totalEarnings);
+  const depositAmount = Number(user?.balanceUsdt);
+  const earningsAmount = Number(user?.totalEarningsUsdt);
+  const legacyDepositAmount = Number(user?.balance);
+  const legacyEarningsAmount = Number(user?.totalEarnings);
   const displayedBalance =
     (Number.isFinite(depositAmount) ? depositAmount : 0) +
     (Number.isFinite(earningsAmount) ? earningsAmount : 0);
@@ -298,13 +300,13 @@ export default function AccountPage() {
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
   const nextVipMessage = vipProgress.nextLevel === null
     ? copy.vipMax
-    : vipProgress.amountRemainingXof === null
+    : vipProgress.amountRemainingUsdt === null
       ? copy.vipThresholdPending.replace("{level}", String(vipProgress.nextLevel))
       : copy.vipAmountRemaining
           .replace("{level}", String(vipProgress.nextLevel))
           .replace(
             "{amount}",
-            Math.ceil(vipProgress.amountRemainingXof).toLocaleString(lang, { maximumFractionDigits: 0 }),
+            Math.ceil(vipProgress.amountRemainingUsdt).toLocaleString(lang, { maximumFractionDigits: 0 }),
           );
 
   useEffect(() => {
@@ -485,7 +487,12 @@ export default function AccountPage() {
           <section className="ielp-account-balance-card" aria-label={copy.balance}>
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
-              <strong>{displayedBalance.toLocaleString()} FCFA</strong>
+              <strong>{displayedBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT</strong>
+              {(legacyDepositAmount > 0 || legacyEarningsAmount > 0) && (
+                <small className="mt-1 block text-xs font-normal text-amber-700">
+                  Ancien solde XOF conservé sans conversion automatique; rapprochez-le avec l’administration.
+                </small>
+              )}
             </div>
             <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
               {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (

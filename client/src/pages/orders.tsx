@@ -104,7 +104,7 @@ export default function OrdersPage() {
               const details = [
                 {
                   label: t.ordersDailyLbl,
-                  value: <>{formatProductCardAmount(Number(product.dailyEarnings || 0))} <small>XOF</small></>,
+                  value: <>{formatProductCardAmount(Number(product.dailyEarnings || 0))} <small>USDT</small></>,
                 },
                 {
                   label: t.ordersCycleLbl,
@@ -112,7 +112,7 @@ export default function OrdersPage() {
                 },
                 {
                   label: t.totalRevenue,
-                  value: <>{formatProductCardAmount(Number(product.totalReturn || 0))} <small>XOF</small></>,
+                  value: <>{formatProductCardAmount(Number(product.totalReturn || 0))} <small>USDT</small></>,
                 },
                 ...(productIsActive ? [{
                   label: t.ordersRemainingLbl,
@@ -120,7 +120,7 @@ export default function OrdersPage() {
                 }] : []),
                 {
                   label: t.ordersTotalEarnedLbl,
-                  value: <>{formatProductCardAmount(totalEarned)} <small>XOF</small></>,
+                  value: <>{formatProductCardAmount(totalEarned)} <small>USDT</small></>,
                 },
                 {
                   label: t.ordersDateLbl,

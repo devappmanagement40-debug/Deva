@@ -12,7 +12,7 @@ type ProofFeedItem = {
   id: number;
   message: string;
   imageCount: 1 | 2;
-  displayAmountXof: number;
+  displayAmountUsdt: number;
   createdAt: string;
   maskedPhone: string;
 };
@@ -347,10 +347,10 @@ export default function WithdrawalProofsPage() {
                         })}
                       </div>
                   </div>
-                  {Number(item.displayAmountXof) > 0 && (
+                  {Number(item.displayAmountUsdt) > 0 && (
                     <div className="withdrawal-proof-card__bonus">
-                       <span>Montant indicatif (non crédité)</span>
-                      <strong data-no-static-translation>{numberFormat.format(Number(item.displayAmountXof))} <small>XOF</small></strong>
+                      <span>Montant indicatif (non crédité)</span>
+                      <strong data-no-static-translation>{numberFormat.format(Number(item.displayAmountUsdt))} <small>USDT</small></strong>
                     </div>
                   )}
                 </article>

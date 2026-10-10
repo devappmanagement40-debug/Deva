@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
-import { Copy, Edit, Image as ImageIcon, Loader2, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
@@ -296,14 +296,14 @@ export default function AdminProducts() {
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedMarket, setSelectedMarket] = useState<"legacy" | "international">("legacy");
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/admin/products/all"],
   });
-  const visibleProducts = (products || []).filter((product) =>
-    (product.market || "legacy") === selectedMarket,
-  );
+  const visibleProducts = products || [];
+  const { data: legacyPositionSummary } = useQuery<{ activeCount: number; pendingXof: number }>({
+    queryKey: ["/api/admin/currency-migration/summary"],
+  });
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: String(DEFAULT_EXPLORE_CYCLE_DAYS),
@@ -317,8 +317,8 @@ export default function AdminProducts() {
     mutationFn: async (data: ProductForm) => {
       const res = await apiRequest("POST", "/api/admin/products", {
         ...data,
-        market: selectedMarket,
-        currency: selectedMarket === "international" ? "USDT" : "XOF",
+        market: "international",
+        currency: "USDT",
       });
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || "Erreur"); }
       return res.json();
@@ -333,30 +333,13 @@ export default function AdminProducts() {
     onError: (e: any) => toast({ title: e.message || "Erreur", variant: "destructive" }),
   });
 
-  const duplicateInternationalMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await apiRequest("POST", `/api/admin/products/${id}/duplicate-international`, {});
-      if (!res.ok) { const r = await res.json(); throw new Error(r.message || "Erreur"); }
-      return res.json() as Promise<{ product: Product; alreadyExists: boolean }>;
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/products/all"] });
-      setSelectedMarket("international");
-      toast({
-        title: result.alreadyExists ? "Ce plan existe déjà en USDT" : "Copie créée dans les plans internationaux",
-        description: result.alreadyExists
-          ? "Ouvrez le plan USDT existant pour le modifier."
-          : "L’image et la présentation sont copiées. Configurez le prix et les gains USDT avant de le rendre disponible.",
-      });
-    },
-    onError: (error: Error) => toast({ title: error.message || "Erreur", variant: "destructive" }),
-  });
-
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProductForm }) => {
       const payload = {
         name: data.name,
         productType: data.productType,
+        market: "international",
+        currency: "USDT",
         price: parseFloat(data.price),
         dailyEarnings: parseFloat(data.dailyEarnings),
         cycleDays: parseInt(data.cycleDays),
@@ -423,13 +406,34 @@ export default function AdminProducts() {
     onError: (e: any) => toast({ title: e.message || "Erreur", variant: "destructive" }),
   });
 
+  const closeLegacyPositionsMutation = useMutation({
+    mutationFn: async (confirmation: string) => {
+      const response = await apiRequest("POST", "/api/admin/currency-migration/close-purchased-products", { confirmation });
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || "La clôture des achats a échoué.");
+      }
+      return response.json() as Promise<{ closedCount: number; pendingXof: number }>;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/currency-migration/summary"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      toast({
+        title: "Anciens achats clôturés",
+        description: `${result.closedCount} achat(s) retiré(s) des portefeuilles actifs. L’historique reste conservé; les gains en attente ne sont pas crédités automatiquement.`,
+      });
+    },
+    onError: (error: Error) => toast({ title: "Clôture impossible", description: error.message, variant: "destructive" }),
+  });
+
   const openEdit = (product: Product) => {
     setSelectedProduct(product);
     editForm.reset({
       name: rebrandText(product.name),
       productType: normalizeProductType(product.productType),
-      price: product.price.toString(),
-      dailyEarnings: product.dailyEarnings.toString(),
+      price: product.currency === "USDT" ? product.price.toString() : "",
+      dailyEarnings: product.currency === "USDT" ? product.dailyEarnings.toString() : "",
       cycleDays: product.cycleDays.toString(),
       imageUrl: product.imageUrl || "",
       cardColor: product.cardColor || "",
@@ -442,33 +446,40 @@ export default function AdminProducts() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-2" role="tablist" aria-label="Marché des plans">
-          <Button
-            type="button"
-            variant={selectedMarket === "legacy" ? "default" : "outline"}
-            role="tab"
-            aria-selected={selectedMarket === "legacy"}
-            onClick={() => setSelectedMarket("legacy")}
-          >
-            Côte d’Ivoire / Togo · XOF
-          </Button>
-          <Button
-            type="button"
-            variant={selectedMarket === "international" ? "default" : "outline"}
-            role="tab"
-            aria-selected={selectedMarket === "international"}
-            onClick={() => setSelectedMarket("international")}
-          >
-            Autres pays · USDT
-          </Button>
-        </div>
+        <p className="text-sm text-muted-foreground">Catalogue commun à tous les pays · montants USDT</p>
         <div className="flex items-center gap-3">
           <p className="text-sm text-muted-foreground">{visibleProducts.length} plan(s)</p>
           <Button onClick={() => { setShowCreateForm(true); createForm.reset(defaultValues); }} data-testid="button-add-product">
-          <Plus className="w-4 h-4 mr-2" />Nouveau plan {selectedMarket === "international" ? "USDT" : "XOF"}
-        </Button>
+            <Plus className="w-4 h-4 mr-2" />Nouveau plan USDT
+          </Button>
         </div>
       </div>
+
+      {legacyPositionSummary && legacyPositionSummary.activeCount > 0 && (
+        <Card className="border-amber-500/50">
+          <CardContent className="space-y-2 p-4">
+            <p className="font-semibold">Anciens achats à retirer des portefeuilles actifs</p>
+            <p className="text-sm text-muted-foreground">
+              {legacyPositionSummary.activeCount} achat(s) actif(s) · gains non payés enregistrés : {Number(legacyPositionSummary.pendingXof).toLocaleString()} XOF.
+              La clôture arrête les gains futurs et masque ces achats du portefeuille actif. L’historique reste conservé; les gains en attente ne sont pas crédités automatiquement.
+            </p>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={closeLegacyPositionsMutation.isPending}
+              onClick={() => {
+                const confirmation = window.prompt(
+                  "Cette action clôture tous les anciens achats actifs sans verser les gains en attente. L’historique sera conservé. Saisissez exactement CLOTURER LES ACHATS ACTIFS pour continuer.",
+                );
+                if (confirmation !== null) closeLegacyPositionsMutation.mutate(confirmation);
+              }}
+            >
+              {closeLegacyPositionsMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Clôturer les anciens achats actifs
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading ? (
         Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)
@@ -510,9 +521,13 @@ export default function AdminProducts() {
                         <Badge className="text-xs bg-orange-500 text-white">Indisponible</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                       {Number(product.price).toLocaleString()} {product.currency || "XOF"} — {Number(product.dailyEarnings).toLocaleString()} {product.currency || "XOF"}/jour
-                    </p>
+                     {product.currency === "USDT" ? (
+                       <p className="text-sm text-muted-foreground">
+                         {Number(product.price).toLocaleString()} USDT — {Number(product.dailyEarnings).toLocaleString()} USDT/jour
+                       </p>
+                     ) : (
+                       <p className="text-sm font-medium text-amber-700">Anciennes valeurs non converties — reconfigurer en USDT</p>
+                     )}
                     <div className="flex gap-2 mt-0.5 flex-wrap">
                       {normalizeProductType(product.productType) === "wellness" && (
                         <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
@@ -528,19 +543,6 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {selectedMarket === "legacy" && !product.isFree && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => duplicateInternationalMutation.mutate(product.id)}
-                      disabled={duplicateInternationalMutation.isPending}
-                      title="Copier l’image et la présentation dans les plans USDT"
-                    >
-                      {duplicateInternationalMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
-                      <span className="ml-1 hidden sm:inline">Copier en USDT</span>
-                    </Button>
-                  )}
                   {/* Unavailable toggle */}
                   <div className="flex flex-col items-center gap-0.5 mr-1">
                     <span className="text-[9px] text-muted-foreground leading-none">Indispo</span>
@@ -577,20 +579,22 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 text-sm">
-                <div>
-                    <p className="text-muted-foreground">Prix ({product.currency || "XOF"})</p>
-                   <p className="font-medium text-foreground">{Number(product.price).toLocaleString()}</p>
+              {product.currency === "USDT" && (
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Prix (USDT)</p>
+                    <p className="font-medium text-foreground">{Number(product.price).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Gains/jour (USDT)</p>
+                    <p className="font-medium text-foreground">{Number(product.dailyEarnings).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Total (USDT, {product.cycleDays}j)</p>
+                    <p className="font-medium text-primary">{Number(product.totalReturn).toLocaleString()}</p>
+                  </div>
                 </div>
-                <div>
-                    <p className="text-muted-foreground">Gains/jour ({product.currency || "XOF"})</p>
-                   <p className="font-medium text-foreground">{Number(product.dailyEarnings).toLocaleString()}</p>
-                </div>
-                <div>
-                    <p className="text-muted-foreground">Total ({product.currency || "XOF"}, {product.cycleDays}j)</p>
-                  <p className="font-medium text-primary">{Number(product.totalReturn).toLocaleString()}</p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         ))
@@ -601,13 +605,13 @@ export default function AdminProducts() {
       {/* Create Dialog */}
       <Dialog open={showCreateForm} onOpenChange={(open) => { if (!open) { setShowCreateForm(false); createForm.reset(defaultValues); } }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Nouveau plan {selectedMarket === "international" ? "USDT" : "XOF"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Nouveau plan USDT</DialogTitle></DialogHeader>
           <Form {...createForm}>
             <ProductFormFields
               form={createForm}
               isPending={createMutation.isPending}
               submitLabel="Créer"
-              currency={selectedMarket === "international" ? "USDT" : "XOF"}
+              currency="USDT"
               onSubmit={(d) => createMutation.mutate(d)}
             />
           </Form>
@@ -623,7 +627,7 @@ export default function AdminProducts() {
               form={editForm}
               isPending={updateMutation.isPending}
               submitLabel="Enregistrer"
-              currency={selectedProduct?.currency === "USDT" ? "USDT" : "XOF"}
+              currency="USDT"
               onSubmit={(d) => { if (selectedProduct) updateMutation.mutate({ id: selectedProduct.id, data: d }); }}
             />
           </Form>

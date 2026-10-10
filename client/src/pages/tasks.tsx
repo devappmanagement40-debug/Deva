@@ -15,7 +15,7 @@ interface TaskWithStatus extends Task {
   currentInvites: number;
   claimedRequiredInvites: number | null;
   claimedReward: number | null;
-  rewardCurrency?: "XOF" | "USDT";
+  rewardCurrency?: "USDT";
   claimedRewardCurrency?: "XOF" | "USDT";
 }
 
@@ -115,8 +115,8 @@ export default function TasksPage() {
                 ? task.claimedReward
                 : task.reward;
               const displayedCurrency = task.isCompleted
-                ? task.claimedRewardCurrency || task.rewardCurrency || "XOF"
-                : task.rewardCurrency || "XOF";
+                ? task.claimedRewardCurrency || task.rewardCurrency || "USDT"
+                : task.rewardCurrency || "USDT";
               const progress = Math.min(
                 task.currentInvites / Math.max(requiredInvites, 1),
                 1,

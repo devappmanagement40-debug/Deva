@@ -14,8 +14,10 @@ export const withdrawalProofSubmissionSchema = z.object({
 export const withdrawalProofReviewSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("approve"),
-    shareBonusXof: z.number().int().min(0).max(2_147_483_647),
-    displayAmountXof: z.number().int().min(0).max(2_147_483_647),
+    shareBonusUsdt: z.number().finite().min(0).max(100_000)
+      .refine((value) => Math.abs(value * 100_000_000 - Math.round(value * 100_000_000)) < 1e-5),
+    displayAmountUsdt: z.number().finite().min(0).max(100_000)
+      .refine((value) => Math.abs(value * 100_000_000 - Math.round(value * 100_000_000)) < 1e-5),
   }),
   z.object({
     action: z.literal("reject"),
@@ -44,8 +46,8 @@ export function maskPhoneForWithdrawalProof(phone: string): string {
 export function toPublicWithdrawalProofFeedItem(proof: {
   id: number;
   message: string;
-  shareBonusXof: number;
-  displayAmountXof: number;
+  shareBonusUsdt: string;
+  displayAmountUsdt: string;
   createdAt: Date;
   proofImage2: string | null;
   user: { phone: string };
@@ -53,7 +55,7 @@ export function toPublicWithdrawalProofFeedItem(proof: {
   return {
     id: proof.id,
     message: proof.message,
-    displayAmountXof: proof.displayAmountXof,
+    displayAmountUsdt: Number(proof.displayAmountUsdt || "0"),
     createdAt: proof.createdAt,
     imageCount: proof.proofImage2 ? 2 : 1,
     maskedPhone: maskPhoneForWithdrawalProof(proof.user.phone),

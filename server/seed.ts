@@ -11,10 +11,10 @@ import {
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 import {
-  DEFAULT_DEPOSIT_PRESET_AMOUNTS,
-  DEFAULT_MIN_DEPOSIT_XOF,
-  DEFAULT_MIN_WITHDRAWAL_XOF,
-  DEFAULT_XOF_PER_USDT,
+  DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT,
+  DEFAULT_MIN_DEPOSIT_USDT,
+  DEFAULT_MIN_WITHDRAWAL_USDT,
+  DEFAULT_MAX_WITHDRAWAL_USDT,
 } from "@shared/financial-settings";
 import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
@@ -454,7 +454,7 @@ export async function seed() {
     { key: "popupButtonLabel", value: "Rejoindre le groupe Telegram" },
     { key: "popupTitle", value: "DIAMANT" },
     { key: "popupLine1", value: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-    { key: "popupLine2", value: "🤝 Dépôt minimum : 2 500 XOF — Mobile Money et USDT BEP20" },
+    { key: "popupLine2", value: "🤝 Dépôt minimum : 2 USDT — Dépôt sécurisé en USDT BEP20" },
     { key: "popupLine3", value: "💚 Les frais de retrait sont affichés avant confirmation." },
     { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
@@ -466,10 +466,12 @@ export async function seed() {
     { key: "support2Enabled", value: "false" },
     { key: "channelEnabled", value: "true" },
     { key: "groupEnabled", value: "false" },
-    { key: "minDeposit", value: "2500" },
-    { key: "depositPresetAmounts", value: "2500,5000,7000,10000,15000,20000,50000,70000" },
-    { key: "xofPerUsdt", value: String(DEFAULT_XOF_PER_USDT) },
-    { key: "minWithdrawal", value: String(DEFAULT_MIN_WITHDRAWAL_XOF) },
+    { key: "minDepositUsdt", value: DEFAULT_MIN_DEPOSIT_USDT },
+    { key: "depositPresetAmountsUsdt", value: DEFAULT_DEPOSIT_PRESET_AMOUNTS_USDT },
+    { key: "minWithdrawalUsdt", value: DEFAULT_MIN_WITHDRAWAL_USDT },
+    { key: "maxWithdrawalUsdt", value: DEFAULT_MAX_WITHDRAWAL_USDT },
+    { key: "dailyBonusMinUsdt", value: "0" },
+    { key: "dailyBonusMaxUsdt", value: "0" },
     { key: "withdrawalEnabled", value: "true" },
     { key: "withdrawalMode", value: "manual" },
     { key: "withdrawalFees", value: String(DEFAULT_WITHDRAWAL_FEE_PERCENT) },

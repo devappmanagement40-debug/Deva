@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useQuery } from "@tanstack/react-query";
 import { formatSettingPlaceholders, getContent } from "@/lib/content";
-import { DEFAULT_MIN_DEPOSIT_XOF, DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { DEFAULT_MIN_DEPOSIT_USDT, DEFAULT_MIN_WITHDRAWAL_USDT } from "@shared/financial-settings";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
 interface RulesModalProps {
@@ -15,8 +15,8 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
     queryKey: ["/api/settings"],
   });
 
-  const minDeposit = settings?.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF);
-  const minWithdrawal = settings?.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF);
+  const minDeposit = settings?.minDepositUsdt || DEFAULT_MIN_DEPOSIT_USDT;
+  const minWithdrawal = settings?.minWithdrawalUsdt || DEFAULT_MIN_WITHDRAWAL_USDT;
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
   const maxWithdrawalsPerDay = settings?.maxWithdrawalsPerDay || "1";
@@ -27,12 +27,12 @@ export default function RulesModal({ open, onClose }: RulesModalProps) {
   const title = getContent(settings, "content_rules_title", "Platform Rules");
   const s1Title = getContent(settings, "content_rules_section1Title", "1. Deposits");
   const s1Body = formatSettingPlaceholders(
-    getContent(settings, "content_rules_section1Body", "- Minimum : {{minDeposit}} XOF\n- Dépôts disponibles par Mobile Money et USDT BEP20\n- Le dépôt est crédité après confirmation du paiement"),
+    getContent(settings, "content_rules_section1Body", "- Minimum : {{minDeposit}} USDT\n- Dépôts acceptés en USDT via le réseau BEP20\n- Le dépôt est crédité après confirmation du paiement"),
     settings,
   );
   const s2Title = getContent(settings, "content_rules_section2Title", "2. Withdrawals");
   const s2Body = formatSettingPlaceholders(
-    getContent(settings, "content_rules_section2Body", `- Minimum : {{minWithdrawal}} XOF\n- Frais de retrait : {{withdrawalFees}} % retenus sur le montant demandé\n- Retraits disponibles par Mobile Money ou USDT BEP20 selon les options du pays\n- Horaires : ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} retrait(s) par jour\n- Un produit actif et un portefeuille de retrait enregistré sont requis`),
+    getContent(settings, "content_rules_section2Body", `- Minimum : {{minWithdrawal}} USDT\n- Frais de retrait : {{withdrawalFees}} % retenus sur le montant demandé\n- Retraits disponibles uniquement en USDT BEP20\n- Horaires : ${withdrawalStartHour}h - ${withdrawalEndHour}h\n- Maximum ${maxWithdrawalsPerDay} retrait(s) par jour\n- Un produit actif et un portefeuille de retrait enregistré sont requis`),
     settings,
   );
   const s3Title = getContent(settings, "content_rules_section3Title", "3. Products");

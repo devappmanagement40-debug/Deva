@@ -53,6 +53,9 @@ import {
   parseWithdrawalFeePercent,
 } from "@shared/withdrawal-fees";
 import {
+  DEFAULT_MAX_WITHDRAWAL_USDT,
+  DEFAULT_MIN_DEPOSIT_USDT,
+  DEFAULT_MIN_WITHDRAWAL_USDT,
   DEFAULT_MIN_DEPOSIT_XOF,
   DEFAULT_MIN_WITHDRAWAL_XOF,
   DEFAULT_XOF_PER_USDT,
@@ -934,8 +937,9 @@ export async function registerRoutes(
         storage.getAllUserProducts(userId),
         storage.getSettings(),
       ]);
+      const usdtProducts = products.filter((product) => product.currency === "USDT");
       const userProductsList = allUserProducts.filter(
-        ({ product }) => (product.currency || "XOF") === marketCurrency,
+        ({ product }) => product.currency === marketCurrency,
       );
       const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map(({ userProduct, product }) => ({
         isActive: userProduct.isActive,
@@ -951,7 +955,7 @@ export async function registerRoutes(
         }
       });
       
-      const productsWithOwnership = products.map(p => ({
+      const productsWithOwnership = usdtProducts.map(p => ({
         ...p,
         isOwned: productCounts.has(p.id),
         ownedCount: productCounts.get(p.id) || 0,
@@ -1268,36 +1272,8 @@ export async function registerRoutes(
 
   // Payment Numbers (public — filtered by country)
   app.get("/api/payment-numbers", requireAuth, async (req, res) => {
-    try {
-      const user = await storage.getUser(req.session.userId!);
-      if (!user) return res.status(401).json({ message: "Non authentifié" });
-      const requestedCountry = typeof req.query.country === "string"
-        ? req.query.country.trim().toUpperCase()
-        : user.country.trim().toUpperCase();
-      const paymentCountry = (await storage.getActiveCountries()).find(
-        (country) => country.code.trim().toUpperCase() === requestedCountry,
-      );
-      if (!paymentCountry || paymentCountry.autoPaymentEnabled) {
-        return res.json([]);
-      }
-      const configuredOperators = await storage.getPaymentNumbersByCountry(paymentCountry.code);
-      const normalizedCountryCode = paymentCountry.code.trim().toUpperCase();
-      const depositOperators = normalizedCountryCode === "CI"
-        ? configuredOperators.filter((operator) => operator.operatorName.trim().toLowerCase() === "wave")
-        : normalizedCountryCode === "TG"
-          ? configuredOperators.filter((operator) => operator.isActive)
-          : configuredOperators;
-      const operatorsWithActiveChannels = await Promise.all(depositOperators.map(async (operator) => {
-        if (!operator.channelId) return operator;
-        const channel = await storage.getDepositChannel(operator.channelId);
-        return channel?.isActive && channel.country.toUpperCase() === paymentCountry.code.toUpperCase()
-          ? operator
-          : null;
-      }));
-      res.json(operatorsWithActiveChannels.filter((operator) => operator !== null));
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
+    // Legacy payment-number rows remain untouched for historical/admin reference.
+    res.json([]);
   });
 
   // Admin Payment Numbers CRUD
@@ -1451,10 +1427,21 @@ export async function registerRoutes(
         return res.status(403).json({ message: "Ce parcours est réservé aux comptes internationaux." });
       }
 
+      const settings = await storage.getSettings();
+      const minDepositUsdt = Number(settings.minDepositUsdt ?? DEFAULT_MIN_DEPOSIT_USDT);
       const amountInput = String(req.body?.amountUsdt ?? "").trim();
       const amountUsdt = Number(amountInput);
-      if (!/^\d+(?:\.\d{1,8})?$/.test(amountInput) || !Number.isFinite(amountUsdt) || amountUsdt < 2 || amountUsdt > 1_000_000) {
-        return res.status(400).json({ message: "Saisissez un montant de dépôt d’au moins 2 USDT, avec 8 décimales au maximum." });
+      if (
+        !Number.isFinite(minDepositUsdt)
+        || minDepositUsdt <= 0
+        || !/^\d+(?:\.\d{1,8})?$/.test(amountInput)
+        || !Number.isFinite(amountUsdt)
+        || amountUsdt < minDepositUsdt
+        || amountUsdt > 1_000_000
+      ) {
+        return res.status(400).json({
+          message: `Saisissez un montant d’au moins ${Number.isFinite(minDepositUsdt) ? minDepositUsdt : DEFAULT_MIN_DEPOSIT_USDT} USDT, avec 8 décimales au maximum.`,
+        });
       }
 
       const method = getInternationalCryptoMethod(req.body?.payCurrency);
@@ -1591,12 +1578,15 @@ export async function registerRoutes(
 
   // NOWPayments crypto deposits — uses the official SDK direct-payment flow.
   app.post("/api/crypto-deposits", requireAuth, requireSameOrigin, async (req, res) => {
+    return res.status(410).json({
+      message: "Les dépôts dans l’ancienne devise sont désactivés. Créez un dépôt directement en USDT BEP20.",
+    });
     try {
       const { amount, payCurrency } = req.body as {
         amount?: number;
         payCurrency?: string;
       };
-      const user = await storage.getUser(req.session.userId!);
+      const user = (await storage.getUser(req.session.userId!))!;
       const amountXof = Number(amount);
 
       if (!user) return res.status(401).json({ message: "Non authentifié" });
@@ -1633,12 +1623,12 @@ export async function registerRoutes(
           message: "Le taux de conversion des dépôts USDT est indisponible. Réessayez plus tard.",
         });
       }
-      const amountUsdt = convertXofToUsdt(amountXof, xofPerUsdt);
+      const amountUsdt = convertXofToUsdt(amountXof, xofPerUsdt!);
 
       // Provider-facing IDs are persisted externally; keep this prefix stable across the rebrand.
       const orderId = `tgood-${user.id}-${Date.now()}`;
 
-      const payCurrencyLower = payCurrency.toLowerCase();
+      const payCurrencyLower = String(payCurrency ?? "").toLowerCase();
       const priceCurrency = payCurrencyLower;
 
       const payment = await createNowPaymentsDirectPayment({
@@ -1649,7 +1639,8 @@ export async function registerRoutes(
         description: "Dépôt DIAMANT",
       });
 
-      if (!payment.pay_address || !payment.payment_id) {
+      const payAddress = payment.pay_address!;
+      if (!payAddress || !payment.payment_id) {
         notifyAdminTelegram({
           kind: "payment_error",
           provider: "NOWPayments",
@@ -1664,7 +1655,7 @@ export async function registerRoutes(
         userId: user.id,
         amount: amountXof,
         accountName: user.fullName,
-        accountNumber: payment.pay_address,
+        accountNumber: payAddress,
         country: user.country,
         paymentMethod: "NOWPayments",
         channelName: "USDT BEP20",
@@ -1685,7 +1676,7 @@ export async function registerRoutes(
         status: deposit.status,
       });
 
-      const qrCode = await QRCode.toDataURL(payment.pay_address, {
+      const qrCode = await QRCode.toDataURL(payAddress, {
         errorCorrectionLevel: "M",
         margin: 2,
         width: 320,
@@ -1694,9 +1685,9 @@ export async function registerRoutes(
       return res.json({
         depositId: deposit.id,
         paymentId: String(payment.payment_id),
-        payAddress: payment.pay_address,
+        payAddress,
         payAmount: payment.pay_amount ?? amountUsdt,
-        payCurrency: payment.pay_currency || payCurrency.toLowerCase(),
+        payCurrency: payment.pay_currency || payCurrencyLower,
         payinExtraId: payment.payin_extra_id || undefined,
         network: payment.network || undefined,
         qrCode,
@@ -2177,10 +2168,13 @@ export async function registerRoutes(
   });
 
   app.post("/api/deposits", requireAuth, requireSameOrigin, async (req, res) => {
+    return res.status(410).json({
+      message: "Les dépôts Mobile Money ont été supprimés. Utilisez le dépôt crypto en USDT.",
+    });
     try {
       const { amount, accountName, accountNumber, paymentMethod, country, paymentChannelId,
         depositChannelId, paymentNumberId, channelName, screenshot, paymentMessage, reference } = req.body;
-      const user = await storage.getUser(req.session.userId!);
+      const user = (await storage.getUser(req.session.userId!))!;
       
       if (!user) {
         return res.status(401).json({ message: "Non authentifie" });
@@ -2205,8 +2199,9 @@ export async function registerRoutes(
       if (isTogoRequest) {
         const transactionIdValidation = validateTogoTransactionId(reference);
         if (!transactionIdValidation.ok) {
+        const validationReason = (transactionIdValidation as { reason?: string }).reason;
           return res.status(400).json({
-            message: transactionIdValidation.reason === "too_long"
+            message: validationReason === "too_long"
               ? "L’identifiant de transaction ne peut pas dépasser 180 caractères."
               : "L’ID de transaction est obligatoire pour un dépôt au Togo.",
           });
@@ -2217,7 +2212,7 @@ export async function registerRoutes(
       }
       const depositCountry = (await storage.getActiveCountries()).find(
         (availableCountry) => availableCountry.code.trim().toUpperCase() === requestedDepositCountry,
-      );
+      )!;
       if (!depositCountry || depositCountry.autoPaymentEnabled) {
         return res.status(400).json({ message: "Ce canal Mobile Money n’est plus disponible." });
       }
@@ -2251,12 +2246,13 @@ export async function registerRoutes(
       const parsedDepositChannelId = depositChannelId === undefined || depositChannelId === null
         ? null
         : Number(depositChannelId);
+      const paymentNumberIdValue = parsedPaymentNumberId ?? 0;
 
-      if (parsedPaymentNumberId === null || !Number.isSafeInteger(parsedPaymentNumberId) || parsedPaymentNumberId <= 0) {
+      if (!Number.isSafeInteger(paymentNumberIdValue) || paymentNumberIdValue <= 0) {
         return res.status(400).json({ message: "Choisissez un opérateur Mobile Money actif." });
       }
       const operators = await storage.getPaymentNumbersByCountry(depositCountry.code);
-      const selectedOperator = operators.find((operator) => operator.id === parsedPaymentNumberId);
+      const selectedOperator = operators.find((operator) => operator.id === paymentNumberIdValue)!;
       if (!selectedOperator) {
         return res.status(400).json({ message: "Cet opérateur n’est plus disponible." });
       }
@@ -2281,13 +2277,14 @@ export async function registerRoutes(
       if (selectedOperator.operatorName.trim().toLowerCase() !== resolvedPaymentMethod.toLowerCase()) {
         return res.status(400).json({ message: "Le moyen de paiement ne correspond pas à l’opérateur choisi." });
       }
-      if (selectedOperator.channelId) {
-        const selectedChannel = await storage.getDepositChannel(selectedOperator.channelId);
+      const operatorChannelId = selectedOperator.channelId;
+      if (typeof operatorChannelId === "number") {
+        const selectedChannel = (await storage.getDepositChannel(Number(operatorChannelId)))!;
         if (
           !selectedChannel ||
           !selectedChannel.isActive ||
           selectedChannel.country.toUpperCase() !== depositCountry.code.toUpperCase() ||
-          (parsedDepositChannelId !== null && parsedDepositChannelId !== selectedOperator.channelId)
+          (parsedDepositChannelId !== null && parsedDepositChannelId !== operatorChannelId)
         ) {
           return res.status(400).json({ message: "Le canal Mobile Money n’est plus disponible." });
         }
@@ -2309,7 +2306,7 @@ export async function registerRoutes(
         paymentChannelId: depositCountry.code.trim().toUpperCase() === "CI"
           ? selectedOperator.channelId || null
           : paymentChannelId && Number(paymentChannelId) > 0 ? Number(paymentChannelId) : null,
-        paymentNumberId: parsedPaymentNumberId,
+        paymentNumberId: paymentNumberIdValue,
         channelName: resolvedChannelName,
         screenshot: screenshot || null,
         paymentMessage: paymentMessage || null,
@@ -2335,12 +2332,15 @@ export async function registerRoutes(
 
   // ── WestPay : initiate hosted payment ──────────────────────────────────
   app.post("/api/deposits/westpay/initiate", requireAuth, async (req, res) => {
+    return res.status(410).json({
+      message: "Les dépôts Mobile Money ont été supprimés. Utilisez le dépôt crypto en USDT.",
+    });
     try {
       const { amount, channelId } = req.body;
       if (!amount || Number(amount) <= 0)
         return res.status(400).json({ message: "Montant invalide" });
 
-      const user = await storage.getUser(req.session.userId!);
+      const user = (await storage.getUser(req.session.userId!))!;
       if (!user) return res.status(401).json({ message: "Non authentifié" });
       if (getCustomerMarket(user.country) !== "legacy") {
         return res.status(403).json({ message: "Les comptes internationaux utilisent les dépôts crypto en USDT." });
@@ -2351,10 +2351,11 @@ export async function registerRoutes(
         const channel = channelId
           ? await storage.getDepositChannel(Number(channelId))
           : undefined;
-        if (!channel || !channel.isActive || channel.country !== user.country || channel.name !== "Canal 1") {
+        const selectedChannel = channel!;
+        if (!selectedChannel || !selectedChannel.isActive || selectedChannel.country !== user.country || selectedChannel.name !== "Canal 1") {
           return res.status(400).json({ message: "En Côte d'Ivoire, WestPay est disponible via le Canal 1." });
         }
-        westpayChannelName = channel.name;
+        westpayChannelName = selectedChannel.name;
       }
 
       const settings = await storage.getSettings();
@@ -2418,7 +2419,7 @@ export async function registerRoutes(
       });
 
       // Build the WestPay hosted-payment URL
-      const appBase = getConfiguredAppUrl();
+      const appBase = getConfiguredAppUrl()!;
       if (!appBase) {
         throw new Error("APP_URL doit être configurée dans l'environnement Plesk");
       }
@@ -2641,40 +2642,20 @@ export async function registerRoutes(
           return res.status(400).json({ message: `Les retraits sont disponibles de ${startHour}h à ${endHour}h` });
         }
       }
-      const minWithdrawalXof = parsePositiveIntegerSetting(
-        settingsForWithdrawal.minWithdrawal,
-        DEFAULT_MIN_WITHDRAWAL_XOF,
+      const minWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(
+        settingsForWithdrawal.minWithdrawalUsdt ?? DEFAULT_MIN_WITHDRAWAL_USDT,
       );
-      const maxWithdrawalXof = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawal, 1_000_000);
-      if (
-        minWithdrawalXof === null
-        || maxWithdrawalXof === null
-        || maxWithdrawalXof < minWithdrawalXof
-      ) {
+      const maxWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(
+        settingsForWithdrawal.maxWithdrawalUsdt ?? DEFAULT_MAX_WITHDRAWAL_USDT,
+      );
+      if (minWithdrawalUsdtMicros === null
+        || maxWithdrawalUsdtMicros === null
+        || maxWithdrawalUsdtMicros < minWithdrawalUsdtMicros) {
         console.error("Invalid withdrawal amount limits in platform settings");
         return res.status(500).json({ message: "Les limites de retrait sont mal configurées. Contactez l'administration." });
       }
-      let minWithdrawal = minWithdrawalXof;
-      let maxWithdrawal = maxWithdrawalXof;
-      let minWithdrawalUsdtMicros: number | null = null;
-      let maxWithdrawalUsdtMicros: number | null = null;
-      if (isInternational) {
-        const xofPerUsdt = parseXofPerUsdt(
-          settingsForWithdrawal.xofPerUsdt ?? DEFAULT_XOF_PER_USDT,
-        );
-        if (xofPerUsdt === null) {
-          return res.status(500).json({ message: "Le taux XOF/USDT n'est pas configuré correctement." });
-        }
-        const minUsdt = convertXofWithdrawalLimitToUsdt(minWithdrawalXof, xofPerUsdt, true);
-        const maxUsdt = convertXofWithdrawalLimitToUsdt(maxWithdrawalXof, xofPerUsdt, false);
-        minWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(minUsdt);
-        maxWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(maxUsdt);
-        if (minWithdrawalUsdtMicros === null || maxWithdrawalUsdtMicros === null) {
-          return res.status(500).json({ message: "Les limites USDT de retrait sont mal configurées." });
-        }
-        minWithdrawal = Number(minUsdt);
-        maxWithdrawal = Number(maxUsdt);
-      }
+      const minWithdrawal = minWithdrawalUsdtMicros / 1_000_000;
+      const maxWithdrawal = maxWithdrawalUsdtMicros / 1_000_000;
       if (isInternational) {
         if (
           amountUsdtMicros === null
@@ -3140,7 +3121,7 @@ export async function registerRoutes(
       const claimant = await storage.getUser(userId);
       const currency = claimant
         ? getMarketCurrency(getCustomerMarket(claimant.country))
-        : "XOF";
+        : "USDT";
 
       res.json({
         success: true,
@@ -3156,9 +3137,20 @@ export async function registerRoutes(
   // Daily check-in reward
   app.post("/api/claim-daily-bonus", requireAuth, async (req, res) => {
     try {
+      const settings = await storage.getSettings();
+      const minRewardMicros = parseUsdtWithdrawalAmount(settings.dailyBonusMinUsdt);
+      const maxRewardMicros = parseUsdtWithdrawalAmount(settings.dailyBonusMaxUsdt);
+      if (
+        minRewardMicros === null
+        || maxRewardMicros === null
+        || maxRewardMicros < minRewardMicros
+        || maxRewardMicros > 100_000 * 1_000_000
+      ) {
+        return res.status(503).json({ message: "Le bonus quotidien USDT n’est pas encore configuré par l’administration." });
+      }
       const result = await storage.claimDailyBonus(
         req.session.userId!,
-        crypto.randomInt(50, 101),
+        formatUsdtWithdrawalAmount(crypto.randomInt(minRewardMicros, maxRewardMicros + 1)),
       );
       if (result.status === "user_missing") {
         return res.status(404).json({ message: "Utilisateur introuvable" });
@@ -3192,9 +3184,16 @@ export async function registerRoutes(
       const hoursRemaining = getDailyBonusHoursRemaining(lastClaim, new Date());
       const canClaim = hoursRemaining === 0;
       const bonusTransactions = await storage.getDailyBonusTransactions(user.id);
-      const currency = getMarketCurrency(getCustomerMarket(user.country));
+      const settings = await storage.getSettings();
+      const minRewardMicros = parseUsdtWithdrawalAmount(settings.dailyBonusMinUsdt);
+      const maxRewardMicros = parseUsdtWithdrawalAmount(settings.dailyBonusMaxUsdt);
+      const rewardConfigured = minRewardMicros !== null
+        && maxRewardMicros !== null
+        && maxRewardMicros >= minRewardMicros
+        && maxRewardMicros <= 100_000 * 1_000_000;
+      const currency = "USDT";
       const marketBonusTransactions = bonusTransactions.filter(
-        (transaction) => (transaction.currency || "XOF") === currency,
+        (transaction) => transaction.currency === "USDT",
       );
       const totalBonusClaimed = marketBonusTransactions.reduce(
         (total, transaction) => {
@@ -3205,7 +3204,8 @@ export async function registerRoutes(
       );
 
       return res.json({
-        canClaim,
+        canClaim: canClaim && rewardConfigured,
+        rewardConfigured,
         hoursRemaining,
         currency,
         totalBonusClaimed: Number(totalBonusClaimed.toFixed(2)),
@@ -3242,6 +3242,10 @@ export async function registerRoutes(
         westpayApiKey_CI, westpayApiKey_BF, westpayApiKey_BJ,
         westpayApiKey_TG, westpayApiKey_CM, westpayApiKey_ML,
         xofPerUsdt,
+        minDeposit,
+        depositPresetAmounts,
+        minWithdrawal,
+        maxWithdrawal,
         __migration_referral_commission_defaults_v1,
         __migration_product_catalog_initialized_v1,
         __migration_staking_catalog_initialized_v1,
@@ -3318,33 +3322,26 @@ export async function registerRoutes(
       if (withdrawalFees === null) {
         return res.status(500).json({ message: "Les frais de retrait sont mal configurés." });
       }
-      const minWithdrawalXof = parsePositiveIntegerSetting(
-        settings.minWithdrawal,
-        DEFAULT_MIN_WITHDRAWAL_XOF,
+      const minWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(
+        settings.minWithdrawalUsdt ?? DEFAULT_MIN_WITHDRAWAL_USDT,
       );
-      const maxWithdrawalXof = parsePositiveIntegerSetting(settings.maxWithdrawal, 1_000_000);
+      const maxWithdrawalUsdtMicros = parseUsdtWithdrawalAmount(
+        settings.maxWithdrawalUsdt ?? DEFAULT_MAX_WITHDRAWAL_USDT,
+      );
       const maxWithdrawalsPerDay = parsePositiveIntegerSetting(settings.maxWithdrawalsPerDay, 1);
       if (
-        minWithdrawalXof === null
-        || maxWithdrawalXof === null
-        || maxWithdrawalXof < minWithdrawalXof
+        minWithdrawalUsdtMicros === null
+        || maxWithdrawalUsdtMicros === null
+        || maxWithdrawalUsdtMicros < minWithdrawalUsdtMicros
         || maxWithdrawalsPerDay === null
       ) {
         return res.status(500).json({ message: "Les limites de retrait sont mal configurées." });
       }
-      let minWithdrawal = minWithdrawalXof;
-      let maxWithdrawal = maxWithdrawalXof;
-      if (isInternational) {
-        const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-        if (xofPerUsdt === null) {
-          return res.status(500).json({ message: "Le taux XOF/USDT n'est pas configuré correctement." });
-        }
-        minWithdrawal = Number(convertXofWithdrawalLimitToUsdt(minWithdrawalXof, xofPerUsdt, true));
-        maxWithdrawal = Number(convertXofWithdrawalLimitToUsdt(maxWithdrawalXof, xofPerUsdt, false));
-      }
+      const minWithdrawal = minWithdrawalUsdtMicros / 1_000_000;
+      const maxWithdrawal = maxWithdrawalUsdtMicros / 1_000_000;
       res.json({
         withdrawalEnabled: settings.withdrawalEnabled !== "false",
-        currency: isInternational ? "USDT" : "XOF",
+        currency: "USDT",
         payoutConfigured: isNowPaymentsPayoutConfigured(),
         withdrawalStartHour: parseInt(settings.withdrawalStartHour || "9"),
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
@@ -3584,8 +3581,8 @@ export async function registerRoutes(
       const processedBy = req.session.userId!;
       if (action === "approve") {
         const updated = await storage.approvePendingWithdrawalProof(id, {
-          shareBonusXof: payload.shareBonusXof,
-          displayAmountXof: payload.displayAmountXof,
+          shareBonusUsdt: payload.shareBonusUsdt.toFixed(8),
+          displayAmountUsdt: payload.displayAmountUsdt.toFixed(8),
           processedAt,
           processedBy,
         });
@@ -3595,8 +3592,8 @@ export async function registerRoutes(
 
       const updated = await storage.reviewPendingWithdrawalProof(id, {
         status: "rejected",
-        shareBonusXof: 0,
-        displayAmountXof: 0,
+        shareBonusUsdt: "0",
+        displayAmountUsdt: "0",
         processedAt,
         processedBy,
       });
@@ -4267,9 +4264,17 @@ export async function registerRoutes(
 
       switch (action) {
         case "balance":
-          await storage.updateUser(userId, { balance: value.toFixed(2) });
-          await storage.logAdminAction(req.session.userId!, "update_balance", userId, `Solde modifié: ${value} XOF`);
+        case "total-earnings":
+          return res.status(410).json({ message: "Les ajustements en XOF sont désactivés. Utilisez les champs USDT." });
+        case "balance-usdt": {
+          const amount = String(value ?? "").trim();
+          if (!/^\d+(?:\.\d{1,8})?$/.test(amount) || !Number.isFinite(Number(amount)) || Number(amount) > 1_000_000_000) {
+            return res.status(400).json({ message: "Montant USDT invalide." });
+          }
+          await storage.updateUser(userId, { balanceUsdt: amount });
+          await storage.logAdminAction(req.session.userId!, "update_balance_usdt", userId, `Solde dépôt modifié: ${amount} USDT`);
           break;
+        }
         case "password":
           await storage.updateUser(userId, { password: value });
           await storage.logAdminAction(req.session.userId!, "reset_password", userId, `Mot de passe réinitialisé`);
@@ -4394,10 +4399,15 @@ export async function registerRoutes(
           );
           break;
         }
-        case "total-earnings":
-          await storage.updateUser(userId, { totalEarnings: Number(value).toFixed(2) });
-          await storage.logAdminAction(req.session.userId!, "update_total_earnings", userId, `Solde des gains modifié: ${value} XOF`);
+        case "total-earnings-usdt": {
+          const amount = String(value ?? "").trim();
+          if (!/^\d+(?:\.\d{1,8})?$/.test(amount) || !Number.isFinite(Number(amount)) || Number(amount) > 1_000_000_000) {
+            return res.status(400).json({ message: "Montant USDT invalide." });
+          }
+          await storage.updateUser(userId, { totalEarningsUsdt: amount });
+          await storage.logAdminAction(req.session.userId!, "update_total_earnings_usdt", userId, `Solde des gains modifié: ${amount} USDT`);
           break;
+        }
         default:
           return res.status(400).json({ message: "Action invalide" });
       }
@@ -4426,7 +4436,10 @@ export async function registerRoutes(
         productId: up.userProduct.productId,
         productName: up.product.name,
         productPrice: Number(up.product.price),
+        currency: up.product.currency,
         dailyEarnings: up.product.dailyEarnings,
+        pendingEarnings: up.userProduct.pendingEarnings,
+        totalEarned: up.userProduct.totalEarned,
         isActive: up.userProduct.isActive,
         purchaseDate: up.userProduct.purchaseDate,
         daysClaimed: up.product.cycleDays - up.userProduct.daysRemaining,
@@ -4436,6 +4449,82 @@ export async function registerRoutes(
       res.status(500).json({ message: error.message });
     }
   });
+
+  app.get("/api/admin/users/:id/legacy-currency", requireAdmin, async (req, res) => {
+    try {
+      const userId = Number(req.params.id);
+      if (!Number.isSafeInteger(userId) || userId <= 0) {
+        return res.status(400).json({ message: "Identifiant utilisateur invalide." });
+      }
+      res.json(await storage.getLegacyCurrencySummary(userId));
+    } catch (error: any) {
+      res.status(404).json({ message: error.message || "Utilisateur introuvable." });
+    }
+  });
+
+  app.post(
+    "/api/admin/users/:id/legacy-currency-credit",
+    requireAdmin,
+    requireSameOrigin,
+    async (req, res) => {
+      try {
+        const userId = Number(req.params.id);
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+          return res.status(400).json({ message: "Identifiant utilisateur invalide." });
+        }
+        const depositCreditUsdt = String(req.body?.depositCreditUsdt ?? "").trim();
+        const earningsCreditUsdt = String(req.body?.earningsCreditUsdt ?? "").trim();
+        const summary = await storage.applyLegacyUsdtCredit(
+          userId,
+          req.session.userId!,
+          depositCreditUsdt,
+          earningsCreditUsdt,
+        );
+        await storage.logAdminAction(
+          req.session.userId!,
+          "manual_legacy_usdt_credit",
+          userId,
+          `Ancien dépôt ${summary.depositXof} XOF et gains ${summary.earningsXof} XOF; gains de placements non payés ${summary.unpaidProductEarningsXof} XOF; crédits saisis ${depositCreditUsdt} USDT dépôt et ${earningsCreditUsdt} USDT gains`,
+        );
+        res.json({ success: true, summary });
+      } catch (error: any) {
+        res.status(400).json({ message: error.message || "Le crédit manuel n’a pas pu être appliqué." });
+      }
+    },
+  );
+
+  app.get("/api/admin/currency-migration/summary", requireAdmin, async (_req, res) => {
+    try {
+      res.json(await storage.getLegacyProductClosureSummary());
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post(
+    "/api/admin/currency-migration/close-purchased-products",
+    requireAdmin,
+    requireSameOrigin,
+    async (req, res) => {
+      if (req.body?.confirmation !== "CLOTURER LES ACHATS ACTIFS") {
+        return res.status(400).json({
+          message: "Confirmez l’opération en saisissant exactement : CLOTURER LES ACHATS ACTIFS.",
+        });
+      }
+      try {
+        const result = await storage.closeLegacyPurchasedProducts();
+        await storage.logAdminAction(
+          req.session.userId!,
+          "close_legacy_purchased_products",
+          null,
+          `${result.closedCount} ancien(s) achat(s) clôturé(s); historique conservé; gains XOF non payés conservés pour crédit manuel (${result.pendingXof} XOF)`,
+        );
+        res.json({ success: true, ...result });
+      } catch (error: any) {
+        res.status(400).json({ message: error.message || "La clôture des achats a échoué." });
+      }
+    },
+  );
 
   app.post("/api/admin/products/:id/duplicate-international", requireAdmin, async (req, res) => {
     try {
@@ -4493,10 +4582,6 @@ export async function registerRoutes(
     try {
       const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, requiredVipLevel, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType;
-      const market = req.body.market === undefined ? "legacy" : req.body.market;
-      if (!PRODUCT_MARKETS.includes(market)) {
-        return res.status(400).json({ message: "Marché de produit invalide." });
-      }
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
       }
@@ -4520,8 +4605,8 @@ export async function registerRoutes(
       const product = await storage.createProduct({
         name,
         productType,
-        market,
-        currency: market === "international" ? "USDT" : "XOF",
+        market: "international",
+        currency: "USDT",
         price: String(priceNum),
         dailyEarnings: String(dailyNum),
         cycleDays: cycleInt,
@@ -4547,8 +4632,6 @@ export async function registerRoutes(
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const body = { ...req.body };
-      delete body.market;
-      delete body.currency;
       delete body.sourceProductId;
       // This legacy switch no longer controls payout behavior. Preserve stored
       // values so existing purchases can still be interpreted correctly.
@@ -4579,11 +4662,27 @@ export async function registerRoutes(
       const id = parseInt(req.params.id as string);
       const existingProduct = await storage.getProduct(id);
       if (!existingProduct) return res.status(404).json({ message: "Produit introuvable." });
-      if (body.isActive === true && existingProduct.market === "international") {
+      if (body.price !== undefined || body.dailyEarnings !== undefined || body.totalReturn !== undefined) {
+        const price = Number(body.price);
+        const dailyEarnings = Number(body.dailyEarnings);
+        const cycleDays = Number(body.cycleDays);
+        if (
+          !Number.isFinite(price) || price <= 0
+          || !Number.isFinite(dailyEarnings) || dailyEarnings <= 0
+          || !Number.isInteger(cycleDays) || cycleDays <= 0
+        ) {
+          return res.status(400).json({ message: "Saisissez le nouveau prix et les gains quotidiens en USDT avant d’enregistrer ce plan." });
+        }
+        body.market = "international";
+        body.currency = "USDT";
+        body.totalReturn = String(Number((dailyEarnings * cycleDays).toFixed(2)));
+      }
+      if (body.isActive === true) {
         const price = Number(body.price ?? existingProduct.price);
         const dailyEarnings = Number(body.dailyEarnings ?? existingProduct.dailyEarnings);
-        if (price <= 0 || dailyEarnings <= 0 || existingProduct.isUnavailable) {
-          return res.status(400).json({ message: "Configurez d’abord le prix et les gains USDT, puis rendez le plan disponible avant de l’activer." });
+        const willBeUsdt = body.currency === "USDT" || existingProduct.currency === "USDT";
+        if (!willBeUsdt || price <= 0 || dailyEarnings <= 0 || existingProduct.isUnavailable) {
+          return res.status(400).json({ message: "Configurez d’abord le prix et les gains en USDT, puis rendez le plan disponible avant de l’activer." });
         }
       }
       const product = await storage.updateProduct(id, body);
@@ -4724,7 +4823,15 @@ export async function registerRoutes(
   app.get("/api/admin/settings", requireAdmin, async (req, res) => {
     try {
       const settings = await storage.getSettings();
-      res.json(normalizePublicSettings(settings));
+      const {
+        xofPerUsdt,
+        minDeposit,
+        depositPresetAmounts,
+        minWithdrawal,
+        maxWithdrawal,
+        ...activeSettings
+      } = settings;
+      res.json(normalizePublicSettings(activeSettings));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -4947,7 +5054,7 @@ export async function registerRoutes(
       const entries: [string, unknown][] = isSingleSettingPayload
         ? [[body.key, body.value]]
         : Object.entries(body);
-      const vipInvestmentSettingKeyPattern = /^vip[1-7]MinInvestment$/;
+      const vipInvestmentSettingKeyPattern = /^vip[1-7]MinInvestmentUsdt$/;
       if (entries.some(([key]) => vipInvestmentSettingKeyPattern.test(key))) {
         const currentSettings = await storage.getSettings();
         const candidateSettings: Record<string, unknown> = { ...currentSettings };
@@ -4969,7 +5076,9 @@ export async function registerRoutes(
         "level3Commission",
       ]);
       const withdrawalFeeSettingKey = "withdrawalFees";
-      const xofPerUsdtSettingKey = "xofPerUsdt";
+      if (entries.some(([key]) => key === "xofPerUsdt")) {
+        return res.status(400).json({ message: "Le taux XOF/USDT est désactivé; saisissez les montants directement en USDT." });
+      }
 
       // Validate all configurable spin rewards before saving any part of a
       // bulk update, so malformed values cannot leave the panel half-saved.
@@ -5010,11 +5119,65 @@ export async function registerRoutes(
         }
       }
 
-      for (const [key, value] of entries) {
-        if (key !== xofPerUsdtSettingKey) continue;
-        if (parseXofPerUsdt(value) === null) {
+      const usdtSettingsKeys = new Set([
+        "minDepositUsdt",
+        "depositPresetAmountsUsdt",
+        "minWithdrawalUsdt",
+        "maxWithdrawalUsdt",
+      ]);
+      if (entries.some(([key]) => usdtSettingsKeys.has(key))) {
+        const current = await storage.getSettings();
+        const proposed = Object.fromEntries(entries);
+        const merged = { ...current, ...proposed };
+        const readPositiveAmount = (key: string) => {
+          const raw = String(merged[key] ?? "").trim();
+          const micros = parseUsdtWithdrawalAmount(raw);
+          return /^\d{1,15}(?:\.\d{1,6})?$/.test(raw)
+            && micros !== null
+            && micros <= 100_000 * 1_000_000
+            ? micros
+            : null;
+        };
+        const minDeposit = readPositiveAmount("minDepositUsdt");
+        const minWithdrawal = readPositiveAmount("minWithdrawalUsdt");
+        const maxWithdrawal = readPositiveAmount("maxWithdrawalUsdt");
+        const presets = String(merged.depositPresetAmountsUsdt ?? "")
+          .split(",").map((value) => value.trim()).filter(Boolean);
+        const validPresets = presets.length >= 1 && presets.length <= 20
+          && presets.every((value) =>
+            /^\d{1,15}(?:\.\d{1,6})?$/.test(value)
+            && parseUsdtWithdrawalAmount(value) !== null
+            && parseUsdtWithdrawalAmount(value)! <= 100_000 * 1_000_000);
+        if (
+          minDeposit === null
+          || minWithdrawal === null
+          || maxWithdrawal === null
+          || minWithdrawal > maxWithdrawal
+          || !validPresets
+        ) {
           return res.status(400).json({
-            message: "Le taux XOF par USDT doit être un entier entre 1 et 1 000 000.",
+            message: "Vérifiez les limites, minimums et montants prédéfinis USDT avant d’enregistrer.",
+          });
+        }
+      }
+
+      const dailyBonusKeys = new Set(["dailyBonusMinUsdt", "dailyBonusMaxUsdt"]);
+      if (entries.some(([key]) => dailyBonusKeys.has(key))) {
+        const current = await storage.getSettings();
+        const proposed = Object.fromEntries(entries);
+        const minRaw = String(proposed.dailyBonusMinUsdt ?? current.dailyBonusMinUsdt ?? "0").trim();
+        const maxRaw = String(proposed.dailyBonusMaxUsdt ?? current.dailyBonusMaxUsdt ?? "0").trim();
+        const parseNonNegativeUsdt = (value: string) =>
+          /^\d{1,15}(?:\.\d{1,6})?$/.test(value) && Number(value) >= 0 && Number(value) <= 100_000
+            ? Number(value)
+            : null;
+        const minReward = parseNonNegativeUsdt(minRaw);
+        const maxReward = parseNonNegativeUsdt(maxRaw);
+        if (minReward === null || maxReward === null
+          || (minReward === 0) !== (maxReward === 0)
+          || maxReward < minReward) {
+          return res.status(400).json({
+            message: "Configurez les deux limites du bonus quotidien en USDT, ou mettez les deux à 0 pour le désactiver.",
           });
         }
       }
@@ -5037,9 +5200,6 @@ export async function registerRoutes(
           await storage.setSetting(key, String(rate), req.session.userId);
         } else if (key === withdrawalFeeSettingKey) {
           const rate = parseWithdrawalFeePercent(value)!;
-          await storage.setSetting(key, String(rate), req.session.userId);
-        } else if (key === xofPerUsdtSettingKey) {
-          const rate = parseXofPerUsdt(value)!;
           await storage.setSetting(key, String(rate), req.session.userId);
         } else if (vipInvestmentSettingKeyPattern.test(key)) {
           await storage.setSetting(key, String(value ?? "").trim(), req.session.userId);
@@ -5140,14 +5300,15 @@ export async function registerRoutes(
         amount: (randomAmount ? amountMin : amount)!.toString(),
         amountMin: randomAmount ? amountMin!.toString() : null,
         amountMax: randomAmount ? amountMax!.toString() : null,
+        currency: "USDT",
         maxUses,
         expiresAt: new Date(expiresAt),
         createdBy: req.session.userId!,
       });
 
       const amountLabel = randomAmount
-        ? `${amountMin} à ${amountMax} XOF (aléatoire)`
-        : `${amount} XOF`;
+        ? `${amountMin} à ${amountMax} USDT (aléatoire)`
+        : `${amount} USDT`;
       await storage.logAdminAction(req.session.userId!, "create_gift_code", null, `Code cadeau cree: ${code} - ${amountLabel}`);
       res.json(giftCode);
     } catch (error: any) {

@@ -52,30 +52,30 @@ test("withdrawal proof submissions reject empty messages and unsupported image t
   }).success, false);
 });
 
-test("review amounts must be non-negative whole XOF values", () => {
+test("review amounts must be non-negative USDT values with at most eight decimals", () => {
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
-    shareBonusXof: 500,
-    displayAmountXof: 1500,
+    shareBonusUsdt: 0.00000001,
+    displayAmountUsdt: 1500,
   }).success, true);
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
-    shareBonusXof: 0,
-    displayAmountXof: 0,
+    shareBonusUsdt: 0,
+    displayAmountUsdt: 0,
   }).success, true);
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
-    shareBonusXof: 500,
+    shareBonusUsdt: 500,
   }).success, false);
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
-    shareBonusXof: -1,
-    displayAmountXof: 1500,
+    shareBonusUsdt: -1,
+    displayAmountUsdt: 1500,
   }).success, false);
   assert.equal(withdrawalProofReviewSchema.safeParse({
     action: "approve",
-    shareBonusXof: 500,
-    displayAmountXof: 1.5,
+    shareBonusUsdt: 500,
+    displayAmountUsdt: 0.000000001,
   }).success, false);
   assert.equal(withdrawalProofReviewSchema.safeParse({ action: "reject" }).success, true);
 });
@@ -89,15 +89,15 @@ test("public proof feed exposes only its distinct indicative amount, never the c
   const item = toPublicWithdrawalProofFeedItem({
     id: 12,
     message: "Retrait reçu",
-    shareBonusXof: 500,
-    displayAmountXof: 1500,
+    shareBonusUsdt: "5",
+    displayAmountUsdt: "1500",
     createdAt: new Date("2026-10-07T12:00:00.000Z"),
     proofImage2: null,
     user: { phone: "+2250701234960" },
   });
 
-  assert.equal(item.displayAmountXof, 1500);
-  assert.equal("shareBonusXof" in item, false);
+  assert.equal(item.displayAmountUsdt, 1500);
+  assert.equal("shareBonusUsdt" in item, false);
   assert.equal(item.maskedPhone, "+225070••••960");
   assert.equal(item.imageCount, 1);
 });

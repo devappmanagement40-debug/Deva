@@ -14,7 +14,7 @@ const validTask = {
   name: "Bonus palier 1",
   description: "3 filleuls actifs",
   requiredInvites: 3,
-  reward: 1000,
+  rewardUsdt: "1000",
   sortOrder: 1,
 };
 
@@ -45,16 +45,16 @@ test("eligibility counts unique, non-banned direct referrals with active paid pr
   );
 });
 
-test("admin task validation accepts decimal rewards with two places", () => {
-  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, reward: "12.35" }).success, true);
-  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, reward: "0.10" }).success, true);
+test("admin task validation accepts USDT rewards with up to eight decimal places", () => {
+  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, rewardUsdt: "12.12345678" }).success, true);
+  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, rewardUsdt: "0.00000001" }).success, true);
 });
 
 test("admin task validation rejects fractional invite counts and invalid money precision", () => {
   assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, requiredInvites: "2.5" }).success, false);
   assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, requiredInvites: 0 }).success, false);
-  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, reward: "1.234" }).success, false);
-  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, reward: "NaN" }).success, false);
+  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, rewardUsdt: "1.123456789" }).success, false);
+  assert.equal(adminTaskCreateSchema.safeParse({ ...validTask, rewardUsdt: "NaN" }).success, false);
 });
 
 test("updates require at least one supported field", () => {
@@ -63,9 +63,10 @@ test("updates require at least one supported field", () => {
   assert.equal(adminTaskUpdateSchema.safeParse({ isActive: false }).success, true);
 });
 
-test("reward ledger amounts are formatted to exact cents", () => {
+test("reward ledger amounts preserve USDT precision up to eight decimals", () => {
   assert.equal(formatTaskRewardAmount(1000), "1000.00");
   assert.equal(formatTaskRewardAmount(0.1), "0.10");
   assert.equal(formatTaskRewardAmount(12.35), "12.35");
-  assert.throws(() => formatTaskRewardAmount(1.234));
+  assert.equal(formatTaskRewardAmount(1.12345678), "1.12345678");
+  assert.throws(() => formatTaskRewardAmount(1.123456789));
 });

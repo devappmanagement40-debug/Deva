@@ -23,8 +23,10 @@ type AdminProof = {
   message: string;
   imageCount: 1 | 2;
   status: string;
-  shareBonusXof: number;
-  displayAmountXof: number;
+  shareBonusUsdt: string;
+  displayAmountUsdt: string;
+  shareBonusXof?: number;
+  displayAmountXof?: number;
   createdAt: string;
   processedAt: string | null;
   processedBy: number | null;
@@ -68,8 +70,8 @@ export default function AdminWithdrawalProofs() {
     mutationFn: async (payload: {
       id: number;
       action: "approve";
-      shareBonusXof: number;
-      displayAmountXof: number;
+      shareBonusUsdt: number;
+      displayAmountUsdt: number;
     } | { id: number; action: "reject" }) => {
       const { id, ...body } = payload;
       const response = await apiRequest("POST", `/api/admin/withdrawal-proofs/${id}/review`, body);
@@ -112,17 +114,19 @@ export default function AdminWithdrawalProofs() {
   });
 
   const approve = (proof: AdminProof) => {
-    const rawAmount = bonusAmounts[proof.id] ?? String(proof.shareBonusXof ?? 0);
+    const rawAmount = bonusAmounts[proof.id] ?? "0";
     const amount = Number(rawAmount);
-    const rawDisplayAmount = displayAmounts[proof.id] ?? String(proof.displayAmountXof ?? 0);
+    const rawDisplayAmount = displayAmounts[proof.id] ?? "0";
     const displayAmount = Number(rawDisplayAmount);
+    const validUsdt = (raw: string, value: number) =>
+      /^\d{1,6}(?:\.\d{1,8})?$/.test(raw.trim()) && Number.isFinite(value) && value >= 0 && value <= 100_000;
     if (
-      !Number.isSafeInteger(amount) || amount < 0 || amount > 2_147_483_647
-      || !Number.isSafeInteger(displayAmount) || displayAmount < 0 || displayAmount > 2_147_483_647
+      !validUsdt(rawAmount, amount)
+      || !validUsdt(rawDisplayAmount, displayAmount)
     ) {
       toast({
         title: "Montant invalide",
-        description: "Saisissez un montant entier compris entre 0 et 2 147 483 647 XOF.",
+        description: "Saisissez des montants compris entre 0 et 100 000 USDT, avec 8 décimales maximum.",
         variant: "destructive",
       });
       return;
@@ -130,8 +134,8 @@ export default function AdminWithdrawalProofs() {
     reviewProof.mutate({
       id: proof.id,
       action: "approve",
-      shareBonusXof: amount,
-      displayAmountXof: displayAmount,
+      shareBonusUsdt: amount,
+      displayAmountUsdt: displayAmount,
     });
   };
 
@@ -243,30 +247,28 @@ export default function AdminWithdrawalProofs() {
               {proof.status === "pending" ? (
                 <div className="admin-proof-card__actions">
                   <label className="admin-proof-card__amount">
-                    <span>Prime réellement créditée (XOF)</span>
+                    <span>Prime réellement créditée (USDT)</span>
                     <input
                       type="number"
                       min="0"
-                      max="2147483647"
-                      step="1"
-                      inputMode="numeric"
-                      value={bonusAmounts[proof.id] ?? String(proof.shareBonusXof ?? 0)}
+                      max="100000"
+                      step="0.00000001"
+                      value={bonusAmounts[proof.id] ?? "0"}
                       onChange={(event) => setBonusAmounts((current) => ({ ...current, [proof.id]: event.target.value }))}
-                      aria-label="Prime réellement créditée (XOF)"
+                      aria-label="Prime réellement créditée (USDT)"
                       data-testid={`input-withdrawal-proof-bonus-${proof.id}`}
                     />
                   </label>
                   <label className="admin-proof-card__amount">
-                    <span>Montant indicatif public (XOF)</span>
+                    <span>Montant indicatif public (USDT)</span>
                     <input
                       type="number"
                       min="0"
-                      max="2147483647"
-                      step="1"
-                      inputMode="numeric"
-                      value={displayAmounts[proof.id] ?? String(proof.displayAmountXof ?? 0)}
+                      max="100000"
+                      step="0.00000001"
+                      value={displayAmounts[proof.id] ?? "0"}
                       onChange={(event) => setDisplayAmounts((current) => ({ ...current, [proof.id]: event.target.value }))}
-                      aria-label="Montant indicatif public (XOF)"
+                      aria-label="Montant indicatif public (USDT)"
                       data-testid={`input-withdrawal-proof-display-amount-${proof.id}`}
                     />
                   </label>
@@ -299,11 +301,17 @@ export default function AdminWithdrawalProofs() {
                       ? "Preuve approuvée"
                       : "Preuve rejetée"}
                   </span>
-                  {proof.status === "approved" && Number(proof.shareBonusXof || 0) > 0 && (
-                    <span>· Prime réellement créditée : <span data-no-static-translation>{Number(proof.shareBonusXof).toLocaleString(locale)} XOF</span></span>
+                  {proof.status === "approved" && Number(proof.shareBonusUsdt || 0) > 0 && (
+                    <span>· Prime réellement créditée : <span data-no-static-translation>{Number(proof.shareBonusUsdt).toLocaleString(locale)} USDT</span></span>
                   )}
-                  {proof.status === "approved" && Number(proof.displayAmountXof || 0) > 0 && (
-                    <span>· Montant indicatif public : <span data-no-static-translation>{Number(proof.displayAmountXof).toLocaleString(locale)} XOF</span></span>
+                  {proof.status === "approved" && Number(proof.shareBonusUsdt || 0) === 0 && Number(proof.shareBonusXof || 0) > 0 && (
+                    <span>· Prime historique conservée : <span data-no-static-translation>{Number(proof.shareBonusXof).toLocaleString(locale)} XOF</span></span>
+                  )}
+                  {proof.status === "approved" && Number(proof.displayAmountUsdt || 0) > 0 && (
+                    <span>· Montant indicatif public : <span data-no-static-translation>{Number(proof.displayAmountUsdt).toLocaleString(locale)} USDT</span></span>
+                  )}
+                  {proof.status === "approved" && Number(proof.displayAmountUsdt || 0) === 0 && Number(proof.displayAmountXof || 0) > 0 && (
+                    <span>· Montant indicatif historique : <span data-no-static-translation>{Number(proof.displayAmountXof).toLocaleString(locale)} XOF</span></span>
                   )}
                   {proof.processedAt && (
                     <small>

@@ -1,17 +1,17 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global USDT currency migration](rdc-only-market.md) — use one admin-configured product catalog in USDT, keep CI/Togo XOF Mobile Money deposits with USDT credits, and use BEP20-only withdrawals.
+- [Global USDT currency migration](rdc-only-market.md) — one global USDT catalog, crypto-only deposits, BEP20 withdrawals, and manual per-account handling of legacy XOF balances.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — legacy XOF minimum and fee rules apply until the site-wide USDT migration is defined.
-- [Legacy XOF/USDT deposit conversion](diamant-usdt-deposit-conversion.md) — CI/Togo Mobile Money still collects XOF, but the member balance is now targeted for USDT credit at the configured rate.
+- [Global USDT deposit policy](diamant-usdt-deposit-conversion.md) — remove Mobile Money deposits and automatic XOF/USDT conversion; accept crypto USDT deposits only.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.
 - [DIAMANT admin panel PIN](diamant-admin-panel-pin.md) — hash panel PINs, keep them out of user responses, and preserve admin-managed PIN changes across restarts.
 - [Static interface translations](tgood-i18n-static-text.md) — English mode must cover legacy JSX labels as well as typed catalog entries.
 - [TGOOD customer service hours](tgood-service-hours.md) — support availability and link activation follow the configured start/end hour window.
 - [TGOOD task rewards](tgood-task-rewards.md) — task rewards support decimal USDT amounts; startup adds missing levels without overwriting admin-configured values.
-- [DIAMANT task rewards](diamant-task-rewards.md) — task tiers are XOF and admin-managed; deletions persist, and claim-time values and credits stay historically fixed.
+- [DIAMANT task rewards](diamant-task-rewards.md) — new referral rewards use admin-configured USDT; preserve historical claim currency and claim-time values.
 - [TGOOD popup and daily check-in](tgood-popup-and-daily-bonus.md) — match the exact orange banner/calendar reference while keeping real history and reward rules.
 - [TGOOD random gift codes](tgood-random-gift-codes.md) — gift codes can draw a cent-precise USDT reward independently for each claim within admin-defined minimum and maximum.
 - [DIAMANT web presentation](diamant-web-presentation.md) — mobile-first/fixed-nav layout; preserve floaters/photos; route draggable support buttons on click, not pointer-up.

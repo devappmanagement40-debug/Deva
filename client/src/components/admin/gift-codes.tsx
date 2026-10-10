@@ -18,6 +18,7 @@ interface GiftCode {
   currentUses: number;
   amountMin?: string | null;
   amountMax?: string | null;
+  currency?: "XOF" | "USDT";
   expiresAt: string;
   isActive: boolean;
   createdAt: string;
@@ -155,7 +156,7 @@ export default function AdminGiftCodes() {
               {formData.randomAmount ? (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="amount-min">Montant minimum (XOF)</Label>
+                    <Label htmlFor="amount-min">Montant minimum (USDT)</Label>
                     <Input
                       id="amount-min"
                       type="number"
@@ -168,7 +169,7 @@ export default function AdminGiftCodes() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="amount-max">Montant maximum (XOF)</Label>
+                    <Label htmlFor="amount-max">Montant maximum (USDT)</Label>
                     <Input
                       id="amount-max"
                       type="number"
@@ -183,7 +184,7 @@ export default function AdminGiftCodes() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Montant (XOF)</Label>
+                  <Label htmlFor="amount">Montant (USDT)</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -256,10 +257,13 @@ export default function AdminGiftCodes() {
                   <span className="text-muted-foreground">Montant</span>
                   <span className="font-semibold" data-testid={`text-amount-${giftCode.id}`}>
                     {giftCode.amountMin !== null && giftCode.amountMin !== undefined && giftCode.amountMax !== null && giftCode.amountMax !== undefined
-                      ? `${parseFloat(giftCode.amountMin).toLocaleString()} – ${parseFloat(giftCode.amountMax).toLocaleString()} XOF (aléatoire)`
-                      : `${parseFloat(giftCode.amount).toLocaleString()} XOF`}
+                      ? `${parseFloat(giftCode.amountMin).toLocaleString()} – ${parseFloat(giftCode.amountMax).toLocaleString()} ${giftCode.currency || "XOF"} (aléatoire)`
+                      : `${parseFloat(giftCode.amount).toLocaleString()} ${giftCode.currency || "XOF"}`}
                   </span>
                 </div>
+                {giftCode.currency !== "USDT" && (
+                  <p className="text-xs text-amber-700">Ancien code XOF : il ne peut pas être utilisé avec une conversion automatique.</p>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Utilisations</span>
                   <span className="font-semibold" data-testid={`text-uses-${giftCode.id}`}>{giftCode.currentUses} / {giftCode.maxUses}</span>

@@ -2,7 +2,7 @@ import { ChevronLeft } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
-import { DEFAULT_MIN_DEPOSIT_XOF, DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { DEFAULT_MIN_DEPOSIT_USDT, DEFAULT_MIN_WITHDRAWAL_USDT } from "@shared/financial-settings";
 import { getContent } from "@/lib/content";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 
@@ -11,8 +11,8 @@ export default function RulesPage() {
     queryKey: ["/api/settings"],
   });
 
-  const minDeposit = settings?.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF);
-  const minWithdrawal = settings?.minWithdrawal || String(DEFAULT_MIN_WITHDRAWAL_XOF);
+  const minDeposit = settings?.minDepositUsdt || DEFAULT_MIN_DEPOSIT_USDT;
+  const minWithdrawal = settings?.minWithdrawalUsdt || DEFAULT_MIN_WITHDRAWAL_USDT;
   const withdrawalFees = settings?.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT);
   const withdrawalStartHour = settings?.withdrawalStartHour || "9";
   const withdrawalEndHour = settings?.withdrawalEndHour || "17";
@@ -89,11 +89,11 @@ export default function RulesPage() {
         <section className="space-y-3 rounded-2xl bg-white p-5 shadow-sm">
           <h2 className="ielp-rules-heading border-l-4 border-[#00a651] pl-3 text-lg font-bold text-[#087a38]">{rS2Title}</h2>
           <ul className="list-disc space-y-2 pl-5 text-sm text-[#3f4d45]">
-            <li>Montant minimum de recharge : {parseInt(minDeposit).toLocaleString()} XOF.</li>
-            <li>Moyens de recharge : Mobile Money et USDT BEP20, selon les options disponibles.</li>
-            <li>Montant minimum de retrait : {parseInt(minWithdrawal).toLocaleString()} XOF.</li>
+            <li>Montant minimum de dépôt : {Number(minDeposit).toLocaleString(undefined, { maximumFractionDigits: 6 })} USDT.</li>
+            <li>Les dépôts sont acceptés en USDT via le réseau BEP20.</li>
+            <li>Montant minimum de retrait : {Number(minWithdrawal).toLocaleString(undefined, { maximumFractionDigits: 6 })} USDT.</li>
             <li>Frais de retrait : {Number(withdrawalFees).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} % retenus sur le montant demandé.</li>
-            <li>Moyens disponibles : Mobile Money ou USDT BEP20, selon les options du pays.</li>
+            <li>Les retraits sont disponibles uniquement en USDT BEP20.</li>
             <li>Horaires de retrait : {withdrawalStartHour}h00 – {withdrawalEndHour}h00.</li>
             <li>Maximum {maxWithdrawalsPerDay} retrait(s) par jour et par utilisateur.</li>
           </ul>

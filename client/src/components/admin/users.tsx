@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,7 +21,10 @@ interface UserProductItem {
   productId: number;
   productName: string;
   productPrice: number;
+  currency: string;
   dailyEarnings: string;
+  pendingEarnings: string;
+  totalEarned: string;
   isActive: boolean;
   purchaseDate: string;
   daysClaimed: number;
@@ -111,6 +114,16 @@ interface UsersResponse {
   totalPages: number;
 }
 
+interface LegacyCurrencySummary {
+  depositXof: string;
+  earningsXof: string;
+  todayEarningsXof: string;
+  unpaidProductEarningsXof: string;
+  migratedAt: string | null;
+  depositCreditUsdt: string | null;
+  earningsCreditUsdt: string | null;
+}
+
 export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -121,6 +134,8 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
   const [selectedUser, setSelectedUser] = useState<UserWithTeam | null>(null);
   const [editBalance, setEditBalance] = useState("");
   const [editTotalEarnings, setEditTotalEarnings] = useState("");
+  const [manualDepositUsdt, setManualDepositUsdt] = useState("");
+  const [manualEarningsUsdt, setManualEarningsUsdt] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmDeleteUser, setConfirmDeleteUser] = useState<UserWithTeam | null>(null);
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -180,6 +195,21 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
     enabled: !!selectedUser?.id,
   });
 
+  const { data: legacyCurrencySummary, isLoading: legacyCurrencyLoading } = useQuery<LegacyCurrencySummary>({
+    queryKey: ["/api/admin/users", selectedUser?.id, "legacy-currency"],
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/users/${selectedUser!.id}/legacy-currency`, { credentials: "include" });
+      if (!res.ok) throw new Error("Impossible de charger les anciens soldes.");
+      return res.json();
+    },
+    enabled: !!selectedUser?.id,
+  });
+
+  useEffect(() => {
+    setManualDepositUsdt("");
+    setManualEarningsUsdt("");
+  }, [selectedUser?.id]);
+
   const updateMutation = useMutation({
     mutationFn: async ({ userId, action, value }: { userId: number; action: string; value?: any }) => {
       const response = await apiRequest("POST", `/api/admin/users/${userId}/${action}`, { value });
@@ -204,6 +234,33 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
     onError: (error: any) => {
       toast({ title: error.message || "Une erreur est survenue", variant: "destructive" });
     },
+  });
+
+  const legacyCreditMutation = useMutation({
+    mutationFn: async ({ userId, depositCreditUsdt, earningsCreditUsdt }: {
+      userId: number;
+      depositCreditUsdt: string;
+      earningsCreditUsdt: string;
+    }) => {
+      const response = await apiRequest("POST", `/api/admin/users/${userId}/legacy-currency-credit`, {
+        depositCreditUsdt,
+        earningsCreditUsdt,
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || "Crédit manuel impossible.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", selectedUser?.id, "legacy-currency"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", selectedUser?.id, "products"] });
+      toast({ title: "Crédit manuel appliqué", description: "Les anciens champs XOF ont été archivés et les montants saisis ont été crédités en USDT." });
+      setManualDepositUsdt("");
+      setManualEarningsUsdt("");
+    },
+    onError: (error: Error) => toast({ title: "Crédit non appliqué", description: error.message, variant: "destructive" }),
   });
 
   const resetTransactionPinMutation = useMutation({
@@ -566,18 +623,18 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
 
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium">Modifier le solde (disponible)</label>
-                  <p className="text-xs text-muted-foreground mb-1">Actuel: {formatCurrency(parseFloat(selectedUser.balance), selectedUser.country)}</p>
+                  <label className="text-sm font-medium">Modifier le solde de dépôts (USDT)</label>
+                  <p className="text-xs text-muted-foreground mb-1">Actuel: {Number(selectedUser.balanceUsdt || 0).toFixed(8)} USDT</p>
                   <div className="flex gap-2 mt-1">
                     <Input
                       type="number"
                       value={editBalance}
                       onChange={(e) => setEditBalance(e.target.value)}
-                      placeholder="Nouveau solde"
+                      placeholder="Nouveau solde USDT"
                       data-testid="input-edit-balance"
                     />
                     <Button
-                      onClick={() => updateMutation.mutate({ userId: selectedUser.id, action: "balance", value: parseFloat(editBalance) })}
+                      onClick={() => updateMutation.mutate({ userId: selectedUser.id, action: "balance-usdt", value: editBalance })}
                       disabled={updateMutation.isPending || !editBalance}
                       data-testid="button-save-balance"
                     >
@@ -587,24 +644,98 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">Modifier le solde des gains (total)</label>
-                  <p className="text-xs text-muted-foreground mb-1">Actuel: {formatCurrency(parseFloat((selectedUser as any).totalEarnings || "0"), selectedUser.country)}</p>
+                  <label className="text-sm font-medium">Modifier le solde des gains (USDT)</label>
+                  <p className="text-xs text-muted-foreground mb-1">Actuel: {Number(selectedUser.totalEarningsUsdt || 0).toFixed(8)} USDT</p>
                   <div className="flex gap-2 mt-1">
                     <Input
                       type="number"
                       value={editTotalEarnings}
                       onChange={(e) => setEditTotalEarnings(e.target.value)}
-                      placeholder="Nouveau solde des gains"
+                      placeholder="Nouveau solde des gains USDT"
                       data-testid="input-edit-total-earnings"
                     />
                     <Button
-                      onClick={() => updateMutation.mutate({ userId: selectedUser.id, action: "total-earnings", value: parseFloat(editTotalEarnings) })}
+                      onClick={() => updateMutation.mutate({ userId: selectedUser.id, action: "total-earnings-usdt", value: editTotalEarnings })}
                       disabled={updateMutation.isPending || !editTotalEarnings}
                       data-testid="button-save-total-earnings"
                     >
                       {updateMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "OK"}
                     </Button>
                   </div>
+                </div>
+
+                <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold">Anciens soldes — crédit manuel USDT</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Aucun taux n’est appliqué. Après validation, les anciens soldes XOF et gains non payés des anciens placements seront remis à zéro, les achats resteront dans l’historique et ne généreront plus de gains.
+                    </p>
+                  </div>
+                  {legacyCurrencyLoading ? (
+                    <p className="text-sm text-muted-foreground">Chargement des anciens soldes…</p>
+                  ) : legacyCurrencySummary?.migratedAt ? (
+                    <div className="space-y-1 text-xs">
+                      <p className="font-medium text-green-700">Crédit manuel déjà appliqué le {new Date(legacyCurrencySummary.migratedAt).toLocaleString()}.</p>
+                      <p>Crédit dépôt : {legacyCurrencySummary.depositCreditUsdt || "0"} USDT · Crédit gains : {legacyCurrencySummary.earningsCreditUsdt || "0"} USDT</p>
+                    </div>
+                  ) : legacyCurrencySummary ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <p>Ancien solde dépôt : <strong>{Number(legacyCurrencySummary.depositXof).toLocaleString()} XOF</strong></p>
+                        <p>Ancien solde gains : <strong>{Number(legacyCurrencySummary.earningsXof).toLocaleString()} XOF</strong></p>
+                        <p>Gains du jour archivés : <strong>{Number(legacyCurrencySummary.todayEarningsXof).toLocaleString()} XOF</strong></p>
+                        <p>Gains non payés des achats : <strong>{Number(legacyCurrencySummary.unpaidProductEarningsXof).toLocaleString()} XOF</strong></p>
+                      </div>
+                      <label className="block text-xs font-medium" htmlFor="manual-deposit-credit">Crédit manuel sur le solde de dépôts</label>
+                      <Input
+                        id="manual-deposit-credit"
+                        type="number"
+                        min="0"
+                        step="0.00000001"
+                        inputMode="decimal"
+                        value={manualDepositUsdt}
+                        onChange={(event) => setManualDepositUsdt(event.target.value)}
+                        placeholder="Montant USDT décidé pour l’ancien solde dépôt"
+                      />
+                      <label className="block text-xs font-medium" htmlFor="manual-earnings-credit">Crédit manuel sur le solde des gains</label>
+                      <Input
+                        id="manual-earnings-credit"
+                        type="number"
+                        min="0"
+                        step="0.00000001"
+                        inputMode="decimal"
+                        value={manualEarningsUsdt}
+                        onChange={(event) => setManualEarningsUsdt(event.target.value)}
+                        placeholder="Montant USDT décidé pour les anciens gains"
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Le crédit des gains doit inclure, selon votre décision, les gains non payés affichés ci-dessus. Saisissez 0 si aucun crédit n’est à faire.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        className="w-full"
+                        disabled={legacyCreditMutation.isPending || manualDepositUsdt === "" || manualEarningsUsdt === ""}
+                        onClick={() => {
+                          const confirmed = window.confirm(
+                            "Appliquer une seule fois ces montants manuels en USDT ? Les anciens soldes XOF et gains non payés seront remis à zéro sans taux de conversion. L’historique des achats sera conservé. Cette opération ne pourra pas être répétée.",
+                          );
+                          if (confirmed) {
+                            legacyCreditMutation.mutate({
+                              userId: selectedUser.id,
+                              depositCreditUsdt: manualDepositUsdt,
+                              earningsCreditUsdt: manualEarningsUsdt,
+                            });
+                          }
+                        }}
+                      >
+                        {legacyCreditMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Appliquer le crédit manuel
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-sm text-destructive">Impossible de charger les anciens soldes de ce compte.</p>
+                  )}
                 </div>
 
                 <div>
@@ -633,9 +764,9 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                         <SelectValue placeholder="Choisir un produit" />
                       </SelectTrigger>
                       <SelectContent>
-                        {products?.filter(p => !p.isFree).map((product) => (
+                        {products?.filter(p => !p.isFree && p.currency === "USDT" && p.market === "international").map((product) => (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {rebrandText(product.name)} - {product.price.toLocaleString()} XOF
+                            {rebrandText(product.name)} - {Number(product.price).toLocaleString()} USDT
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -663,7 +794,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                           <div className="min-w-0">
                             <p className="text-sm font-medium break-words">{up.productName}</p>
                             <p className="text-xs text-muted-foreground">
-                              {up.productPrice.toLocaleString()} XOF - Jour {up.daysClaimed}/{up.totalCycle}
+                              {up.productPrice.toLocaleString()} {up.currency || "XOF"} - Jour {up.daysClaimed}/{up.totalCycle}
                               {up.isActive ? " (Actif)" : " (Termine)"}
                             </p>
                           </div>

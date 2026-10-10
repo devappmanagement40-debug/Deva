@@ -14,7 +14,7 @@ import {
   formatUsdtWithdrawalAmount,
   parseUsdtWithdrawalAmount,
 } from "@shared/withdrawal-fees";
-import { DEFAULT_MIN_WITHDRAWAL_XOF } from "@shared/financial-settings";
+import { DEFAULT_MIN_WITHDRAWAL_USDT } from "@shared/financial-settings";
 import { getCustomerMarket } from "@shared/country-codes";
 import { getSafeWithdrawalErrorMessage } from "@/lib/withdrawal-errors";
 
@@ -105,7 +105,7 @@ export default function WithdrawalPage() {
     queryKey: ["/api/settings"],
   });
 
-  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? DEFAULT_MIN_WITHDRAWAL_XOF;
+  const minWithdrawal = withdrawalSettings?.minWithdrawal ?? Number(DEFAULT_MIN_WITHDRAWAL_USDT);
   const maxWithdrawal = withdrawalSettings?.maxWithdrawal ?? 1_000_000;
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled === true;
@@ -367,7 +367,7 @@ export default function WithdrawalPage() {
       allSettings,
     ),
     getContent(allSettings, "content_withdrawal_instruction4", "4. Withdrawals are available from 09:00 to 17:00."),
-    getContent(allSettings, "content_withdrawal_instruction5", "5. Sélectionnez un compte Mobile Money disponible dans votre pays ou une adresse USDT BEP20 valide."),
+    getContent(allSettings, "content_withdrawal_instruction5", "5. Saisissez une adresse USDT BEP20 valide et vérifiez-la avant de confirmer."),
     getContent(allSettings, "content_withdrawal_instruction6", "6. Review the withdrawal conditions before submitting."),
   ];
 

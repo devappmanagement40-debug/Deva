@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, History, Loader2 } from "lucide-react";
 import { INTERNATIONAL_CRYPTO_METHODS } from "@shared/international-crypto";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -85,11 +85,13 @@ const NETWORK_ICONS: Record<string, string> = {
 export default function InternationalCryptoDepositFlow() {
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
+  const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
   const [stage, setStage] = useState<DepositStage>("amount");
   const [amountUsdt, setAmountUsdt] = useState("");
   const [payment, setPayment] = useState<InternationalCryptoPayment | null>(null);
   const [providerStatus, setProviderStatus] = useState<ProviderDepositStatus>("pending");
   const [copied, setCopied] = useState<"address" | "amount" | null>(null);
+  const minimumDepositUsdt = Number(settings?.minDepositUsdt ?? 2);
 
   const createPayment = useMutation({
     mutationFn: async (option: InternationalCryptoOption) => {
@@ -172,10 +174,10 @@ export default function InternationalCryptoDepositFlow() {
 
   const startMethodSelection = () => {
     const amount = Number(amountUsdt);
-    if (!Number.isFinite(amount) || amount < 2 || amount > 1_000_000) {
+    if (!Number.isFinite(amount) || !Number.isFinite(minimumDepositUsdt) || amount < minimumDepositUsdt || amount > 1_000_000) {
       toast({
         title: "Montant invalide",
-        description: "Saisissez un montant compris entre 2 et 1 000 000 USDT.",
+        description: `Saisissez un montant compris entre ${minimumDepositUsdt} et 1 000 000 USDT.`,
         variant: "destructive",
       });
       return;
@@ -228,7 +230,7 @@ export default function InternationalCryptoDepositFlow() {
             </div>
             <h2 className="text-lg font-bold">Montant du dépôt</h2>
             <p className="mt-1 text-sm leading-6 text-white/75">
-              Le montant sera crédité en USDT sur votre solde de dépôts. Les soldes XOF déjà présents ne sont pas convertis.
+               Le montant sera crédité en USDT sur votre solde de dépôts.
             </p>
             <label className="mt-5 block text-sm font-semibold text-white" htmlFor="international-usdt-amount">
               Montant à créditer (USDT)
@@ -238,7 +240,7 @@ export default function InternationalCryptoDepositFlow() {
                 id="international-usdt-amount"
                 inputMode="decimal"
                 type="number"
-                min="2"
+                 min={minimumDepositUsdt}
                 max="1000000"
                 step="0.01"
                 value={amountUsdt}
@@ -249,7 +251,7 @@ export default function InternationalCryptoDepositFlow() {
               />
               <span className="font-bold text-white">USDT</span>
             </div>
-            <p id="international-usdt-min" className="mt-2 text-xs text-white/70">Minimum : 2 USDT. Le prestataire vérifie aussi le minimum du réseau choisi.</p>
+             <p id="international-usdt-min" className="mt-2 text-xs text-white/70">Minimum : {minimumDepositUsdt} USDT. Le prestataire vérifie aussi le minimum du réseau choisi.</p>
             <button
               type="button"
               onClick={startMethodSelection}
@@ -307,7 +309,7 @@ export default function InternationalCryptoDepositFlow() {
 
       <FloatingSupport placement="home" />
       <p className="mx-auto mt-4 max-w-xl px-5 text-center text-[11px] text-white/65">
-        {user?.country ? `Marché international · ${user.country}` : "Marché international"}
+         {user?.country ? `Compte USDT · ${user.country}` : "Compte USDT"}
       </p>
     </main>
   );

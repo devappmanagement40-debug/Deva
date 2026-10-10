@@ -3,8 +3,8 @@ name: DIAMANT task rewards
 description: Rules for administrator-managed referral reward tiers and claim history.
 ---
 
-DIAMANT reward tiers are XOF amounts configured by administrators. Administrators can add, edit, reorder, deactivate, or delete tiers; startup seeds the default catalog only once so intentional deletions persist. Eligibility counts distinct direct referrals who are not banned and have an active purchase of a non-free product. Claims credit the configured amount to earnings atomically and save the claim-time tier values. Later edits affect future claims only; a tier with claims must be deactivated rather than hard-deleted. Existing claims without snapshots must not be assigned guessed historical values.
+DIAMANT reward tiers are administrator-configured USDT amounts with up to eight decimal places. Administrators can add, edit, reorder, deactivate, or delete tiers; startup must not overwrite configured values. Eligibility counts distinct direct referrals who are not banned and have an active purchase of a non-free product. New claims credit USDT earnings atomically and save claim-time tier values. Historical XOF claims retain their original currency and snapshot; never guess a conversion.
 
-**Why:** The administrator must be able to manage the catalog without startup restoring deleted tiers or edits changing credits users already received.
+**Why:** The site now uses USDT globally, but old claim history must remain accurate and admin settings must not rewrite money already credited.
 
-**How to apply:** Keep tier creation, validation, ordering, eligibility, balance crediting, history display, and deletion safeguards consistent with these rules. Preserve transaction amounts as the ledger source of truth.
+**How to apply:** Apply the USDT policy only to new tiers and claims. Keep tier validation, eligibility, ledger credits, and history currency snapshots consistent; preserve existing XOF claims as historical records.

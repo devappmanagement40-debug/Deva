@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const MAX_TASK_INVITES = 2_147_483_647;
-export const MAX_TASK_REWARD = 9_999_999_999_999.99;
+export const MAX_TASK_REWARD = 9_999_999.99999999;
 
 const numericInput = z.preprocess(
   (value) => typeof value === "string" && value.trim() !== "" ? Number(value) : value,
@@ -13,12 +13,12 @@ const taskDescriptionSchema = z.string().trim().min(1).max(2_000);
 const requiredInvitesSchema = numericInput.pipe(
   z.number().int().min(1).max(MAX_TASK_INVITES),
 );
-const rewardSchema = numericInput.pipe(
+const rewardUsdtSchema = numericInput.pipe(
   z.number()
-    .min(0)
+    .positive()
     .max(MAX_TASK_REWARD)
-    .refine((value) => Math.abs(value * 100 - Math.round(value * 100)) < 1e-7, {
-      message: "La récompense doit avoir au plus deux décimales",
+    .refine((value) => Math.abs(value * 100_000_000 - Math.round(value * 100_000_000)) < 1e-5, {
+      message: "La récompense doit avoir au plus huit décimales",
     }),
 );
 const sortOrderSchema = numericInput.pipe(
@@ -29,7 +29,7 @@ export const adminTaskCreateSchema = z.object({
   name: taskNameSchema,
   description: taskDescriptionSchema,
   requiredInvites: requiredInvitesSchema,
-  reward: rewardSchema,
+  rewardUsdt: rewardUsdtSchema,
   sortOrder: sortOrderSchema,
 }).strict();
 
@@ -37,7 +37,7 @@ export const adminTaskUpdateSchema = z.object({
   name: taskNameSchema.optional(),
   description: taskDescriptionSchema.optional(),
   requiredInvites: requiredInvitesSchema.optional(),
-  reward: rewardSchema.optional(),
+  rewardUsdt: rewardUsdtSchema.optional(),
   sortOrder: sortOrderSchema.optional(),
   isActive: z.boolean().optional(),
 }).strict().refine((value) => Object.keys(value).length > 0, {

@@ -1,14 +1,12 @@
-import { DEFAULT_XOF_PER_USDT, parseXofPerUsdt } from "./financial-settings";
-
 export const MAX_VIP_LEVEL = 7;
 
 export interface VipProgress {
   level: number;
-  totalInvestmentXof: number;
+  totalInvestmentUsdt: number;
   progressPercent: number;
   nextLevel: number | null;
-  nextThresholdXof: number | null;
-  amountRemainingXof: number | null;
+  nextThresholdUsdt: number | null;
+  amountRemainingUsdt: number | null;
 }
 
 interface EligiblePurchase {
@@ -39,7 +37,7 @@ function thresholdToCents(value: unknown): number | null {
   return amount * 100;
 }
 
-function getPersonalPaidPurchases(purchases: readonly unknown[], xofPerUsdt: number): EligiblePurchase[] {
+function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurchase[] {
   const eligible: EligiblePurchase[] = [];
 
   for (const value of purchases) {
@@ -61,10 +59,9 @@ function getPersonalPaidPurchases(purchases: readonly unknown[], xofPerUsdt: num
     if (isFree) continue;
 
     const purchaseCurrency = String(snapshot.currency ?? currentProduct?.currency ?? "XOF").toUpperCase();
+    if (purchaseCurrency !== "USDT") continue;
     const purchasePrice = Number(snapshot.price ?? currentProduct?.price);
-    const amountCents = amountToCents(
-      purchaseCurrency === "USDT" ? purchasePrice * xofPerUsdt : purchasePrice,
-    );
+    const amountCents = amountToCents(purchasePrice);
     if (amountCents <= 0) continue;
 
     const rawDate = purchase.purchaseDate ?? root.purchaseDate ?? root.purchasedAt;
@@ -99,11 +96,7 @@ export function calculateVipProgress(
   purchases: readonly unknown[],
   settings: Record<string, unknown>,
 ): VipProgress {
-  const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
-  if (xofPerUsdt === null) {
-    throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
-  }
-  const eligiblePurchases = getPersonalPaidPurchases(purchases, xofPerUsdt);
+  const eligiblePurchases = getPersonalPaidPurchases(purchases);
   let totalCents = 0;
   let level = 0;
   let currentStageStartCents = 0;
@@ -115,7 +108,7 @@ export function calculateVipProgress(
     }
 
     while (level < MAX_VIP_LEVEL) {
-      const nextThresholdCents = thresholdToCents(settings[`vip${level + 1}MinInvestment`]);
+      const nextThresholdCents = thresholdToCents(settings[`vip${level + 1}MinInvestmentUsdt`]);
       if (nextThresholdCents === null || totalCents < nextThresholdCents) break;
       level++;
       currentStageStartCents = totalCents;
@@ -125,7 +118,7 @@ export function calculateVipProgress(
   const nextLevel = level < MAX_VIP_LEVEL ? level + 1 : null;
   const nextThresholdCents = nextLevel === null
     ? null
-    : thresholdToCents(settings[`vip${nextLevel}MinInvestment`]);
+    : thresholdToCents(settings[`vip${nextLevel}MinInvestmentUsdt`]);
   const validNextThreshold = nextThresholdCents !== null && nextThresholdCents > currentStageStartCents
     ? nextThresholdCents
     : null;
@@ -142,11 +135,11 @@ export function calculateVipProgress(
 
   return {
     level,
-    totalInvestmentXof: totalCents / 100,
+    totalInvestmentUsdt: totalCents / 100,
     progressPercent,
     nextLevel,
-    nextThresholdXof: validNextThreshold === null ? null : validNextThreshold / 100,
-    amountRemainingXof: validNextThreshold === null
+    nextThresholdUsdt: validNextThreshold === null ? null : validNextThreshold / 100,
+    amountRemainingUsdt: validNextThreshold === null
       ? null
       : Math.max(0, validNextThreshold - totalCents) / 100,
   };
@@ -176,7 +169,7 @@ export function validateVipInvestmentThresholds(
   let foundGap = false;
 
   for (let level = 1; level <= MAX_VIP_LEVEL; level++) {
-    const raw = settings[`vip${level}MinInvestment`];
+    const raw = settings[`vip${level}MinInvestmentUsdt`];
     if (raw === undefined || raw === null || String(raw).trim() === "") {
       foundGap = true;
       continue;
@@ -184,7 +177,7 @@ export function validateVipInvestmentThresholds(
 
     const threshold = typeof raw === "number" ? raw : Number(String(raw).trim());
     if (!Number.isSafeInteger(threshold) || threshold <= 0 || threshold > Number.MAX_SAFE_INTEGER / 100) {
-      return `Le seuil de VIP ${level} doit être un montant entier positif en XOF.`;
+      return `Le seuil de VIP ${level} doit être un montant entier positif en USDT.`;
     }
     if (foundGap) {
       return `Configurez les seuils VIP dans l’ordre, sans laisser de palier vide avant VIP ${level}.`;

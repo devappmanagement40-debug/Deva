@@ -101,7 +101,7 @@ export default function AdminVipSettings() {
       <div>
         <h2 className="text-base font-bold">⭐ Configuration des niveaux VIP</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Les rangs VIP 1 à 7 sont débloqués selon le montant cumulé de vos achats personnels payants, toutes catégories confondues. Configurez ici le seuil requis pour chaque rang, en XOF.
+          Les rangs VIP 1 à 7 sont débloqués selon le montant cumulé de vos achats personnels payants en USDT, toutes catégories confondues. Configurez ici le seuil requis pour chaque rang.
         </p>
       </div>
 
@@ -137,10 +137,10 @@ export default function AdminVipSettings() {
                     type="number" min="1" step="1"
                     className="h-8 text-sm w-24"
                     placeholder="Non configuré"
-                    value={val(`vip${cfg.level}MinInvestment`, cfg.minInvestment !== null ? String(cfg.minInvestment) : "")}
-                    onChange={(e) => set(`vip${cfg.level}MinInvestment`, e.target.value)}
+                    value={val(`vip${cfg.level}MinInvestmentUsdt`, "")}
+                    onChange={(e) => set(`vip${cfg.level}MinInvestmentUsdt`, e.target.value)}
                   />
-                  <span className="text-xs text-muted-foreground">XOF</span>
+                  <span className="text-xs text-muted-foreground">USDT</span>
                 </div>
               )}
               {cfg.level >= 1 && (

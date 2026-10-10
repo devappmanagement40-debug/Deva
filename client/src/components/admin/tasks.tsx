@@ -25,9 +25,9 @@ const taskSchema = z.object({
   requiredInvites: z.string().trim()
     .regex(/^[1-9]\d*$/, "Le seuil doit être un entier positif")
     .refine((value) => Number(value) <= MAX_TASK_INVITES, "Seuil trop élevé"),
-  reward: z.string().trim()
-    .regex(/^\d+(?:\.\d{1,2})?$/, "Montant invalide")
-    .refine((value) => Number(value) <= MAX_TASK_REWARD, "Montant trop élevé"),
+  rewardUsdt: z.string().trim()
+    .regex(/^\d+(?:\.\d{1,8})?$/, "Montant invalide")
+    .refine((value) => Number(value) > 0 && Number(value) <= MAX_TASK_REWARD, "Saisissez une récompense USDT positive."),
   sortOrder: z.string().trim()
     .regex(/^(0|[1-9]\d*)$/, "L’ordre doit être un entier positif ou nul")
     .refine((value) => Number(value) <= MAX_TASK_INVITES, "Ordre trop élevé"),
@@ -69,10 +69,10 @@ function TaskFormFields({
             <FormMessage />
           </FormItem>
         )} />
-        <FormField control={form.control} name="reward" render={({ field }) => (
+        <FormField control={form.control} name="rewardUsdt" render={({ field }) => (
           <FormItem>
-            <FormLabel>{t.adminTaskReward}</FormLabel>
-            <FormControl><Input type="number" min="0" max={MAX_TASK_REWARD} step="0.01" {...field} /></FormControl>
+            <FormLabel>{t.adminTaskReward} (USDT)</FormLabel>
+            <FormControl><Input type="number" min="0.00000001" max={MAX_TASK_REWARD} step="0.00000001" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
@@ -105,12 +105,12 @@ export default function AdminTasks() {
 
   const editForm = useForm<TaskForm>({
     resolver: zodResolver(taskSchema),
-    defaultValues: { name: "", description: "", requiredInvites: "1", reward: "0", sortOrder: "1" },
+    defaultValues: { name: "", description: "", requiredInvites: "1", rewardUsdt: "0.01", sortOrder: "1" },
   });
 
   const createForm = useForm<TaskForm>({
     resolver: zodResolver(taskSchema),
-    defaultValues: { name: "", description: "", requiredInvites: "1", reward: "0", sortOrder: "1" },
+    defaultValues: { name: "", description: "", requiredInvites: "1", rewardUsdt: "0.01", sortOrder: "1" },
   });
 
   const invalidate = () => {
@@ -124,7 +124,7 @@ export default function AdminTasks() {
         name: data.name,
         description: data.description,
         requiredInvites: Number(data.requiredInvites),
-        reward: Number(data.reward),
+        rewardUsdt: Number(data.rewardUsdt),
         sortOrder: Number(data.sortOrder),
       });
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || t.errorOccurred); }
@@ -178,7 +178,7 @@ export default function AdminTasks() {
       name: task.name,
       description: task.description,
       requiredInvites: task.requiredInvites.toString(),
-      reward: task.reward.toString(),
+      rewardUsdt: String(task.rewardUsdt || "0.01"),
       sortOrder: task.sortOrder.toString(),
     });
   };
@@ -191,7 +191,7 @@ export default function AdminTasks() {
         name: data.name,
         description: data.description,
           requiredInvites: Number(data.requiredInvites),
-          reward: Number(data.reward),
+          rewardUsdt: String(data.rewardUsdt),
           sortOrder: Number(data.sortOrder),
       },
     });
@@ -203,7 +203,7 @@ export default function AdminTasks() {
       name: "",
       description: "",
       requiredInvites: "1",
-      reward: "0",
+      rewardUsdt: "0.01",
       sortOrder: String(nextSortOrder),
     });
     setShowCreateForm(true);
@@ -251,7 +251,7 @@ export default function AdminTasks() {
                           👥 {task.requiredInvites} {t.adminTaskRequiredInvites}
                         </span>
                         <span className="text-gray-600 font-medium">
-                          🎁 {task.reward.toLocaleString()} XOF
+                          🎁 {Number(task.rewardUsdt || 0).toLocaleString()} USDT
                         </span>
                       </div>
                     </div>

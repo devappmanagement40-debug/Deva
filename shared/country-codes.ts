@@ -21,7 +21,10 @@ export function isSupportedMarketCountryCode(
 }
 
 export function getCustomerMarket(countryCode: unknown): CustomerMarket {
-  return isSupportedMarketCountryCode(countryCode) ? "legacy" : "international";
+  // New account activity now uses one global USDT market. Country is still
+  // retained for identity and historical records, but no longer selects XOF.
+  void countryCode;
+  return "international";
 }
 
 export function getMarketCurrency(market: CustomerMarket): MarketCurrency {
