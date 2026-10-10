@@ -87,6 +87,15 @@ export type AdminTelegramProvider = {
 export type AdminTelegramNotification =
   | { kind: "signup"; userId: number; country: string }
   | { kind: "admin_login"; userId: number; country: string }
+  | {
+      kind: "support_message";
+      userId: number;
+      userName: string;
+      country?: string | null;
+      message: string;
+      attachmentType?: "image" | "video" | "file" | null;
+      attachmentName?: string | null;
+    }
   | { kind: "purchase"; userId: number; country?: string; productName: string; amount: number }
   | {
       kind: "deposit_created";
@@ -272,6 +281,31 @@ export function escapeTelegramHtml(value: unknown): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function escapeTelegramHtmlLimited(value: unknown, maxEscapedLength: number): string {
+  let result = "";
+  let length = 0;
+  let truncated = false;
+  const replacements: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+
+  for (const character of String(value ?? "")) {
+    const escaped = replacements[character] ?? character;
+    if (length + escaped.length > maxEscapedLength) {
+      truncated = true;
+      break;
+    }
+    result += escaped;
+    length += escaped.length;
+  }
+
+  return truncated ? `${result}… (message tronqué)` : result;
 }
 
 function numericValue(value: unknown): number | undefined {
@@ -612,6 +646,27 @@ function formatNotification(event: AdminTelegramNotification): string {
   }
   if (event.kind === "admin_login") {
     return `🔐 <b>Connexion administrateur</b>\nCompte #${event.userId} · ${escapeTelegramHtml(event.country)}`;
+  }
+  if (event.kind === "support_message") {
+    const message = event.message.trim()
+      ? escapeTelegramHtmlLimited(event.message.trim(), 2_800)
+      : "Message sans texte (pièce jointe uniquement).";
+    const country = event.country
+      ? `\n<b>Pays :</b> ${escapeTelegramHtmlLimited(event.country, 80)}`
+      : "";
+    const attachmentType = event.attachmentType
+      ? ({ image: "image", video: "vidéo", file: "fichier" } as const)[event.attachmentType]
+      : undefined;
+    const attachment = attachmentType
+      ? `\n<b>Pièce jointe :</b> ${escapeTelegramHtmlLimited(event.attachmentName || attachmentType, 160)} (${attachmentType})`
+      : "";
+
+    return [
+      "💬 <b>Nouveau message au service client</b>",
+      `<b>Membre :</b> ${escapeTelegramHtmlLimited(event.userName, 120)} · compte #${event.userId}${country}`,
+      `<b>Message :</b>\n${message}`,
+      attachment,
+    ].filter(Boolean).join("\n");
   }
   if (event.kind === "purchase") {
     const country = event.country ? ` · ${escapeTelegramHtml(event.country)}` : "";

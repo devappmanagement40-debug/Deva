@@ -297,3 +297,33 @@ test("annonce une nouvelle inscription avec une félicitation concise et profess
     "🎉 <b>Félicitations, vous venez d’accueillir un nouveau membre !</b>\nCompte #<b>534</b> · TG",
   );
 });
+
+test("envoie une notification Telegram échappée pour chaque message du service client", () => {
+  const message = formatAdminTelegramNotification({
+    kind: "support_message",
+    userId: 534,
+    userName: "Awa <K.",
+    country: "CI",
+    message: "Bonjour, j’ai besoin d’aide avec <mon compte> & mon dépôt.",
+    attachmentType: "image",
+    attachmentName: "capture <1>.png",
+  });
+
+  assert.match(message, /<b>Nouveau message au service client<\/b>/);
+  assert.match(message, /Awa &lt;K\./);
+  assert.match(message, /Bonjour, j’ai besoin d’aide avec &lt;mon compte&gt; &amp; mon dépôt\./);
+  assert.match(message, /capture &lt;1&gt;\.png \(image\)/);
+  assert.doesNotMatch(message, /<mon compte>|capture <1>/);
+});
+
+test("limite et mentionne les messages du support trop longs pour Telegram", () => {
+  const message = formatAdminTelegramNotification({
+    kind: "support_message",
+    userId: 535,
+    userName: "Membre",
+    message: "<".repeat(2_000),
+  });
+
+  assert.ok(message.length < 4_096);
+  assert.match(message, /message tronqué/);
+});

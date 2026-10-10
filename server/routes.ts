@@ -2093,6 +2093,15 @@ export async function registerRoutes(
         attachmentType: payload.attachmentType ?? null,
         attachmentName: payload.attachmentName ?? null,
       });
+      notifyAdminTelegram({
+        kind: "support_message",
+        userId,
+        userName: user.fullName || "Membre",
+        country: user.country,
+        message: payload.message,
+        attachmentType: payload.attachmentType,
+        attachmentName: payload.attachmentName,
+      });
       return res.status(201).json(message);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
