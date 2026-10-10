@@ -490,7 +490,7 @@ export default function AccountPage() {
               <strong>{displayedBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT</strong>
               {(legacyDepositAmount > 0 || legacyEarningsAmount > 0) && (
                 <small className="mt-1 block text-xs font-normal text-amber-700">
-                  Ancien solde XOF conservé sans conversion automatique; rapprochez-le avec l’administration.
+                  Un solde antérieur est conservé; contactez l’administration pour son rapprochement.
                 </small>
               )}
             </div>

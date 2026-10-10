@@ -45,7 +45,6 @@ import {
 } from "./country-operator-policy";
 import {
   calculateUsdtWithdrawalPayoutAmounts,
-  calculateWithdrawalPayoutAmounts,
   convertXofWithdrawalLimitToUsdt,
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   formatUsdtWithdrawalAmount,
@@ -1430,8 +1429,7 @@ export async function registerRoutes(
     }
   });
 
-  // International accounts use a separate USDT ledger and provider-priced
-  // crypto network. CI/Togo deposits continue through the legacy XOF route.
+  // All countries create deposits through the USDT ledger and crypto networks.
   app.post("/api/crypto-deposits/international", requireAuth, requireSameOrigin, async (req, res) => {
     try {
       const user = await storage.getUser(req.session.userId!);
@@ -2578,11 +2576,6 @@ export async function registerRoutes(
         ? req.body as Record<string, unknown>
         : {};
       const rawAmount = requestBody.amount;
-      const amount = typeof rawAmount === "number"
-        ? rawAmount
-        : typeof rawAmount === "string" && rawAmount.trim()
-          ? Number(rawAmount)
-          : Number.NaN;
       const amountUsdtMicros = parseUsdtWithdrawalAmount(rawAmount);
       const amountUsdt = amountUsdtMicros === null
         ? null
@@ -2592,8 +2585,6 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ message: "Non authentifié" });
       }
-      const isInternational = getCustomerMarket(user.country) === "international";
-
       if (!user.transactionPassword || user.mustResetTransactionPassword) {
         return res.status(403).json({
           code: "TRANSACTION_PIN_RESET_REQUIRED",
@@ -2624,7 +2615,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Vous devez posséder un produit actif pour effectuer un retrait." });
       }
 
-      if (isInternational ? amountUsdt === null : (!Number.isSafeInteger(amount) || amount <= 0)) {
+      if (amountUsdt === null) {
         return res.status(400).json({ message: "Montant de retrait invalide" });
       }
 
@@ -2632,7 +2623,7 @@ export async function registerRoutes(
       if (settingsForWithdrawal.withdrawalEnabled === "false") {
         return res.status(400).json({ message: "Les retraits sont temporairement désactivés par l'administration" });
       }
-      if (isInternational && !isNowPaymentsPayoutConfigured()) {
+      if (!isNowPaymentsPayoutConfigured()) {
         return res.status(503).json({
           code: "NOWPAYMENTS_PAYOUT_NOT_CONFIGURED",
           message: "Les retraits USDT ne sont pas encore configurés. Contactez l'administration.",
@@ -2675,29 +2666,21 @@ export async function registerRoutes(
       }
       const minWithdrawal = minWithdrawalUsdtMicros / 1_000_000;
       const maxWithdrawal = maxWithdrawalUsdtMicros / 1_000_000;
-      if (isInternational) {
-        if (
-          amountUsdtMicros === null
-          || minWithdrawalUsdtMicros === null
-          || maxWithdrawalUsdtMicros === null
-        ) {
-          return res.status(400).json({ message: "Montant USDT invalide — utilisez au maximum 6 décimales." });
-        }
-        if (amountUsdtMicros < minWithdrawalUsdtMicros) {
-          return res.status(400).json({
-            message: `Montant minimum : ${minWithdrawal} USDT`,
-          });
-        }
-        if (amountUsdtMicros > maxWithdrawalUsdtMicros) {
-          return res.status(400).json({
-            message: `Montant maximum : ${maxWithdrawal} USDT`,
-          });
-        }
-      } else if (amount < minWithdrawal || amount > maxWithdrawal) {
+      if (
+        amountUsdtMicros === null
+        || minWithdrawalUsdtMicros === null
+        || maxWithdrawalUsdtMicros === null
+      ) {
+        return res.status(400).json({ message: "Montant USDT invalide — utilisez au maximum 6 décimales." });
+      }
+      if (amountUsdtMicros < minWithdrawalUsdtMicros) {
         return res.status(400).json({
-          message: amount < minWithdrawal
-            ? `Montant minimum : ${minWithdrawal.toLocaleString()} XOF`
-            : `Montant maximum : ${maxWithdrawal.toLocaleString()} XOF`,
+          message: `Montant minimum : ${minWithdrawal} USDT`,
+        });
+      }
+      if (amountUsdtMicros > maxWithdrawalUsdtMicros) {
+        return res.status(400).json({
+          message: `Montant maximum : ${maxWithdrawal} USDT`,
         });
       }
 
@@ -2719,14 +2702,9 @@ export async function registerRoutes(
         console.error("Invalid withdrawal fee percentage in platform settings");
         return res.status(500).json({ message: "Les frais de retrait sont mal configurés. Contactez l'administration." });
       }
-      let payoutAmountsXof: ReturnType<typeof calculateWithdrawalPayoutAmounts> = { fees: 0, netAmount: 0 };
       let payoutAmountsUsdt: ReturnType<typeof calculateUsdtWithdrawalPayoutAmounts> = { fees: "0", netAmount: "0" };
       try {
-        if (isInternational) {
-          payoutAmountsUsdt = calculateUsdtWithdrawalPayoutAmounts(amountUsdt, withdrawalFeePercent);
-        } else {
-          payoutAmountsXof = calculateWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
-        }
+        payoutAmountsUsdt = calculateUsdtWithdrawalPayoutAmounts(amountUsdt, withdrawalFeePercent);
       } catch (error) {
         console.error("Could not calculate withdrawal fee:", error);
         return res.status(500).json({ message: "Impossible de calculer les frais de retrait." });
@@ -2756,33 +2734,13 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Veuillez ajouter un moyen de retrait avant de retirer" });
       }
       const isUsdtBep20 = wallet.paymentMethod === "USDT BEP20";
-      const isMobileMoney = typeof wallet.paymentMethod === "string"
-        && wallet.paymentMethod.startsWith("Mobile Money - ");
-      if (isInternational && !isUsdtBep20) {
-        return res.status(400).json({ message: "Les comptes internationaux peuvent retirer uniquement en USDT BEP20." });
-      }
-      if (!isUsdtBep20 && !isMobileMoney) {
-        return res.status(400).json({ message: "Sélectionnez un moyen de retrait Mobile Money ou USDT BEP20 valide." });
+      if (!isUsdtBep20) {
+        return res.status(400).json({ message: "Les retraits sont disponibles uniquement en USDT BEP20." });
       }
       if (
-        isInternational
-        && String(wallet.country || "").trim().toUpperCase() !== String(user.country || "").trim().toUpperCase()
+        String(wallet.country || "").trim().toUpperCase() !== String(user.country || "").trim().toUpperCase()
       ) {
         return res.status(400).json({ message: "Sélectionnez une adresse USDT enregistrée pour votre pays." });
-      }
-      if (isMobileMoney) {
-        const userCountry = String(user.country || "").trim().toUpperCase();
-        const walletCountry = String(wallet.country || "").trim().toUpperCase();
-        const operatorName = wallet.paymentMethod.slice("Mobile Money - ".length).trim();
-        const activeCountry = (await storage.getActiveCountries()).find(
-          (country) => country.code.trim().toUpperCase() === userCountry,
-        );
-        if (
-          walletCountry !== userCountry
-          || !resolveCountryOperator(activeCountry?.operators, operatorName)
-        ) {
-          return res.status(400).json({ message: "Cet opérateur Mobile Money n'est pas actif pour votre pays." });
-        }
       }
 
       const maxPerDay = parsePositiveIntegerSetting(settingsForWithdrawal.maxWithdrawalsPerDay, 1);
@@ -2796,17 +2754,13 @@ export async function registerRoutes(
       // insert cannot leave the user's earnings deducted without a request.
       const reservation = await storage.createWithdrawalRequest({
         userId: user.id,
-        amount: isInternational ? 0 : amount,
-        netAmount: isInternational ? 0 : payoutAmountsXof.netAmount,
-        fees: isInternational ? 0 : payoutAmountsXof.fees,
-        currency: isInternational ? "USDT" : "XOF",
-        ...(isInternational
-          ? {
-              amountUsdt,
-              netAmountUsdt: payoutAmountsUsdt.netAmount,
-              feesUsdt: payoutAmountsUsdt.fees,
-            }
-          : {}),
+        amount: 0,
+        netAmount: 0,
+        fees: 0,
+        currency: "USDT",
+        amountUsdt,
+        netAmountUsdt: payoutAmountsUsdt.netAmount,
+        feesUsdt: payoutAmountsUsdt.fees,
         accountName: wallet.accountName,
         accountNumber: wallet.accountNumber,
         country: user.country,
@@ -2983,9 +2937,7 @@ export async function registerRoutes(
       const user = await storage.getUser(req.session.userId!);
       if (!user) return res.status(401).json({ message: "Non authentifié" });
       const wallets = await storage.getWallets(user.id);
-      const visibleWallets = getCustomerMarket(user.country) === "international"
-        ? wallets.filter((wallet) => wallet.paymentMethod === "USDT BEP20")
-        : wallets;
+      const visibleWallets = wallets.filter((wallet) => wallet.paymentMethod === "USDT BEP20");
       res.json(visibleWallets);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2994,7 +2946,7 @@ export async function registerRoutes(
 
   app.post("/api/wallets", requireAuth, async (req, res) => {
     try {
-      const { accountName, accountNumber, type, network, paymentMethod: legacyPaymentMethod } = req.body;
+      const { accountName, accountNumber, type, network } = req.body;
       const normalizedType = String(type || "").trim().toLowerCase();
       const selectedNetwork = String(network || "").trim();
       const holderName = String(accountName || "").trim();
@@ -3012,50 +2964,24 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Le pays du compte n'est pas configuré" });
       }
 
-      let resolvedPaymentMethod: string;
-      if (
-        normalizedType === "usdt"
-        || (!normalizedType && String(legacyPaymentMethod || "").trim().toUpperCase() === "USDT BEP20")
-      ) {
-        const normalizedNetwork = selectedNetwork.toUpperCase();
-        if (normalizedNetwork && normalizedNetwork !== "USDT BEP20" && normalizedNetwork !== "BEP20") {
-          return res.status(400).json({ message: "Le réseau de retrait USDT doit être BEP20." });
-        }
-        if (!/^0x[a-fA-F0-9]{40}$/.test(account)) {
-          return res.status(400).json({
-            message: "Adresse USDT BEP20 invalide — utilisez une adresse BSC commençant par 0x",
-          });
-        }
-        resolvedPaymentMethod = "USDT BEP20";
-      } else if (normalizedType === "mobile money" || normalizedType === "mobile-money") {
-        if (getCustomerMarket(userCountry) === "international") {
-          return res.status(400).json({ message: "Les comptes internationaux peuvent enregistrer uniquement une adresse USDT BEP20." });
-        }
-        if (!selectedNetwork) {
-          return res.status(400).json({ message: "Sélectionnez un opérateur Mobile Money." });
-        }
-        const digits = account.replace(/\D/g, "");
-        if (!/^\+?[0-9().\s-]+$/.test(account) || digits.length < 6 || digits.length > 15) {
-          return res.status(400).json({ message: "Numéro Mobile Money invalide." });
-        }
-
-        const activeCountry = (await storage.getActiveCountries()).find(
-          (country) => country.code.trim().toUpperCase() === userCountry.toUpperCase(),
-        );
-        const selectedOperator = resolveCountryOperator(activeCountry?.operators, selectedNetwork);
-        if (!selectedOperator) {
-          return res.status(400).json({ message: "Cet opérateur Mobile Money n'est pas actif pour votre pays." });
-        }
-        resolvedPaymentMethod = `Mobile Money - ${selectedOperator}`;
-      } else {
-        return res.status(400).json({ message: "Choisissez Mobile Money ou USDT comme type de retrait." });
+      if (normalizedType !== "usdt") {
+        return res.status(400).json({ message: "Les retraits sont disponibles uniquement en USDT BEP20." });
+      }
+      const normalizedNetwork = selectedNetwork.toUpperCase();
+      if (normalizedNetwork && normalizedNetwork !== "USDT BEP20" && normalizedNetwork !== "BEP20") {
+        return res.status(400).json({ message: "Le réseau de retrait USDT doit être BEP20." });
+      }
+      if (!/^0x[a-fA-F0-9]{40}$/.test(account)) {
+        return res.status(400).json({
+          message: "Adresse USDT BEP20 invalide — utilisez une adresse BSC commençant par 0x",
+        });
       }
 
       const wallet = await storage.createWallet({
         userId: req.session.userId!,
         accountName: holderName,
         accountNumber: account,
-        paymentMethod: resolvedPaymentMethod,
+        paymentMethod: "USDT BEP20",
         country: userCountry,
       });
       res.json(wallet);
@@ -3334,7 +3260,6 @@ export async function registerRoutes(
       const settings = await storage.getSettings();
       const user = await storage.getUser(req.session.userId!);
       if (!user) return res.status(401).json({ message: "Non authentifié" });
-      const isInternational = getCustomerMarket(user.country) === "international";
       const withdrawalFees = parseWithdrawalFeePercent(
         settings.withdrawalFees ?? String(DEFAULT_WITHDRAWAL_FEE_PERCENT),
       );

@@ -4,12 +4,23 @@ import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
 import { DEFAULT_MIN_DEPOSIT_USDT, DEFAULT_MIN_WITHDRAWAL_USDT } from "@shared/financial-settings";
 
 const NON_MINING_ABOUT_TERMS = /(électri|electr|énerg|energy|mobilit|mobility|vélo|velo|scooter|cyclomoteur|recharg|charging)/i;
-const OBSOLETE_PAYMENT_COPY = /\b(?:XOF|FCFA)\b|mobile money|westpay/i;
+const OBSOLETE_PAYMENT_COPY = /\b(?:XOF|FCFA)\b|mobile[\s-]?money|\b(?:wave|westpay)\b|orange\s+money|moov\s+money|tmoney/i;
 const FINANCIAL_INSTRUCTION_KEYS = new Set([
   "content_rules_section1Body",
   "content_rules_section2Body",
   "content_withdrawal_instruction1",
   "content_withdrawal_instruction5",
+  "content_home_popupTitle",
+  "content_home_popupLine1",
+  "content_home_popupLine2",
+  "content_home_popupLine3",
+  "content_home_popupLine4",
+  "content_home_popupLine5",
+  "content_home_popupLine6",
+  "content_home_popupLine7",
+  "content_home_popupLine8",
+  "content_rulespage_depositAnswer",
+  "content_rulespage_withdrawalAnswer",
 ]);
 const ADMIN_CONFIGURED_VIP_COPY = "Chaque niveau VIP, de VIP 1 à VIP 7, est débloqué lorsque le total cumulé de vos achats personnels payants atteint le seuil configuré par l’administration. Sont comptés les achats Explore, Parcours et Offres dès leur confirmation, sans attendre la fin du cycle. Les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas. Certains produits Parcours exigent un niveau VIP minimum.";
 const LEGACY_VIP_FAQ_COPY: Record<string, Record<string, string>> = {
@@ -37,6 +48,10 @@ export function rebrandText(value: string): string {
   return displayCurrencyText(value.replace(/\b(?:TGOOD|TGOOG|IELP)\b/gi, "DIAMANT"));
 }
 
+export function hasObsoletePaymentCopy(value: string): boolean {
+  return OBSOLETE_PAYMENT_COPY.test(value);
+}
+
 export function getContent(
   settings: Record<string, string> | undefined,
   key: string,
@@ -52,10 +67,15 @@ export function getContent(
     key.startsWith("content_about_") &&
     displayValue !== undefined &&
     NON_MINING_ABOUT_TERMS.test(displayValue);
+  const isFinancialInstructionKey =
+    FINANCIAL_INSTRUCTION_KEYS.has(key) ||
+    key.startsWith("content_deposit_") ||
+    key.startsWith("content_withdrawal_instruction") ||
+    key.startsWith("content_rules_section");
   const containsObsoleteFinancialCopy =
-    FINANCIAL_INSTRUCTION_KEYS.has(key) &&
+    isFinancialInstructionKey &&
     displayValue !== undefined &&
-    OBSOLETE_PAYMENT_COPY.test(displayValue);
+    hasObsoletePaymentCopy(displayValue);
   return rebrandText(displayValue && !containsOutOfScopeAboutCopy && !containsObsoleteFinancialCopy ? displayValue : fallback);
 }
 

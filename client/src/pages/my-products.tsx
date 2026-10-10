@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { ChevronLeft, Image as ImageIcon, Loader2 } from "lucide-react";
 import { getProductImageUrl } from "@/lib/product-visuals";
+import { isUsdtProductPurchase } from "@/lib/usdt-records";
 import { localeForLang, useI18n } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
 import { DiamantBrand } from "@/components/diamant-brand";
@@ -84,19 +85,20 @@ export default function MyProductsPage() {
 
   if (!user) return null;
 
-  const totalEarned = userProducts.reduce((sum: number, item: any) => sum + Number(item.totalEarned || 0), 0);
+  const currentProducts = userProducts.filter((item: any) => item.product?.currency === "USDT");
+  const totalEarned = currentProducts.reduce((sum: number, item: any) => sum + Number(item.totalEarned || 0), 0);
   return (
     <main className="flex min-h-screen flex-col bg-black">
       <PageHeader />
       <section className="flex flex-1 flex-col bg-black pb-20">
         <div className="pt-3 text-center text-white">
-          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>XOF {totalEarned.toLocaleString(localeForLang(lang))}</p>
+          <p className="font-semibold" style={{ fontSize: 42, lineHeight: 1.1 }}>USDT {totalEarned.toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })}</p>
           <p className="ielp-products-accent mt-3" style={{ color: MEMBER_ACCENT, fontSize: 16 }}>{t.totalRevenue}</p>
         </div>
 
         {isLoading ? (
           <div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>
-        ) : userProducts.length === 0 ? (
+        ) : currentProducts.length === 0 ? (
           <div className="flex flex-1 flex-col items-center pt-28 text-center">
             <EmptyProductsIllustration />
             <p className="mt-7 max-w-[230px]" style={{ color: "#a5a5a5", fontSize: 18, lineHeight: 1.45 }}>
@@ -105,8 +107,8 @@ export default function MyProductsPage() {
           </div>
         ) : (
           <div className="space-y-4 px-4 pb-6 pt-8">
-            {userProducts.map((userProduct: any, index) => {
-              const product = userProduct.product || {};
+            {currentProducts.map((userProduct: any, index) => {
+              const product = userProduct.productSnapshot || userProduct.product || {};
               const cycleDays = Number(product.cycleDays || 0);
               const daysRemaining = Number(userProduct.daysRemaining || 0);
               const completedDays = Math.max(0, cycleDays - daysRemaining);
@@ -144,11 +146,11 @@ export default function MyProductsPage() {
                       className="mt-4 w-[82%] max-w-[350px] bg-black/50 px-2.5 py-2.5"
                       style={product.cardColor ? { backgroundColor: `color-mix(in srgb, ${product.cardColor} 28%, #111111)` } : undefined}
                     >
-                      <InfoRow label={`${t.price}:`} value={`XOF ${Number(product.price || 0).toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.price}:`} value={`USDT ${Number(product.price || 0).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })}`} />
                       <InfoRow label={`${t.duration}:`} value={`${cycleDays} ${t.myProductsDays}`} />
-                      <InfoRow label={`${t.dailyRevenue}:`} value={`XOF ${Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang))}`} />
-                      <InfoRow label={`${t.totalRevenue}:`} value={`XOF ${Number(product.totalReturn || 0).toLocaleString(localeForLang(lang))}`} />
-                      <InfoRow label={`${t.myProductsRevenueReceived}:`} value={`XOF ${earned.toLocaleString(localeForLang(lang))}`} />
+                      <InfoRow label={`${t.dailyRevenue}:`} value={`USDT ${Number(product.dailyEarnings || 0).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })}`} />
+                      <InfoRow label={`${t.totalRevenue}:`} value={`USDT ${Number(product.totalReturn || 0).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })}`} />
+                      <InfoRow label={`${t.myProductsRevenueReceived}:`} value={`USDT ${earned.toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })}`} />
                     </div>
                     <div className="mt-3 h-1.5 w-[82%] max-w-[350px] overflow-hidden rounded-full bg-white/25">
                       <div className="ielp-member-products-progress h-full rounded-full" style={{ width: `${progress}%`, background: MEMBER_ACCENT }} />

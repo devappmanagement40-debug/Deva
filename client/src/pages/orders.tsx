@@ -7,6 +7,7 @@ import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
 import { ProductOrderCard } from "@/components/product-order-card";
 import { formatProductCardAmount } from "@/components/product-card-frame";
+import { isUsdtProductPurchase } from "@/lib/usdt-records";
 
 function isProductActive(product: any): boolean {
   return product.status === "active" && Number(product.daysRemaining) > 0;
@@ -31,7 +32,8 @@ export default function OrdersPage() {
   const headerTitle = getContent(settings, "content_orders_headerTitle", t.myProductsTitle);
 
   const filteredProducts = userProducts?.filter((up: any) =>
-    activeTab === "active" ? isProductActive(up) : !isProductActive(up)
+    isUsdtProductPurchase(up) &&
+    (activeTab === "active" ? isProductActive(up) : !isProductActive(up))
   ) || [];
 
   return (
@@ -96,13 +98,13 @@ export default function OrdersPage() {
               const expirationTime = expirationDateTime
                 ? expirationDateTime.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
                 : "";
-              const product = up.product ?? {
+              const product = up.productSnapshot ?? up.product ?? {
                 price: "0",
                 currency: "USDT",
                 imageUrl: null,
                 cardColor: null,
               };
-              const productCurrency = product.currency === "USDT" ? "USDT" : "XOF";
+              const productCurrency = "USDT";
               const details = [
                 {
                   label: t.ordersDailyLbl,

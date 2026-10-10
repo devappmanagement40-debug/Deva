@@ -8,6 +8,7 @@ import {
   ReceiptLoadingState,
   type ReceiptTransaction,
 } from "@/components/history-receipt";
+import { isUsdtRecord } from "@/lib/usdt-records";
 
 interface Deposit {
   id: number;
@@ -27,12 +28,12 @@ export default function DepositHistoryPage() {
     queryKey: ["/api/deposits/history"],
   });
 
-  const receipts: ReceiptTransaction[] = deposits.map((deposit) => ({
+  const receipts: ReceiptTransaction[] = deposits.filter(isUsdtRecord).map((deposit) => ({
     id: deposit.id,
     kind: "deposit",
     amount: deposit.amount,
     amountUsdt: deposit.amountUsdt,
-    currency: deposit.currency || "XOF",
+    currency: "USDT",
     status: deposit.status,
     createdAt: deposit.createdAt,
     paymentMethod: deposit.paymentMethod,

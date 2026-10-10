@@ -992,7 +992,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
             ))}
             {([
               { name: "popupLine1" as const, label: "Ligne 1 — Date de lancement", placeholder: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-              { name: "popupLine2" as const, label: "Ligne 2 — Informations sur le dépôt", placeholder: "🤝 Dépôts sécurisés en USDT BEP20 — consultez le minimum sur l’écran de dépôt" },
+              { name: "popupLine2" as const, label: "Ligne 2 — Informations sur le dépôt", placeholder: "🤝 Dépôts crypto en USDT — utilisez le réseau indiqué à l’écran" },
               { name: "popupLine3" as const, label: "Ligne 3 — Frais de retrait", placeholder: "💚 Les frais de retrait sont affichés avant confirmation." },
               { name: "popupLine4" as const, label: "Ligne 4 — Message complémentaire", placeholder: "Message d'information complémentaire" },
               { name: "popupLine5" as const, label: "Ligne 5 — Parrainage", placeholder: "👥 Invite your friends and earn commissions" },
@@ -1026,7 +1026,7 @@ export default function AdminSettings({ isSuperAdmin }: AdminSettingsProps) {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs text-gray-400">
-              WestPay et Mobile Money sont désactivés. Les nouveaux dépôts sont traités en USDT via NOWPayments.
+              Les dépôts sont acceptés en USDT via les réseaux crypto pris en charge.
               Le slug marchand se trouve dans votre tableau de bord WestPay.
               Le secret webhook est généré automatiquement à la création de votre URL webhook.
             </p>

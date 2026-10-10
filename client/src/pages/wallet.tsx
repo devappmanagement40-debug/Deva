@@ -1,21 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ChevronDown, ChevronLeft, Check, CreditCard, Loader2, Trash2, Wifi } from "lucide-react";
+import { ChevronLeft, Check, CreditCard, Loader2, Trash2, Wifi } from "lucide-react";
 import { useLocation, useSearch } from "wouter";
 import type { WithdrawalWallet } from "@shared/schema";
 import { useI18n } from "@/lib/i18n";
-import { getCustomerMarket } from "@shared/country-codes";
 import withdrawalLandscape from "@/assets/images/diamant-withdrawal-method-landscape.png";
 
-type WithdrawalAsset = "Mobile Money" | "USDT";
-
-const WITHDRAWAL_ASSET: WithdrawalAsset = "USDT";
 const WITHDRAWAL_NETWORK = "USDT BEP20";
-
-type PickerType = "asset" | "network" | null;
 
 function displayAddress(address: string) {
   if (address.length < 16) return address;
@@ -24,8 +18,6 @@ function displayAddress(address: string) {
 
 export default function WalletPage() {
   const { user } = useAuth();
-  const isInternational = getCustomerMarket(user?.country) === "international";
-  const preferredAsset: WithdrawalAsset = isInternational ? "USDT" : WITHDRAWAL_ASSET;
   const { t } = useI18n();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -33,42 +25,7 @@ export default function WalletPage() {
   const selectMode = new URLSearchParams(searchString).get("from") === "withdrawal";
 
   const [showForm, setShowForm] = useState(false);
-  const [picker, setPicker] = useState<PickerType>(null);
-  const [asset, setAsset] = useState<WithdrawalAsset>(WITHDRAWAL_ASSET);
-  const [network, setNetwork] = useState("");
   const [address, setAddress] = useState("");
-
-  const {
-    data: mobileMoneyNetworks = [],
-    isLoading: mobileMoneyNetworksLoading,
-    isError: mobileMoneyNetworksError,
-  } = useQuery<string[]>({
-    queryKey: ["/api/countries", user?.country, "operators", "mobile-money"],
-    queryFn: async () => {
-      if (!user?.country) return [];
-      const response = await fetch(
-        `/api/countries/${encodeURIComponent(user.country)}/operators?type=mobile-money`,
-        { credentials: "include", cache: "no-store" },
-      );
-      if (!response.ok) throw new Error("Impossible de charger les réseaux Mobile Money.");
-      const values: unknown = await response.json();
-      return Array.isArray(values)
-        ? Array.from(new Set(values.filter((value): value is string => typeof value === "string" && value.trim().length > 0).map((value) => value.trim())))
-        : [];
-    },
-    enabled: Boolean(user?.country) && !isInternational,
-  });
-
-  useEffect(() => {
-    if (isInternational && asset !== "USDT") setAsset("USDT");
-    const nextNetwork =
-      isInternational || asset === "USDT"
-        ? WITHDRAWAL_NETWORK
-        : mobileMoneyNetworks.includes(network)
-          ? network
-          : mobileMoneyNetworks[0] || "";
-    if (nextNetwork !== network) setNetwork(nextNetwork);
-  }, [asset, mobileMoneyNetworks, network, isInternational]);
 
   const { data: wallets = [], isLoading } = useQuery<WithdrawalWallet[]>({
     queryKey: ["/api/wallets"],
@@ -79,8 +36,8 @@ export default function WalletPage() {
       const response = await apiRequest("POST", "/api/wallets", {
         accountName: user?.fullName || user?.phone || "Portefeuille de retrait",
         accountNumber: address.trim(),
-        type: asset,
-        network,
+        type: "USDT",
+        network: WITHDRAWAL_NETWORK,
         country: user!.country,
       });
       if (!response.ok) {
@@ -94,8 +51,6 @@ export default function WalletPage() {
       toast({ title: "Withdrawal method added successfully" });
       setShowForm(false);
       setAddress("");
-      setAsset(preferredAsset);
-      setNetwork("");
     },
     onError: (error: Error) => {
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
@@ -135,39 +90,17 @@ export default function WalletPage() {
 
   const resetForm = () => {
     setShowForm(false);
-    setPicker(null);
     setAddress("");
-    setAsset(preferredAsset);
-    setNetwork("");
   };
 
   const handleConfirm = () => {
-    if (isInternational || asset === "USDT") {
-      if (network !== WITHDRAWAL_NETWORK || !/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
-        toast({
-          title: "Invalid USDT BEP20 address",
-          description: "Use a BSC address starting with 0x and containing 40 hexadecimal characters.",
-          variant: "destructive",
-        });
-        return;
-      }
-    } else if (!mobileMoneyNetworks.includes(network)) {
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
       toast({
-        title: mobileMoneyNetworksError ? "Mobile Money networks could not be loaded" : "No Mobile Money network is available",
-        description: "Choose an active Mobile Money operator configured for your country.",
+        title: "Invalid USDT BEP20 address",
+        description: "Use a BSC address starting with 0x and containing 40 hexadecimal characters.",
         variant: "destructive",
       });
       return;
-    } else {
-      const digits = address.replace(/\D/g, "");
-      if (!/^\+?[0-9().\s-]+$/.test(address.trim()) || digits.length < 6 || digits.length > 15) {
-        toast({
-          title: "Invalid Mobile Money number",
-          description: "Enter a valid phone number for the selected Mobile Money operator.",
-          variant: "destructive",
-        });
-        return;
-      }
     }
     if (!address.trim()) {
       toast({
@@ -188,18 +121,7 @@ export default function WalletPage() {
   if (!user) return null;
 
   const backLink = selectMode ? "/withdrawal" : "/account";
-  const networkOptions = isInternational || asset === "USDT" ? [WITHDRAWAL_NETWORK] : mobileMoneyNetworks;
-  const pickerOptions = picker === "asset"
-    ? isInternational ? ["USDT"] : ["Mobile Money", "USDT"]
-    : networkOptions;
-  const pickerTitle = picker === "asset" ? "Type" : "Réseau";
-
-  const selectAsset = (value: string) => {
-    const nextAsset = value as WithdrawalAsset;
-    setAsset(nextAsset);
-    setNetwork(nextAsset === "USDT" ? WITHDRAWAL_NETWORK : mobileMoneyNetworks[0] || "");
-    setAddress("");
-  };
+  const withdrawalWallets = wallets.filter((wallet) => wallet.paymentMethod === WITHDRAWAL_NETWORK);
 
   return (
     <div className="relative min-h-screen overflow-clip bg-white">
@@ -237,50 +159,24 @@ export default function WalletPage() {
             >
               <h2 className="mb-2 text-[19px] font-medium text-[#13271e]">Informations du moyen de retrait</h2>
 
-              {!isInternational && <button
-                type="button"
-                onClick={() => setPicker("asset")}
-                className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left active:bg-black/[0.025]"
-                data-testid="button-select-withdrawal-asset"
-              >
-                <span className="w-[104px] text-center text-[15px] text-[#24372e]">Type</span>
-                <span className="flex-1 text-[16px] text-[#111f18]">{asset}</span>
-                <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
-              </button>}
-
-              {isInternational ? (
-                <div className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left">
-                  <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
-                  <span className="flex-1 text-[16px] text-[#111f18]">USDT BEP20</span>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setPicker("network")}
-                  className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left active:bg-black/[0.025]"
-                  data-testid="button-select-withdrawal-network"
-                >
-                  <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
-                  <span className="flex-1 text-[16px] text-[#111f18]">
-                    {network || (mobileMoneyNetworksLoading ? "Chargement…" : "Sélectionner")}
-                  </span>
-                  <ChevronDown className="h-5 w-5 text-[#15271f]" strokeWidth={2.1} />
-                </button>
-              )}
+              <div className="flex h-[42px] w-full items-center border-b border-[#c8d9d4] text-left">
+                <span className="w-[104px] text-center text-[15px] text-[#24372e]">Réseau</span>
+                <span className="flex-1 text-[16px] text-[#111f18]">{WITHDRAWAL_NETWORK}</span>
+              </div>
 
               <div className="border-b border-[#c8d9d4] py-[12px]">
                 <label htmlFor="wallet-network-address" className="sr-only">Adresse du réseau</label>
                 <input
                   id="wallet-network-address"
-                  type={asset === "Mobile Money" ? "tel" : "text"}
+                  type="text"
                   value={address}
                   onChange={(event) => setAddress(event.target.value.trim())}
-                  placeholder={asset === "Mobile Money" ? "Numéro Mobile Money" : "Adresse USDT BEP20"}
-                  maxLength={asset === "Mobile Money" ? 24 : 42}
+                  placeholder="Adresse USDT BEP20"
+                  maxLength={42}
                   spellCheck={false}
                   autoCapitalize="off"
                   autoComplete="off"
-                  className={`h-[44px] w-full bg-transparent px-0 text-right text-[16px] text-[#1e3026] outline-none placeholder:font-sans placeholder:text-center placeholder:text-[17px] placeholder:text-[#7b8580] ${asset === "USDT" ? "font-mono" : ""}`}
+                  className="h-[44px] w-full bg-transparent px-0 text-right font-mono text-[16px] text-[#1e3026] outline-none placeholder:font-sans placeholder:text-center placeholder:text-[17px] placeholder:text-[#7b8580]"
                   data-testid="input-wallet-number"
                 />
               </div>
@@ -304,7 +200,7 @@ export default function WalletPage() {
           <div className="flex justify-center pt-28">
             <Loader2 className="h-7 w-7 animate-spin text-[#078a42]" />
           </div>
-        ) : wallets.length === 0 ? (
+        ) : withdrawalWallets.length === 0 ? (
           <main className="px-[18px] pt-[80px]">
             <button
               type="button"
@@ -319,7 +215,7 @@ export default function WalletPage() {
         ) : (
           <main className="px-[18px] pt-[44px]">
             <div className="space-y-4">
-              {wallets.map((wallet) => (
+              {withdrawalWallets.map((wallet) => (
                 <div key={wallet.id}>
                   <button
                     type="button"
@@ -392,52 +288,6 @@ export default function WalletPage() {
         )}
       </div>
 
-      {picker && !(isInternational && picker === "asset") && (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            className="absolute inset-0 w-full bg-[#0f2c20]/65"
-            onClick={() => setPicker(null)}
-            aria-label="Close selection"
-          />
-          <section className="absolute inset-x-0 bottom-0 min-h-[286px] bg-white pb-8 shadow-[0_-8px_24px_rgba(0,0,0,0.16)]">
-            <div className="flex h-[68px] items-center justify-between px-6 text-[16px]">
-              <button type="button" onClick={() => setPicker(null)} className="text-[#6b6b6b]">Annuler</button>
-              <p className="font-medium text-[#24372e]">{pickerTitle}</p>
-              <button type="button" onClick={() => setPicker(null)} className="text-[#078a42]">Confirmer</button>
-            </div>
-            <div className="pt-[72px]">
-              {picker === "network" && asset === "Mobile Money" && mobileMoneyNetworksLoading ? (
-                <p className="flex h-[80px] items-center justify-center gap-2 text-sm text-[#64766b]" role="status">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Chargement des réseaux…
-                </p>
-              ) : picker === "network" && asset === "Mobile Money" && mobileMoneyNetworksError ? (
-                <p className="px-6 py-5 text-center text-sm text-red-700" role="alert">
-                  Impossible de charger les réseaux Mobile Money.
-                </p>
-              ) : picker === "network" && asset === "Mobile Money" && pickerOptions.length === 0 ? (
-                <p className="px-6 py-5 text-center text-sm text-[#64766b]">
-                  Aucun opérateur Mobile Money actif n’est configuré pour votre pays.
-                </p>
-              ) : (
-                pickerOptions.map((option) => {
-                const selected = picker === "asset" ? asset === option : network === option;
-                return (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => picker === "asset" ? selectAsset(option) : setNetwork(option)}
-                    className={`flex h-[43px] w-full items-center justify-center border-b border-[#edf0ee] text-[17px] ${selected ? "text-[#078a42]" : "text-[#25322b]"}`}
-                  >
-                    {option}
-                  </button>
-                );
-                })
-              )}
-            </div>
-          </section>
-        </div>
-      )}
     </div>
   );
 }

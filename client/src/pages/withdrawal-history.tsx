@@ -8,6 +8,7 @@ import {
   ReceiptLoadingState,
   type ReceiptTransaction,
 } from "@/components/history-receipt";
+import { isUsdtRecord } from "@/lib/usdt-records";
 
 interface Withdrawal {
   id: number;
@@ -30,12 +31,12 @@ export default function WithdrawalHistoryPage() {
     queryKey: ["/api/withdrawals/history"],
   });
 
-  const receipts: ReceiptTransaction[] = withdrawals.map((withdrawal) => ({
+  const receipts: ReceiptTransaction[] = withdrawals.filter(isUsdtRecord).map((withdrawal) => ({
     id: withdrawal.id,
     kind: "withdrawal",
     amount: withdrawal.amount,
     amountUsdt: withdrawal.amountUsdt,
-    currency: withdrawal.currency,
+    currency: "USDT",
     status: withdrawal.status,
     createdAt: withdrawal.createdAt,
     paymentMethod: withdrawal.paymentMethod || "USDT BEP20",

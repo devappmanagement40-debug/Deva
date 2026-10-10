@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
 import landscapeImg from "@assets/generated_images/diamant-charging-station-hero.jpg";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 
 interface Deposit {
   id: number;
@@ -37,6 +38,7 @@ export default function DepositOrdersPage() {
   const { data: deposits = [], isLoading } = useQuery<Deposit[]>({
     queryKey: ["/api/deposits/history"],
   });
+  const usdtDeposits = deposits.filter(isUsdtRecord);
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#0d0d0d" }}>
@@ -57,12 +59,12 @@ export default function DepositOrdersPage() {
           Array(4).fill(0).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-2xl" />
           ))
-        ) : deposits.length === 0 ? (
+        ) : usdtDeposits.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-400 text-sm">{t.noDeposits}</p>
           </div>
         ) : (
-          deposits.map((d) => {
+          usdtDeposits.map((d) => {
             const cfg = STATUS_CONFIG[d.status] || { label: d.status, bg: "bg-gray-500", text: "text-white" };
             return (
               <div key={d.id} className="bg-white rounded-2xl overflow-hidden shadow-sm">
@@ -73,7 +75,7 @@ export default function DepositOrdersPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-sm">{t.amountLabel}</span>
                     <span className="text-[#E8192C] font-bold text-base">
-                      {(d.currency?.toUpperCase() === "USDT" ? d.amountUsdt ?? d.amount : d.amount).toLocaleString()} {d.currency || "XOF"}
+                      {Number(d.amountUsdt ?? d.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT
                     </span>
                   </div>
 

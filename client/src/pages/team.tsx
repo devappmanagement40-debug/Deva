@@ -160,7 +160,7 @@ const SOCIALS = [
 
 function formatMoney(value: unknown) {
   const amount = Number(value);
-  return `XOF ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
+  return `USDT ${numberFormat.format(Number.isFinite(amount) ? amount : 0)}`;
 }
 
 function formatPercentage(value: unknown, lang: Lang) {

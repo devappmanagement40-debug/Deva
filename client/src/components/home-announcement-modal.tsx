@@ -8,12 +8,12 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatSettingPlaceholders, getContent } from "@/lib/content";
+import { formatSettingPlaceholders, getContent, hasObsoletePaymentCopy } from "@/lib/content";
 
 const POPUP_LINE_FALLBACKS = [
-  "Dépôts disponibles par Mobile Money et USDT BEP20, crédités après confirmation.",
-  "Dépôt minimum : {{minDeposit}} XOF.",
-  "Retrait minimum : {{minWithdrawal}} XOF. Frais de {{withdrawalFees}} % retenus sur le montant saisi, par Mobile Money ou USDT BEP20.",
+  "Dépôts en USDT crypto uniquement. Utilisez le réseau indiqué sur la page de dépôt.",
+  "Dépôt minimum : {{minDeposit}} USDT.",
+  "Retrait minimum : {{minWithdrawal}} USDT. Frais de {{withdrawalFees}} %; retraits uniquement en USDT BEP20.",
   "Les retraits et le support sont disponibles de 09:00 à 17:00.",
   "Les gains des produits sont crédités automatiquement à la fin de leur cycle.",
 ];
@@ -22,7 +22,9 @@ export default function HomeAnnouncementModal() {
   const [open, setOpen] = useState(true);
   const { data: settings = {} } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
 
-  const configuredTitle = getContent(settings, "content_home_popupTitle", settings.popupTitle || "DIAMANT");
+  const legacyTitle = settings.popupTitle?.trim() || "DIAMANT";
+  const safeLegacyTitle = hasObsoletePaymentCopy(legacyTitle) ? "DIAMANT" : legacyTitle;
+  const configuredTitle = getContent(settings, "content_home_popupTitle", safeLegacyTitle);
   const titleName = configuredTitle.replace(/^annonce\s+/i, "").trim() || "DIAMANT";
   const popupTitle = /^bienvenue sur\b/i.test(titleName) ? titleName : `Bienvenue sur ${titleName}`;
   const popupIntro = getContent(
@@ -38,8 +40,13 @@ export default function HomeAnnouncementModal() {
   );
   const confirmLabel = settings.popupConfirmLabel?.trim();
   const popupConfirmLabel =
-    confirmLabel && confirmLabel.toLowerCase() !== "thankyou" ? confirmLabel : "OK";
-  const configuredButtonLabel = settings.popupButtonLabel?.trim();
+    confirmLabel && confirmLabel.toLowerCase() !== "thankyou" && !hasObsoletePaymentCopy(confirmLabel)
+      ? confirmLabel
+      : "OK";
+  const configuredButtonValue = settings.popupButtonLabel?.trim();
+  const configuredButtonLabel = configuredButtonValue && !hasObsoletePaymentCopy(configuredButtonValue)
+    ? configuredButtonValue
+    : "";
 
   // The homepage announcement must point to the configured official channel,
   // not to the customer-support link.

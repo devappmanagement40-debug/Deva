@@ -715,7 +715,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     );
   }
 
-  if (!startInIssue) {
+  if (!startInIssue || view === "main") {
     return <InternationalCryptoDepositFlow />;
   }
 
@@ -1278,7 +1278,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
             placeholder="Saisissez l’identifiant de transaction"
           />
           <LabelledInput
-            label="Montant du dépôt (XOF)"
+            label="Montant du dépôt"
             value={issueAmount}
             onChange={setIssueAmount}
             placeholder="Saisissez le montant envoyé"
@@ -1344,26 +1344,26 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
   const channelCopy = lang === "en"
     ? {
-        chooseChannel: "Choose a Mobile Money country or USDT BEP20.",
-        loadingCountries: "Loading available Mobile Money countries…",
+        chooseChannel: "Choose a USDT deposit network.",
+        loadingCountries: "Loading available crypto networks…",
         channelLoadError: "Could not load deposit channels. Please try again.",
-        noCountries: "No Mobile Money country is configured yet.",
-        mobileMoney: "Mobile Money",
+        noCountries: "No supported crypto deposit network is configured yet.",
+        mobileMoney: "",
         delayed: "Payment delayed? Click here",
       }
     : {
-        chooseChannel: "Choisissez un pays Mobile Money ou USDT BEP20.",
-        loadingCountries: "Chargement des pays Mobile Money disponibles…",
+        chooseChannel: "Choisissez un réseau de dépôt USDT.",
+        loadingCountries: "Chargement des réseaux crypto disponibles…",
         channelLoadError: "Impossible de charger les canaux de dépôt. Réessayez.",
-        noCountries: "Aucun pays Mobile Money n’est encore configuré.",
-        mobileMoney: "Mobile Money",
+        noCountries: "Aucun réseau de dépôt crypto pris en charge n’est configuré.",
+        mobileMoney: "",
         delayed: "Paiement non reçu ? Cliquez ici",
       };
 
   const depositGuidance = [
     {
       key: "content_deposit_infoText",
-      fallback: "Sur DIAMANT, les dépôts sont possibles par Mobile Money via les pays et opérateurs disponibles, ou par USDT BEP20. Le crédit intervient après validation du paiement.",
+      fallback: "Les dépôts DIAMANT sont acceptés uniquement en crypto USDT, sur le réseau affiché pendant la création du dépôt. Le crédit intervient après confirmation du paiement.",
     },
     {
       key: "content_deposit_instruction1",
@@ -1371,7 +1371,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     },
     {
       key: "content_deposit_instruction2",
-      fallback: "2. Suivez les consignes du moyen choisi : Mobile Money ou USDT BEP20. Le solde est crédité après validation du paiement.",
+      fallback: "2. Suivez les consignes affichées pour le dépôt crypto USDT. Le solde est crédité après confirmation du paiement.",
     },
     {
       key: "content_deposit_warning1",
@@ -1388,10 +1388,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     ),
   );
 
-  const availableMethodLabels = [
-    ...(mobileDepositCountries.length > 0 ? [channelCopy.mobileMoney] : []),
-    ...CRYPTO_CURRENCIES.map((currency) => currency.label),
-  ];
+  const availableMethodLabels = CRYPTO_CURRENCIES.map((currency) => currency.label);
   const guidanceLabels = lang === "fr"
     ? { methods: "Moyens de recharge disponibles", minimum: "Minimum de recharge" }
     : lang === "en"

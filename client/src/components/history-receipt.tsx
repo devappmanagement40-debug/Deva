@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 
 export type ReceiptKind = "deposit" | "withdrawal";
 export type HistoryTab = ReceiptKind | "activity";
@@ -151,6 +152,7 @@ export function HistoryTabs({
 
 export function ReceiptCard({ transaction }: { transaction: ReceiptTransaction }) {
   const { lang } = useI18n();
+  if (!isUsdtRecord(transaction)) return null;
   return transaction.kind === "withdrawal"
     ? <WithdrawalReceipt transaction={transaction} lang={lang} />
     : <DepositReceipt transaction={transaction} lang={lang} />;

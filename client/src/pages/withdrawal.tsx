@@ -9,13 +9,11 @@ import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import {
   calculateUsdtWithdrawalPayoutAmounts,
-  calculateWithdrawalPayoutAmounts,
   DEFAULT_WITHDRAWAL_FEE_PERCENT,
   formatUsdtWithdrawalAmount,
   parseUsdtWithdrawalAmount,
 } from "@shared/withdrawal-fees";
 import { DEFAULT_MIN_WITHDRAWAL_USDT } from "@shared/financial-settings";
-import { getCustomerMarket } from "@shared/country-codes";
 import { getSafeWithdrawalErrorMessage } from "@/lib/withdrawal-errors";
 
 interface WalletData {
@@ -41,7 +39,6 @@ function formatCardNumber(accountNumber: string) {
 
 export default function WithdrawalPage() {
   const { user, refreshUser } = useAuth();
-  const isInternational = getCustomerMarket(user?.country) === "international";
   const { t } = useI18n();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -55,7 +52,7 @@ export default function WithdrawalPage() {
   const withdrawalSubmissionLock = useRef(false);
   const [, navigate] = useLocation();
 
-  const currency = isInternational ? "USDT" : "XOF";
+  const currency = "USDT";
 
   const {
     data: transactionPinStatus,
@@ -85,7 +82,7 @@ export default function WithdrawalPage() {
     isError: withdrawalSettingsError,
   } = useQuery<{
     withdrawalEnabled: boolean;
-    currency: "XOF" | "USDT";
+    currency: "USDT";
     payoutConfigured: boolean;
     withdrawalStartHour: number;
     withdrawalEndHour: number;
@@ -110,29 +107,24 @@ export default function WithdrawalPage() {
   const withdrawalFeePercent = withdrawalSettings?.withdrawalFees ?? DEFAULT_WITHDRAWAL_FEE_PERCENT;
   const withdrawalEnabled = withdrawalSettings?.withdrawalEnabled === true;
   const amountValue = amount.trim() ? Number(amount) : Number.NaN;
-  const amountUsdtMicros = isInternational ? parseUsdtWithdrawalAmount(amount) : null;
+  const amountUsdtMicros = parseUsdtWithdrawalAmount(amount);
   const grossWithdrawalAmount = Number.isFinite(amountValue)
     && amountValue >= minWithdrawal
     && amountValue <= maxWithdrawal
-    && (isInternational
-      ? amountUsdtMicros !== null
-      : Number.isSafeInteger(amountValue))
+    && amountUsdtMicros !== null
     ? amountValue
     : 0;
-  const payoutEstimateXof = !isInternational && grossWithdrawalAmount > 0
-    ? calculateWithdrawalPayoutAmounts(grossWithdrawalAmount, withdrawalFeePercent)
-    : { fees: 0, netAmount: 0 };
   let payoutEstimateUsdt: { fees: string; netAmount: string } | null = null;
-  if (isInternational && grossWithdrawalAmount > 0) {
+  if (grossWithdrawalAmount > 0) {
     try {
       payoutEstimateUsdt = calculateUsdtWithdrawalPayoutAmounts(amount, withdrawalFeePercent);
     } catch {
       payoutEstimateUsdt = null;
     }
   }
-  const payoutFee = isInternational ? Number(payoutEstimateUsdt?.fees || "0") : payoutEstimateXof.fees;
-  const payoutNet = isInternational ? Number(payoutEstimateUsdt?.netAmount || "0") : payoutEstimateXof.netAmount;
-  const rawEarningsBalance = Number(isInternational ? user?.totalEarningsUsdt ?? 0 : user?.totalEarnings ?? 0);
+  const payoutFee = Number(payoutEstimateUsdt?.fees || "0");
+  const payoutNet = Number(payoutEstimateUsdt?.netAmount || "0");
+  const rawEarningsBalance = Number(user?.totalEarningsUsdt ?? 0);
   const earningsBalance = Number.isFinite(rawEarningsBalance) ? Math.max(0, rawEarningsBalance) : 0;
   const withdrawalStartHour = withdrawalSettings?.withdrawalStartHour ?? 9;
   const withdrawalEndHour = withdrawalSettings?.withdrawalEndHour ?? 17;
@@ -156,36 +148,12 @@ export default function WithdrawalPage() {
     enabled: Boolean(user?.id),
     refetchOnWindowFocus: true,
   });
-  const { data: activeMobileMoneyOperators = [] } = useQuery<string[]>({
-    queryKey: ["/api/countries", user?.country, "operators", "mobile-money"],
-    queryFn: async () => {
-      if (!user?.country) return [];
-      const response = await fetch(
-        `/api/countries/${encodeURIComponent(user.country)}/operators?type=mobile-money`,
-        { credentials: "include", cache: "no-store" },
-      );
-      if (!response.ok) throw new Error("Impossible de charger les opérateurs Mobile Money.");
-      const values: unknown = await response.json();
-      return Array.isArray(values)
-        ? Array.from(new Set(values
-            .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-            .map((value) => value.trim())))
-        : [];
-    },
-    enabled: Boolean(user?.country) && !isInternational,
-  });
   const withdrawalWallets = useMemo(
-    () => wallets.filter((wallet) => {
-      if (wallet.paymentMethod === "USDT BEP20") return true;
-      if (isInternational) return false;
-      if (!wallet.paymentMethod.startsWith("Mobile Money - ")) return false;
-      if (wallet.country.trim().toUpperCase() !== user?.country?.trim().toUpperCase()) return false;
-      const operatorName = wallet.paymentMethod.slice("Mobile Money - ".length).trim();
-      return activeMobileMoneyOperators.some(
-        (operator) => operator.toLowerCase() === operatorName.toLowerCase(),
-      );
-    }),
-    [wallets, activeMobileMoneyOperators, user?.country, isInternational],
+    () => wallets.filter((wallet) =>
+      wallet.paymentMethod === "USDT BEP20"
+      && wallet.country.trim().toUpperCase() === user?.country?.trim().toUpperCase(),
+    ),
+    [wallets, user?.country],
   );
 
   const { data: userProducts = [] } = useQuery<UserProduct[]>({
@@ -311,8 +279,8 @@ export default function WithdrawalPage() {
       toast({ title: t.invalidAmount, variant: "destructive" });
       return;
     }
-    if (isInternational ? amountUsdtMicros === null : !Number.isSafeInteger(amountValue)) {
-      toast({ title: "Montant de retrait invalide", description: isInternational ? "Utilisez au maximum 6 décimales pour le montant USDT." : undefined, variant: "destructive" });
+    if (amountUsdtMicros === null) {
+      toast({ title: "Montant de retrait invalide", description: "Utilisez au maximum 6 décimales pour le montant USDT.", variant: "destructive" });
       return;
     }
     if (amountValue < minWithdrawal) {
@@ -331,7 +299,7 @@ export default function WithdrawalPage() {
       toast({ title: "Aucun moyen de retrait sélectionné", description: "Ajoutez ou sélectionnez un compte de retrait.", variant: "destructive" });
       return;
     }
-    if (isInternational && withdrawalSettings?.payoutConfigured !== true) {
+    if (withdrawalSettings?.payoutConfigured !== true) {
       toast({
         title: "Retraits USDT indisponibles",
         description: "Le traitement BEP20 n'est pas encore configuré.",
@@ -432,7 +400,7 @@ export default function WithdrawalPage() {
             style={{ color: "#00ae2f", fontSize: 26, lineHeight: 1, whiteSpace: "nowrap" }}
             data-testid="text-balance"
           >
-            {currency} {earningsBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: isInternational ? 6 : 2 })}
+            {currency} {earningsBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 6 })}
           </p>
         </div>
 
@@ -525,7 +493,7 @@ export default function WithdrawalPage() {
           <>
         <div className="mt-[29px]">
           <p className="font-normal" style={{ fontSize: 20, lineHeight: 1.2 }}>
-            {isInternational ? "Sélectionnez votre adresse de retrait" : "Please select your bank card"}
+            Sélectionnez votre adresse USDT BEP20
           </p>
           {selectedWallet ? (
             <button
@@ -613,7 +581,7 @@ export default function WithdrawalPage() {
 
         <div className="mt-[29px]">
           <p className="font-normal" style={{ fontSize: 20, lineHeight: 1.2 }}>
-            {isInternational ? "Montant du retrait USDT" : "Enter the withdrawal amount"}
+            Montant du retrait USDT
           </p>
           <div
             className="mt-[16px] flex w-full items-center bg-[#f9f9f9]"
@@ -626,10 +594,10 @@ export default function WithdrawalPage() {
               type="number"
               min={minWithdrawal}
               max={maxWithdrawal}
-              step={isInternational ? "0.000001" : 1}
+              step="0.000001"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder={isInternational ? "Montant en USDT" : "Enter the withdrawal amount"}
+              placeholder="Montant en USDT"
               className="min-w-0 flex-1 bg-transparent pr-2 font-normal outline-none placeholder:text-[#a6abb4]"
               style={{ color: "#404040", fontSize: 19 }}
               data-testid="input-withdrawal-amount"
@@ -645,10 +613,10 @@ export default function WithdrawalPage() {
               className="rounded-md px-3 py-2 font-semibold"
               style={{ color: "#ffffff", backgroundColor: "#14213d", fontSize: 15 }}
             >
-              {t.netAmount} : {currency} {payoutNet.toLocaleString("fr-FR", { maximumFractionDigits: isInternational ? 6 : 0 })}
+              {t.netAmount} : {currency} {payoutNet.toLocaleString("fr-FR", { maximumFractionDigits: 6 })}
             </p>
             <p className="ielp-withdrawal-muted font-normal" style={{ color: "#626262", fontSize: 14 }}>
-              {t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %) : {currency} {payoutFee.toLocaleString("fr-FR", { maximumFractionDigits: isInternational ? 6 : 0 })}
+              {t.fees} ({withdrawalFeePercent.toLocaleString("fr-FR")} %) : {currency} {payoutFee.toLocaleString("fr-FR", { maximumFractionDigits: 6 })}
             </p>
           </div>
         </div>
@@ -685,7 +653,7 @@ export default function WithdrawalPage() {
             Withdrawals are currently disabled.
           </div>
         )}
-        {isInternational && withdrawalSettings && withdrawalSettings.payoutConfigured !== true && (
+        {withdrawalSettings && withdrawalSettings.payoutConfigured !== true && (
           <div className="mt-5 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800">
             Les retraits USDT BEP20 ne sont pas encore configurés.
           </div>
@@ -696,7 +664,7 @@ export default function WithdrawalPage() {
             withdrawMutation.isPending
             || !withdrawalSettings
             || !withdrawalEnabled
-            || (isInternational && withdrawalSettings.payoutConfigured !== true)
+            || withdrawalSettings.payoutConfigured !== true
           }
           aria-describedby={!hasActiveProduct ? "withdrawal-product-notice" : undefined}
           className="mt-[24px] block font-bold text-white disabled:opacity-50"

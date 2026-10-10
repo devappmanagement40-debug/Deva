@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 import { rebrandText } from "@/lib/content";
 import {
   HistoryDecor,
@@ -57,10 +58,10 @@ export default function HistoryPage() {
 
   const visibleItems = activeTab === "activity"
     ? []
-    : items.filter((item) => item.category === activeTab).map(toReceipt);
+    : items.filter((item) => item.category === activeTab && isUsdtRecord(item)).map(toReceipt);
 
   const activityItems = items.filter(
-    (item) => item.category !== "deposit" && item.category !== "withdrawal",
+    (item) => item.category !== "deposit" && item.category !== "withdrawal" && isUsdtRecord(item),
   );
 
   return (
@@ -97,7 +98,7 @@ export default function HistoryPage() {
 
 function ActivityCard({ item }: { item: HistoryItem }) {
   const { lang } = useI18n();
-  const amount = Number(item.amount);
+  const amount = Number(item.amountUsdt ?? item.amount);
   const locale = lang === "en" ? "en-US" : lang === "ar" ? "ar" : lang === "zh" ? "zh-CN" : "fr-FR";
   const safeAmount = Number.isFinite(amount)
     ? Math.abs(amount).toLocaleString(locale, { maximumFractionDigits: 8 })
@@ -115,8 +116,7 @@ function ActivityCard({ item }: { item: HistoryItem }) {
     : sourceDescription;
   const description = rebrandText(localizedDescription);
   const reference = `T${item.id.replace(/^tx-/, "")}`;
-  const currency = "currency" in item && item.currency ? item.currency : "XOF";
-  const signedAmount = `${amount < 0 ? "−" : "+"}${safeAmount} ${currency}`;
+  const signedAmount = `${amount < 0 ? "−" : "+"}${safeAmount} USDT`;
   return (
     <article className="min-h-[92px] border-b border-white bg-[#f3f3f3] px-4 py-4">
       <div className="flex items-start justify-between gap-4">

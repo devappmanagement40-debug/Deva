@@ -2769,7 +2769,10 @@ export class DatabaseStorage implements IStorage {
 
     const commResult = await db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
       .from(referralCommissions)
-      .where(eq(referralCommissions.userId, userId));
+      .where(and(
+        eq(referralCommissions.userId, userId),
+        eq(referralCommissions.currency, "USDT"),
+      ));
     const totalCommission = parseFloat(commResult[0]?.total || "0");
 
     return { level1Count, level2Count, level3Count, totalCommission };
@@ -2792,23 +2795,25 @@ export class DatabaseStorage implements IStorage {
     const level2 = allLevel2.filter(includesDate);
     const level3 = allLevel3.filter(includesDate);
 
-    const totalCommissionQuery = dateStart && dateEnd
-      ? db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
-        .from(referralCommissions)
-        .where(and(
-          eq(referralCommissions.userId, userId),
-          gte(referralCommissions.createdAt, dateStart),
-          lt(referralCommissions.createdAt, dateEnd),
-        ))
-      : null;
-    const totalCommission = totalCommissionQuery
-      ? parseFloat((await totalCommissionQuery)[0]?.total || "0")
-      : await this.getUserCommissions(userId);
+    const totalCommissionFilters = [
+      eq(referralCommissions.userId, userId),
+      eq(referralCommissions.currency, "USDT"),
+      ...(dateStart && dateEnd
+        ? [gte(referralCommissions.createdAt, dateStart), lt(referralCommissions.createdAt, dateEnd)]
+        : []),
+    ];
+    const [totalCommissionRow] = await db.select({
+      total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)`,
+    })
+      .from(referralCommissions)
+      .where(and(...totalCommissionFilters));
+    const totalCommission = parseFloat(totalCommissionRow?.total || "0");
 
     const getCommissionByLevel = async (level: number) => {
       const filters = [
         eq(referralCommissions.userId, userId),
         eq(referralCommissions.level, level),
+        eq(referralCommissions.currency, "USDT"),
         ...(dateStart && dateEnd
           ? [gte(referralCommissions.createdAt, dateStart), lt(referralCommissions.createdAt, dateEnd)]
           : []),
@@ -2819,7 +2824,25 @@ export class DatabaseStorage implements IStorage {
       return parseFloat(result[0]?.total || "0");
     };
 
-    const countInvested = async (userList: User[]) => userList.filter((member) => member.hasActiveProduct).length;
+    const countInvested = async (userList: User[]) => {
+      let count = 0;
+      for (const member of userList) {
+        const activePositions = await db.select({
+            id: userProducts.id,
+            currency: products.currency,
+            snapshotCurrency: sql<string | null>`${userProducts.productSnapshot}->>'currency'`,
+          })
+          .from(userProducts)
+          .innerJoin(products, eq(userProducts.productId, products.id))
+          .where(and(
+            eq(userProducts.userId, member.id),
+            eq(userProducts.isActive, true),
+          ))
+          .limit(50);
+        if (activePositions.some((position) => (position.snapshotCurrency ?? position.currency) === "USDT")) count++;
+      }
+      return count;
+    };
 
     const countRecharged = async (userList: User[]) => {
       let count = 0;
@@ -2827,6 +2850,7 @@ export class DatabaseStorage implements IStorage {
         const filters = [
           eq(deposits.userId, member.id),
           eq(deposits.status, "approved"),
+          eq(deposits.currency, "USDT"),
           ...(dateStart && dateEnd
             ? [gte(deposits.createdAt, dateStart), lt(deposits.createdAt, dateEnd)]
             : []),
@@ -2847,11 +2871,14 @@ export class DatabaseStorage implements IStorage {
       const depositFilters = [
         eq(deposits.userId, member.id),
         eq(deposits.status, "approved"),
+        eq(deposits.currency, "USDT"),
         ...(dateStart && dateEnd
           ? [gte(deposits.createdAt, dateStart), lt(deposits.createdAt, dateEnd)]
           : []),
       ];
-      const [depositTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
+      const [depositTotal] = await db.select({
+        total: sql<string>`COALESCE(SUM(CAST(${deposits.amountUsdt} AS DECIMAL)), 0)`,
+      })
         .from(deposits)
         .where(and(...depositFilters));
       teamTotalDeposits += parseFloat(depositTotal?.total || "0");
@@ -2859,11 +2886,14 @@ export class DatabaseStorage implements IStorage {
       const withdrawalFilters = [
         eq(withdrawals.userId, member.id),
         eq(withdrawals.status, "approved"),
+        eq(withdrawals.currency, "USDT"),
         ...(dateStart && dateEnd
           ? [gte(withdrawals.createdAt, dateStart), lt(withdrawals.createdAt, dateEnd)]
           : []),
       ];
-      const [withdrawalTotal] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
+      const [withdrawalTotal] = await db.select({
+        total: sql<string>`COALESCE(SUM(CAST(${withdrawals.amountUsdt} AS DECIMAL)), 0)`,
+      })
         .from(withdrawals)
         .where(and(...withdrawalFilters));
       teamTotalWithdrawals += parseFloat(withdrawalTotal?.total || "0");
@@ -2873,9 +2903,9 @@ export class DatabaseStorage implements IStorage {
       level1Count: level1.length,
       level2Count: level2.length,
       level3Count: level3.length,
-      level1ValidCount: level1.filter((member) => member.hasDeposited).length,
-      level2ValidCount: level2.filter((member) => member.hasDeposited).length,
-      level3ValidCount: level3.filter((member) => member.hasDeposited).length,
+      level1ValidCount: await countRecharged(level1),
+      level2ValidCount: await countRecharged(level2),
+      level3ValidCount: await countRecharged(level3),
       totalCommission,
       level1Commission: await getCommissionByLevel(1),
       level2Commission: await getCommissionByLevel(2),
@@ -2898,6 +2928,9 @@ export class DatabaseStorage implements IStorage {
       const userProductsList = await db.select({ 
         productName: products.name,
         productPrice: products.price,
+        currency: products.currency,
+        snapshotCurrency: sql<string | null>`${userProducts.productSnapshot}->>'currency'`,
+        snapshotPrice: sql<string | null>`${userProducts.productSnapshot}->>'price'`,
         purchaseDate: userProducts.purchaseDate,
         isActive: userProducts.isActive,
       })
@@ -2905,7 +2938,15 @@ export class DatabaseStorage implements IStorage {
       .innerJoin(products, eq(userProducts.productId, products.id))
       .where(eq(userProducts.userId, user.id));
       
-      const totalInvested = userProductsList
+      const usdtUserProducts = userProductsList
+        .filter((position) => (position.snapshotCurrency ?? position.currency) === "USDT")
+        .map((position) => ({
+          productName: position.productName,
+          productPrice: finiteAmount(position.snapshotPrice ?? position.productPrice),
+          purchaseDate: position.purchaseDate,
+          isActive: position.isActive,
+        }));
+      const totalInvested = usdtUserProducts
         .reduce((sum, p) => sum + finiteAmount(p.productPrice), 0);
 
       // Bonus earned by current user FROM this specific member
@@ -2915,8 +2956,17 @@ export class DatabaseStorage implements IStorage {
         .where(and(
           eq(referralCommissions.userId, userId),
           eq(referralCommissions.fromUserId, user.id),
+          eq(referralCommissions.currency, "USDT"),
         ));
       const bonusFromMember = finiteAmount(bonusResult[0]?.total);
+      const usdtDeposit = await db.select({ id: deposits.id })
+        .from(deposits)
+        .where(and(
+          eq(deposits.userId, user.id),
+          eq(deposits.currency, "USDT"),
+          eq(deposits.status, "approved"),
+        ))
+        .limit(1);
 
       return {
         id: user.id,
@@ -2926,12 +2976,12 @@ export class DatabaseStorage implements IStorage {
         country: user.country,
         balance: user.balance,
         hasActiveProduct: user.hasActiveProduct,
-        hasDeposited: user.hasDeposited,
+        hasDeposited: usdtDeposit.length > 0,
         createdAt: user.createdAt,
         totalInvested,
         vipLevel,
         bonusFromMember,
-        products: userProductsList,
+        products: usdtUserProducts,
       };
     };
 

@@ -55,7 +55,7 @@ function isToday(dateStr: string): boolean {
 
 function formatXof(value: number): string {
   const amount = Number(value);
-  return `XOF ${(Number.isFinite(amount) ? amount : 0).toLocaleString(undefined, {
+  return `USDT ${(Number.isFinite(amount) ? amount : 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

@@ -363,26 +363,26 @@ export async function seed() {
   if (!hasCanal1) {
     const [c1] = await db.insert(depositChannels).values({
       name: "Canal 1", description: "Paiement automatique via WestPay", country: "CI",
-      isActive: true, sortOrder: 1, createdBy: 1,
+      isActive: false, sortOrder: 1, createdBy: 1,
     }).returning();
     canal1Id = c1.id;
     console.log("Deposit channel seeded: Canal 1 (CI)");
   } else {
     await db.update(depositChannels)
-      .set({ description: "Paiement automatique via WestPay", isActive: true, sortOrder: 1 })
+      .set({ description: "Paiement automatique via WestPay", isActive: false, sortOrder: 1 })
       .where(eq(depositChannels.id, canal1Id!));
     console.log("Deposit channel preserved: Canal 1 (CI)");
   }
   if (!hasWaveChannel) {
     const [c2] = await db.insert(depositChannels).values({
       name: "Wave", description: "Paiement manuel Wave", country: "CI",
-      isActive: true, sortOrder: 2, createdBy: 1,
+      isActive: false, sortOrder: 2, createdBy: 1,
     }).returning();
     canal2Id = c2.id;
     console.log("Deposit channel seeded: Wave (CI)");
   } else {
     await db.update(depositChannels)
-      .set({ name: "Wave", description: "Paiement manuel Wave", isActive: true, sortOrder: 2 })
+      .set({ name: "Wave", description: "Paiement manuel Wave", isActive: false, sortOrder: 2 })
       .where(eq(depositChannels.id, canal2Id!));
     console.log("Deposit channel preserved: Wave (CI)");
   }
@@ -402,23 +402,22 @@ export async function seed() {
       country: "CI",
       channelId: canal2Id,
       logoUrl: null,
-      isActive: true,
+      isActive: false,
       createdBy: 1,
     });
     console.log("Payment number seeded: Wave (CI, Wave channel)");
   } else {
     await db.update(paymentNumbers)
-      .set({ channelId: canal2Id, isActive: true })
+      .set({ channelId: canal2Id, isActive: false })
       .where(eq(paymentNumbers.id, waveNumber.id));
     console.log("Payment number linked to Wave channel: Wave (CI)");
   }
 
-  // Disable the old CI manual destinations so the Wave channel only exposes Wave.
-  for (const legacyPhone of ["0507654321", "0101122334", "0708899001"]) {
-    await db.update(paymentNumbers)
-      .set({ isActive: false })
-      .where(and(eq(paymentNumbers.country, "CI"), eq(paymentNumbers.phone, legacyPhone)));
-  }
+  // The site now accepts crypto deposits only. Keep old local-payment rows for
+  // history/admin reference, but never seed or restore them as active methods.
+  await db.update(depositChannels).set({ isActive: false });
+  await db.update(paymentNumbers).set({ isActive: false });
+  console.log("Legacy local-currency deposit methods disabled; records preserved");
 
   // Check if payment channels exist
   const existingChannels = await db.select().from(paymentChannels);
@@ -904,6 +903,44 @@ export async function seed() {
       .set({ value: retiredRewardCopyReplacements[setting.key] ?? "" })
       .where(eq(platformSettings.key, setting.key));
     console.log(`Obsolete announcement copy cleared: ${setting.key}`);
+  }
+
+  const obsoletePaymentCopyPattern =
+    /\b(?:XOF|FCFA)\b|mobile[\s-]?money|\b(?:wave|westpay)\b|orange\s+money|moov\s+money|tmoney/i;
+  const currentAnnouncementCopy: Record<string, string> = {
+    popupTitle: "DIAMANT",
+    popupButtonLabel: "Rejoindre le groupe Telegram",
+    popupConfirmLabel: "OK",
+    popupLine1: "🚀 Bienvenue sur la plateforme DIAMANT.",
+    popupLine2: "🤝 Dépôts crypto en USDT uniquement — utilisez le réseau indiqué sur la page de dépôt.",
+    popupLine3: "💚 Les frais et le montant net sont affichés avant confirmation.",
+    popupLine4: "",
+    popupLine5: "👥 Invitez vos amis et gagnez des commissions",
+    popupLine6: "🕘 Retraits et support disponibles de 09:00 à 17:00",
+    popupLine7: "🔥 Explore : gains crédités toutes les 24 h; Parcours et Offres : en fin de cycle",
+    popupLine8: "📖 Consultez les règles DIAMANT avant toute opération",
+    content_home_popupTitle: "Annonce DIAMANT",
+    content_home_popupLine1: "Bienvenue sur la plateforme DIAMANT.",
+    content_home_popupLine2: "Dépôts en USDT crypto uniquement. Utilisez le réseau indiqué sur la page de dépôt.",
+    content_home_popupLine3: "Dépôt minimum : {{minDeposit}} USDT.",
+    content_home_popupLine4: "Retrait minimum : {{minWithdrawal}} USDT. Frais de {{withdrawalFees}} %; retraits uniquement en USDT BEP20.",
+    content_home_popupLine5: "Les retraits et le support sont disponibles de 09:00 à 17:00.",
+    content_home_popupLine6: "Explore : gains crédités après chaque période complète de 24 h; Parcours et Offres : gains crédités à la fin du cycle.",
+    content_home_popupLine7: "Invitez vos amis et gagnez des commissions de parrainage.",
+    content_home_popupLine8: "Merci de consulter les règles DIAMANT avant toute opération.",
+  };
+  for (const setting of existingSettings) {
+    const isAnnouncementSetting =
+      setting.key === "popupTitle"
+      || setting.key === "popupButtonLabel"
+      || setting.key === "popupConfirmLabel"
+      || /^popupLine[1-8]$/.test(setting.key)
+      || setting.key.startsWith("content_home_popup");
+    if (!isAnnouncementSetting || !obsoletePaymentCopyPattern.test(setting.value)) continue;
+    await db.update(platformSettings)
+      .set({ value: currentAnnouncementCopy[setting.key] ?? "" })
+      .where(eq(platformSettings.key, setting.key));
+    console.log(`Obsolete payment copy replaced in announcement: ${setting.key}`);
   }
 
   console.log("Settings check complete");

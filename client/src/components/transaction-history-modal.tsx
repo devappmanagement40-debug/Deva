@@ -8,6 +8,7 @@ import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
 import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/components/history-receipt";
+import { isUsdtRecord } from "@/lib/usdt-records";
 
 interface TransactionHistoryModalProps {
   open: boolean;
@@ -25,7 +26,7 @@ function formatDate(date: string | Date) {
 }
 
 function formatTransactionAmount(value: number, currency: string | null | undefined, lang: Lang) {
-  return `${Math.abs(value).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })} ${currency || "XOF"}`;
+  return `${Math.abs(value).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })} ${currency || "USDT"}`;
 }
 
 function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
@@ -125,8 +126,8 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
             <TabsContent value="deposits" className="mt-0 space-y-3">
               {depositsLoading ? (
                 <ReceiptLoadingState />
-              ) : deposits && deposits.length > 0 ? (
-                deposits.map((deposit) => (
+              ) : deposits?.some(isUsdtRecord) ? (
+                deposits.filter(isUsdtRecord).map((deposit) => (
                   <ReceiptCard
                     key={deposit.id}
                     transaction={{
@@ -134,7 +135,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       kind: "deposit",
                       amount: deposit.amount,
                       amountUsdt: deposit.amountUsdt,
-                      currency: deposit.currency,
+                      currency: "USDT",
                       status: deposit.status,
                       createdAt: deposit.createdAt,
                       paymentMethod: deposit.paymentMethod,
@@ -150,8 +151,8 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
             <TabsContent value="withdrawals" className="mt-0 space-y-3">
               {withdrawalsLoading ? (
                 <ReceiptLoadingState />
-              ) : withdrawals && withdrawals.length > 0 ? (
-                withdrawals.map((withdrawal) => (
+              ) : withdrawals?.some(isUsdtRecord) ? (
+                withdrawals.filter(isUsdtRecord).map((withdrawal) => (
                   <ReceiptCard
                     key={withdrawal.id}
                     transaction={{
@@ -159,7 +160,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       kind: "withdrawal",
                       amount: withdrawal.amount,
                       amountUsdt: withdrawal.amountUsdt,
-                      currency: withdrawal.currency,
+                      currency: "USDT",
                       status: withdrawal.status,
                       createdAt: withdrawal.createdAt,
                       accountNumber: withdrawal.accountNumber,
@@ -179,8 +180,8 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
             <TabsContent value="earnings" className="mt-0 space-y-3">
               {transactionsLoading ? (
                 Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
-              ) : transactions && transactions.length > 0 ? (
-                transactions.map((transaction) => (
+              ) : transactions?.some(isUsdtRecord) ? (
+                transactions.filter(isUsdtRecord).map((transaction) => (
                   <article key={transaction.id} className="min-h-[92px] border-b border-white bg-[#f3f3f3] px-4 py-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -190,11 +191,11 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                         </p>
                         <p className="mt-2 text-[12px] text-[#8a8a8a]">{formatDate(transaction.createdAt as unknown as string)}</p>
                       </div>
-                      <p className={`shrink-0 text-[13px] ${Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
-                        {Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount) < 0 ? "−" : "+"}
+                      <p className={`shrink-0 text-[13px] ${Number(transaction.amountUsdt ?? transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
+                        {Number(transaction.amountUsdt ?? transaction.amount) < 0 ? "−" : "+"}
                         {formatTransactionAmount(
-                          Number(transaction.currency?.toUpperCase() === "USDT" ? transaction.amountUsdt ?? transaction.amount : transaction.amount),
-                          transaction.currency,
+                          Number(transaction.amountUsdt ?? transaction.amount),
+                          "USDT",
                           lang,
                         )}
                       </p>

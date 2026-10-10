@@ -4,7 +4,6 @@ import { Link, useLocation } from "wouter";
 import { ChevronLeft, CreditCard, Package, UsersRound, Wifi } from "lucide-react";
 import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { DiamantBrand } from "@/components/diamant-brand";
-import { getCustomerMarket } from "@shared/country-codes";
 
 const MEMBER_ACCENT = "#00c83c";
 const BALANCE_CARD_CLASS_NAME =
@@ -86,16 +85,8 @@ export default function EarningsPage() {
 
   if (!user) return null;
 
-  const totalEarnings = Number.isFinite(Number(user.totalEarnings)) ? Number(user.totalEarnings) : 0;
-  const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
   const totalEarningsUsdt = Number.isFinite(Number(user.totalEarningsUsdt)) ? Number(user.totalEarningsUsdt) : 0;
   const depositBalanceUsdt = Number.isFinite(Number(user.balanceUsdt)) ? Number(user.balanceUsdt) : 0;
-  const productIncome = Number.isFinite(Number(incomeSummaryQuery.data?.productEarnings))
-    ? Number(incomeSummaryQuery.data?.productEarnings)
-    : 0;
-  const teamIncome = Number.isFinite(Number(incomeSummaryQuery.data?.teamEarnings))
-    ? Number(incomeSummaryQuery.data?.teamEarnings)
-    : 0;
   const productIncomeUsdt = Number.isFinite(Number(incomeSummaryQuery.data?.productEarningsUsdt))
     ? Number(incomeSummaryQuery.data?.productEarningsUsdt)
     : 0;
@@ -107,33 +98,15 @@ export default function EarningsPage() {
     if (incomeSummaryQuery.isError) return "—";
     return amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
-  const formatSummaryAmount = (amount: number, currency: "XOF" | "USDT") => {
+  const formatSummaryAmount = (amount: number) => {
     const value = formatSummaryValue(amount);
-    return value === "…" || value === "—" ? value : `${currency} ${value}`;
+    return value === "…" || value === "—" ? value : `USDT ${value}`;
   };
-  const isInternational = getCustomerMarket(user.country) === "international";
-  const hasLegacyXofActivity = depositBalance > 0 || totalEarnings > 0 || productIncome > 0 || teamIncome > 0;
-  const balanceCards = isInternational
-    ? [
-        { id: "deposits-usdt", label: `${balanceCopy.deposits} · USDT`, amount: depositBalanceUsdt, currency: "USDT" },
-        { id: "earnings-usdt", label: `${balanceCopy.earnings} · USDT`, amount: totalEarningsUsdt, currency: "USDT" },
-        ...(hasLegacyXofActivity
-          ? [
-              { id: "deposits-xof", label: `${balanceCopy.deposits} · ancien solde`, amount: depositBalance, currency: "XOF" },
-              { id: "earnings-xof", label: `${balanceCopy.earnings} · ancien solde`, amount: totalEarnings, currency: "XOF" },
-            ]
-          : []),
-      ]
-    : [
-        { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
-        { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
-      ];
-  const summaryCards = isInternational
-    ? [
-        { currency: "USDT" as const, product: productIncomeUsdt, team: teamIncomeUsdt },
-        ...(hasLegacyXofActivity ? [{ currency: "XOF" as const, product: productIncome, team: teamIncome }] : []),
-      ]
-    : [{ currency: "XOF" as const, product: productIncome, team: teamIncome }];
+  const balanceCards = [
+    { id: "deposits-usdt", label: `${balanceCopy.deposits} · USDT`, amount: depositBalanceUsdt },
+    { id: "earnings-usdt", label: `${balanceCopy.earnings} · USDT`, amount: totalEarningsUsdt },
+  ];
+  const summaryCards = [{ currency: "USDT" as const, product: productIncomeUsdt, team: teamIncomeUsdt }];
 
   return (
     <main className="flex min-h-screen flex-col bg-black">
@@ -155,7 +128,7 @@ export default function EarningsPage() {
             {balanceCards.map((card) => (
               <article
                 key={card.id}
-                aria-label={`${card.label}: ${card.currency} ${card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                aria-label={`${card.label}: USDT ${card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 className={BALANCE_CARD_CLASS_NAME}
                 style={BALANCE_CARD_STYLE}
                 data-testid={`balance-card-${card.id}`}
@@ -168,7 +141,7 @@ export default function EarningsPage() {
                   DIAMANT
                 </div>
                 <p className="absolute left-[14px] top-[108px] max-w-[82%] break-all text-[23px] font-semibold leading-[28px] tracking-[.01em]">
-                  {card.currency} {card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  USDT {card.amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
                 <div className="absolute bottom-[35px] right-[39px] h-[47px] w-[70px] rounded-[9px] border border-white/45 bg-[linear-gradient(135deg,#fbf5cf,#c7b16b)] shadow-inner">
                   <div className="absolute inset-x-0 top-[15px] border-t border-[#9d8440]/40" />
@@ -201,7 +174,7 @@ export default function EarningsPage() {
                 <span>{balanceCopy.combinedTotal} · {summary.currency}</span>
               </div>
               <p className="absolute left-[14px] top-[84px] max-w-[82%] break-all text-[23px] font-semibold leading-[28px] tracking-[.01em]" data-testid="income-summary-total">
-                {formatSummaryAmount(summary.product + summary.team, summary.currency)}
+                {formatSummaryAmount(summary.product + summary.team)}
               </p>
               <div className="absolute left-[14px] top-[128px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
                 <div className="border-b border-white/25 pb-1">
@@ -210,7 +183,7 @@ export default function EarningsPage() {
                     <span className="truncate">{balanceCopy.productShort}</span>
                   </p>
                   <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-products">
-                    {formatSummaryAmount(summary.product, summary.currency)}
+                    {formatSummaryAmount(summary.product)}
                   </p>
                 </div>
                 <div>
@@ -219,7 +192,7 @@ export default function EarningsPage() {
                     <span className="truncate">{balanceCopy.teamShort}</span>
                   </p>
                   <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-team">
-                    {formatSummaryAmount(summary.team, summary.currency)}
+                    {formatSummaryAmount(summary.team)}
                   </p>
                 </div>
               </div>
