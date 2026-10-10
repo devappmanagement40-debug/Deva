@@ -5,6 +5,12 @@ description: Business settings and their customer-facing explanations stay edita
 
 For DIAMANT, operational business values and the live customer-facing text that explains them must come from admin-managed settings. Keep initial defaults centralized, seed or migrate them only when missing, and preserve existing admin-configured values during startup. When a setting changes, all affected calculations, previews, FAQs, popups, and instructions must reflect the stored value.
 
+The FAQ should explain the core operational sections. Mutable thresholds, fees, commission rates, reward ranges, and product eligibility must be rendered from current settings or catalog records, while explanatory prose remains admin-editable; do not hardcode mutable amounts into the FAQ.
+
+**Why:** On 2026-10-10, the user asked for every section to be documented and the VIP level explanations to update when its conditions change.
+
+**How to apply:** Show live values separately from editable prose and test that changing a setting or product condition changes the corresponding FAQ entry.
+
 The user scoped admin configurability to operational settings and business content only; do not turn every static interface label into a CMS field.
 
 Product and staking catalog rows are database-owned. Preserve existing rows and let the admin panel create, edit, and delete them; startup code must not seed or delete catalog entries.

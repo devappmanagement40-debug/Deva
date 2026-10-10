@@ -63,6 +63,9 @@ export default function AdminContent() {
       <p className="text-sm text-muted-foreground">
         {t.adminContentDesc}
       </p>
+      <p className="text-xs text-muted-foreground">
+        Les seuils VIP, les conditions des produits, les limites de dépôt et de retrait, les commissions et les récompenses affichés dans la FAQ sont repris des réglages actuels et s’actualisent automatiquement. Modifiez ici les explications, sans recopier ces montants en dur.
+      </p>
 
       <InformationArticlesAdmin settings={settings} />
 

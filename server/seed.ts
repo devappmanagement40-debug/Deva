@@ -856,17 +856,22 @@ export async function seed() {
     {
       key: "content_rulespage_s1b2",
       oldValue: "Les revenus sont générés quotidiennement et accrédités sur votre solde de compte toutes les 24 heures.",
-      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Les gains sont crédités automatiquement selon la catégorie : Explore après chaque période complète de 24 heures; Parcours et Offres à la fin du cycle. Aucune collecte manuelle n’est nécessaire.",
     },
     {
       key: "content_rulespage_s1b2",
       oldValue: "Le premier gain est disponible immédiatement après l'achat. Collectez vos gains dans la section Revenu, puis collectez un nouveau gain toutes les 24 heures.",
-      newValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Les gains sont crédités automatiquement selon la catégorie : Explore après chaque période complète de 24 heures; Parcours et Offres à la fin du cycle. Aucune collecte manuelle n’est nécessaire.",
+    },
+    {
+      key: "content_rulespage_s1b2",
+      oldValue: "Les gains du produit sont crédités automatiquement sur le solde des gains à la fin de la durée indiquée. Aucune collecte manuelle n'est nécessaire.",
+      newValue: "Les gains sont crédités automatiquement selon la catégorie : Explore après chaque période complète de 24 heures; Parcours et Offres à la fin du cycle. Aucune collecte manuelle n’est nécessaire.",
     },
     {
       key: "content_rulespage_s5Title",
-      oldValue: "5. Sécurité",
-      newValue: "4. Sécurité",
+      oldValue: "4. Sécurité",
+      newValue: "5. Sécurité",
     },
   ];
 
