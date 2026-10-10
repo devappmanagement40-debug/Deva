@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, History, Loader2 } from "lucide-react";
 import { INTERNATIONAL_CRYPTO_METHODS } from "@shared/international-crypto";
+import { DEFAULT_MIN_DEPOSIT_USDT } from "@shared/financial-settings";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -48,7 +49,7 @@ function paymentStatus(status?: ProviderDepositStatus): InternationalCryptoPayme
 const PAYMENT_NOTES = [
   "1. Envoyez uniquement l’actif et le réseau indiqués à l’écran, en utilisant le montant exact fourni par NOWPayments.",
   "2. Le dépôt est crédité automatiquement sur le solde de dépôts en USDT après confirmation du paiement.",
-  "3. Les seuils minimums affichés sur la référence sont : USDT/USDC 2, TRX 10, BNB 0,003 et ETH 0,001. PYUSD et Polygon suivent le minimum calculé par le prestataire.",
+  "3. Le montant minimum crédité sur votre compte est de {{minimumDepositUsdt}} USDT. Les minimums techniques du réseau et du prestataire peuvent être supérieurs.",
   "4. N’envoyez pas d’autres actifs sur cette adresse. Un mauvais réseau ou un montant incomplet peut retarder le crédit.",
 ].join("\n");
 
@@ -91,7 +92,11 @@ export default function InternationalCryptoDepositFlow() {
   const [payment, setPayment] = useState<InternationalCryptoPayment | null>(null);
   const [providerStatus, setProviderStatus] = useState<ProviderDepositStatus>("pending");
   const [copied, setCopied] = useState<"address" | "amount" | null>(null);
-  const minimumDepositUsdt = Number(settings?.minDepositUsdt ?? 2);
+  const minimumDepositUsdt = Number(settings?.minDepositUsdt ?? DEFAULT_MIN_DEPOSIT_USDT);
+  const paymentNotes = PAYMENT_NOTES.replace(
+    "{{minimumDepositUsdt}}",
+    String(minimumDepositUsdt),
+  );
 
   const createPayment = useMutation({
     mutationFn: async (option: InternationalCryptoOption) => {
@@ -296,7 +301,7 @@ export default function InternationalCryptoDepositFlow() {
             address={payment.payAddress}
             qrDataUrl={payment.qrCode}
             status={paymentStatus(providerStatus)}
-            noteText={PAYMENT_NOTES}
+            noteText={paymentNotes}
             onCopyAddress={() => void copyValue(payment.payAddress, "address")}
             onCopyAmount={() => void copyValue(payment.payAmount, "amount")}
             onCheckStatus={() => checkStatus.mutate()}

@@ -53,6 +53,7 @@ test("converts the existing XOF withdrawal floor and ceiling to USDT", () => {
 
 test("rejects USDT amounts with excessive precision or invalid values", () => {
   assert.equal(parseUsdtWithdrawalAmount("1.123456"), 1_123_456);
+  assert.equal(parseUsdtWithdrawalAmount("0.50"), 500_000);
   assert.equal(parseUsdtWithdrawalAmount("1.1234567"), null);
   assert.equal(parseUsdtWithdrawalAmount("0"), null);
   assert.equal(parseUsdtWithdrawalAmount("-1"), null);

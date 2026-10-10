@@ -21,6 +21,7 @@ import {
 import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-policy";
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
+const USDT_MINIMUM_LIMITS_MIGRATION_KEY = "__migration_usdt_minimum_limits_v1";
 const COUNTRY_BOOTSTRAP_MIGRATION_KEY = "__migration_country_bootstrap_v1";
 const COUNTRY_WITHDRAWAL_OPERATOR_POLICY_MIGRATION_KEY = "__migration_country_withdrawal_operator_policy_v1";
 const PRODUCT_CATALOG_INITIALIZED_KEY = "__migration_product_catalog_initialized_v1";
@@ -456,7 +457,7 @@ export async function seed() {
     { key: "popupButtonLabel", value: "Rejoindre le groupe Telegram" },
     { key: "popupTitle", value: "DIAMANT" },
     { key: "popupLine1", value: "🚀 DIAMANT RDC : lancement officiel le 03/09/2026 !" },
-    { key: "popupLine2", value: "🤝 Dépôt minimum : 2 USDT — Dépôt sécurisé en USDT BEP20" },
+    { key: "popupLine2", value: "🤝 Dépôt minimum : 13 USDT — Dépôt sécurisé en USDT BEP20" },
     { key: "popupLine3", value: "💚 Les frais de retrait sont affichés avant confirmation." },
     { key: "popupLine4", value: "" },
     { key: "popupLine5", value: "👥 Invitez vos amis et gagnez des commissions" },
@@ -565,6 +566,21 @@ export async function seed() {
     }
   }
 
+  if (!existingSettings.some(setting => setting.key === USDT_MINIMUM_LIMITS_MIGRATION_KEY)) {
+    await db.transaction(async tx => {
+      await tx.update(platformSettings)
+        .set({ value: DEFAULT_MIN_DEPOSIT_USDT })
+        .where(eq(platformSettings.key, "minDepositUsdt"));
+      await tx.update(platformSettings)
+        .set({ value: DEFAULT_MIN_WITHDRAWAL_USDT })
+        .where(eq(platformSettings.key, "minWithdrawalUsdt"));
+      await tx.insert(platformSettings)
+        .values({ key: USDT_MINIMUM_LIMITS_MIGRATION_KEY, value: "1" })
+        .onConflictDoNothing();
+    });
+    console.log("USDT deposit and withdrawal minimums updated to 13 and 0.5");
+  }
+
   // Upgrade only the untouched legacy defaults once. Preserve any rates that
   // an administrator has already customized.
   if (!existingSettings.some(setting => setting.key === REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY)) {
@@ -597,6 +613,11 @@ export async function seed() {
 
   // Upgrade only untouched default settings and copy; preserve admin overrides.
   const knownDefaultSettingUpdates = [
+    {
+      key: "popupLine2",
+      oldValue: "🤝 Dépôt minimum : 2 USDT — Dépôt sécurisé en USDT BEP20",
+      newValue: "🤝 Dépôt minimum : 13 USDT — Dépôt sécurisé en USDT BEP20",
+    },
     {
       key: "spinWheelSelfPurchaseSpins",
       oldValue: "3",
