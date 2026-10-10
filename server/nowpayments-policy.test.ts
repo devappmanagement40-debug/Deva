@@ -13,6 +13,8 @@ import {
   shouldReconcileNowPaymentsPayoutError,
 } from "./nowpayments";
 import { parseXofPerUsdt } from "@shared/financial-settings";
+import { INTERNATIONAL_CRYPTO_METHODS } from "@shared/international-crypto";
+import { isSupportedNowPaymentsInternationalCurrency } from "./nowpayments";
 
 test("converts the requested XOF deposit into the exact USDT payment amount", () => {
   assert.equal(convertXofToUsdt(500), 1);
@@ -33,6 +35,30 @@ test("only permits USDT BEP20 for new crypto deposits", () => {
   assert.equal(isSupportedNowPaymentsDepositCurrency("usdttrc20"), false);
   assert.equal(isSupportedNowPaymentsDepositCurrency("eth"), false);
   assert.equal(isSupportedNowPaymentsDepositCurrency(undefined), false);
+});
+
+test("accepts exactly the configured international deposit networks", () => {
+  assert.deepEqual(
+    INTERNATIONAL_CRYPTO_METHODS.map((method) => method.label),
+    [
+      "BEP20-USDT",
+      "BEP20-USDC",
+      "BNB",
+      "TRC20-USDT",
+      "TRC20-TRX",
+      "ETH",
+      "ETH-USDT",
+      "ETH-USDC",
+      "ETH-PYUSD",
+      "POLYGON",
+      "POLYGON-USDT",
+      "POLYGON-USDC",
+    ],
+  );
+  for (const method of INTERNATIONAL_CRYPTO_METHODS) {
+    assert.equal(isSupportedNowPaymentsInternationalCurrency(method.code), true, method.label);
+  }
+  assert.equal(isSupportedNowPaymentsInternationalCurrency("random-network"), false);
 });
 
 test("reads the public payment callback URL from APP_URL", () => {

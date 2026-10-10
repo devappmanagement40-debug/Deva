@@ -9,6 +9,8 @@ import { useI18n } from "@/lib/i18n";
 interface Deposit {
   id: number;
   amount: string;
+  amountUsdt?: string | null;
+  currency?: string | null;
   status: string;
   paymentMethod?: string;
   createdAt: string;
@@ -25,7 +27,6 @@ function formatDate(iso: string) {
 export default function DepositOrdersPage() {
   const { user } = useAuth();
   const { t } = useI18n();
-  const currency = "XOF";
 
   const STATUS_CONFIG = {
     approved: { label: t.statusApproved, bg: "bg-gray-900",   text: "text-white" },
@@ -72,7 +73,7 @@ export default function DepositOrdersPage() {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-sm">{t.amountLabel}</span>
                     <span className="text-[#E8192C] font-bold text-base">
-                      {parseFloat(d.amount).toLocaleString()}
+                      {(d.currency?.toUpperCase() === "USDT" ? d.amountUsdt ?? d.amount : d.amount).toLocaleString()} {d.currency || "XOF"}
                     </span>
                   </div>
 

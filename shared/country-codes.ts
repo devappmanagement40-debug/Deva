@@ -4,6 +4,8 @@ export type CountryCode = string;
 
 export const SUPPORTED_MARKET_COUNTRY_CODES = ["CI", "TG"] as const;
 export type SupportedMarketCountryCode = (typeof SUPPORTED_MARKET_COUNTRY_CODES)[number];
+export type CustomerMarket = "legacy" | "international";
+export type MarketCurrency = "XOF" | "USDT";
 
 const phoneCountryCodes = new Set<string>(getCountries());
 
@@ -16,4 +18,12 @@ export function isSupportedMarketCountryCode(
 ): value is SupportedMarketCountryCode {
   return typeof value === "string" &&
     SUPPORTED_MARKET_COUNTRY_CODES.some((code) => code === value.toUpperCase());
+}
+
+export function getCustomerMarket(countryCode: unknown): CustomerMarket {
+  return isSupportedMarketCountryCode(countryCode) ? "legacy" : "international";
+}
+
+export function getMarketCurrency(market: CustomerMarket): MarketCurrency {
+  return market === "international" ? "USDT" : "XOF";
 }

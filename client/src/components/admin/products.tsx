@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
-import { Edit, Image as ImageIcon, Loader2, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Copy, Edit, Image as ImageIcon, Loader2, Plus, Trash2, ShoppingBag } from "lucide-react";
 import type { Product } from "@shared/schema";
 import { normalizeProductType } from "@shared/product-categories";
 import { DEFAULT_PRODUCT_CARD_COLOR, isValidProductCardColor } from "@shared/product-card-color";
@@ -118,10 +118,11 @@ interface ProductFormFieldsProps {
   form: any;
   isPending: boolean;
   submitLabel: string;
+  currency: "XOF" | "USDT";
   onSubmit: (data: ProductForm) => void;
 }
 
-function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFormFieldsProps) {
+function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }: ProductFormFieldsProps) {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {/* Name */}
@@ -154,14 +155,14 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
       <div className="grid grid-cols-2 gap-4">
         <FormField control={form.control} name="price" render={({ field }) => (
           <FormItem>
-            <FormLabel>Prix (XOF)</FormLabel>
+            <FormLabel>Prix ({currency})</FormLabel>
             <FormControl><Input {...field} type="number" placeholder="Ex: 15000" /></FormControl>
             <FormMessage />
           </FormItem>
         )} />
         <FormField control={form.control} name="dailyEarnings" render={({ field }) => (
           <FormItem>
-            <FormLabel>Gains/jour (XOF)</FormLabel>
+            <FormLabel>Gains/jour ({currency})</FormLabel>
             <FormControl><Input {...field} type="number" placeholder="Ex: 300" /></FormControl>
             <FormMessage />
           </FormItem>
@@ -182,7 +183,7 @@ function ProductFormFields({ form, isPending, submitLabel, onSubmit }: ProductFo
         <div className="bg-primary/10 rounded-lg p-3 text-sm">
           <p className="text-muted-foreground">Retour total estimé :</p>
           <p className="font-bold text-primary text-lg">
-            {(parseFloat(form.watch("dailyEarnings") || "0") * parseInt(form.watch("cycleDays") || "0")).toLocaleString()} XOF
+             {(parseFloat(form.watch("dailyEarnings") || "0") * parseInt(form.watch("cycleDays") || "0")).toLocaleString()} {currency}
           </p>
         </div>
       )}
@@ -295,10 +296,14 @@ export default function AdminProducts() {
   const { toast } = useToast();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedMarket, setSelectedMarket] = useState<"legacy" | "international">("legacy");
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/admin/products/all"],
   });
+  const visibleProducts = (products || []).filter((product) =>
+    (product.market || "legacy") === selectedMarket,
+  );
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: String(DEFAULT_EXPLORE_CYCLE_DAYS),
@@ -310,7 +315,11 @@ export default function AdminProducts() {
 
   const createMutation = useMutation({
     mutationFn: async (data: ProductForm) => {
-      const res = await apiRequest("POST", "/api/admin/products", data);
+      const res = await apiRequest("POST", "/api/admin/products", {
+        ...data,
+        market: selectedMarket,
+        currency: selectedMarket === "international" ? "USDT" : "XOF",
+      });
       if (!res.ok) { const r = await res.json(); throw new Error(r.message || "Erreur"); }
       return res.json();
     },
@@ -322,6 +331,25 @@ export default function AdminProducts() {
       createForm.reset(defaultValues);
     },
     onError: (e: any) => toast({ title: e.message || "Erreur", variant: "destructive" }),
+  });
+
+  const duplicateInternationalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("POST", `/api/admin/products/${id}/duplicate-international`, {});
+      if (!res.ok) { const r = await res.json(); throw new Error(r.message || "Erreur"); }
+      return res.json() as Promise<{ product: Product; alreadyExists: boolean }>;
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/products/all"] });
+      setSelectedMarket("international");
+      toast({
+        title: result.alreadyExists ? "Ce plan existe déjà en USDT" : "Copie créée dans les plans internationaux",
+        description: result.alreadyExists
+          ? "Ouvrez le plan USDT existant pour le modifier."
+          : "L’image et la présentation sont copiées. Configurez le prix et les gains USDT avant de le rendre disponible.",
+      });
+    },
+    onError: (error: Error) => toast({ title: error.message || "Erreur", variant: "destructive" }),
   });
 
   const updateMutation = useMutation({
@@ -413,17 +441,39 @@ export default function AdminProducts() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">{products?.length || 0} produit(s)</p>
-        <Button onClick={() => { setShowCreateForm(true); createForm.reset(defaultValues); }} data-testid="button-add-product">
-          <Plus className="w-4 h-4 mr-2" />Nouveau produit
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2" role="tablist" aria-label="Marché des plans">
+          <Button
+            type="button"
+            variant={selectedMarket === "legacy" ? "default" : "outline"}
+            role="tab"
+            aria-selected={selectedMarket === "legacy"}
+            onClick={() => setSelectedMarket("legacy")}
+          >
+            Côte d’Ivoire / Togo · XOF
+          </Button>
+          <Button
+            type="button"
+            variant={selectedMarket === "international" ? "default" : "outline"}
+            role="tab"
+            aria-selected={selectedMarket === "international"}
+            onClick={() => setSelectedMarket("international")}
+          >
+            Autres pays · USDT
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">{visibleProducts.length} plan(s)</p>
+          <Button onClick={() => { setShowCreateForm(true); createForm.reset(defaultValues); }} data-testid="button-add-product">
+          <Plus className="w-4 h-4 mr-2" />Nouveau plan {selectedMarket === "international" ? "USDT" : "XOF"}
         </Button>
+        </div>
       </div>
 
       {isLoading ? (
         Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)
-      ) : products && products.length > 0 ? (
-        products.map((product) => (
+      ) : visibleProducts.length > 0 ? (
+        visibleProducts.map((product) => (
           <Card key={product.id}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
@@ -461,7 +511,7 @@ export default function AdminProducts() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {Number(product.price).toLocaleString()} XOF — {Number(product.dailyEarnings).toLocaleString()} XOF/jour
+                       {Number(product.price).toLocaleString()} {product.currency || "XOF"} — {Number(product.dailyEarnings).toLocaleString()} {product.currency || "XOF"}/jour
                     </p>
                     <div className="flex gap-2 mt-0.5 flex-wrap">
                       {normalizeProductType(product.productType) === "wellness" && (
@@ -478,6 +528,19 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  {selectedMarket === "legacy" && !product.isFree && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => duplicateInternationalMutation.mutate(product.id)}
+                      disabled={duplicateInternationalMutation.isPending}
+                      title="Copier l’image et la présentation dans les plans USDT"
+                    >
+                      {duplicateInternationalMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
+                      <span className="ml-1 hidden sm:inline">Copier en USDT</span>
+                    </Button>
+                  )}
                   {/* Unavailable toggle */}
                   <div className="flex flex-col items-center gap-0.5 mr-1">
                     <span className="text-[9px] text-muted-foreground leading-none">Indispo</span>
@@ -516,15 +579,15 @@ export default function AdminProducts() {
 
               <div className="grid grid-cols-3 gap-2 text-sm">
                 <div>
-                   <p className="text-muted-foreground">Prix (XOF)</p>
-                  <p className="font-medium text-foreground">{Number(product.price).toLocaleString()}</p>
+                    <p className="text-muted-foreground">Prix ({product.currency || "XOF"})</p>
+                   <p className="font-medium text-foreground">{Number(product.price).toLocaleString()}</p>
                 </div>
                 <div>
-                   <p className="text-muted-foreground">Gains/jour (XOF)</p>
-                  <p className="font-medium text-foreground">{Number(product.dailyEarnings).toLocaleString()}</p>
+                    <p className="text-muted-foreground">Gains/jour ({product.currency || "XOF"})</p>
+                   <p className="font-medium text-foreground">{Number(product.dailyEarnings).toLocaleString()}</p>
                 </div>
                 <div>
-                   <p className="text-muted-foreground">Total (XOF, {product.cycleDays}j)</p>
+                    <p className="text-muted-foreground">Total ({product.currency || "XOF"}, {product.cycleDays}j)</p>
                   <p className="font-medium text-primary">{Number(product.totalReturn).toLocaleString()}</p>
                 </div>
               </div>
@@ -538,9 +601,15 @@ export default function AdminProducts() {
       {/* Create Dialog */}
       <Dialog open={showCreateForm} onOpenChange={(open) => { if (!open) { setShowCreateForm(false); createForm.reset(defaultValues); } }}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Nouveau produit</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Nouveau plan {selectedMarket === "international" ? "USDT" : "XOF"}</DialogTitle></DialogHeader>
           <Form {...createForm}>
-            <ProductFormFields form={createForm} isPending={createMutation.isPending} submitLabel="Créer" onSubmit={(d) => createMutation.mutate(d)} />
+            <ProductFormFields
+              form={createForm}
+              isPending={createMutation.isPending}
+              submitLabel="Créer"
+              currency={selectedMarket === "international" ? "USDT" : "XOF"}
+              onSubmit={(d) => createMutation.mutate(d)}
+            />
           </Form>
         </DialogContent>
       </Dialog>
@@ -554,6 +623,7 @@ export default function AdminProducts() {
               form={editForm}
               isPending={updateMutation.isPending}
               submitLabel="Enregistrer"
+              currency={selectedProduct?.currency === "USDT" ? "USDT" : "XOF"}
               onSubmit={(d) => { if (selectedProduct) updateMutation.mutate({ id: selectedProduct.id, data: d }); }}
             />
           </Form>

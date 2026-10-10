@@ -111,7 +111,8 @@ function ActivityCard({ item }: { item: HistoryItem }) {
     : sourceDescription;
   const description = rebrandText(localizedDescription);
   const reference = `T${item.id.replace(/^tx-/, "")}`;
-  const signedAmount = `${amount < 0 ? "−" : "+"}${safeAmount} XOF`;
+  const currency = "currency" in item && item.currency ? item.currency : "XOF";
+  const signedAmount = `${amount < 0 ? "−" : "+"}${safeAmount} ${currency}`;
   return (
     <article className="min-h-[92px] border-b border-white bg-[#f3f3f3] px-4 py-4">
       <div className="flex items-start justify-between gap-4">

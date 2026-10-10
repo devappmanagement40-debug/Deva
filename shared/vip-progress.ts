@@ -1,3 +1,5 @@
+import { DEFAULT_XOF_PER_USDT, parseXofPerUsdt } from "./financial-settings";
+
 export const MAX_VIP_LEVEL = 7;
 
 export interface VipProgress {
@@ -37,7 +39,7 @@ function thresholdToCents(value: unknown): number | null {
   return amount * 100;
 }
 
-function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurchase[] {
+function getPersonalPaidPurchases(purchases: readonly unknown[], xofPerUsdt: number): EligiblePurchase[] {
   const eligible: EligiblePurchase[] = [];
 
   for (const value of purchases) {
@@ -58,7 +60,11 @@ function getPersonalPaidPurchases(purchases: readonly unknown[]): EligiblePurcha
       : snapshot.isFree === true;
     if (isFree) continue;
 
-    const amountCents = amountToCents(snapshot.price ?? currentProduct?.price);
+    const purchaseCurrency = String(snapshot.currency ?? currentProduct?.currency ?? "XOF").toUpperCase();
+    const purchasePrice = Number(snapshot.price ?? currentProduct?.price);
+    const amountCents = amountToCents(
+      purchaseCurrency === "USDT" ? purchasePrice * xofPerUsdt : purchasePrice,
+    );
     if (amountCents <= 0) continue;
 
     const rawDate = purchase.purchaseDate ?? root.purchaseDate ?? root.purchasedAt;
@@ -93,7 +99,11 @@ export function calculateVipProgress(
   purchases: readonly unknown[],
   settings: Record<string, unknown>,
 ): VipProgress {
-  const eligiblePurchases = getPersonalPaidPurchases(purchases);
+  const xofPerUsdt = parseXofPerUsdt(settings.xofPerUsdt ?? DEFAULT_XOF_PER_USDT);
+  if (xofPerUsdt === null) {
+    throw new Error("Le taux XOF/USDT n’est pas configuré correctement.");
+  }
+  const eligiblePurchases = getPersonalPaidPurchases(purchases, xofPerUsdt);
   let totalCents = 0;
   let level = 0;
   let currentStageStartCents = 0;

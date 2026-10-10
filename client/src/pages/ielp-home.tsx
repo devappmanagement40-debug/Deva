@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { LanguagePicker } from "@/components/language-picker";
 import { DiamantBrand } from "@/components/diamant-brand";
+import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { FloatingSupport } from "@/components/floating-support";
 import { FloatingCheckin } from "@/components/floating-checkin";
 import { FloatingWheel } from "@/components/floating-wheel";
@@ -31,6 +32,8 @@ import { parseBannerImages } from "@/lib/banner-images";
 type IncomeSummary = {
   productEarnings?: number | string;
   teamEarnings?: number | string;
+  productEarningsUsdt?: number | string;
+  teamEarningsUsdt?: number | string;
 };
 
 type HomeCopy = {
@@ -301,9 +304,16 @@ function HomePage() {
     });
   }
 
+  const accountCurrency = getMarketCurrency(getCustomerMarket(user.country));
+  const isInternational = accountCurrency === "USDT";
+  const depositBalance = isInternational ? user.balanceUsdt : user.balance;
+  const earningsBalance = isInternational ? user.totalEarningsUsdt : user.totalEarnings;
+  const displayedProductIncome = isInternational
+    ? incomeSummary?.productEarningsUsdt
+    : incomeSummary?.productEarnings;
   const balances = [
-    { id: "deposit", label: copy.depositBalance, value: user.balance },
-    { id: "withdrawal", label: copy.withdrawalBalance, value: user.totalEarnings },
+    { id: "deposit", label: copy.depositBalance, value: depositBalance },
+    { id: "withdrawal", label: copy.withdrawalBalance, value: earningsBalance },
   ];
 
   return (
@@ -337,7 +347,7 @@ function HomePage() {
               {balances.map(({ id, label, value }) => (
                 <div className="ielp-home-refresh__balance" key={id}>
                   <span className="ielp-home-refresh__balance-label">{label}</span>
-                  <strong><small>XOF</small> {formatMoney(value)}</strong>
+                  <strong><small>{accountCurrency}</small> {formatMoney(value)}</strong>
                 </div>
               ))}
               <div className="ielp-home-refresh__balance">
@@ -354,7 +364,7 @@ function HomePage() {
                     {copy.retry}
                   </button>
                 ) : (
-                  <strong><small>XOF</small> {formatMoney(incomeSummary?.productEarnings)}</strong>
+                  <strong><small>{accountCurrency}</small> {formatMoney(displayedProductIncome)}</strong>
                 )}
               </div>
             </div>

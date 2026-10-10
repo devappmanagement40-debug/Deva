@@ -15,6 +15,8 @@ interface TaskWithStatus extends Task {
   currentInvites: number;
   claimedRequiredInvites: number | null;
   claimedReward: number | null;
+  rewardCurrency?: "XOF" | "USDT";
+  claimedRewardCurrency?: "XOF" | "USDT";
 }
 
 const REWARD_GREEN = "#08b83a";
@@ -112,6 +114,9 @@ export default function TasksPage() {
               const displayedReward = task.isCompleted && task.claimedReward !== null
                 ? task.claimedReward
                 : task.reward;
+              const displayedCurrency = task.isCompleted
+                ? task.claimedRewardCurrency || task.rewardCurrency || "XOF"
+                : task.rewardCurrency || "XOF";
               const progress = Math.min(
                 task.currentInvites / Math.max(requiredInvites, 1),
                 1,
@@ -150,7 +155,7 @@ export default function TasksPage() {
                       <p className="mt-1 text-[14px] leading-tight text-[#9b9b9b]">
                         {t.taskRewardLabel}:{" "}
                         <span className="font-bold text-[#6db98a]">
-                          {displayedReward.toLocaleString()} XOF
+                          {displayedReward.toLocaleString()} {displayedCurrency}
                         </span>
                       </p>
                     </div>

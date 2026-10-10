@@ -276,7 +276,9 @@ export default function BankerPage() {
                       <div className="grid grid-cols-2 gap-2 text-sm bg-secondary/50 rounded-lg p-3 mb-3">
                         <div>
                           <p className="text-muted-foreground text-xs">{t.amount}</p>
-                          <p className="font-bold text-lg text-primary">{Number(deposit.amount).toLocaleString()} XOF</p>
+                          <p className="font-bold text-lg text-primary">
+                            {Number(deposit.currency?.toUpperCase() === "USDT" ? deposit.amountUsdt : deposit.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} {deposit.currency || "XOF"}
+                          </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.channel}</p>

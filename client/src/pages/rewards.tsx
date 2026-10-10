@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth";
+import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -48,11 +49,16 @@ export default function RewardsPage() {
 
   if (!user) return null;
 
-  const currency = "XOF";
+  const currency = getMarketCurrency(getCustomerMarket(user.country));
 
-  const totalReward = tasks?.reduce((sum, t) => sum + t.reward, 0) || 0;
-  const claimedReward = tasks?.filter(t => t.isCompleted).reduce(
-    (sum: number, task: any) => sum + (task.claimedReward ?? task.reward),
+  const totalReward = tasks?.reduce(
+    (sum: number, task: any) => sum + (task.rewardCurrency === currency ? Number(task.reward) || 0 : 0),
+    0,
+  ) || 0;
+  const claimedReward = tasks?.filter((task: any) => task.isCompleted).reduce(
+    (sum: number, task: any) => sum + ((task.claimedRewardCurrency || task.rewardCurrency || "XOF") === currency
+      ? Number(task.claimedReward ?? task.reward) || 0
+      : 0),
     0,
   ) || 0;
   const currentInvites = tasks?.[0]?.currentInvites || 0;
@@ -103,6 +109,9 @@ export default function RewardsPage() {
                 const displayedReward = task.isCompleted && task.claimedReward != null
                   ? task.claimedReward
                   : task.reward;
+                const displayedCurrency = task.isCompleted
+                  ? task.claimedRewardCurrency || task.rewardCurrency || currency
+                  : task.rewardCurrency || currency;
                 const displayedDescription = task.isCompleted && task.claimedDescription
                   ? task.claimedDescription
                   : task.description;
@@ -118,7 +127,7 @@ export default function RewardsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-semibold text-gray-800 leading-tight truncate">{displayCurrencyText(displayedDescription)}</p>
-                    <p className="text-[10px] text-gray-400 leading-tight">{t.rewardsRewardLabel}: <span className="text-blue-500 font-semibold">{displayedReward.toLocaleString()} {currency}</span></p>
+                    <p className="text-[10px] text-gray-400 leading-tight">{t.rewardsRewardLabel}: <span className="text-blue-500 font-semibold">{displayedReward.toLocaleString()} {displayedCurrency}</span></p>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className="text-[10px] text-gray-400">{task.currentInvites}/{requiredInvites}</span>

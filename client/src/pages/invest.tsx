@@ -4,7 +4,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { formatCurrency } from "@/lib/countries";
+import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { Image as ImageIcon, Loader2, AlertTriangle, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
@@ -55,8 +55,9 @@ export default function InvestPage() {
 
   if (!user) return null;
 
-  const balance = parseFloat(user.balance || "0");
-  const currency = "XOF";
+  const currency = getMarketCurrency(getCustomerMarket(user.country));
+  const rawBalance = currency === "USDT" ? user.balanceUsdt : user.balance;
+  const balance = parseFloat(rawBalance || "0");
   const paidProducts = products?.filter(p => !p.isFree) || [];
 
   return (
@@ -218,7 +219,10 @@ export default function InvestPage() {
                 style={{ background: "#fff2f2", border: "1px solid #fca5a5" }}>
                 <AlertTriangle className="w-4 h-4 shrink-0" style={{ color: "#E8192C" }} />
                 <p className="text-xs" style={{ color: "#E8192C" }}>
-                  {t.investInsufficient.replace("{0}", formatCurrency(parseFloat(String(confirmProduct.price)) - balance, user.country))}
+                  {t.investInsufficient.replace(
+                    "{0}",
+                    `${currency} ${(parseFloat(String(confirmProduct.price)) - balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                  )}
                 </p>
               </div>
             )}

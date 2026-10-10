@@ -4,9 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useI18n, type Lang } from "@/lib/i18n";
+import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { rebrandText } from "@/lib/content";
-import { formatCurrency } from "@/lib/countries";
 import type { Deposit, Withdrawal, Transaction } from "@shared/schema";
 import { ReceiptCard, ReceiptEmptyState, ReceiptLoadingState } from "@/components/history-receipt";
 
@@ -23,6 +22,10 @@ function formatDate(date: string | Date) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatTransactionAmount(value: number, currency: string | null | undefined, lang: Lang) {
+  return `${Math.abs(value).toLocaleString(localeForLang(lang), { maximumFractionDigits: 8 })} ${currency || "XOF"}`;
 }
 
 function formatTransactionDescription(description: string | null | undefined, lang: Lang) {
@@ -121,6 +124,8 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       id: deposit.id,
                       kind: "deposit",
                       amount: deposit.amount,
+                      amountUsdt: deposit.amountUsdt,
+                      currency: deposit.currency,
                       status: deposit.status,
                       createdAt: deposit.createdAt,
                       paymentMethod: deposit.paymentMethod,
@@ -144,6 +149,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       id: withdrawal.id,
                       kind: "withdrawal",
                       amount: withdrawal.amount,
+                      currency: withdrawal.currency,
                       status: withdrawal.status,
                       createdAt: withdrawal.createdAt,
                       accountNumber: withdrawal.accountNumber,
@@ -174,7 +180,7 @@ export default function TransactionHistoryModal({ open, onClose }: TransactionHi
                       </div>
                       <p className={`shrink-0 text-[13px] ${Number(transaction.amount) < 0 ? "text-[#d13e3e]" : "text-[#16803b]"}`}>
                         {Number(transaction.amount) < 0 ? "−" : "+"}
-                        {formatCurrency(Math.abs(Number(transaction.amount)), user.country)}
+                        {formatTransactionAmount(Number(transaction.amount), transaction.currency, lang)}
                       </p>
                     </div>
                   </article>

@@ -9,13 +9,16 @@ import {
 } from "@shared/task-validation";
 import { getDailyBonusHoursRemaining } from "./daily-bonus-policy";
 import bcrypt from "bcryptjs";
-import { PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
+import { PRODUCT_MARKETS, PRODUCT_TYPES, registerSchema, loginSchema, type PaymentNumber } from "@shared/schema";
+import { getInternationalCryptoMethod } from "@shared/international-crypto";
 import { normalizeProductType, ownsActiveStabilityProduct } from "@shared/product-categories";
 import { normalizeProductCardColor } from "@shared/product-card-color";
 import { calculateVipProgress, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import {
+  getCustomerMarket,
+  getMarketCurrency,
   isCountryCode,
 } from "@shared/country-codes";
 import { AUTH_COUNTRY_CATALOG } from "@shared/auth-country-catalog";
@@ -203,6 +206,7 @@ import {
   getNowPaymentsCallbackUrl,
   getSDK,
   isSupportedNowPaymentsDepositCurrency,
+  isSupportedNowPaymentsInternationalCurrency,
   isNowPaymentsPayoutConfigured,
   isNowPaymentsVerificationCode,
   nextWithdrawalStatusFromPayoutIpn,
@@ -903,11 +907,18 @@ export async function registerRoutes(
   app.get("/api/products", requireAuth, async (req, res) => {
     try {
       const userId = req.session.userId!;
-      const [products, userProductsList, settings] = await Promise.all([
-        storage.getProducts(),
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      const market = getCustomerMarket(user.country);
+      const marketCurrency = getMarketCurrency(market);
+      const [products, allUserProducts, settings] = await Promise.all([
+        storage.getProducts(market),
         storage.getAllUserProducts(userId),
         storage.getSettings(),
       ]);
+      const userProductsList = allUserProducts.filter(
+        ({ product }) => (product.currency || "XOF") === marketCurrency,
+      );
       const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map(({ userProduct, product }) => ({
         isActive: userProduct.isActive,
         daysRemaining: userProduct.daysRemaining,
@@ -1412,6 +1423,154 @@ export async function registerRoutes(
     }
   });
 
+  // International accounts use a separate USDT ledger and provider-priced
+  // crypto network. CI/Togo deposits continue through the legacy XOF route.
+  app.post("/api/crypto-deposits/international", requireAuth, requireSameOrigin, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) return res.status(401).json({ message: "Non authentifié" });
+      if (getCustomerMarket(user.country) !== "international") {
+        return res.status(403).json({ message: "Ce parcours est réservé aux comptes internationaux." });
+      }
+
+      const amountInput = String(req.body?.amountUsdt ?? "").trim();
+      const amountUsdt = Number(amountInput);
+      if (!/^\d+(?:\.\d{1,8})?$/.test(amountInput) || !Number.isFinite(amountUsdt) || amountUsdt < 2 || amountUsdt > 1_000_000) {
+        return res.status(400).json({ message: "Saisissez un montant de dépôt d’au moins 2 USDT, avec 8 décimales au maximum." });
+      }
+
+      const method = getInternationalCryptoMethod(req.body?.payCurrency);
+      if (!method || !isSupportedNowPaymentsInternationalCurrency(req.body?.payCurrency)) {
+        return res.status(400).json({ message: "Cette devise ou ce réseau n’est pas pris en charge." });
+      }
+      if (!process.env.NOWPAYMENTS_API_KEY || !process.env.NOWPAYMENTS_IPN_SECRET) {
+        return res.status(503).json({ message: "Le service de paiement crypto n'est pas encore configuré" });
+      }
+      if (!getNowPaymentsCallbackUrl()) {
+        return res.status(503).json({
+          message: "Les dépôts automatiques nécessitent APP_URL ou PUBLIC_URL avec l'URL HTTPS publique de l'application",
+        });
+      }
+
+      const payment = await createNowPaymentsDirectPayment({
+        amount: amountUsdt,
+        priceCurrency: "usd",
+        payCurrency: method.code,
+        orderId: `diamant-int-${user.id}-${crypto.randomUUID()}`,
+        description: `Dépôt DIAMANT en USDT · ${method.label}`,
+      });
+      const paymentId = String(payment.payment_id || "");
+      const payAddress = String(payment.pay_address || "");
+      const payAmount = Number(payment.pay_amount);
+      const payCurrency = String(payment.pay_currency || "").trim().toLowerCase();
+      if (
+        !paymentId ||
+        !payAddress ||
+        !Number.isFinite(payAmount) ||
+        payAmount <= 0 ||
+        payCurrency !== method.code
+      ) {
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "deposit",
+          code: "payment_response_incomplete",
+        });
+        console.error("NOWPayments international deposit returned incomplete quote metadata");
+        return res.status(502).json({ message: "Le prestataire n’a pas renvoyé les détails exacts du paiement." });
+      }
+
+      const deposit = await storage.createDeposit({
+        userId: user.id,
+        amount: 0,
+        amountUsdt: amountUsdt.toFixed(8),
+        currency: "USDT",
+        accountName: user.fullName,
+        accountNumber: payAddress,
+        country: user.country,
+        paymentMethod: "NOWPayments",
+        channelName: method.label,
+        reference: paymentId,
+        status: "pending",
+        nowPaymentsStatus: "WAITING",
+        nowPaymentsExpectedAmount: String(payment.pay_amount),
+        nowPaymentsExpectedCurrency: payCurrency,
+      });
+      notifyAdminTelegram({
+        kind: "deposit_created",
+        id: deposit.id,
+        userId: deposit.userId,
+        amount: amountUsdt,
+        country: deposit.country,
+        paymentMethod: `NOWPayments · ${method.label} · crédit USDT`,
+        reference: deposit.reference,
+        status: deposit.status,
+      });
+
+      const qrCode = await QRCode.toDataURL(payAddress, {
+        errorCorrectionLevel: "M",
+        margin: 2,
+        width: 320,
+      });
+      return res.json({
+        depositId: deposit.id,
+        paymentId,
+        payAddress,
+        payAmount: String(payment.pay_amount),
+        payCurrency,
+        payinExtraId: payment.payin_extra_id || undefined,
+        network: payment.network || method.network,
+        qrCode,
+        creditedUsdtAmount: amountUsdt.toFixed(8),
+        methodLabel: method.label,
+      });
+    } catch (error: any) {
+      console.error("NOWPayments international deposit error:", error);
+      return res.status(400).json({
+        message: error?.message || "Impossible de créer ce dépôt. Vérifiez le montant ou le réseau puis réessayez.",
+      });
+    }
+  });
+
+  app.get("/api/crypto-deposits/:paymentId/status", requireAuth, async (req, res) => {
+    try {
+      const userId = req.session.userId!;
+      const deposit = await storage.getDepositByReference(String(req.params.paymentId));
+      if (!deposit || deposit.userId !== userId || deposit.currency.toUpperCase() !== "USDT") {
+        return res.status(404).json({ message: "Dépôt introuvable." });
+      }
+      if (deposit.status === "approved" || deposit.status === "rejected") {
+        return res.json({ status: deposit.status });
+      }
+      if (!process.env.NOWPAYMENTS_API_KEY) {
+        return res.status(503).json({ message: "Le service de paiement crypto n'est pas encore configuré" });
+      }
+      const providerStatus = await getSDK().getPaymentStatus(String(deposit.reference));
+      const payment = providerStatus as any;
+      const action = assessNowPaymentsDeposit({
+        gatewayStatus: payment.payment_status,
+        expectedAmount: deposit.nowPaymentsExpectedAmount,
+        expectedCurrency: deposit.nowPaymentsExpectedCurrency,
+        actuallyPaid: payment.actually_paid,
+        payCurrency: payment.pay_currency,
+      });
+      const result = await storage.processNowPaymentsDeposit({
+        reference: String(deposit.reference),
+        action,
+        gatewayStatus: payment.payment_status,
+        actuallyPaid: payment.actually_paid === undefined ? null : String(payment.actually_paid),
+        payCurrency: payment.pay_currency || null,
+        outcomeAmount: payment.outcome_amount === undefined ? null : String(payment.outcome_amount),
+        outcomeCurrency: payment.outcome_currency || null,
+        error: payment.error || null,
+      });
+      return res.json({ status: result.deposit?.status || deposit.status });
+    } catch (error: any) {
+      console.error("NOWPayments payment status check failed:", error);
+      return res.status(502).json({ message: "Impossible de vérifier le statut pour le moment." });
+    }
+  });
+
   // NOWPayments crypto deposits — uses the official SDK direct-payment flow.
   app.post("/api/crypto-deposits", requireAuth, requireSameOrigin, async (req, res) => {
     try {
@@ -1423,6 +1582,9 @@ export async function registerRoutes(
       const amountXof = Number(amount);
 
       if (!user) return res.status(401).json({ message: "Non authentifié" });
+      if (getCustomerMarket(user.country) !== "legacy") {
+        return res.status(403).json({ message: "Les comptes internationaux doivent utiliser le parcours de dépôt USDT." });
+      }
       if (!process.env.NOWPAYMENTS_API_KEY || !process.env.NOWPAYMENTS_IPN_SECRET) {
         return res.status(503).json({ message: "Le service de paiement crypto n'est pas encore configuré" });
       }
@@ -2002,6 +2164,9 @@ export async function registerRoutes(
       if (!user) {
         return res.status(401).json({ message: "Non authentifie" });
       }
+      if (getCustomerMarket(user.country) !== "legacy") {
+        return res.status(403).json({ message: "Les comptes internationaux utilisent les dépôts crypto en USDT." });
+      }
 
       const settings = await storage.getSettings();
       const minDeposit = parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF));
@@ -2156,6 +2321,9 @@ export async function registerRoutes(
 
       const user = await storage.getUser(req.session.userId!);
       if (!user) return res.status(401).json({ message: "Non authentifié" });
+      if (getCustomerMarket(user.country) !== "legacy") {
+        return res.status(403).json({ message: "Les comptes internationaux utilisent les dépôts crypto en USDT." });
+      }
 
       let westpayChannelName: string | null = null;
       if (user.country === "CI") {
@@ -2847,11 +3015,16 @@ export async function registerRoutes(
       const userId = req.session.userId!;
 
       const reward = await storage.claimTask(userId, taskId);
+      const claimant = await storage.getUser(userId);
+      const currency = claimant
+        ? getMarketCurrency(getCustomerMarket(claimant.country))
+        : "XOF";
 
       res.json({
         success: true,
         amount: reward,
-        message: `Félicitations ! Vous avez reçu ${reward.toLocaleString()} XOF`,
+        currency,
+        message: `Félicitations ! Vous avez reçu ${reward.toLocaleString()} ${currency}`,
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -2879,7 +3052,8 @@ export async function registerRoutes(
       return res.json({
         success: true,
         amount: result.amount,
-        message: `Pointage validé : +${result.amount} XOF ajouté à votre solde des gains`,
+        currency: result.currency,
+        message: `Pointage validé : +${result.amount} ${result.currency} ajouté à votre solde des gains`,
       });
     } catch (error: any) {
       console.error("Daily check-in claim failed:", error?.message || error);
@@ -2896,7 +3070,11 @@ export async function registerRoutes(
       const hoursRemaining = getDailyBonusHoursRemaining(lastClaim, new Date());
       const canClaim = hoursRemaining === 0;
       const bonusTransactions = await storage.getDailyBonusTransactions(user.id);
-      const totalBonusClaimed = bonusTransactions.reduce(
+      const currency = getMarketCurrency(getCustomerMarket(user.country));
+      const marketBonusTransactions = bonusTransactions.filter(
+        (transaction) => (transaction.currency || "XOF") === currency,
+      );
+      const totalBonusClaimed = marketBonusTransactions.reduce(
         (total, transaction) => {
           const amount = Number(transaction.amount);
           return total + (Number.isFinite(amount) ? amount : 0);
@@ -2907,9 +3085,10 @@ export async function registerRoutes(
       return res.json({
         canClaim,
         hoursRemaining,
+        currency,
         totalBonusClaimed: Number(totalBonusClaimed.toFixed(2)),
-        daysPointed: bonusTransactions.length,
-        checkinHistory: bonusTransactions.map((transaction) => ({
+        daysPointed: marketBonusTransactions.length,
+        checkinHistory: marketBonusTransactions.map((transaction) => ({
           claimedAt: transaction.createdAt.toISOString(),
           amount: Number(transaction.amount),
         })),
@@ -3458,7 +3637,18 @@ export async function registerRoutes(
   app.post("/api/admin/deposits/:id/reject", requireAdmin, requireSameOrigin, async (req, res) => {
     try {
       const { ban } = req.body;
-      const deposit = await storage.updateDeposit(parseInt(req.params.id as string), {
+      const depositId = parseInt(req.params.id as string, 10);
+      const existing = await storage.getDeposit(depositId);
+      if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (existing.paymentMethod === "NOWPayments") {
+        return res.status(400).json({
+          message: "Les dépôts NOWPayments sont suivis automatiquement et ne peuvent pas être rejetés manuellement.",
+        });
+      }
+      if (!["pending", "processing", "review"].includes(existing.status)) {
+        return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
+      }
+      const deposit = await storage.updateDeposit(depositId, {
         status: "rejected",
         processedAt: new Date(),
         processedBy: req.session.userId,
@@ -4081,10 +4271,66 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/products/:id/duplicate-international", requireAdmin, async (req, res) => {
+    try {
+      const sourceId = Number(req.params.id);
+      if (!Number.isSafeInteger(sourceId) || sourceId <= 0) {
+        return res.status(400).json({ message: "Identifiant de produit invalide." });
+      }
+      const source = await storage.getProduct(sourceId);
+      if (!source) return res.status(404).json({ message: "Produit introuvable." });
+      if (source.market !== "legacy") {
+        return res.status(400).json({ message: "Seuls les plans XOF peuvent être copiés vers le catalogue international." });
+      }
+
+      const existingPlans = await storage.getAllProductsAdmin();
+      const existingCopy = existingPlans.find(
+        (product) => product.market === "international" && product.sourceProductId === source.id,
+      );
+      if (existingCopy) return res.json({ product: existingCopy, alreadyExists: true });
+
+      const product = await storage.createProduct({
+        sourceProductId: source.id,
+        name: source.name,
+        productType: source.productType,
+        market: "international",
+        currency: "USDT",
+        price: "0",
+        dailyEarnings: "0",
+        cycleDays: source.cycleDays,
+        totalReturn: "0",
+        imageUrl: source.imageUrl,
+        cardColor: source.cardColor,
+        isFree: false,
+        isActive: false,
+        isUnavailable: true,
+        seriesId: source.seriesId,
+        minInviteCount: 0,
+        requiredVipLevel: source.requiredVipLevel,
+        maxOwned: source.maxOwned,
+        collectAtEnd: false,
+        stockPercentage: 0,
+      });
+      await storage.logAdminAction(
+        req.session.userId!,
+        "duplicate_product_international",
+        null,
+        `Plan international créé à partir du produit ${source.id}; prix et gains USDT à configurer`,
+      );
+      res.json({ product, alreadyExists: false });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
       const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, requiredVipLevel, maxOwned, stockPercentage } = req.body;
       const productType = req.body.productType;
+      const market = req.body.market === undefined ? "legacy" : req.body.market;
+      if (!PRODUCT_MARKETS.includes(market)) {
+        return res.status(400).json({ message: "Marché de produit invalide." });
+      }
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
       }
@@ -4108,6 +4354,8 @@ export async function registerRoutes(
       const product = await storage.createProduct({
         name,
         productType,
+        market,
+        currency: market === "international" ? "USDT" : "XOF",
         price: String(priceNum),
         dailyEarnings: String(dailyNum),
         cycleDays: cycleInt,
@@ -4133,6 +4381,9 @@ export async function registerRoutes(
   app.patch("/api/admin/products/:id", requireAdmin, async (req, res) => {
     try {
       const body = { ...req.body };
+      delete body.market;
+      delete body.currency;
+      delete body.sourceProductId;
       // This legacy switch no longer controls payout behavior. Preserve stored
       // values so existing purchases can still be interpreted correctly.
       delete body.collectAtEnd;
@@ -4159,7 +4410,17 @@ export async function registerRoutes(
       // Normalize numeric fields when present
       if (body.maxOwned !== undefined) body.maxOwned = parseInt(body.maxOwned) || 0;
       if (body.stockPercentage !== undefined) body.stockPercentage = Math.min(100, Math.max(0, parseInt(body.stockPercentage) || 0));
-      const product = await storage.updateProduct(parseInt(req.params.id as string), body);
+      const id = parseInt(req.params.id as string);
+      const existingProduct = await storage.getProduct(id);
+      if (!existingProduct) return res.status(404).json({ message: "Produit introuvable." });
+      if (body.isActive === true && existingProduct.market === "international") {
+        const price = Number(body.price ?? existingProduct.price);
+        const dailyEarnings = Number(body.dailyEarnings ?? existingProduct.dailyEarnings);
+        if (price <= 0 || dailyEarnings <= 0 || existingProduct.isUnavailable) {
+          return res.status(400).json({ message: "Configurez d’abord le prix et les gains USDT, puis rendez le plan disponible avant de l’activer." });
+        }
+      }
+      const product = await storage.updateProduct(id, body);
       await storage.logAdminAction(req.session.userId!, "update_product", null, `Produit ${product.id} modifié`);
       res.json(product);
     } catch (error: any) {
@@ -4782,12 +5043,13 @@ export async function registerRoutes(
         rewardAmount = crypto.randomInt(minCents, maxCents + 1) / 100;
       }
 
-      await storage.claimGiftCode(userId, giftCode.id, rewardAmount);
+      const creditedReward = await storage.claimGiftCode(userId, giftCode.id, rewardAmount);
       
       res.json({ 
         success: true, 
-        message: `Félicitations! Vous avez reçu ${rewardAmount.toLocaleString()} XOF`,
-        amount: rewardAmount
+        message: `Félicitations! Vous avez reçu ${creditedReward.amount.toLocaleString()} ${creditedReward.currency}`,
+        amount: creditedReward.amount,
+        currency: creditedReward.currency,
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
@@ -5123,6 +5385,11 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (existing.paymentMethod === "NOWPayments") {
+        return res.status(400).json({
+          message: "Les dépôts NOWPayments sont suivis automatiquement et ne peuvent pas être rejetés manuellement.",
+        });
+      }
       if (!["pending", "processing", "review"].includes(existing.status)) {
         return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
       }

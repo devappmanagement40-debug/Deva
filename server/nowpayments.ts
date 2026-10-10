@@ -16,6 +16,7 @@ import {
   type Payment as NowPaymentsPayment,
 } from "@nowpaymentsio/nowpayments-sdk-nodejs";
 import { DEFAULT_XOF_PER_USDT, parseXofPerUsdt } from "@shared/financial-settings";
+import { getInternationalCryptoMethod } from "@shared/international-crypto";
 
 export const SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY = "usdtbsc";
 export const XOF_PER_USDT = DEFAULT_XOF_PER_USDT;
@@ -23,6 +24,10 @@ export const XOF_PER_USDT = DEFAULT_XOF_PER_USDT;
 export function isSupportedNowPaymentsDepositCurrency(value: unknown): value is string {
   return typeof value === "string"
     && value.trim().toLowerCase() === SUPPORTED_NOWPAYMENTS_DEPOSIT_CURRENCY;
+}
+
+export function isSupportedNowPaymentsInternationalCurrency(value: unknown): value is string {
+  return Boolean(getInternationalCryptoMethod(value));
 }
 
 export function convertXofToUsdt(

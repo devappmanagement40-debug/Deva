@@ -11,6 +11,7 @@ import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
+import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { normalizeProductType } from "@shared/product-categories";
 import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
@@ -78,7 +79,7 @@ const INVEST_COPY: Record<Lang, {
     decreaseQuantity: "Réduire la quantité",
     purchaseLimitReached: "Vous avez atteint la limite d’achats configurée pour ce produit.",
     totalAmount: "Total à payer",
-    unitPrice: "Prix unitaire : {0} XOF",
+    unitPrice: "Prix unitaire : {0} {1}",
     paymentBreakdown: "Répartition du paiement",
     depositBalance: "Solde des dépôts",
     earningsBalance: "Solde des gains",
@@ -106,7 +107,7 @@ const INVEST_COPY: Record<Lang, {
     decreaseQuantity: "Decrease quantity",
     purchaseLimitReached: "You have reached the configured purchase limit for this product.",
     totalAmount: "Total to pay",
-    unitPrice: "Unit price: {0} XOF",
+    unitPrice: "Unit price: {0} {1}",
     paymentBreakdown: "Payment breakdown",
     depositBalance: "Deposit balance",
     earningsBalance: "Earnings balance",
@@ -134,7 +135,7 @@ const INVEST_COPY: Record<Lang, {
     decreaseQuantity: "تقليل الكمية",
     purchaseLimitReached: "لقد وصلت إلى حد الشراء المحدد لهذا المنتج.",
     totalAmount: "الإجمالي المطلوب",
-    unitPrice: "سعر الوحدة: {0} XOF",
+    unitPrice: "سعر الوحدة: {0} {1}",
     paymentBreakdown: "تفاصيل الدفع",
     depositBalance: "رصيد الإيداعات",
     earningsBalance: "رصيد الأرباح",
@@ -162,7 +163,7 @@ const INVEST_COPY: Record<Lang, {
     decreaseQuantity: "减少数量",
     purchaseLimitReached: "您已达到此产品设置的购买上限。",
     totalAmount: "应付总额",
-    unitPrice: "单价：{0} XOF",
+    unitPrice: "单价：{0} {1}",
     paymentBreakdown: "支付明细",
     depositBalance: "存款余额",
     earningsBalance: "收益余额",
@@ -171,7 +172,7 @@ const INVEST_COPY: Record<Lang, {
   },
 };
 
-function formatXof(value: number) {
+function formatMoney(value: number) {
   return Number.isFinite(value)
     ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
     : "0.00";
@@ -243,8 +244,11 @@ export default function ProductsPage() {
 
   if (!user) return null;
 
-  const depositBalance = Number.isFinite(parseFloat(user.balance || "0")) ? parseFloat(user.balance || "0") : 0;
-  const earningsBalance = Number.isFinite(parseFloat(user.totalEarnings || "0")) ? parseFloat(user.totalEarnings || "0") : 0;
+  const accountCurrency = getMarketCurrency(getCustomerMarket(user.country));
+  const rawDepositBalance = accountCurrency === "USDT" ? user.balanceUsdt : user.balance;
+  const rawEarningsBalance = accountCurrency === "USDT" ? user.totalEarningsUsdt : user.totalEarnings;
+  const depositBalance = Number.isFinite(parseFloat(rawDepositBalance || "0")) ? parseFloat(rawDepositBalance || "0") : 0;
+  const earningsBalance = Number.isFinite(parseFloat(rawEarningsBalance || "0")) ? parseFloat(rawEarningsBalance || "0") : 0;
   const depositBalanceCents = safeXofCents(Math.max(0, depositBalance)) ?? 0;
   const earningsBalanceCents = safeXofCents(Math.max(0, earningsBalance)) ?? 0;
   const availableBalanceCents = depositBalanceCents + earningsBalanceCents;
@@ -428,11 +432,11 @@ export default function ProductsPage() {
               <div className="diamant-purchase-dialog__body">
                 <div className="diamant-purchase-dialog__heading">
                   <div><span>DIAMANT / {copy.totalAmount}</span><h2>{getDisplayName(confirmProduct)}</h2></div>
-                  <strong data-testid="purchase-total">{formatXof(totalPurchase)}<small> XOF</small></strong>
+                  <strong data-testid="purchase-total">{formatMoney(totalPurchase)}<small> {accountCurrency}</small></strong>
                 </div>
                 <p className="diamant-purchase-dialog__hint">{copy.purchaseHint}</p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">
-                  {copy.unitPrice.replace("{0}", formatXof(Number(confirmProduct.price)))}
+                  {copy.unitPrice.replace("{0}", formatMoney(Number(confirmProduct.price))).replace("{1}", accountCurrency)}
                 </p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
                 <p
@@ -482,21 +486,21 @@ export default function ProductsPage() {
                 {insufficientAmountCents > 0 && !productLimitReached && (
                   <div className="diamant-purchase-alert">
                     <AlertTriangle size={17} aria-hidden="true" />
-                    <p>{t.investInsufficient.replace("{0}", `${formatXof(insufficientAmountCents / 100)} XOF`)}</p>
+                    <p>{t.investInsufficient.replace("{0}", `${formatMoney(insufficientAmountCents / 100)} ${accountCurrency}`)}</p>
                   </div>
                 )}
                 <div className="diamant-payment-breakdown">
                   <p>{copy.paymentBreakdown}</p>
-                  <div><span>{copy.depositBalance}</span><strong>−{formatXof(depositDebitCents / 100)} XOF</strong></div>
+                  <div><span>{copy.depositBalance}</span><strong>−{formatMoney(depositDebitCents / 100)} {accountCurrency}</strong></div>
                   {earningsDebitCents > 0 && (
-                    <div><span>{copy.earningsBalance}</span><strong>−{formatXof(earningsDebitCents / 100)} XOF</strong></div>
+                    <div><span>{copy.earningsBalance}</span><strong>−{formatMoney(earningsDebitCents / 100)} {accountCurrency}</strong></div>
                   )}
                 </div>
                 <div className="diamant-purchase-stats">
                   {[
                     { value: `${confirmProduct.cycleDays} ${t.ordersDaysLbl}`, label: t.duration },
-                    { value: `${formatXof(Number(confirmProduct.dailyEarnings) * purchaseQuantity)} XOF`, label: t.dailyRevenue },
-                    { value: `${formatXof(Number(confirmProduct.totalReturn) * purchaseQuantity)} XOF`, label: t.totalRevenue },
+                    { value: `${formatMoney(Number(confirmProduct.dailyEarnings) * purchaseQuantity)} ${accountCurrency}`, label: t.dailyRevenue },
+                    { value: `${formatMoney(Number(confirmProduct.totalReturn) * purchaseQuantity)} ${accountCurrency}`, label: t.totalRevenue },
                   ].map((stat) => (
                     <div key={stat.label}><strong>{stat.value}</strong><span>{stat.label}</span></div>
                   ))}

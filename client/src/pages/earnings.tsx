@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { ChevronLeft, CreditCard, Package, UsersRound, Wifi } from "lucide-react";
 import { localeForLang, useI18n, type Lang } from "@/lib/i18n";
 import { DiamantBrand } from "@/components/diamant-brand";
+import { getCustomerMarket } from "@shared/country-codes";
 
 const MEMBER_ACCENT = "#00c83c";
 const BALANCE_CARD_CLASS_NAME =
@@ -11,7 +12,12 @@ const BALANCE_CARD_CLASS_NAME =
 const BALANCE_CARD_STYLE = {
   background: "linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%)",
 } as const;
-type IncomeSummary = { productEarnings: number; teamEarnings: number };
+type IncomeSummary = {
+  productEarnings: number;
+  teamEarnings: number;
+  productEarningsUsdt: number;
+  teamEarningsUsdt: number;
+};
 
 const BALANCE_COPY: Record<Lang, {
   title: string;
@@ -82,25 +88,52 @@ export default function EarningsPage() {
 
   const totalEarnings = Number.isFinite(Number(user.totalEarnings)) ? Number(user.totalEarnings) : 0;
   const depositBalance = Number.isFinite(Number(user.balance)) ? Number(user.balance) : 0;
+  const totalEarningsUsdt = Number.isFinite(Number(user.totalEarningsUsdt)) ? Number(user.totalEarningsUsdt) : 0;
+  const depositBalanceUsdt = Number.isFinite(Number(user.balanceUsdt)) ? Number(user.balanceUsdt) : 0;
   const productIncome = Number.isFinite(Number(incomeSummaryQuery.data?.productEarnings))
     ? Number(incomeSummaryQuery.data?.productEarnings)
     : 0;
   const teamIncome = Number.isFinite(Number(incomeSummaryQuery.data?.teamEarnings))
     ? Number(incomeSummaryQuery.data?.teamEarnings)
     : 0;
+  const productIncomeUsdt = Number.isFinite(Number(incomeSummaryQuery.data?.productEarningsUsdt))
+    ? Number(incomeSummaryQuery.data?.productEarningsUsdt)
+    : 0;
+  const teamIncomeUsdt = Number.isFinite(Number(incomeSummaryQuery.data?.teamEarningsUsdt))
+    ? Number(incomeSummaryQuery.data?.teamEarningsUsdt)
+    : 0;
   const formatSummaryValue = (amount: number) => {
     if (incomeSummaryQuery.isLoading) return "…";
     if (incomeSummaryQuery.isError) return "—";
     return amount.toLocaleString(localeForLang(lang), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
-  const formatSummaryAmount = (amount: number) => {
+  const formatSummaryAmount = (amount: number, currency: "XOF" | "USDT") => {
     const value = formatSummaryValue(amount);
-    return value === "…" || value === "—" ? value : `XOF ${value}`;
+    return value === "…" || value === "—" ? value : `${currency} ${value}`;
   };
-  const balanceCards = [
-    { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
-    { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
-  ];
+  const isInternational = getCustomerMarket(user.country) === "international";
+  const hasLegacyXofActivity = depositBalance > 0 || totalEarnings > 0 || productIncome > 0 || teamIncome > 0;
+  const balanceCards = isInternational
+    ? [
+        { id: "deposits-usdt", label: `${balanceCopy.deposits} · USDT`, amount: depositBalanceUsdt, currency: "USDT" },
+        { id: "earnings-usdt", label: `${balanceCopy.earnings} · USDT`, amount: totalEarningsUsdt, currency: "USDT" },
+        ...(hasLegacyXofActivity
+          ? [
+              { id: "deposits-xof", label: `${balanceCopy.deposits} · ancien solde`, amount: depositBalance, currency: "XOF" },
+              { id: "earnings-xof", label: `${balanceCopy.earnings} · ancien solde`, amount: totalEarnings, currency: "XOF" },
+            ]
+          : []),
+      ]
+    : [
+        { id: "deposits", label: balanceCopy.deposits, amount: depositBalance, currency: "XOF" },
+        { id: "earnings", label: balanceCopy.earnings, amount: totalEarnings, currency: "XOF" },
+      ];
+  const summaryCards = isInternational
+    ? [
+        { currency: "USDT" as const, product: productIncomeUsdt, team: teamIncomeUsdt },
+        ...(hasLegacyXofActivity ? [{ currency: "XOF" as const, product: productIncome, team: teamIncome }] : []),
+      ]
+    : [{ currency: "XOF" as const, product: productIncome, team: teamIncome }];
 
   return (
     <main className="flex min-h-screen flex-col bg-black">
@@ -148,11 +181,13 @@ export default function EarningsPage() {
                 </div>
               </article>
             ))}
+            {summaryCards.map((summary) => (
             <article
+              key={summary.currency}
               className={BALANCE_CARD_CLASS_NAME}
               style={BALANCE_CARD_STYLE}
-              aria-label={balanceCopy.summaryTitle}
-              data-testid="income-summary-card"
+              aria-label={`${balanceCopy.summaryTitle} · ${summary.currency}`}
+              data-testid={summaryCards.length === 1 ? "income-summary-card" : `income-summary-card-${summary.currency}`}
             >
               <div className="absolute -left-12 -top-20 h-80 w-20 rotate-[-18deg] bg-white/[0.12]" />
               <div className="absolute left-[23%] -top-10 h-80 w-10 rotate-[-18deg] bg-white/[0.10]" />
@@ -163,10 +198,10 @@ export default function EarningsPage() {
               </div>
               <div className="absolute left-[14px] top-[66px] flex items-center gap-1.5 text-[10px] leading-4 text-white/75">
                 <Wifi className="h-4 w-4 shrink-0 rotate-90" aria-hidden="true" />
-                <span>{balanceCopy.combinedTotal}</span>
+                <span>{balanceCopy.combinedTotal} · {summary.currency}</span>
               </div>
               <p className="absolute left-[14px] top-[84px] max-w-[82%] break-all text-[23px] font-semibold leading-[28px] tracking-[.01em]" data-testid="income-summary-total">
-                {formatSummaryAmount(productIncome + teamIncome)}
+                {formatSummaryAmount(summary.product + summary.team, summary.currency)}
               </p>
               <div className="absolute left-[14px] top-[128px] flex w-[calc(100%_-_128px)] flex-col gap-1.5">
                 <div className="border-b border-white/25 pb-1">
@@ -175,7 +210,7 @@ export default function EarningsPage() {
                     <span className="truncate">{balanceCopy.productShort}</span>
                   </p>
                   <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-products">
-                    {formatSummaryAmount(productIncome)}
+                    {formatSummaryAmount(summary.product, summary.currency)}
                   </p>
                 </div>
                 <div>
@@ -184,7 +219,7 @@ export default function EarningsPage() {
                     <span className="truncate">{balanceCopy.teamShort}</span>
                   </p>
                   <p className="break-all pl-5 text-[23px] font-semibold leading-[28px] tracking-[.01em] tabular-nums" data-testid="income-summary-team">
-                    {formatSummaryAmount(teamIncome)}
+                    {formatSummaryAmount(summary.team, summary.currency)}
                   </p>
                 </div>
               </div>
@@ -194,6 +229,7 @@ export default function EarningsPage() {
                 <div className="absolute bottom-0 left-[25px] top-0 border-l border-[#9d8440]/35" />
               </div>
             </article>
+            ))}
           </div>
           {incomeSummaryQuery.isError && (
             <p className="mt-2 text-center text-xs text-amber-200" role="alert">{balanceCopy.summaryUnavailable}</p>

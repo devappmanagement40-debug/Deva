@@ -29,6 +29,9 @@ export const users = pgTable("users", {
   balance: decimal("balance", { precision: 15, scale: 2 }).notNull().default("0"),
   todayEarnings: decimal("today_earnings", { precision: 15, scale: 2 }).notNull().default("0"),
   totalEarnings: decimal("total_earnings", { precision: 15, scale: 2 }).notNull().default("0"),
+  balanceUsdt: decimal("balance_usdt", { precision: 15, scale: 8 }).notNull().default("0"),
+  todayEarningsUsdt: decimal("today_earnings_usdt", { precision: 15, scale: 8 }).notNull().default("0"),
+  totalEarningsUsdt: decimal("total_earnings_usdt", { precision: 15, scale: 8 }).notNull().default("0"),
   isAdmin: boolean("is_admin").notNull().default(false),
   isSuperAdmin: boolean("is_super_admin").notNull().default(false),
   isSupportAgent: boolean("is_support_agent").notNull().default(false),
@@ -94,11 +97,16 @@ export type InsertProductSeries = typeof productSeries.$inferInsert;
 // Products table
 export const PRODUCT_TYPES = ["stability", "wellness", "activity"] as const;
 export type ProductType = typeof PRODUCT_TYPES[number];
+export const PRODUCT_MARKETS = ["legacy", "international"] as const;
+export type ProductMarket = typeof PRODUCT_MARKETS[number];
 
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  sourceProductId: integer("source_product_id"),
   name: text("name").notNull(),
   productType: text("product_type").$type<ProductType>().notNull().default("stability"),
+  market: text("market").$type<ProductMarket>().notNull().default("legacy"),
+  currency: text("currency").notNull().default("XOF"),
   price: decimal("price", { precision: 15, scale: 2 }).notNull(),
   dailyEarnings: decimal("daily_earnings", { precision: 15, scale: 2 }).notNull(),
   cycleDays: integer("cycle_days").notNull().default(80),
@@ -145,6 +153,8 @@ export const deposits = pgTable("deposits", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("XOF"),
+  amountUsdt: decimal("amount_usdt", { precision: 15, scale: 8 }),
   accountName: text("account_name").notNull(),
   accountNumber: text("account_number").notNull(),
   country: text("country").notNull(),
@@ -232,6 +242,10 @@ export const withdrawals = pgTable("withdrawals", {
   amount: integer("amount").notNull(),
   netAmount: integer("net_amount").notNull(),
   fees: integer("fees").notNull(),
+  currency: text("currency").notNull().default("XOF"),
+  amountUsdt: decimal("amount_usdt", { precision: 15, scale: 8 }),
+  netAmountUsdt: decimal("net_amount_usdt", { precision: 15, scale: 8 }),
+  feesUsdt: decimal("fees_usdt", { precision: 15, scale: 8 }),
   accountName: text("account_name").notNull(),
   accountNumber: text("account_number").notNull(),
   country: text("country").notNull(),
@@ -338,6 +352,7 @@ export const referralCommissions = pgTable("referral_commissions", {
   fromUserId: integer("from_user_id").notNull().references(() => users.id),
   level: integer("level").notNull(),
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("XOF"),
   productId: integer("product_id").references(() => products.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -349,6 +364,7 @@ export const tasks = pgTable("tasks", {
   description: text("description").notNull(),
   requiredInvites: integer("required_invites").notNull(),
   reward: numeric("reward", { precision: 15, scale: 2, mode: "number" }).notNull(),
+  rewardUsdt: decimal("reward_usdt", { precision: 15, scale: 8 }).notNull().default("0"),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
 });
@@ -364,6 +380,8 @@ export const userTasks = pgTable("user_tasks", {
   taskDescriptionSnapshot: text("task_description_snapshot"),
   requiredInvitesSnapshot: integer("required_invites_snapshot"),
   rewardSnapshot: numeric("reward_snapshot", { precision: 15, scale: 2, mode: "number" }),
+  rewardSnapshotUsdt: decimal("reward_snapshot_usdt", { precision: 15, scale: 8 }),
+  rewardCurrency: text("reward_currency").notNull().default("XOF"),
 }, (table) => ({
   userTaskUnique: uniqueIndex("user_tasks_user_task_unique").on(table.userId, table.taskId),
 }));
@@ -374,6 +392,7 @@ export const transactions = pgTable("transactions", {
   userId: integer("user_id").notNull().references(() => users.id),
   type: text("type").notNull(),
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: text("currency").notNull().default("XOF"),
   description: text("description").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (table) => [
@@ -451,6 +470,7 @@ export const giftCodes = pgTable("gift_codes", {
   amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
   amountMin: decimal("amount_min", { precision: 15, scale: 2 }),
   amountMax: decimal("amount_max", { precision: 15, scale: 2 }),
+  currency: text("currency").notNull().default("XOF"),
   maxUses: integer("max_uses").notNull(),
   currentUses: integer("current_uses").notNull().default(0),
   expiresAt: timestamp("expires_at").notNull(),

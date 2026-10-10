@@ -15,6 +15,8 @@ export interface ReceiptTransaction {
   paymentMethod?: string | null;
   accountNumber?: string | null;
   reference?: string | null;
+  currency?: string | null;
+  amountUsdt?: string | number | null;
   fees?: string | number | null;
   netAmount?: string | number | null;
 }
@@ -202,7 +204,15 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
         </span>
       </div>
       <div className="bg-[#0b1235] px-5">
-        <DepositReceiptField label={copy.amount} value={`${formatAmount(transaction.amount, locale)} XOF`} />
+        <DepositReceiptField
+          label={copy.amount}
+          value={`${formatAmount(
+            transaction.currency?.toUpperCase() === "USDT"
+              ? transaction.amountUsdt ?? transaction.amount
+              : transaction.amount,
+            locale,
+          )} ${transaction.currency || "XOF"}`}
+        />
         <DepositReceiptField label={copy.method} value={method} />
         <DepositReceiptField label={copy.id} value={depositId} />
         <DepositReceiptField label={copy.date} value={formatDate(transaction.createdAt, lang, true)} />
@@ -253,9 +263,10 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
   const copy = WITHDRAWAL_COPY[lang as keyof typeof WITHDRAWAL_COPY] ?? WITHDRAWAL_COPY.fr;
   const statusTitle = copy.status[normalizedStatus as keyof typeof copy.status] || `Retrait ${normalizedStatus || "en cours"}`;
   const statusBadgeClass = STATUS_BADGE_CLASSES[status.tone];
-  const amount = `${formatAmount(transaction.amount, locale)} XOF`;
-  const netAmount = transaction.netAmount == null ? null : `${formatAmount(transaction.netAmount, locale)} XOF`;
-  const fees = transaction.fees == null ? null : `${formatAmount(transaction.fees, locale)} XOF`;
+  const currency = transaction.currency || "XOF";
+  const amount = `${formatAmount(transaction.amount, locale)} ${currency}`;
+  const netAmount = transaction.netAmount == null ? null : `${formatAmount(transaction.netAmount, locale)} ${currency}`;
+  const fees = transaction.fees == null ? null : `${formatAmount(transaction.fees, locale)} ${currency}`;
 
   return (
     <article

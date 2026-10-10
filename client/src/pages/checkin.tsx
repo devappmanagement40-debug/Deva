@@ -16,6 +16,7 @@ import wheelBackground from "@assets/generated_images/spin-wheel-palace-bg-optim
 interface BonusStatus {
   canClaim: boolean;
   hoursRemaining: number;
+  currency?: "XOF" | "USDT";
   totalBonusClaimed: number;
   daysPointed: number;
   checkinHistory: Array<{
@@ -26,6 +27,7 @@ interface BonusStatus {
 
 interface DailyBonusClaimResponse {
   amount: number;
+  currency: "XOF" | "USDT";
 }
 
 function dateKey(date: Date) {
@@ -46,6 +48,7 @@ export default function CheckinPage() {
   const locale = localeForLang(lang);
   const isFrench = lang.toLowerCase().startsWith("fr");
   const [claimedAmount, setClaimedAmount] = useState<number | null>(null);
+  const [claimedCurrency, setClaimedCurrency] = useState<"XOF" | "USDT">("XOF");
 
   const {
     data: bonusStatus,
@@ -76,13 +79,15 @@ export default function CheckinPage() {
         throw new Error(t.errorOccurred);
       }
       const amount = Number(data.amount);
-      if (!Number.isInteger(amount) || amount < 50 || amount > 100) {
+      const currency = "currency" in data && data.currency === "USDT" ? "USDT" : "XOF";
+      if (!Number.isFinite(amount) || amount <= 0 || (currency === "XOF" && (!Number.isInteger(amount) || amount < 50 || amount > 100))) {
         throw new Error(t.errorOccurred);
       }
-      return { amount };
+      return { amount, currency };
     },
     onSuccess: (data) => {
       setClaimedAmount(data.amount);
+      setClaimedCurrency(data.currency);
       void queryClient.invalidateQueries({ queryKey: ["/api/daily-bonus-status"] });
       void refreshUser();
     },
@@ -92,7 +97,7 @@ export default function CheckinPage() {
     },
   });
 
-  const currency = "XOF";
+  const currency = bonusStatus?.currency || (user?.country === "CI" || user?.country === "TG" ? "XOF" : "USDT");
   const totalBonusClaimed = bonusStatus?.totalBonusClaimed ?? 0;
   const daysPointed = bonusStatus?.daysPointed ?? 0;
   const checkinsByDay = useMemo(() => {
@@ -141,7 +146,7 @@ export default function CheckinPage() {
 
   const claimedAmountLabel = claimedAmount === null
     ? undefined
-    : `${formatReward(claimedAmount, locale)} XOF`;
+    : `${formatReward(claimedAmount, locale)} ${claimedCurrency}`;
 
   return (
     <>
@@ -295,7 +300,7 @@ export default function CheckinPage() {
             className="ielp-checkin-balance m-0 whitespace-nowrap font-semibold"
             style={{ fontSize: "clamp(13px, 3.8vw, 18px)", lineHeight: 1.05 }}
           >
-            FCFA{formatReward(totalBonusClaimed, locale)}
+            {currency === "XOF" ? "FCFA" : "USDT"}{formatReward(totalBonusClaimed, locale)}
           </p>
           <p
             className="ielp-checkin-caption m-0 mt-1 whitespace-nowrap"

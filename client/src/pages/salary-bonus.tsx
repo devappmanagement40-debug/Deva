@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth";
+import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { useLocation } from "wouter";
 import rewardLevel01 from "@assets/generated_images/diamant-gift-reward-01.webp";
 import rewardLevel02 from "@assets/generated_images/diamant-gift-reward-02.webp";
@@ -55,7 +56,7 @@ export default function SalaryBonusPage() {
 
   if (!user) return null;
 
-  const currency = "XOF";
+  const currency = getMarketCurrency(getCustomerMarket(user?.country || "CI"));
   const rewardIllustrations = [
     rewardLevel01,
     rewardLevel02,
@@ -99,6 +100,9 @@ export default function SalaryBonusPage() {
             const displayedReward = task.isCompleted && task.claimedReward != null
               ? task.claimedReward
               : task.reward || 0;
+            const displayedCurrency = task.isCompleted
+              ? task.claimedRewardCurrency || task.rewardCurrency || currency
+              : task.rewardCurrency || currency;
             const progress = Math.min(current, required);
             const pct = Math.min((progress / required) * 100, 100);
             const isThisClaiming = claimingId === task.id;
@@ -138,7 +142,7 @@ export default function SalaryBonusPage() {
                       <p className="mt-1 text-[12px] leading-snug text-gray-600 sm:text-[13px]">
                         {t.salaryRewardLabel} :{" "}
                         <span className="font-bold text-[#1d4ed8]">
-                          {currency} {displayedReward.toLocaleString()}
+                          {displayedCurrency} {displayedReward.toLocaleString()}
                         </span>
                       </p>
                       <div className="mt-2 flex items-center gap-2.5">

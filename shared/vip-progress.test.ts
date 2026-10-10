@@ -36,6 +36,17 @@ test("all personal paid product categories count toward admin-configured VIP thr
   assert.equal(progress.totalInvestmentXof, 10000);
 });
 
+test("USDT purchase snapshots count toward XOF VIP thresholds at the configured rate", () => {
+  const progress = calculateVipProgress([
+    personalPurchase(1, "10", "stability", {
+      productSnapshot: { productType: "stability", price: "10", currency: "USDT", isFree: false },
+    }),
+  ], { xofPerUsdt: "500", vip1MinInvestment: "5000" });
+
+  assert.equal(progress.level, 1);
+  assert.equal(progress.totalInvestmentXof, 5000);
+});
+
 test("an account with no purchases still sees the configured amount needed for VIP1", () => {
   const progress = calculateVipProgress(
     [],

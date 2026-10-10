@@ -12,6 +12,8 @@ import {
 interface Deposit {
   id: number;
   amount: string;
+  amountUsdt?: string | null;
+  currency?: string | null;
   status: string;
   paymentMethod?: string | null;
   accountNumber?: string | null;
@@ -29,6 +31,8 @@ export default function DepositHistoryPage() {
     id: deposit.id,
     kind: "deposit",
     amount: deposit.amount,
+    amountUsdt: deposit.amountUsdt,
+    currency: deposit.currency || "XOF",
     status: deposit.status,
     createdAt: deposit.createdAt,
     paymentMethod: deposit.paymentMethod,
