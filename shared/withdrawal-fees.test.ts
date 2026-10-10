@@ -9,14 +9,14 @@ import {
   parseWithdrawalFeePercent,
 } from "./withdrawal-fees";
 
-test("12% is withheld from the entered withdrawal amount", () => {
-  assert.deepEqual(calculateWithdrawalPayoutAmounts(10_000, 12), {
-    fees: 1_200,
-    netAmount: 8_800,
+test("3% is withheld from the entered withdrawal amount", () => {
+  assert.deepEqual(calculateWithdrawalPayoutAmounts(10_000, 3), {
+    fees: 300,
+    netAmount: 9_700,
   });
 });
 
-test("a changed admin rate is used instead of a fixed 12% calculation", () => {
+test("a changed admin rate is used instead of a fixed 3% calculation", () => {
   assert.deepEqual(calculateWithdrawalPayoutAmounts(10_000, 5), {
     fees: 500,
     netAmount: 9_500,
@@ -24,23 +24,23 @@ test("a changed admin rate is used instead of a fixed 12% calculation", () => {
 });
 
 test("a minimum request of 1,200 XOF still applies the configured fee", () => {
-  assert.deepEqual(calculateWithdrawalPayoutAmounts(1_200, 12), {
-    fees: 144,
-    netAmount: 1_056,
+  assert.deepEqual(calculateWithdrawalPayoutAmounts(1_200, 3), {
+    fees: 36,
+    netAmount: 1_164,
   });
 });
 
 test("fees are rounded to the nearest whole XOF", () => {
-  assert.deepEqual(calculateWithdrawalPayoutAmounts(1_001, 12), {
-    fees: 120,
-    netAmount: 881,
+  assert.deepEqual(calculateWithdrawalPayoutAmounts(1_001, 3), {
+    fees: 30,
+    netAmount: 971,
   });
 });
 
 test("USDT withdrawals preserve six-decimal precision and withhold the configured fee", () => {
-  assert.deepEqual(calculateUsdtWithdrawalPayoutAmounts("10.123456", 12), {
-    fees: "1.214815",
-    netAmount: "8.908641",
+  assert.deepEqual(calculateUsdtWithdrawalPayoutAmounts("10.123456", 3), {
+    fees: "0.303704",
+    netAmount: "9.819752",
   });
   assert.equal(formatUsdtWithdrawalAmount(parseUsdtWithdrawalAmount("2.400000")!), "2.4");
 });
