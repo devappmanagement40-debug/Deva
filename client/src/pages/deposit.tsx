@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, Camera, Check, ChevronRight, Copy, History, Info, Loader2, Phone, ShieldCheck, WalletCards } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
-import { getCustomerMarket } from "@shared/country-codes";
 import InternationalCryptoDepositFlow from "@/components/international-crypto/InternationalCryptoDepositFlow";
 import { useToast } from "@/hooks/use-toast";
 import { formatDepositGuidanceContent } from "@/lib/deposit-guidance";
@@ -716,7 +715,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     );
   }
 
-  if (user && getCustomerMarket(user.country) === "international") {
+  if (!startInIssue) {
     return <InternationalCryptoDepositFlow />;
   }
 

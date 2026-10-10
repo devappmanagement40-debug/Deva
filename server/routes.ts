@@ -1422,9 +1422,6 @@ export async function registerRoutes(
     try {
       const user = await storage.getUser(req.session.userId!);
       if (!user) return res.status(401).json({ message: "Non authentifié" });
-      if (getCustomerMarket(user.country) !== "international") {
-        return res.status(403).json({ message: "Ce parcours est réservé aux comptes internationaux." });
-      }
 
       const settings = await storage.getSettings();
       const minDepositUsdt = Number(settings.minDepositUsdt ?? DEFAULT_MIN_DEPOSIT_USDT);
