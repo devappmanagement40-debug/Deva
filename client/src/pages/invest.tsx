@@ -81,6 +81,8 @@ export default function InvestPage() {
           <div className="grid grid-cols-2 gap-2">
             {paidProducts.map((product) => {
               const img = getProductImageUrl(product.imageUrl);
+              const isConfiguredForUsdt = product.market === "international" && product.currency === "USDT";
+              const usdtSetupLabel = lang === "en" ? "USDT setup required" : "À configurer en USDT";
               return (
                 <div
                   key={product.id}
@@ -105,19 +107,19 @@ export default function InvestPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-[11px]">{t.price}</span>
                       <span className="font-bold text-[11px]" style={{ color: "#E8192C" }}>
-                        {currency} {Number(product.price).toLocaleString()}
+                        {isConfiguredForUsdt ? `${currency} ${Number(product.price).toLocaleString()}` : usdtSetupLabel}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-[11px]">{t.dailyRevenue}</span>
                       <span className="font-bold text-[11px]" style={{ color: "#E8192C" }}>
-                        {currency} {Number(product.dailyEarnings).toLocaleString()}
+                        {isConfiguredForUsdt ? `${currency} ${Number(product.dailyEarnings).toLocaleString()}` : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-[11px]">{t.totalRevenue}</span>
                       <span className="font-bold text-[11px]" style={{ color: "#E8192C" }}>
-                        {currency} {Number(product.totalReturn).toLocaleString()}
+                        {isConfiguredForUsdt ? `${currency} ${Number(product.totalReturn).toLocaleString()}` : "—"}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
@@ -130,16 +132,17 @@ export default function InvestPage() {
 
                   <div className="mt-auto px-3 pb-3 pt-2">
                     <p className="text-gray-800 font-black text-base text-center mb-2">
-                      {currency} {Number(product.price).toLocaleString()}
+                      {isConfiguredForUsdt ? `${currency} ${Number(product.price).toLocaleString()}` : usdtSetupLabel}
                     </p>
                     <div className="flex justify-center">
                       <button
                         onClick={() => setConfirmProduct(product)}
-                        className="px-6 py-1.5 rounded-lg text-sm font-bold text-white shadow"
+                        disabled={!isConfiguredForUsdt || product.isUnavailable}
+                        className="px-6 py-1.5 rounded-lg text-sm font-bold text-white shadow disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ background: "#E8192C" }}
                         data-testid={`button-purchase-${product.id}`}
                       >
-                        {t.buy}
+                        {!isConfiguredForUsdt ? usdtSetupLabel : product.isUnavailable ? (lang === "en" ? "Unavailable" : "Indisponible") : t.buy}
                       </button>
                     </div>
                   </div>

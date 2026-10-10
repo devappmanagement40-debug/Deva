@@ -933,11 +933,10 @@ export async function registerRoutes(
       const market = getCustomerMarket(user.country);
       const marketCurrency = getMarketCurrency(market);
       const [products, allUserProducts, settings] = await Promise.all([
-        storage.getProducts(market),
+        storage.getProducts(),
         storage.getAllUserProducts(userId),
         storage.getSettings(),
       ]);
-      const usdtProducts = products.filter((product) => product.currency === "USDT");
       const userProductsList = allUserProducts.filter(
         ({ product }) => product.currency === marketCurrency,
       );
@@ -955,7 +954,7 @@ export async function registerRoutes(
         }
       });
       
-      const productsWithOwnership = usdtProducts.map(p => ({
+      const productsWithOwnership = products.map(p => ({
         ...p,
         isOwned: productCounts.has(p.id),
         ownedCount: productCounts.get(p.id) || 0,

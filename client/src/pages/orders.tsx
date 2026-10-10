@@ -98,13 +98,15 @@ export default function OrdersPage() {
                 : "";
               const product = up.product ?? {
                 price: "0",
+                currency: "USDT",
                 imageUrl: null,
                 cardColor: null,
               };
+              const productCurrency = product.currency === "USDT" ? "USDT" : "XOF";
               const details = [
                 {
                   label: t.ordersDailyLbl,
-                  value: <>{formatProductCardAmount(Number(product.dailyEarnings || 0))} <small>USDT</small></>,
+                  value: <>{formatProductCardAmount(Number(product.dailyEarnings || 0))} <small>{productCurrency}</small></>,
                 },
                 {
                   label: t.ordersCycleLbl,
@@ -112,7 +114,7 @@ export default function OrdersPage() {
                 },
                 {
                   label: t.totalRevenue,
-                  value: <>{formatProductCardAmount(Number(product.totalReturn || 0))} <small>USDT</small></>,
+                  value: <>{formatProductCardAmount(Number(product.totalReturn || 0))} <small>{productCurrency}</small></>,
                 },
                 ...(productIsActive ? [{
                   label: t.ordersRemainingLbl,
@@ -120,7 +122,7 @@ export default function OrdersPage() {
                 }] : []),
                 {
                   label: t.ordersTotalEarnedLbl,
-                  value: <>{formatProductCardAmount(totalEarned)} <small>USDT</small></>,
+                  value: <>{formatProductCardAmount(totalEarned)} <small>{productCurrency}</small></>,
                 },
                 {
                   label: t.ordersDateLbl,

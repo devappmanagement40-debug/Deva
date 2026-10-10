@@ -34,6 +34,8 @@ export function ProductCatalogCard({
   rootTestId,
   actionTestId,
 }: ProductCatalogCardProps) {
+  const isConfiguredForUsdt = product.market === "international" && product.currency === "USDT";
+
   return (
     <ProductCardFrame
       product={product}
@@ -42,16 +44,16 @@ export function ProductCatalogCard({
       rootTestId={rootTestId}
       details={
         <>
-          <div><dt>{labels.daily}</dt><dd>{formatProductCardAmount(Number(product.dailyEarnings))} <small>{product.currency || "XOF"}</small></dd></div>
+          <div><dt>{labels.daily}</dt><dd>{isConfiguredForUsdt ? <>{formatProductCardAmount(Number(product.dailyEarnings))} <small>USDT</small></> : "—"}</dd></div>
           <div><dt>{labels.term}</dt><dd>{product.cycleDays} {labels.days}</dd></div>
-          <div><dt>{labels.total}</dt><dd>{formatProductCardAmount(Number(product.totalReturn))} <small>{product.currency || "XOF"}</small></dd></div>
+          <div><dt>{labels.total}</dt><dd>{isConfiguredForUsdt ? <>{formatProductCardAmount(Number(product.totalReturn))} <small>USDT</small></> : "—"}</dd></div>
         </>
       }
       footer={
         <>
         <div className="diamant-invest-price">
           <span className="sr-only">{labels.priceLabel}</span>
-          <strong>{formatProductCardAmount(Number(product.price))} <small>{product.currency || "XOF"}</small></strong>
+          <strong>{isConfiguredForUsdt ? <>{formatProductCardAmount(Number(product.price))} <small>USDT</small></> : "À configurer en USDT"}</strong>
         </div>
         <button
           type="button"
