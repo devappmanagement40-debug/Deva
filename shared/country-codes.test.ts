@@ -6,7 +6,7 @@ import {
   SUPPORTED_MARKET_COUNTRY_CODES,
 } from "./country-codes";
 import { loginSchema, registerSchema } from "./schema";
-import { AUTH_COUNTRY_CATALOG } from "./auth-country-catalog";
+import { AUTH_COUNTRY_CATALOG, DEFAULT_AUTH_COUNTRY_CODE } from "./auth-country-catalog";
 
 test("country code validation accepts known uppercase phone regions", () => {
   equal(isCountryCode("CI"), true);
@@ -62,5 +62,6 @@ test("authentication country catalog includes international names and calling pr
   equal(AUTH_COUNTRY_CATALOG.slice(plusOneCount).some((country) => country.phonePrefix === "1"), false);
   equal(AUTH_COUNTRY_CATALOG.find((country) => country.code === "CI")?.phonePrefix, "225");
   equal(AUTH_COUNTRY_CATALOG.find((country) => country.code === "US")?.phonePrefix, "1");
+  equal(AUTH_COUNTRY_CATALOG.find((country) => country.code === DEFAULT_AUTH_COUNTRY_CODE)?.phonePrefix, "1");
   equal(AUTH_COUNTRY_CATALOG.every((country) => country.name.length > 0 && /^\d+$/.test(country.phonePrefix)), true);
 });

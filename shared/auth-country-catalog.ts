@@ -1,5 +1,7 @@
 import { getCountries, getCountryCallingCode } from "libphonenumber-js";
 
+export const DEFAULT_AUTH_COUNTRY_CODE = "US";
+
 export type AuthCountryOption = {
   id: number;
   code: string;

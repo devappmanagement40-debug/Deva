@@ -11,6 +11,7 @@ import { CountrySelector } from "@/components/country-selector";
 import { useI18n } from "@/lib/i18n";
 import { AuthScene } from "@/components/auth-scene";
 import { fetchAuthCountries, type CountryOption } from "@/lib/countries";
+import { DEFAULT_AUTH_COUNTRY_CODE } from "@shared/auth-country-catalog";
 import { isCountryCode } from "@shared/country-codes";
 
 const REMEMBERED_PHONE_KEY = "ielp-auth-phone";
@@ -67,7 +68,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (countries.length === 0 || countries.some(country => country.code === selectedCountry)) return;
     const defaultCountry = countries.find(country => country.code === savedLogin.country)
-      ?? countries.find(country => country.code === "CI")
+      ?? countries.find(country => country.code === DEFAULT_AUTH_COUNTRY_CODE)
       ?? countries.find(country => country.isActive)
       ?? countries[0];
     form.setValue("country", defaultCountry.code, { shouldValidate: true });
