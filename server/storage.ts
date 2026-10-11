@@ -725,7 +725,7 @@ export class DatabaseStorage implements IStorage {
       if (!product) throw new Error("Produit non trouvé");
       if (!product.isActive) throw new Error("Ce produit n'est plus disponible");
       if (product.isFree) throw new Error("Ce produit n'est pas disponible à l'achat");
-      if (product.market !== "international" || product.currency !== "USDT") {
+      if (product.currency !== "USDT") {
         throw new Error("Ce plan doit être reconfiguré en USDT avant de pouvoir être acheté.");
       }
       const productCurrency: "USDT" = "USDT";

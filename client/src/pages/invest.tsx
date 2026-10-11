@@ -81,7 +81,7 @@ export default function InvestPage() {
           <div className="grid grid-cols-2 gap-2">
             {paidProducts.map((product) => {
               const img = getProductImageUrl(product.imageUrl);
-              const isConfiguredForUsdt = product.market === "international" && product.currency === "USDT";
+              const isConfiguredForUsdt = product.currency === "USDT";
               const usdtSetupLabel = lang === "en" ? "USDT setup required" : "À configurer en USDT";
               return (
                 <div

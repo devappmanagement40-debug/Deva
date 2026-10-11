@@ -34,7 +34,7 @@ export function ProductCatalogCard({
   rootTestId,
   actionTestId,
 }: ProductCatalogCardProps) {
-  const isConfiguredForUsdt = product.market === "international" && product.currency === "USDT";
+  const isConfiguredForUsdt = product.currency === "USDT";
 
   return (
     <ProductCardFrame
