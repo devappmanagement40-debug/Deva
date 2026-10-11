@@ -192,7 +192,7 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
   const depositId = `A${String(transaction.id).replace(/^dep-/, "")}`;
   const rawMethod = transaction.paymentMethod?.trim();
   const method = rawMethod?.toLowerCase() === "nowpayments"
-    ? "OkayPay"
+    ? "Crypto"
     : rawMethod
     || copy.fallbackMethod;
 

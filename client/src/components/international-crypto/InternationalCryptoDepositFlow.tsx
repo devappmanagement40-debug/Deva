@@ -47,11 +47,11 @@ function paymentStatus(status?: ProviderDepositStatus): InternationalCryptoPayme
 }
 
 const PAYMENT_NOTES = [
-  "1. Envoyez uniquement l’actif et le réseau indiqués à l’écran, en utilisant le montant exact fourni par NOWPayments.",
+  "1. Envoyez uniquement l’actif et le réseau indiqués à l’écran, en utilisant le montant exact affiché.",
   "2. Le dépôt est crédité automatiquement sur le solde de dépôts en USDT après confirmation du paiement.",
   "3. Le montant minimum crédité sur votre compte est de {{minimumDepositUsdt}} USDT. Les minimums techniques du réseau et du prestataire peuvent être supérieurs.",
   "4. N’envoyez pas d’autres actifs sur cette adresse. Un mauvais réseau ou un montant incomplet peut retarder le crédit.",
-  "5. Les frais de traitement NOWPayments sont pris en charge par DIAMANT. Les frais de réseau de votre portefeuille peuvent rester séparés.",
+  "5. Les frais de traitement sont pris en charge par DIAMANT. Les frais de réseau de votre portefeuille peuvent rester séparés.",
 ].join("\n");
 
 const METHOD_ICONS: Record<string, string> = {
@@ -285,7 +285,7 @@ export default function InternationalCryptoDepositFlow() {
               </div>
             )}
             <p className="mt-3 rounded-xl border border-white/15 bg-white/10 p-3 text-xs leading-5 text-white/75">
-              Choisissez exactement le même réseau dans votre portefeuille. Le paiement est suivi par NOWPayments.
+              Choisissez exactement le même réseau dans votre portefeuille. Le paiement est suivi automatiquement jusqu’à confirmation.
             </p>
           </>
         )}

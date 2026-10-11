@@ -134,7 +134,7 @@ export default function AdminDeposits() {
                         {deposit.user.isPromoter && <Badge className="text-xs">Promoteur</Badge>}
                         {isNowPayments && (
                           <Badge className="text-xs bg-blue-600 text-white border-blue-600">
-                            🔗 NOWPayments
+                            🔗 Crypto
                           </Badge>
                         )}
                         {isManual && (
@@ -166,7 +166,7 @@ export default function AdminDeposits() {
                       <p className="font-medium">
                         {isDepositIssue
                           ? lang === "fr" ? "Signalement de dépôt" : "Deposit issue"
-                          : deposit.paymentMethod}
+                          : isNowPayments ? lang === "fr" ? "Dépôt crypto" : "Crypto deposit" : deposit.paymentMethod}
                       </p>
                     </div>
                     <div className={isNowPayments ? "col-span-2" : ""}>
@@ -222,11 +222,13 @@ export default function AdminDeposits() {
                           <p className="font-medium">{(deposit as any).nowPaymentsActuallyPaid || "—"} {(deposit as any).channelName || ""}</p>
                         </div>
                         <div className="col-span-2">
-                          <p className="text-muted-foreground">Statut NOWPayments</p>
+                          <p className="text-muted-foreground">{lang === "fr" ? "Statut du paiement" : "Payment status"}</p>
                           <p className="font-medium">{(deposit as any).nowPaymentsStatus || "En attente"}</p>
                         </div>
                         {(deposit as any).nowPaymentsError && (
-                          <p className="col-span-2 text-amber-700 dark:text-amber-300">{(deposit as any).nowPaymentsError}</p>
+                          <p className="col-span-2 text-amber-700 dark:text-amber-300">
+                            {lang === "fr" ? "Le paiement nécessite une vérification." : "The payment needs review."}
+                          </p>
                         )}
                       </div>
                     )}

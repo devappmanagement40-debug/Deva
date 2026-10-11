@@ -1540,7 +1540,7 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error("NOWPayments international deposit error:", error);
       return res.status(400).json({
-        message: error?.message || "Impossible de créer ce dépôt. Vérifiez le montant ou le réseau puis réessayez.",
+        message: "Impossible de créer ce dépôt. Vérifiez le montant ou le réseau puis réessayez.",
       });
     }
   });
