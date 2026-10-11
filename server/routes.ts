@@ -257,6 +257,37 @@ function withdrawalTelegramFields(withdrawal: {
   };
 }
 
+function getDepositHistoryPaymentMethod(deposit: {
+  paymentMethod?: string | null;
+  channelName?: string | null;
+  nowPaymentsExpectedCurrency?: string | null;
+}): string {
+  const storedMethod = deposit.paymentMethod?.trim();
+  if (!storedMethod?.toLowerCase().startsWith("nowpayments")) {
+    return storedMethod || "Dépôt";
+  }
+
+  // NOWPayments is the processor, not the member's payment method. The
+  // channel label is the method selected at quote time; the stored currency
+  // is a verified fallback because the quote response is checked before save.
+  const channelName = deposit.channelName?.trim();
+  if (channelName) return channelName;
+
+  const expectedCurrency = deposit.nowPaymentsExpectedCurrency?.trim().toLowerCase();
+  const cryptoMethod = getInternationalCryptoMethod(expectedCurrency);
+  if (cryptoMethod) return cryptoMethod.label;
+  if (expectedCurrency === "usdtbsc") return "USDT BEP20";
+
+  return expectedCurrency ? expectedCurrency.toUpperCase() : "Crypto";
+}
+
+function getWithdrawalHistoryPaymentMethod(paymentMethod?: string | null): string {
+  const storedMethod = paymentMethod?.trim();
+  return storedMethod?.toLowerCase().startsWith("nowpayments")
+    ? "USDT BEP20"
+    : storedMethod || "USDT BEP20";
+}
+
 function getClientKey(req: Request): string {
   const forwarded = req.headers["x-forwarded-for"];
   const ip = typeof forwarded === "string" ? forwarded.split(",")[0].trim() : req.socket.remoteAddress || "unknown";
@@ -2540,9 +2571,7 @@ export async function registerRoutes(
         } = deposit;
         return {
           ...publicDeposit,
-          paymentMethod: publicDeposit.paymentMethod?.toLowerCase() === "nowpayments"
-            ? "OkayPay"
-            : publicDeposit.paymentMethod,
+          paymentMethod: getDepositHistoryPaymentMethod(deposit),
         };
       });
       res.json(publicDeposits);
@@ -2569,12 +2598,12 @@ export async function registerRoutes(
           amountUsdt: d.amountUsdt,
           currency: d.currency || "XOF",
           status: d.status,
-          description: d.paymentMethod?.toLowerCase() === "nowpayments" ? "OkayPay" : (d.paymentMethod || "Dépôt"),
+          description: getDepositHistoryPaymentMethod(d),
           createdAt: d.createdAt,
           extra: {
             fees: null,
             netAmount: null,
-            paymentMethod: d.paymentMethod?.toLowerCase() === "nowpayments" ? "OkayPay" : d.paymentMethod,
+            paymentMethod: getDepositHistoryPaymentMethod(d),
             reference: d.reference,
           },
         })),
@@ -2871,9 +2900,7 @@ export async function registerRoutes(
         } = withdrawal;
         return {
           ...publicWithdrawal,
-          paymentMethod: publicWithdrawal.paymentMethod?.toLowerCase() === "nowpayments"
-            ? "OkayPay"
-            : publicWithdrawal.paymentMethod,
+          paymentMethod: getWithdrawalHistoryPaymentMethod(publicWithdrawal.paymentMethod),
         };
       });
       res.json(publicWithdrawals);
