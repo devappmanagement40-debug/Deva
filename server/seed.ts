@@ -22,6 +22,7 @@ import { DEFAULT_WITHDRAWAL_OPERATORS_BY_COUNTRY } from "./country-operator-poli
 
 const REFERRAL_COMMISSION_DEFAULT_MIGRATION_KEY = "__migration_referral_commission_defaults_v1";
 const USDT_MINIMUM_LIMITS_MIGRATION_KEY = "__migration_usdt_minimum_limits_v1";
+const DAILY_BONUS_RANGE_MIGRATION_KEY = "__migration_daily_bonus_range_0_1_0_3_v1";
 const COUNTRY_BOOTSTRAP_MIGRATION_KEY = "__migration_country_bootstrap_v1";
 const COUNTRY_WITHDRAWAL_OPERATOR_POLICY_MIGRATION_KEY = "__migration_country_withdrawal_operator_policy_v1";
 const PRODUCT_CATALOG_INITIALIZED_KEY = "__migration_product_catalog_initialized_v1";
@@ -563,6 +564,29 @@ export async function seed() {
     } else {
       console.log(`Setting preserved: ${settingData.key}`);
     }
+  }
+
+  // Apply the owner's new daily check-in range once, then leave future
+  // admin-managed values untouched on subsequent startups.
+  if (!existingSettings.some(setting => setting.key === DAILY_BONUS_RANGE_MIGRATION_KEY)) {
+    await db.transaction(async tx => {
+      await tx.update(platformSettings)
+        .set({ value: DEFAULT_DAILY_BONUS_MIN_USDT })
+        .where(eq(platformSettings.key, "dailyBonusMinUsdt"));
+      await tx.update(platformSettings)
+        .set({ value: DEFAULT_DAILY_BONUS_MAX_USDT })
+        .where(eq(platformSettings.key, "dailyBonusMaxUsdt"));
+      await tx.update(platformSettings)
+        .set({ value: "1. À chaque pointage, recevez aléatoirement entre 0,1 et 0,3 USDT." })
+        .where(and(
+          eq(platformSettings.key, "content_checkin_rule1"),
+          eq(platformSettings.value, "1. À chaque pointage, recevez aléatoirement entre 0,1 et 0,5 USDT."),
+        ));
+      await tx.insert(platformSettings)
+        .values({ key: DAILY_BONUS_RANGE_MIGRATION_KEY, value: "1" })
+        .onConflictDoNothing();
+    });
+    console.log("Daily check-in reward range updated to 0.1–0.3 USDT");
   }
 
   if (!existingSettings.some(setting => setting.key === USDT_MINIMUM_LIMITS_MIGRATION_KEY)) {
