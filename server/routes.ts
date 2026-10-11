@@ -1467,7 +1467,7 @@ export async function registerRoutes(
 
       const payment = await createNowPaymentsDirectPayment({
         amount: amountUsdt,
-        priceCurrency: "usd",
+        priceCurrency: "usdt",
         payCurrency: method.code,
         orderId: `diamant-int-${user.id}-${crypto.randomUUID()}`,
         description: `Dépôt DIAMANT en USDT · ${method.label}`,

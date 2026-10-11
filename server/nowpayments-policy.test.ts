@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assessNowPaymentsDeposit,
+  buildNowPaymentsDirectPaymentPayload,
   convertXofToUsdt,
   getConfiguredAppUrlInfo,
   getNowPaymentsCallbackUrl,
@@ -59,6 +60,21 @@ test("accepts exactly the configured international deposit networks", () => {
     assert.equal(isSupportedNowPaymentsInternationalCurrency(method.code), true, method.label);
   }
   assert.equal(isSupportedNowPaymentsInternationalCurrency("random-network"), false);
+});
+
+test("prices a 300 USDT deposit in USDT and keeps NOWPayments fees off the user's payment", () => {
+  const request = buildNowPaymentsDirectPaymentPayload({
+    amount: 300,
+    priceCurrency: "usdt",
+    payCurrency: "usdtbsc",
+    orderId: "deposit-test",
+    description: "Dépôt DIAMANT en USDT",
+  }, "https://example.com/api/nowpayments/ipn");
+
+  assert.equal(request.amount, 300);
+  assert.equal(request.currency, "usdt");
+  assert.equal(request.payCurrency, "usdtbsc");
+  assert.equal(request.feePaidByUser, false);
 });
 
 test("reads the public payment callback URL from APP_URL", () => {

@@ -226,6 +226,29 @@ export function isNowPaymentsPayoutConfigured(): boolean {
   );
 }
 
+export const NOWPAYMENTS_DEPOSIT_FEE_PAID_BY_USER = false;
+
+export function buildNowPaymentsDirectPaymentPayload(
+  input: {
+    amount: number;
+    priceCurrency: string;
+    payCurrency: string;
+    orderId: string;
+    description: string;
+  },
+  ipnCallbackUrl: string,
+): Parameters<NowPaymentsSDK["createDirectPayment"]>[0] {
+  return {
+    amount: input.amount,
+    currency: input.priceCurrency,
+    payCurrency: input.payCurrency,
+    orderId: input.orderId,
+    description: input.description,
+    ipnCallbackUrl,
+    feePaidByUser: NOWPAYMENTS_DEPOSIT_FEE_PAID_BY_USER,
+  };
+}
+
 /**
  * Creates a direct payment for the in-app crypto-deposit UI.
  *
@@ -247,14 +270,9 @@ export async function createNowPaymentsDirectPayment(input: {
     );
   }
 
-  return getSDK().createDirectPayment({
-    amount: input.amount,
-    currency: input.priceCurrency,
-    payCurrency: input.payCurrency,
-    orderId: input.orderId,
-    description: input.description,
-    ipnCallbackUrl,
-  });
+  return getSDK().createDirectPayment(
+    buildNowPaymentsDirectPaymentPayload(input, ipnCallbackUrl),
+  );
 }
 
 // ---------------------------------------------------------------------------

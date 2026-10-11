@@ -51,6 +51,7 @@ const PAYMENT_NOTES = [
   "2. Le dépôt est crédité automatiquement sur le solde de dépôts en USDT après confirmation du paiement.",
   "3. Le montant minimum crédité sur votre compte est de {{minimumDepositUsdt}} USDT. Les minimums techniques du réseau et du prestataire peuvent être supérieurs.",
   "4. N’envoyez pas d’autres actifs sur cette adresse. Un mauvais réseau ou un montant incomplet peut retarder le crédit.",
+  "5. Les frais de traitement NOWPayments sont pris en charge par DIAMANT. Les frais de réseau de votre portefeuille peuvent rester séparés.",
 ].join("\n");
 
 const METHOD_ICONS: Record<string, string> = {
