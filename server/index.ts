@@ -111,9 +111,17 @@ process.on("uncaughtException", (err) => {
   );
   // Seed database with initial data
   await seed().catch(console.error);
-   const migratedTransactionPasswords = await storage.migrateLegacyTransactionPasswords();
-   if (migratedTransactionPasswords > 0) {
-     log(`${migratedTransactionPasswords} legacy transaction password(s) secured`, "security");
+  try {
+    const migratedTransactionPasswords = await storage.migrateLegacyTransactionPasswords();
+    if (migratedTransactionPasswords > 0) {
+      log(`${migratedTransactionPasswords} legacy transaction password(s) secured`, "security");
+    }
+  } catch (error) {
+    console.error(
+      "[security] Legacy transaction-password migration failed during startup; " +
+        "the server will continue and retry on the next restart.",
+      error,
+    );
    }
   
   await registerRoutes(httpServer, app);
