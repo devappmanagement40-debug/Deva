@@ -372,7 +372,7 @@ export default function InternationalCryptoDepositFlow() {
             addressCopied={copied === "address"}
             amountCopied={copied === "amount"}
             isCheckingStatus={checkStatus.isPending}
-            checkStatusLabel={checkStatus.isPending ? "Vérification…" : "DÉPÔT EFFECTUÉ · VÉRIFIER"}
+            checkStatusLabel={checkStatus.isPending ? "Vérification…" : "VALIDER LE DÉPÔT"}
           />
         )}
       </div>
