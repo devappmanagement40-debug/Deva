@@ -78,10 +78,12 @@ function ReceiptField({ label, value }: { label: string; value: string }) {
 export function HistoryPageHeader({
   title,
   backHref,
+  replaceBack = false,
   tabs,
 }: {
   title: string;
   backHref: string;
+  replaceBack?: boolean;
   tabs?: ReactNode;
 }) {
   const [, navigate] = useLocation();
@@ -91,7 +93,7 @@ export function HistoryPageHeader({
       <div className="relative flex h-[58px] items-center px-4">
         <button
           type="button"
-          onClick={() => navigate(backHref)}
+          onClick={() => navigate(backHref, { replace: replaceBack })}
           className="flex h-9 w-9 items-center justify-center rounded-full text-[#202020] transition active:scale-95 active:bg-[#f1f1f1]"
           aria-label="Retour"
           data-testid="button-back"

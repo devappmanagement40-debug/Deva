@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import bnbIcon from "@/assets/crypto/bnb.png";
 import ethereumIcon from "@/assets/crypto/ethereum.png";
 import paypalUsdIcon from "@/assets/crypto/paypal-usd.png";
@@ -107,6 +107,7 @@ const NETWORK_ICONS: Record<string, string> = {
 };
 
 export default function InternationalCryptoDepositFlow() {
+  const [, navigate] = useLocation();
   const { user, refreshUser } = useAuth();
   const { toast } = useToast();
   const { data: settings } = useQuery<Record<string, string>>({ queryKey: ["/api/settings"] });
@@ -255,7 +256,7 @@ export default function InternationalCryptoDepositFlow() {
               setSelectedOption(null);
               moveToStage("methods");
             }
-            else window.history.back();
+            else navigate("/");
           }}
           className="flex h-10 w-10 items-center justify-center rounded-full transition hover:bg-white/10"
           aria-label="Retour"
