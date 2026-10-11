@@ -30,7 +30,7 @@ test("FAQ Parcours conditions follow each active USDT product and its current VI
     },
     {
       id: 1, name: "Parcours A", productType: "wellness", currency: "USDT",
-      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 1, sortOrder: 1,
+      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 0, sortOrder: 1,
     },
     {
       id: 3, name: "Old XOF", productType: "wellness", currency: "XOF",

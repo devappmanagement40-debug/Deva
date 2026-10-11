@@ -33,7 +33,7 @@ import {
   ownsActiveStabilityProduct,
 } from "@shared/product-categories";
 import { calculateProductEarningsSettlement } from "@shared/product-earnings";
-import { calculateVipProgress, isVipLevelUnlocked } from "@shared/vip-progress";
+import { calculateVipProgress, getEffectiveRequiredVipLevel, isVipLevelUnlocked } from "@shared/vip-progress";
 import { getCustomerMarket, getMarketCurrency, isSupportedMarketCountryCode } from "@shared/country-codes";
 import { formatUsdtWithdrawalAmount, parseUsdtWithdrawalAmount } from "@shared/withdrawal-fees";
 import {
@@ -801,7 +801,8 @@ export class DatabaseStorage implements IStorage {
 
       if (normalizeProductType(product.productType) === "wellness") {
         const currentVipLevel = calculateVipProgress(sameCurrencyPurchaseHistory, settings).level;
-        if (!isVipLevelUnlocked(currentVipLevel, product.requiredVipLevel)) {
+        const requiredVipLevel = getEffectiveRequiredVipLevel(product.productType, product.requiredVipLevel);
+        if (!isVipLevelUnlocked(currentVipLevel, requiredVipLevel)) {
           throw new Error("Les conditions d’accès à ce produit Parcours ne sont pas remplies.");
         }
       }
@@ -997,8 +998,9 @@ export class DatabaseStorage implements IStorage {
       purchaseHistory ??= await this.getAllUserProducts(userId);
       const settings = await this.getSettings();
       const currentVipLevel = calculateVipProgress(purchaseHistory, settings).level;
-      if (!isVipLevelUnlocked(currentVipLevel, product.requiredVipLevel)) {
-        throw new Error(`Vous devez atteindre le niveau VIP ${product.requiredVipLevel} pour acheter ce produit Parcours.`);
+      const requiredVipLevel = getEffectiveRequiredVipLevel(product.productType, product.requiredVipLevel);
+      if (!isVipLevelUnlocked(currentVipLevel, requiredVipLevel)) {
+        throw new Error(`Vous devez atteindre le niveau VIP ${requiredVipLevel} pour acheter ce produit Parcours.`);
       }
     }
 

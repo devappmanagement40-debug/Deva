@@ -100,10 +100,17 @@ export function formatSettingPlaceholders(
           ? percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
           : DEFAULT_SETTING_PLACEHOLDERS.withdrawalFees;
       }
-      const amount = Number.parseInt(rawValue, 10);
-      return Number.isSafeInteger(amount) && amount >= 0
-        ? amount.toLocaleString("fr-FR")
-        : Number.parseInt(DEFAULT_SETTING_PLACEHOLDERS[key], 10).toLocaleString("fr-FR");
+      const normalizedValue = String(rawValue).trim();
+      const amount = /^\d{1,15}(?:\.\d{1,6})?$/.test(normalizedValue)
+        ? Number(normalizedValue)
+        : Number.NaN;
+      const displayAmount = Number.isFinite(amount) && amount >= 0
+        ? amount
+        : Number(DEFAULT_SETTING_PLACEHOLDERS[key]);
+      return displayAmount.toLocaleString("fr-FR", {
+        minimumFractionDigits: key === "minWithdrawal" ? 2 : 0,
+        maximumFractionDigits: 6,
+      });
     },
   );
 }

@@ -1,3 +1,5 @@
+import { normalizeProductType } from "./product-categories";
+
 export const MAX_VIP_LEVEL = 7;
 
 export interface VipProgress {
@@ -156,6 +158,17 @@ export function parseVipLevel(value: unknown): number | null {
 export function isVipLevelUnlocked(currentLevel: number, requiredLevel: unknown): boolean {
   const required = parseVipLevel(requiredLevel);
   return required !== null && Number.isSafeInteger(currentLevel) && currentLevel >= required;
+}
+
+export function getEffectiveRequiredVipLevel(
+  productType: unknown,
+  configuredLevel: unknown,
+): number | null {
+  const requiredLevel = parseVipLevel(configuredLevel);
+  if (requiredLevel === null) return null;
+  return normalizeProductType(productType) === "wellness"
+    ? Math.max(1, requiredLevel)
+    : requiredLevel;
 }
 
 /**

@@ -38,6 +38,18 @@ const productSchema = z.object({
   requiredVipLevel: z.string(),
   maxOwned: z.string().optional(),
   stockPercentage: z.number().min(0).max(100).optional(),
+}).superRefine((data, context) => {
+  const requiredVipLevel = Number.parseInt(data.requiredVipLevel, 10);
+  if (
+    data.productType === "wellness" &&
+    (!Number.isInteger(requiredVipLevel) || requiredVipLevel < 1 || requiredVipLevel > MAX_VIP_LEVEL)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["requiredVipLevel"],
+      message: "Un produit Parcours doit exiger au minimum le niveau VIP 1.",
+    });
+  }
 });
 
 type ProductForm = z.infer<typeof productSchema>;
@@ -137,7 +149,19 @@ function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }:
       <FormField control={form.control} name="productType" render={({ field }) => (
         <FormItem>
           <FormLabel>Type / section du produit</FormLabel>
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select
+            onValueChange={(value) => {
+              field.onChange(value);
+              const currentRequiredLevel = Number.parseInt(form.getValues("requiredVipLevel"), 10);
+              if (
+                value === "wellness" &&
+                (!Number.isInteger(currentRequiredLevel) || currentRequiredLevel < 1)
+              ) {
+                form.setValue("requiredVipLevel", "1", { shouldDirty: true, shouldValidate: true });
+              }
+            }}
+            value={field.value}
+          >
             <FormControl>
               <SelectTrigger><SelectValue placeholder="Choisir une section" /></SelectTrigger>
             </FormControl>
@@ -214,14 +238,13 @@ function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }:
                   <SelectTrigger><SelectValue placeholder="Choisir le niveau requis" /></SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="0">VIP 0 — produit de départ après Explore</SelectItem>
                   {Array.from({ length: MAX_VIP_LEVEL }, (_, index) => index + 1).map((level) => (
                     <SelectItem key={level} value={String(level)}>VIP {level}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-[10px] text-muted-foreground">
-                Pour bloquer un produit Parcours jusqu’au montant voulu, configurez le seuil correspondant dans les paramètres VIP puis choisissez le niveau minimum ici. La barre du compte suit les achats personnels payants en USDT. Les cartes publiques n’affichent pas le niveau requis.
+                Tous les produits Parcours, y compris le premier, exigent au minimum VIP 1. Configurez le seuil USDT dans les paramètres VIP puis choisissez le niveau minimum du produit. La barre du compte suit les achats personnels payants en USDT. Les cartes publiques n’affichent pas le niveau requis.
               </p>
               <FormMessage />
             </FormItem>

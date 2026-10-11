@@ -1,5 +1,5 @@
 import { normalizeProductType } from "./product-categories";
-import { MAX_VIP_LEVEL, parseVipLevel } from "./vip-progress";
+import { getEffectiveRequiredVipLevel, MAX_VIP_LEVEL } from "./vip-progress";
 import type { Product } from "./schema";
 
 export interface VipThresholdFaqRow {
@@ -52,7 +52,7 @@ export function getParcoursVipFaqRows(
     .slice()
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id - right.id)
     .map((product) => {
-      const requiredVipLevel = parseVipLevel(product.requiredVipLevel);
+      const requiredVipLevel = getEffectiveRequiredVipLevel(product.productType, product.requiredVipLevel);
       return {
         id: product.id,
         name: product.name,

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   calculateVipProgress,
+  getEffectiveRequiredVipLevel,
   isVipLevelUnlocked,
   validateVipInvestmentThresholds,
 } from "./vip-progress";
@@ -83,6 +84,15 @@ test("VIP1 threshold gates the first Parcours product and the bar shows exact US
 
   assert.equal(thresholdReached.level, 1);
   assert.equal(isVipLevelUnlocked(thresholdReached.level, 1), true);
+});
+
+test("every Parcours product requires at least VIP1, even if its stored level is zero", () => {
+  const minimumLevel = getEffectiveRequiredVipLevel("wellness", 0);
+  assert.equal(minimumLevel, 1);
+  assert.equal(getEffectiveRequiredVipLevel("wellness", 3), 3);
+  assert.equal(getEffectiveRequiredVipLevel("activity", 0), 0);
+  assert.equal(isVipLevelUnlocked(0, minimumLevel), false);
+  assert.equal(isVipLevelUnlocked(1, minimumLevel), true);
 });
 
 test("a personal Explore purchase can reach VIP1 as soon as it is recorded", () => {

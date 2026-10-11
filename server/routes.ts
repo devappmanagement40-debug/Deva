@@ -13,7 +13,7 @@ import { PRODUCT_MARKETS, PRODUCT_TYPES, registerSchema, loginSchema, type Payme
 import { getInternationalCryptoMethod } from "@shared/international-crypto";
 import { normalizeProductType, ownsActiveStabilityProduct } from "@shared/product-categories";
 import { normalizeProductCardColor } from "@shared/product-card-color";
-import { calculateVipProgress, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
+import { calculateVipProgress, getEffectiveRequiredVipLevel, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import {
@@ -961,7 +961,7 @@ export async function registerRoutes(
         userVipLevel: vipLevel,
         vipLocked:
           normalizeProductType(p.productType) === "wellness" &&
-          !isVipLevelUnlocked(vipLevel, p.requiredVipLevel),
+          !isVipLevelUnlocked(vipLevel, getEffectiveRequiredVipLevel(p.productType, p.requiredVipLevel)),
       }));
 
       res.json(productsWithOwnership);
@@ -4536,6 +4536,9 @@ export async function registerRoutes(
       if (parsedRequiredVipLevel === null) {
         return res.status(400).json({ message: "Le niveau VIP requis doit être un entier entre 0 et 7." });
       }
+      if (productType === "wellness" && parsedRequiredVipLevel < 1) {
+        return res.status(400).json({ message: "Un produit Parcours doit exiger au minimum le niveau VIP 1." });
+      }
       const priceNum = parseFloat(price);
       const dailyNum = parseFloat(dailyEarnings);
       const cycleInt = parseInt(cycleDays);
@@ -4606,6 +4609,11 @@ export async function registerRoutes(
       const id = parseInt(req.params.id as string);
       const existingProduct = await storage.getProduct(id);
       if (!existingProduct) return res.status(404).json({ message: "Produit introuvable." });
+      const nextProductType = body.productType ?? existingProduct.productType;
+      const nextRequiredVipLevel = body.requiredVipLevel ?? existingProduct.requiredVipLevel;
+      if (normalizeProductType(nextProductType) === "wellness" && Number(nextRequiredVipLevel) < 1) {
+        return res.status(400).json({ message: "Un produit Parcours doit exiger au minimum le niveau VIP 1." });
+      }
       if (body.price !== undefined || body.dailyEarnings !== undefined || body.totalReturn !== undefined) {
         const price = Number(body.price);
         const dailyEarnings = Number(body.dailyEarnings);

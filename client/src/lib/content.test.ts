@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getContent, hasObsoletePaymentCopy } from "./content";
+import { formatSettingPlaceholders, getContent, hasObsoletePaymentCopy } from "./content";
 
 test("home announcement replaces stored legacy currency and payment-method copy", () => {
   const settings = {
@@ -34,6 +34,19 @@ test("financial CMS copy falls back when old payment methods are still saved", (
       "Adresse USDT BEP20 uniquement.",
     ),
     "Adresse USDT BEP20 uniquement.",
+  );
+});
+
+test("home popup keeps the configured withdrawal minimum to two decimal places", () => {
+  assert.equal(
+    formatSettingPlaceholders("Retrait minimum : {{minWithdrawal}} USDT.", {
+      minWithdrawalUsdt: "0.5",
+    }),
+    "Retrait minimum : 0,50 USDT.",
+  );
+  assert.equal(
+    formatSettingPlaceholders("Retrait minimum : {{minWithdrawal}} USDT.", undefined),
+    "Retrait minimum : 0,50 USDT.",
   );
 });
 
