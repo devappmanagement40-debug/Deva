@@ -28,7 +28,7 @@
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [GitHub push policy](github-push-policy.md) — push verified project changes, including future modifications, to the connected repository.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
-- [DIAMANT spin-wheel rewards](diamant-spin-wheel-rewards.md) — one spin per paid product for the buyer and direct referrer on each referred purchase; no signup spin.
+- [DIAMANT spin-wheel rewards](diamant-spin-wheel-rewards.md) — paid purchases grant spins; public ranking shows one masked member by cumulative prizes.
 - [DIAMANT feedback popups](diamant-feedback-popups.md) — use the new popup style across pages; preserve current notifications on wheel and check-in.
 - [DIAMANT home announcement popup](diamant-home-announcement-popup.md) — yellow illustration, numbered admin-managed copy, Telegram CTA, and OK button; don't copy BeMine financial claims.
 - [DIAMANT referral commissions](diamant-referral-commissions.md) — admin-editable rates apply on every paid product purchase by a referred user.

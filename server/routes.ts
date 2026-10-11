@@ -178,6 +178,11 @@ type SpinWheelRewardRow = {
   description: string;
   created_at: Date | string;
 };
+type SpinWheelMemberTotalRow = {
+  user_id: number;
+  phone: string | null;
+  amount: string;
+};
 
 function parseSpinWheelRankingConfig(value: string | null): SpinWheelRankingConfig {
   if (!value) return { pinnedTransactionIds: [], hiddenTransactionIds: [] };
@@ -3420,58 +3425,49 @@ export async function registerRoutes(
     }
   });
 
-  // Recent real spin activity, with masked phones and admin-configured ranking order.
+  // Public ranking: one row per member, ordered by visible cumulative winnings.
   app.get("/api/spin-wheel/recent", requireAuth, async (_req, res) => {
     try {
       const config = parseSpinWheelRankingConfig(
         await storage.getSetting(SPIN_WHEEL_RANKING_SETTING_KEY),
       );
-      const rows = await pool.query<SpinWheelRewardRow>(
-        `SELECT t.id, u.phone, t.amount, t.description, t.created_at
-           FROM transactions t
-           JOIN users u ON u.id = t.user_id
-          WHERE t.type = 'spin_reward'
-            AND t.amount > 0
-          ORDER BY t.created_at DESC
+      const rows = await pool.query<SpinWheelMemberTotalRow>(
+        `WITH member_totals AS (
+           SELECT t.user_id,
+                  u.phone,
+                  SUM(t.amount)::text AS amount,
+                  MAX(t.created_at) AS latest_win_at
+             FROM transactions t
+             JOIN users u ON u.id = t.user_id
+            WHERE t.type = 'spin_reward'
+              AND t.amount > 0
+              AND t.id <> ALL($1::int[])
+            GROUP BY t.user_id, u.phone
+         ),
+         pinned_users AS (
+           SELECT t.user_id,
+                  MIN(array_position($2::int[], t.id)) AS pin_order
+             FROM transactions t
+            WHERE t.type = 'spin_reward'
+              AND t.amount > 0
+              AND t.id = ANY($2::int[])
+              AND t.id <> ALL($1::int[])
+            GROUP BY t.user_id
+         )
+         SELECT totals.user_id, totals.phone, totals.amount
+           FROM member_totals totals
+           LEFT JOIN pinned_users pins ON pins.user_id = totals.user_id
+          ORDER BY totals.amount::numeric DESC,
+                   pins.pin_order ASC NULLS LAST,
+                   totals.latest_win_at DESC
           LIMIT 30`,
+        [config.hiddenTransactionIds, config.pinnedTransactionIds],
       );
-      const pinnedRows = config.pinnedTransactionIds.length
-        ? await pool.query<SpinWheelRewardRow>(
-            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
-               FROM transactions t
-               JOIN users u ON u.id = t.user_id
-              WHERE t.type = 'spin_reward'
-                AND t.amount > 0
-                AND t.id = ANY($1::int[])`,
-            [config.pinnedTransactionIds],
-          )
-        : { rows: [] };
-
-      const rowsById = new Map<number, SpinWheelRewardRow>();
-      for (const row of pinnedRows.rows) rowsById.set(Number(row.id), row);
-      for (const row of rows.rows) rowsById.set(Number(row.id), row);
-
-      const pinnedOrder = new Map(config.pinnedTransactionIds.map((id, index) => [id, index]));
-      const hiddenIds = new Set(config.hiddenTransactionIds);
-      const result = Array.from(rowsById.values())
-        .filter((row) => !hiddenIds.has(Number(row.id)))
-        .sort((a, b) => {
-          const aPinned = pinnedOrder.get(Number(a.id));
-          const bPinned = pinnedOrder.get(Number(b.id));
-          if (aPinned !== undefined || bPinned !== undefined) {
-            if (aPinned === undefined) return 1;
-            if (bPinned === undefined) return -1;
-            return aPinned - bPinned;
-          }
-          const amountOrder = Number(b.amount) - Number(a.amount);
-          if (amountOrder !== 0) return amountOrder;
-          return spinWheelTimestamp(b.created_at) - spinWheelTimestamp(a.created_at);
-        })
-        .map((row) => ({
-          id: Number(row.id),
+      const result = rows.rows.map((row, index) => ({
+          // A display-only rank avoids exposing internal member or transaction IDs.
+          id: index + 1,
           phone: maskSpinWheelPhone(row.phone),
           amount: row.amount,
-          description: row.description,
         }));
       res.json(result);
     } catch (error: any) {

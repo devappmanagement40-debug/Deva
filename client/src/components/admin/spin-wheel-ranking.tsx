@@ -138,8 +138,8 @@ export default function AdminSpinWheelRanking() {
                 type="button"
                 size="icon"
                 variant="outline"
-                aria-label="Monter dans le classement"
-                title="Monter"
+                aria-label="Prioriser lors d’une égalité"
+                title="Prioriser"
                 disabled={updateMutation.isPending || pinnedIndex === 0}
                 onClick={() => movePin(entry.id, -1)}
               >
@@ -149,8 +149,8 @@ export default function AdminSpinWheelRanking() {
                 type="button"
                 size="icon"
                 variant="outline"
-                aria-label="Descendre dans le classement"
-                title="Descendre"
+                aria-label="Déprioriser lors d’une égalité"
+                title="Déprioriser"
                 disabled={updateMutation.isPending || pinnedIndex === pinnedIds.length - 1}
                 onClick={() => movePin(entry.id, 1)}
               >
@@ -166,7 +166,7 @@ export default function AdminSpinWheelRanking() {
             onClick={() => togglePin(entry.id)}
           >
             <Pin className="mr-1.5 h-4 w-4" />
-            {isPinned ? "Désépingler" : "Épingler en tête"}
+            {isPinned ? "Désépingler" : "Prioriser en cas d’égalité"}
           </Button>
           <Button
             type="button"
@@ -191,8 +191,8 @@ export default function AdminSpinWheelRanking() {
           <h3 className="font-bold">Classement des gains réels</h3>
         </div>
         <p className="text-sm text-muted-foreground">
-          Recherche un numéro ayant déjà gagné à la roue pour l’épingler en tête. Les montants proviennent
-          des transactions et ne sont pas modifiables. Les numéros restent masqués pour les utilisateurs.
+          Le classement public affiche une seule ligne par personne et trie son total de gains visibles du plus élevé au plus faible.
+          Les gains masqués sont exclus du total; les épingles départagent uniquement les égalités. Les numéros restent masqués pour les utilisateurs.
         </p>
 
         <form onSubmit={submitSearch} className="flex gap-2">
@@ -224,7 +224,7 @@ export default function AdminSpinWheelRanking() {
           <div className="space-y-5">
             <section className="space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h4 className="text-sm font-semibold">Épinglés en tête</h4>
+                <h4 className="text-sm font-semibold">Priorisés en cas d’égalité</h4>
                 <span className="text-xs text-muted-foreground">{pinnedEntries.length} / 30</span>
               </div>
               {pinnedEntries.length > 0 ? (
@@ -233,7 +233,7 @@ export default function AdminSpinWheelRanking() {
                 </div>
               ) : (
                 <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                  Aucun gain n’est épinglé. Les autres gains seront classés par montant.
+                  Aucun gain n’est priorisé. Le classement reste trié par total cumulé.
                 </p>
               )}
             </section>

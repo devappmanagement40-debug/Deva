@@ -5,7 +5,6 @@ interface RankingEntry {
   id: number;
   phone: string;
   amount: string;
-  description: string;
 }
 
 function medalStyle(rank: number): React.CSSProperties {
@@ -98,7 +97,7 @@ export default function WheelRankingModal({
       >
         <span style={{ textAlign: "center" }}>Classement</span>
         <span style={{ textAlign: "center" }}>Numéro de téléphone</span>
-        <span style={{ textAlign: "center" }}>Tirer un bonus</span>
+        <span style={{ textAlign: "center" }}>Total gagné</span>
       </div>
       {isLoading && (
         <div className="flex justify-center pt-12" role="status" aria-label="Chargement du classement">
@@ -165,7 +164,7 @@ export default function WheelRankingModal({
                   {entry.phone}
                 </span>
                 <span style={{ textAlign: "center", fontWeight: 700 }}>
-                  {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 0 })}
+                  {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 2 })}
                 </span>
               </div>
             ))}

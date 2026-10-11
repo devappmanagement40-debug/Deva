@@ -2052,6 +2052,7 @@ const STATIC_UI_TRANSLATIONS: StaticTranslationRow[] = [
   ["Chaque nouveau membre reçoit un bonus de", "Each new member gets a bonus of", "يحصل كل عضو جديد على مكافأة قدرها", "每位新成员获得奖金"],
   ["à l’inscription.", "upon registration.", "عند التسجيل.", "注册即可获得。"],
   ["Récompense aléatoire", "Random reward", "مكافأة عشوائية", "随机奖励"],
+  ["Total gagné", "Total won", "إجمالي المكاسب", "累计奖金"],
   ["Chaque pointage attribue automatiquement entre 0,1 et 0,3 USDT.", "Each check-in grants 0.1–0.3 USDT.", "كل تسجيل حضور يمنح تلقائياً ما بين 0.1 و0.3 USDT.", "每次签到自动获得0.1至0.3 USDT。"],
   ["Paramètres enregistrés !", "Settings saved!", "تم حفظ الإعدادات!", "设置已保存！"],
   ["Actif", "Active", "نشط", "激活"],

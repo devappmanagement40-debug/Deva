@@ -27,7 +27,6 @@ interface RecentSpin {
   id: number;
   phone: string;
   amount: string;
-  description: string;
 }
 
 interface SpinResult {
