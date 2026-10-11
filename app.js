@@ -21,6 +21,14 @@ function logError(err) {
 process.on("uncaughtException", logError);
 process.on("unhandledRejection", logError);
 
+// Passenger launches this file directly and does not run package.json's start script.
+// This entry point is production-only, so do not depend on Plesk setting NODE_ENV.
+process.env.NODE_ENV = "production";
+console.info(
+  `[passenger] app.js loaded; NODE_ENV=${process.env.NODE_ENV}; ` +
+    `PORT=${process.env.PORT || "unset"}; appRoot=${__dirname}`,
+);
+
 try {
   require("./dist/index.cjs");
 } catch (err) {
