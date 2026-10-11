@@ -16,6 +16,7 @@ const allowlist = [
   "express-rate-limit",
   "express-session",
   "helmet",
+  "libphonenumber-js",
   "jsonwebtoken",
   "bcryptjs",
   "memorystore",
