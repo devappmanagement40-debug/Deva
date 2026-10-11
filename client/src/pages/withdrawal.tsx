@@ -3,7 +3,7 @@ import { useAuth } from "@/lib/auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Clock3, CreditCard, Loader2, ShieldCheck, Wifi } from "lucide-react";
+import { ChevronLeft, Clock3, Loader2 } from "lucide-react";
 import { formatSettingPlaceholders, getContent } from "@/lib/content";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
@@ -29,12 +29,6 @@ interface WalletData {
 interface UserProduct {
   id: number;
   status: string;
-}
-
-function formatCardNumber(accountNumber: string) {
-  const value = accountNumber.replace(/\s+/g, "");
-  if (value.length <= 8) return value;
-  return `${value.slice(0, 4)} •••• •••• ${value.slice(-4)}`;
 }
 
 export default function WithdrawalPage() {
@@ -499,82 +493,23 @@ export default function WithdrawalPage() {
             <button
               type="button"
               onClick={() => navigate("/wallet?from=withdrawal")}
-              className="ielp-withdrawal-card relative mt-[16px] block w-full overflow-hidden text-left transition-transform active:scale-[.98]"
+              className="mt-[16px] block w-full rounded-[10px] border border-[#dddddd] bg-white px-[14px] py-4 text-left font-mono text-[14px] leading-6 text-[#343434] transition-colors hover:border-[#653de9] active:bg-[#f4f1ff]"
               style={{
-                width: "88%",
-                marginLeft: "auto",
-                marginRight: "auto",
-                aspectRatio: "1.586 / 1",
-                minHeight: 184,
-                borderRadius: 18,
-                padding: "16px 18px 14px",
-                color: "#ffffff",
-                background: "linear-gradient(135deg, #063d2b 0%, #087a38 48%, #00c853 100%)",
-                boxShadow: "0 12px 24px rgba(0, 91, 44, .28)",
+                overflowWrap: "anywhere",
               }}
-              aria-label={`Moyen de retrait ${selectedWallet.paymentMethod}, ${selectedWallet.accountName}`}
+              aria-label={`Modifier l'adresse de retrait ${selectedWallet.accountNumber}`}
               data-testid="button-select-wallet"
             >
-              <div
-                className="pointer-events-none absolute -right-14 -top-24 h-64 w-64 rounded-full"
-                style={{ background: "rgba(255,255,255,.12)" }}
-              />
-              <div
-                className="pointer-events-none absolute -bottom-32 -left-16 h-64 w-64 rounded-full"
-                style={{ border: "1px solid rgba(255,255,255,.13)" }}
-              />
-              <div className="relative flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <CreditCard size={24} strokeWidth={1.6} />
-                  <span className="text-[15px] font-semibold tracking-[.08em]">DIAMANT</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={18} strokeWidth={1.6} className="opacity-80" />
-                  <span className="text-[12px] font-semibold tracking-[.12em] opacity-90">{currency}</span>
-                </div>
-              </div>
-              <div className="relative mt-4 flex items-center gap-4">
-                <div
-                  className="h-[32px] w-[43px] rounded-[6px]"
-                  style={{
-                    background: "linear-gradient(135deg, #f4d995 0%, #c7983b 100%)",
-                    boxShadow: "inset 0 0 0 1px rgba(120,74,12,.25)",
-                  }}
-                  aria-hidden="true"
-                >
-                  <div className="mt-[9px] h-px bg-[#a97825]/50" />
-                  <div className="mt-[6px] h-px bg-[#a97825]/50" />
-                </div>
-                <Wifi size={23} strokeWidth={2} className="rotate-90 opacity-80" aria-hidden="true" />
-              </div>
-              <p className="relative mt-3 truncate text-[16px] font-medium tracking-[.12em]">
-                {formatCardNumber(selectedWallet.accountNumber)}
-              </p>
-              <div className="relative mt-2 flex items-end justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[9px] uppercase tracking-[.18em] opacity-70">Titulaire</p>
-                  <p className="truncate text-[12px] font-semibold uppercase tracking-[.08em]">{selectedWallet.accountName}</p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[9px] uppercase tracking-[.18em] opacity-70">Réseau</p>
-                  <p className="text-[12px] font-semibold">{selectedWallet.paymentMethod}</p>
-                </div>
-                <ChevronRight size={22} strokeWidth={1.5} className="shrink-0 opacity-70" aria-hidden="true" />
-              </div>
+              {selectedWallet.accountNumber}
             </button>
           ) : (
             <button
               type="button"
               onClick={() => navigate("/wallet?from=withdrawal")}
-              className="mt-[16px] flex w-full items-center bg-white text-left"
-              style={{ height: 59, border: "1px solid #dddddd", borderRadius: 10, padding: "0 14px" }}
+              className="mt-[16px] flex min-h-[59px] w-full items-center rounded-[10px] border border-[#dddddd] bg-white px-[14px] text-left text-[16px] text-[#343434] transition-colors hover:border-[#653de9] active:bg-[#f4f1ff]"
               data-testid="button-select-wallet"
             >
-              <CreditCard size={29} strokeWidth={2.6} color="#5f5f5f" className="shrink-0" />
-              <span className="ielp-withdrawal-muted ml-[11px] flex-1 truncate font-normal" style={{ color: "#343434", fontSize: 18, letterSpacing: 1.2 }}>
-                ------- ---------------
-              </span>
-              <ChevronRight size={28} strokeWidth={1.5} color="#969696" className="shrink-0" />
+              Ajouter une adresse USDT BEP20
             </button>
           )}
         </div>
