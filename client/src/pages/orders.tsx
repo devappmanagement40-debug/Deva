@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
-import { Image as ImageIcon } from "lucide-react";
+import { AlertCircle, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getContent, rebrandText } from "@/lib/content";
 import { useI18n } from "@/lib/i18n";
 import { ProductOrderCard } from "@/components/product-order-card";
 import { formatProductCardAmount } from "@/components/product-card-frame";
-import { isUsdtProductPurchase } from "@/lib/usdt-records";
 
 function isProductActive(product: any): boolean {
   return product.status === "active" && Number(product.daysRemaining) > 0;
@@ -18,9 +17,11 @@ export default function OrdersPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<"active" | "completed">("active");
 
-  const { data: userProducts, isLoading } = useQuery<any[]>({
+  const { data: userProducts = [], isLoading, isError, refetch } = useQuery<any[]>({
     queryKey: ["/api/user/products"],
     refetchInterval: 60_000,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const { data: settings } = useQuery<Record<string, string>>({
@@ -31,10 +32,9 @@ export default function OrdersPage() {
 
   const headerTitle = getContent(settings, "content_orders_headerTitle", t.myProductsTitle);
 
-  const filteredProducts = userProducts?.filter((up: any) =>
-    isUsdtProductPurchase(up) &&
-    (activeTab === "active" ? isProductActive(up) : !isProductActive(up))
-  ) || [];
+  const filteredProducts = userProducts.filter((up: any) =>
+    activeTab === "active" ? isProductActive(up) : !isProductActive(up)
+  );
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#0d0d0d" }}>
@@ -72,7 +72,26 @@ export default function OrdersPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-20 px-4 pt-4">
-        {isLoading ? (
+        {isError ? (
+          <div
+            className="rounded-xl border border-white/15 px-5 py-7 text-center"
+            style={{ backgroundColor: "#101c49" }}
+            role="alert"
+            data-testid="orders-load-error"
+          >
+            <AlertCircle className="mx-auto mb-3 h-7 w-7 text-amber-300" aria-hidden="true" />
+            <p className="text-sm font-semibold text-white">{t.errorOccurred}</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-4 min-h-10 rounded-lg px-5 text-sm font-semibold text-white"
+              style={{ background: "linear-gradient(135deg, #7041f2, #8c46df)" }}
+              data-testid="button-retry-orders"
+            >
+              {t.retry}
+            </button>
+          </div>
+        ) : isLoading ? (
           <div className="space-y-4">
             {Array(3).fill(0).map((_, i) => (
               <Skeleton key={i} className="h-32 w-full rounded-xl" />
@@ -152,9 +171,13 @@ export default function OrdersPage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <div className="w-32 h-32 mx-auto mb-4 opacity-50">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-gray-300">
+          <div
+            className="rounded-2xl border border-white/15 px-5 py-12 text-center"
+            style={{ backgroundColor: "#101c49" }}
+            data-testid="orders-empty-state"
+          >
+            <div className="w-24 h-24 mx-auto mb-4 opacity-75">
+              <svg viewBox="0 0 100 100" className="w-full h-full text-white/70">
                 <ellipse cx="50" cy="85" rx="35" ry="8" fill="currentColor" opacity="0.3"/>
                 <circle cx="50" cy="45" r="25" fill="none" stroke="currentColor" strokeWidth="3"/>
                 <path d="M50 25 L50 20 M50 65 L50 70" stroke="currentColor" strokeWidth="3"/>
@@ -163,7 +186,7 @@ export default function OrdersPage() {
                 <path d="M45 30 Q50 15 55 30" stroke="currentColor" strokeWidth="2" fill="none"/>
               </svg>
             </div>
-            <p className="text-gray-500 font-medium">{t.ordersNone}</p>
+            <p className="text-white/85 font-medium">{t.ordersNone}</p>
           </div>
         )}
       </div>
