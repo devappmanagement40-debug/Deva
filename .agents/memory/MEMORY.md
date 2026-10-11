@@ -24,7 +24,7 @@
 - [DIAMANT product sections](diamant-product-sections.md) — active Explore gates Parcours/Offres; VIP and product eligibility never depend on invitation counts.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
 - [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
-- [Plesk runtime configuration](plesk-runtime-config.md) — public URLs and payment callbacks must come from Plesk environment variables; APP_URL has priority over PUBLIC_URL.
+- [Plesk runtime configuration](plesk-runtime-config.md) — use golddiamant.site only after Passenger serves its API; keep payment callbacks on a healthy host.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [GitHub push policy](github-push-policy.md) — push verified project changes, including future modifications, to the connected repository.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
