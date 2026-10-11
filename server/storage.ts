@@ -135,9 +135,9 @@ function spinWheelResultFromRow(row: SpinWheelRequestRow): SpinWheelResult {
   return {
     segmentId: Number(row.segment_id),
     amount: Number(row.amount),
-    label: row.label,
+    label: row.label.replace(/\b(?:XOF|FCFA)\b/gi, "USDT"),
     spinTokens: Number(row.spin_tokens_after),
-    segments: row.segments_snapshot,
+    segments: parseSpinWheelSegments(JSON.stringify(row.segments_snapshot)),
   };
 }
 
@@ -3462,7 +3462,7 @@ export class DatabaseStorage implements IStorage {
       const amount = selectedSegment.amount.toFixed(2);
       const updateResult = await client.query<{ spin_tokens: number }>(
         `UPDATE users
-            SET total_earnings = total_earnings + $1::numeric,
+            SET total_earnings_usdt = (COALESCE(total_earnings_usdt, 0)::numeric + $1::numeric)::numeric(15, 8),
                 spin_tokens = spin_tokens - 1
           WHERE id = $2 AND spin_tokens > 0
           RETURNING spin_tokens`,
@@ -3476,8 +3476,8 @@ export class DatabaseStorage implements IStorage {
       }
 
       await client.query(
-        `INSERT INTO transactions (user_id, type, amount, description)
-         VALUES ($1, 'spin_reward', $2, $3)`,
+        `INSERT INTO transactions (user_id, type, amount, amount_usdt, currency, description)
+         VALUES ($1, 'spin_reward', $2, $2, 'USDT', $3)`,
         [userId, amount, `Gain roue : ${selectedSegment.label}`],
       );
       await client.query(

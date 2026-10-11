@@ -4,6 +4,7 @@
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { displayCurrencyText } from "@/lib/content";
+import { formatSpinWheelRewardAmount } from "@shared/spin-wheel";
 import WheelBoardModal from "./wheel-board-modal";
 
 interface Props {
@@ -58,11 +59,7 @@ export default function WheelResultModal({
 
   if (!open) return null;
 
-  const displayAmount = displayCurrencyText(
-    amount && amount > 0
-      ? `${amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} XOF`
-      : label ?? "0 XOF",
-  );
+  const displayAmount = displayCurrencyText(formatSpinWheelRewardAmount(amount ?? 0, label));
   const title = titleOverride ?? (kind === "win"
     ? t.wheelResultWinTitle
     : kind === "loss"

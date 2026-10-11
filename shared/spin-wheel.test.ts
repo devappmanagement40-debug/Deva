@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   calculateSpinWheelPurchaseReward,
+  DEFAULT_SPIN_WHEEL_SEGMENTS,
   DEFAULT_SPIN_WHEEL_INVITE_TEXT,
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
+  formatSpinWheelRewardAmount,
   interpolateSpinWheelRewards,
+  parseSpinWheelSegments,
 } from "./spin-wheel";
 
 test("credits one spin per paid product to the buyer and the direct sponsor", () => {
@@ -28,4 +31,17 @@ test("default invitation and rules copy both resolve to one spin per product", (
     assert.match(resolved, /1 tour/);
     assert.doesNotMatch(resolved, /\{\{(?:selfPurchaseReward|referralPurchaseReward)\}\}/);
   }
+});
+
+test("wheel prizes are displayed and stored as USDT without changing their amount", () => {
+  const configured = DEFAULT_SPIN_WHEEL_SEGMENTS.map((segment) => ({
+    ...segment,
+    label: segment.id === 2 ? "200 XOF" : segment.label,
+  }));
+  const parsed = parseSpinWheelSegments(JSON.stringify(configured));
+
+  assert.equal(parsed[1].amount, 200);
+  assert.equal(parsed[1].label, "200 USDT");
+  assert.equal(formatSpinWheelRewardAmount(200), "200 USDT");
+  assert.equal(formatSpinWheelRewardAmount(0, "0 FCFA"), "0 USDT");
 });

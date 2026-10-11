@@ -175,6 +175,9 @@ export type Translations = {
   membersBonus: string;
   // salary-bonus / task center page
   salaryPageTitle: string;
+  salaryRewardsLoadError: string;
+  salaryRewardsUnconfiguredTitle: string;
+  salaryRewardsUnconfiguredDescription: string;
   salaryRewardLabel: string;
   salaryRequiredInvites: string;
   salaryIncomplete: string;
@@ -954,6 +957,9 @@ const fr: Translations = {
     membersInviteFriends:"Invitez des amis pour agrandir votre équipe",
     membersBonus:        "Bonus",
     salaryPageTitle:        "Récompenses des tâches",
+    salaryRewardsLoadError: "Impossible de charger les récompenses. Vérifiez votre connexion puis réessayez.",
+    salaryRewardsUnconfiguredTitle: "Récompenses en cours de configuration",
+    salaryRewardsUnconfiguredDescription: "Aucun montant USDT n’est configuré pour le moment. Les paliers apparaîtront lorsque leurs montants seront définis dans le panel administrateur.",
     salaryRewardLabel:      "Récompense",
     salaryRequiredInvites:  "Requis : inviter pour activer {0} personnes",
     salaryIncomplete:       "Incomplète",

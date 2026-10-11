@@ -10,7 +10,7 @@ import rewardLevel06 from "@assets/generated_images/diamant-gift-reward-06.webp"
 import rewardLevel07 from "@assets/generated_images/diamant-gift-reward-07.webp";
 import rewardLevel08 from "@assets/generated_images/diamant-gift-reward-08.webp";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, ChevronLeft } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronLeft, Gift } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import { useState } from "react";
@@ -24,7 +24,7 @@ export default function SalaryBonusPage() {
   const { toast } = useToast();
   const [claimingId, setClaimingId] = useState<number | null>(null);
 
-  const { data: tasks = [], isLoading } = useQuery<any[]>({
+  const { data: tasks = [], isLoading, isError, refetch } = useQuery<any[]>({
     queryKey: ["/api/tasks"],
     refetchInterval: 30000,
     staleTime: 0,
@@ -91,7 +91,49 @@ export default function SalaryBonusPage() {
       >
 
         {/* ── Reward cards ── */}
-        {isLoading ? null : (
+        {isLoading ? (
+          <div className="space-y-3" role="status" aria-label={t.loading} aria-busy="true" data-testid="rewards-loading">
+            <span className="sr-only">{t.loading}</span>
+            {[0, 1, 2].map((item) => (
+              <div
+                key={item}
+                className="h-28 animate-pulse rounded-xl border border-white/10"
+                style={{ backgroundColor: "#172b5b" }}
+              />
+            ))}
+          </div>
+        ) : isError ? (
+          <div
+            className="rounded-xl border border-white/10 px-5 py-6 text-center"
+            style={{ backgroundColor: "#172b5b" }}
+            role="alert"
+            data-testid="rewards-load-error"
+          >
+            <AlertCircle className="mx-auto mb-3 h-7 w-7 text-amber-300" aria-hidden="true" />
+            <p className="text-sm font-semibold text-white">{t.salaryRewardsLoadError}</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-4 min-h-10 rounded-lg px-5 text-sm font-semibold text-white"
+              style={{ background: "linear-gradient(135deg, #7041f2, #8c46df)" }}
+              data-testid="button-retry-rewards"
+            >
+              {t.retry}
+            </button>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div
+            className="rounded-xl border border-white/10 px-5 py-7 text-center"
+            style={{ backgroundColor: "#172b5b" }}
+            data-testid="rewards-empty-state"
+          >
+            <Gift className="mx-auto mb-3 h-8 w-8 text-violet-300" aria-hidden="true" />
+            <p className="text-sm font-bold text-white">{t.salaryRewardsUnconfiguredTitle}</p>
+            <p className="mx-auto mt-2 max-w-sm text-xs leading-relaxed text-blue-100/80">
+              {t.salaryRewardsUnconfiguredDescription}
+            </p>
+          </div>
+        ) : (
           (tasks as any[]).map((task, index) => {
             const current = task.currentInvites || 0;
             const required = task.isCompleted && task.claimedRequiredInvites != null
