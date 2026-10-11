@@ -228,11 +228,22 @@ export function isNowPaymentsPayoutConfigured(): boolean {
 
 export const NOWPAYMENTS_DEPOSIT_FEE_PAID_BY_USER = false;
 
+export function getExactStablecoinPayAmount(
+  token: string,
+  amountUsdt: number,
+): number | undefined {
+  if (!["USDT", "USDC", "PYUSD"].includes(token.trim().toUpperCase())) {
+    return undefined;
+  }
+  return Number(amountUsdt.toFixed(8));
+}
+
 export function buildNowPaymentsDirectPaymentPayload(
   input: {
     amount: number;
     priceCurrency: string;
     payCurrency: string;
+    payAmount?: number;
     orderId: string;
     description: string;
   },
@@ -242,6 +253,7 @@ export function buildNowPaymentsDirectPaymentPayload(
     amount: input.amount,
     currency: input.priceCurrency,
     payCurrency: input.payCurrency,
+    payAmount: input.payAmount,
     orderId: input.orderId,
     description: input.description,
     ipnCallbackUrl,
@@ -260,6 +272,7 @@ export async function createNowPaymentsDirectPayment(input: {
   amount: number;
   priceCurrency: string;
   payCurrency: string;
+  payAmount?: number;
   orderId: string;
   description: string;
 }): Promise<NowPaymentsPayment> {

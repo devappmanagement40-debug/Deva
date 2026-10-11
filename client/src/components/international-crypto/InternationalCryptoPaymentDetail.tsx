@@ -1,4 +1,4 @@
-import { AlertTriangle, Check, Copy, Info } from "lucide-react";
+import { AlertTriangle, Check, Copy, Info, Loader2 } from "lucide-react";
 import "./international-crypto.css";
 
 export type InternationalCryptoPaymentStatus =
@@ -28,6 +28,7 @@ export type InternationalCryptoPaymentDetailProps = {
   onCheckStatus: () => void;
   addressCopied?: boolean;
   amountCopied?: boolean;
+  isCheckingStatus?: boolean;
   checkStatusLabel?: string;
 };
 
@@ -56,6 +57,7 @@ export function InternationalCryptoPaymentDetail({
   onCheckStatus,
   addressCopied = false,
   amountCopied = false,
+  isCheckingStatus = false,
   checkStatusLabel = "Vérifier le statut",
 }: InternationalCryptoPaymentDetailProps) {
   const networkLabel = network.trim();
@@ -119,8 +121,16 @@ export function InternationalCryptoPaymentDetail({
           </div>
         </section>
 
-        <button type="button" className="icx-button icx-button--wide" onClick={onCheckStatus}>
-          <Check size={17} aria-hidden="true" />
+        <button
+          type="button"
+          className="icx-button icx-button--wide"
+          onClick={onCheckStatus}
+          disabled={isCheckingStatus}
+          aria-busy={isCheckingStatus}
+        >
+          {isCheckingStatus
+            ? <Loader2 size={17} className="animate-spin" aria-hidden="true" />
+            : <Check size={17} aria-hidden="true" />}
           {checkStatusLabel}
         </button>
 

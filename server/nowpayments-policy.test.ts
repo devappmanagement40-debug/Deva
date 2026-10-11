@@ -5,6 +5,7 @@ import {
   buildNowPaymentsDirectPaymentPayload,
   convertXofToUsdt,
   getConfiguredAppUrlInfo,
+  getExactStablecoinPayAmount,
   getNowPaymentsCallbackUrl,
   isSupportedNowPaymentsDepositCurrency,
   isNowPaymentsVerificationCode,
@@ -62,18 +63,47 @@ test("accepts exactly the configured international deposit networks", () => {
   assert.equal(isSupportedNowPaymentsInternationalCurrency("random-network"), false);
 });
 
-test("prices a 300 USDT deposit in USDT and keeps NOWPayments fees off the user's payment", () => {
+test("fixes exact send amounts for stablecoin networks and quotes other assets", () => {
+  for (const method of INTERNATIONAL_CRYPTO_METHODS) {
+    const exactAmount = getExactStablecoinPayAmount(method.token, 300);
+    if (["USDT", "USDC", "PYUSD"].includes(method.token)) {
+      assert.equal(exactAmount, 300, method.label);
+    } else {
+      assert.equal(exactAmount, undefined, method.label);
+    }
+  }
+});
+
+test("uses USD only as the internal quote and fixes the requested stablecoin send amount", () => {
   const request = buildNowPaymentsDirectPaymentPayload({
     amount: 300,
-    priceCurrency: "usdt",
+    priceCurrency: "usd",
     payCurrency: "usdtbsc",
+    payAmount: 300,
     orderId: "deposit-test",
     description: "Dépôt DIAMANT en USDT",
   }, "https://example.com/api/nowpayments/ipn");
 
   assert.equal(request.amount, 300);
-  assert.equal(request.currency, "usdt");
+  assert.equal(request.currency, "usd");
   assert.equal(request.payCurrency, "usdtbsc");
+  assert.equal(request.payAmount, 300);
+  assert.equal(request.feePaidByUser, false);
+});
+
+test("lets NOWPayments quote the selected non-stablecoin amount", () => {
+  const request = buildNowPaymentsDirectPaymentPayload({
+    amount: 300,
+    priceCurrency: "usd",
+    payCurrency: "bnbbsc",
+    orderId: "deposit-test-bnb",
+    description: "Dépôt DIAMANT en USDT",
+  }, "https://example.com/api/nowpayments/ipn");
+
+  assert.equal(request.amount, 300);
+  assert.equal(request.currency, "usd");
+  assert.equal(request.payCurrency, "bnbbsc");
+  assert.equal(request.payAmount, undefined);
   assert.equal(request.feePaidByUser, false);
 });
 

@@ -207,6 +207,7 @@ import {
   convertXofToUsdt,
   createNowPaymentsDirectPayment,
   createPayout,
+  getExactStablecoinPayAmount,
   getConfiguredAppUrl,
   getConfiguredAppUrlInfo,
   getNowPaymentsCallbackUrl,
@@ -1465,10 +1466,15 @@ export async function registerRoutes(
         });
       }
 
+      const exactStablecoinPayAmount = getExactStablecoinPayAmount(method.token, amountUsdt);
       const payment = await createNowPaymentsDirectPayment({
         amount: amountUsdt,
-        priceCurrency: "usdt",
+        // NOWPayments cannot estimate generic USDT into its network-specific
+        // USDT tickers. USD is only the internal quote currency; the member UI
+        // and credited balance remain USDT.
+        priceCurrency: "usd",
         payCurrency: method.code,
+        payAmount: exactStablecoinPayAmount,
         orderId: `diamant-int-${user.id}-${crypto.randomUUID()}`,
         description: `Dépôt DIAMANT en USDT · ${method.label}`,
       });
@@ -1491,6 +1497,21 @@ export async function registerRoutes(
         });
         console.error("NOWPayments international deposit returned incomplete quote metadata");
         return res.status(502).json({ message: "Le prestataire n’a pas renvoyé les détails exacts du paiement." });
+      }
+      if (
+        exactStablecoinPayAmount !== undefined &&
+        Math.abs(payAmount - exactStablecoinPayAmount) > 0.00000001
+      ) {
+        notifyAdminTelegram({
+          kind: "payment_error",
+          provider: "NOWPayments",
+          stage: "deposit",
+          code: "payment_amount_mismatch",
+        });
+        console.error("NOWPayments international deposit did not confirm the requested stablecoin amount");
+        return res.status(502).json({
+          message: "Le montant exact n’a pas été confirmé. N’envoyez pas de fonds et réessayez plus tard.",
+        });
       }
 
       const deposit = await storage.createDeposit({

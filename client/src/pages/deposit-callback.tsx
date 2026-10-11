@@ -68,24 +68,23 @@ export default function DepositCallbackPage() {
   if (depositStatus === "approved") {
     return (
       <Screen>
-        <CheckCircle className="w-16 h-16 text-gray-800 mx-auto" />
-        <h1 className="text-xl font-bold text-gray-800">{t.depositSuccessTitle}</h1>
-        <p className="text-gray-500 text-sm">{t.depositSuccessDesc}</p>
+        <CheckCircle className="mx-auto h-16 w-16 text-[#36d399]" />
+        <h1 className="text-xl font-bold text-white">{t.depositSuccessTitle}</h1>
+        <p className="text-sm text-white/75">{t.depositSuccessDesc}</p>
         {ref && (
-          <p className="text-xs text-gray-400 font-mono bg-gray-50 rounded-lg px-3 py-1.5">
+          <p className="break-all rounded-lg bg-white/10 px-3 py-1.5 font-mono text-xs text-white/75">
             {t.depositRefLabel} {ref}
           </p>
         )}
         <Link href="/deposit-history">
           <button
-            className="w-full py-3.5 rounded-full text-white font-bold shadow-md"
-            style={{ background: "#E8192C" }}
+            className="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-[#6947f5] to-[#7b36ed] px-4 py-3.5 text-center font-bold leading-5 text-white shadow-[0_5px_15px_rgba(40,20,120,.4)] transition hover:brightness-110"
           >
             {t.depositViewHistory}
           </button>
         </Link>
         <Link href="/">
-          <button className="w-full py-3 rounded-full text-gray-600 border border-gray-200 text-sm font-medium">
+          <button className="w-full min-h-[48px] rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-center text-sm font-medium leading-5 text-white/85 transition hover:bg-white/10">
             {t.depositGoHome}
           </button>
         </Link>
@@ -97,19 +96,18 @@ export default function DepositCallbackPage() {
   if (depositStatus === "rejected") {
     return (
       <Screen>
-        <XCircle className="w-16 h-16 text-red-400 mx-auto" />
-        <h1 className="text-xl font-bold text-gray-800">{t.depositFailTitle}</h1>
-        <p className="text-gray-500 text-sm">{t.depositFailDesc}</p>
+        <XCircle className="mx-auto h-16 w-16 text-[#ff6b6b]" />
+        <h1 className="text-xl font-bold text-white">{t.depositFailTitle}</h1>
+        <p className="text-sm text-white/75">{t.depositFailDesc}</p>
         <Link href="/deposit">
           <button
-            className="w-full py-3.5 rounded-full text-white font-bold shadow-md"
-            style={{ background: "#E8192C" }}
+            className="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-[#6947f5] to-[#7b36ed] px-4 py-3.5 text-center font-bold leading-5 text-white shadow-[0_5px_15px_rgba(40,20,120,.4)] transition hover:brightness-110"
           >
             {t.depositRetry}
           </button>
         </Link>
         <Link href="/">
-          <button className="w-full py-3 rounded-full text-gray-600 border border-gray-200 text-sm font-medium">
+          <button className="w-full min-h-[48px] rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-center text-sm font-medium leading-5 text-white/85 transition hover:bg-white/10">
             {t.depositGoHome}
           </button>
         </Link>
@@ -121,24 +119,23 @@ export default function DepositCallbackPage() {
   if (depositStatus === "timeout") {
     return (
       <Screen>
-        <Headphones className="w-16 h-16 text-[#E8192C] mx-auto" />
-        <h1 className="text-xl font-bold text-gray-800">{t.depositPendingTitle}</h1>
-        <p className="text-gray-500 text-sm">{t.depositPendingDesc}</p>
+        <Headphones className="mx-auto h-16 w-16 text-[#59a5ff]" />
+        <h1 className="text-xl font-bold text-white">{t.depositPendingTitle}</h1>
+        <p className="text-sm text-white/75">{t.depositPendingDesc}</p>
         {ref && (
-          <p className="text-xs text-gray-400 font-mono bg-gray-50 rounded-lg px-3 py-1.5">
+          <p className="break-all rounded-lg bg-white/10 px-3 py-1.5 font-mono text-xs text-white/75">
             {t.depositRefLabel} {ref}
           </p>
         )}
         <Link href="/service">
           <button
-            className="w-full py-3.5 rounded-full text-white font-bold shadow-md"
-            style={{ background: "#E8192C" }}
+            className="w-full min-h-[52px] rounded-xl bg-gradient-to-r from-[#6947f5] to-[#7b36ed] px-4 py-3.5 text-center font-bold leading-5 text-white shadow-[0_5px_15px_rgba(40,20,120,.4)] transition hover:brightness-110"
           >
             {t.depositContactSupport}
           </button>
         </Link>
         <Link href="/">
-          <button className="w-full py-3 rounded-full text-gray-600 border border-gray-200 text-sm font-medium">
+          <button className="w-full min-h-[48px] rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-center text-sm font-medium leading-5 text-white/85 transition hover:bg-white/10">
             {t.depositGoHome}
           </button>
         </Link>
@@ -149,16 +146,10 @@ export default function DepositCallbackPage() {
   /* ── Polling / Loading ── */
   return (
     <Screen>
-      <h1 className="text-xl font-bold text-gray-800">{t.depositVerifyingTitle}</h1>
-      <p className="text-gray-500 text-sm">{t.depositVerifyingDesc}</p>
-      <div className="flex gap-2 justify-center pt-1">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="w-2.5 h-2.5 rounded-full bg-[#E8192C] animate-bounce"
-            style={{ animationDelay: `${i * 0.18}s` }}
-          />
-        ))}
+      <h1 className="text-xl font-bold text-white">{t.depositVerifyingTitle}</h1>
+      <p className="text-sm text-white/75">{t.depositVerifyingDesc}</p>
+      <div className="flex min-h-12 items-center justify-center" role="status" aria-label={t.depositVerifyingTitle}>
+        <Loader2 className="h-8 w-8 animate-spin text-[#59a5ff]" aria-hidden="true" />
       </div>
     </Screen>
   );
@@ -167,10 +158,10 @@ export default function DepositCallbackPage() {
 function Screen({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-6"
-      style={{ background: "#0d0d0d" }}
+      className="flex min-h-screen min-h-[100svh] flex-col items-center justify-center px-4 py-6"
+      style={{ background: "linear-gradient(180deg, #050923 0%, #07113a 52%, #07518a 100%)" }}
     >
-      <div className="bg-white rounded-3xl shadow-xl p-8 max-w-sm w-full text-center space-y-5">
+      <div className="flex min-h-[400px] w-full max-w-sm flex-col justify-center space-y-5 rounded-[22px] border border-white/15 bg-gradient-to-b from-[#242d55] to-[#1e5b91] p-6 text-center shadow-[0_10px_28px_rgba(1,5,25,.3)]">
         {children}
       </div>
     </div>
