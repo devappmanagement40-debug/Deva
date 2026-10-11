@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "npm run db:push && NODE_ENV=development node_modules/.bin/tsx server/index.ts",
     "build": "tsx script/build.ts",
-    "start": "NODE_ENV=production node dist/index.cjs",
+    "start": "node index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "test:support-chat": "tsx --test server/support-chat-validation.test.ts",
