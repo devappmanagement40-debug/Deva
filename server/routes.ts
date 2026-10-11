@@ -1079,6 +1079,7 @@ export async function registerRoutes(
           totalEarned: up.userProduct.totalEarned,
           pendingEarnings: up.userProduct.pendingEarnings,
           assignedByAdmin: up.userProduct.assignedByAdmin,
+          vipLevelAwarded: up.userProduct.vipLevelAwarded,
           nextCollectionAt,
           status: isActive ? "active" : "completed",
           product: up.product,

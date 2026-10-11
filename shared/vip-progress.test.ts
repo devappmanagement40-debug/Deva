@@ -77,10 +77,12 @@ test("all personal paid USDT categories count toward Parcours requirements, but 
   assert.equal(reached.amountRemainingUsdt, 0);
 });
 
-test("only a personal paid Parcours purchase awards VIP, using its saved rank", () => {
+test("only a personal paid Parcours purchase awards VIP, preserving its saved rank after catalog reorder", () => {
   const catalog = [
-    catalogProduct(101, 10, "20.00"),
-    catalogProduct(102, 20, "50.00"),
+    // Product 101 would now be VIP 2 in the live catalog, but this purchase
+    // was recorded as VIP 1 and must retain that historical award.
+    catalogProduct(101, 20, "20.00"),
+    catalogProduct(102, 10, "50.00"),
   ];
   const purchases = [
     personalPurchase(1, "40.00", "stability"),
@@ -109,7 +111,7 @@ test("only a personal paid Parcours purchase awards VIP, using its saved rank", 
   assert.equal(progress.level, 1);
   assert.equal(progress.totalInvestmentUsdt, 70);
   assert.equal(progress.nextLevel, 2);
-  assert.equal(progress.nextThresholdUsdt, 50);
+  assert.equal(progress.nextThresholdUsdt, 20);
   assert.equal(progress.amountRemainingUsdt, 0);
 });
 
