@@ -281,8 +281,6 @@ export default function AccountPage() {
   const copy = COPY[lang];
   const depositAmount = Number(user?.balanceUsdt);
   const earningsAmount = Number(user?.totalEarningsUsdt);
-  const legacyDepositAmount = Number(user?.balance);
-  const legacyEarningsAmount = Number(user?.totalEarnings);
   const displayedBalance =
     (Number.isFinite(depositAmount) ? depositAmount : 0) +
     (Number.isFinite(earningsAmount) ? earningsAmount : 0);
@@ -497,11 +495,6 @@ export default function AccountPage() {
             <div className="ielp-account-balance-heading">
               <span>{copy.balance}</span>
               <strong>{displayedBalance.toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT</strong>
-              {(legacyDepositAmount > 0 || legacyEarningsAmount > 0) && (
-                <small className="mt-1 block text-xs font-normal text-amber-700">
-                  Un solde antérieur est conservé; contactez l’administration pour son rapprochement.
-                </small>
-              )}
             </div>
             <nav className="ielp-account-shortcuts" aria-label={copy.accountMenu}>
               {QUICK_ACTIONS.map(({ copyKey, href, Icon }, index) => (

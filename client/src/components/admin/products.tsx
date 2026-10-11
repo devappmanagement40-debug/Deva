@@ -138,7 +138,7 @@ interface ProductFormFieldsProps {
   form: any;
   isPending: boolean;
   submitLabel: string;
-  currency: "XOF" | "USDT";
+  currency: "USDT";
   isFirstParcoursProduct: boolean;
   onSubmit: (data: ProductForm) => void;
 }
@@ -355,7 +355,11 @@ export default function AdminProducts() {
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/admin/products/all"],
   });
-  const visibleProducts = products || [];
+  const visibleProducts = (products || []).filter(
+    (product) =>
+      product.market === "international" &&
+      product.currency?.toUpperCase() === "USDT",
+  );
   const activeParcoursProducts = visibleProducts
     .filter((product) =>
       product.isActive &&
@@ -365,7 +369,7 @@ export default function AdminProducts() {
     )
     .sort((left, right) => left.sortOrder - right.sortOrder || left.id - right.id);
   const isFirstParcoursForCreate = activeParcoursProducts.length === 0;
-  const { data: legacyPositionSummary } = useQuery<{ activeCount: number; pendingXof: number }>({
+  const { data: legacyPositionSummary } = useQuery<{ activeCount: number }>({
     queryKey: ["/api/admin/currency-migration/summary"],
   });
 
@@ -478,7 +482,7 @@ export default function AdminProducts() {
         const result = await response.json();
         throw new Error(result.message || "La clôture des achats a échoué.");
       }
-      return response.json() as Promise<{ closedCount: number; pendingXof: number }>;
+      return response.json() as Promise<{ closedCount: number }>;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/currency-migration/summary"] });
@@ -526,7 +530,7 @@ export default function AdminProducts() {
           <CardContent className="space-y-2 p-4">
             <p className="font-semibold">Anciens achats à retirer des portefeuilles actifs</p>
             <p className="text-sm text-muted-foreground">
-              {legacyPositionSummary.activeCount} achat(s) actif(s) · gains non payés enregistrés : {Number(legacyPositionSummary.pendingXof).toLocaleString()} XOF.
+              {legacyPositionSummary.activeCount} achat(s) historique(s) à archiver.
               La clôture arrête les gains futurs et masque ces achats du portefeuille actif. L’historique reste conservé; les gains en attente ne sont pas crédités automatiquement.
             </p>
             <Button

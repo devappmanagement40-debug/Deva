@@ -57,6 +57,10 @@ export default function SalaryBonusPage() {
   if (!user) return null;
 
   const currency = getMarketCurrency(getCustomerMarket(user?.country || "CI"));
+  const visibleTasks = tasks.filter((task: any) =>
+    !task.isCompleted ||
+    (task.claimedRewardCurrency || task.rewardCurrency || "USDT") === "USDT"
+  );
   const rewardIllustrations = [
     rewardLevel01,
     rewardLevel02,
@@ -121,7 +125,7 @@ export default function SalaryBonusPage() {
               {t.retry}
             </button>
           </div>
-        ) : tasks.length === 0 ? (
+        ) : visibleTasks.length === 0 ? (
           <div
             className="rounded-xl border border-white/10 px-5 py-7 text-center"
             style={{ backgroundColor: "#172b5b" }}
@@ -134,7 +138,7 @@ export default function SalaryBonusPage() {
             </p>
           </div>
         ) : (
-          (tasks as any[]).map((task, index) => {
+          visibleTasks.map((task: any, index: number) => {
             const current = task.currentInvites || 0;
             const required = task.isCompleted && task.claimedRequiredInvites != null
               ? task.claimedRequiredInvites
@@ -143,7 +147,7 @@ export default function SalaryBonusPage() {
               ? task.claimedReward
               : task.reward || 0;
             const displayedCurrency = task.isCompleted
-              ? task.claimedRewardCurrency || task.rewardCurrency || currency
+              ? task.claimedRewardCurrency || task.rewardCurrency || "USDT"
               : task.rewardCurrency || currency;
             const progress = Math.min(current, required);
             const pct = Math.min((progress / required) * 100, 100);

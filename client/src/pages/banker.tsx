@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 import { Search, Check, X, LogOut, Loader2, ArrowDownCircle, ArrowUpCircle, History, RefreshCw } from "lucide-react";
 import type { Deposit, Withdrawal } from "@shared/schema";
 
@@ -71,6 +72,8 @@ export default function BankerPage() {
     },
     refetchInterval: 30000,
   });
+  const usdtDeposits = (allDeposits || []).filter(isUsdtRecord);
+  const usdtWithdrawals = (allWithdrawals || []).filter(isUsdtRecord);
 
   const depositMutation = useMutation({
     mutationFn: async ({ id, action }: { id: number; action: "approve" | "reject" }) => {
@@ -125,10 +128,10 @@ export default function BankerPage() {
   };
 
   const filterHistory = () => {
-    const deposits: Array<{ type: "deposit"; item: DepositWithUser; date: Date }> = (allDeposits || [])
+    const deposits: Array<{ type: "deposit"; item: DepositWithUser; date: Date }> = usdtDeposits
       .filter(d => d.status !== "pending")
       .map(d => ({ type: "deposit", item: d, date: new Date(d.createdAt) }));
-    const withdrawals: Array<{ type: "withdrawal"; item: WithdrawalWithUser; date: Date }> = (allWithdrawals || [])
+    const withdrawals: Array<{ type: "withdrawal"; item: WithdrawalWithUser; date: Date }> = usdtWithdrawals
       .filter(w => w.status !== "pending")
       .map(w => ({ type: "withdrawal", item: w, date: new Date(w.createdAt) }));
 
@@ -154,8 +157,8 @@ export default function BankerPage() {
     });
   };
 
-  const pendingDepositsCount = allDeposits?.filter(d => d.status === "pending").length || 0;
-  const pendingWithdrawalsCount = allWithdrawals?.filter(w => w.status === "pending").length || 0;
+  const pendingDepositsCount = usdtDeposits.filter(d => d.status === "pending").length;
+  const pendingWithdrawalsCount = usdtWithdrawals.filter(w => w.status === "pending").length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -259,9 +262,9 @@ export default function BankerPage() {
               Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-36" />)
             ) : (
               <div className="space-y-3">
-                {filterDeposits(allDeposits || []).length === 0 ? (
+                {filterDeposits(usdtDeposits).length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">{t.noDeposits}</div>
-                ) : filterDeposits(allDeposits || []).map(deposit => (
+                ) : filterDeposits(usdtDeposits).map(deposit => (
                   <Card key={deposit.id} className={deposit.status === "pending" ? "border-yellow-500/30" : ""}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
@@ -277,7 +280,7 @@ export default function BankerPage() {
                         <div>
                           <p className="text-muted-foreground text-xs">{t.amount}</p>
                           <p className="font-bold text-lg text-primary">
-                            {Number(deposit.currency?.toUpperCase() === "USDT" ? deposit.amountUsdt : deposit.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} {deposit.currency || "XOF"}
+                            {Number(deposit.amountUsdt ?? deposit.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT
                           </p>
                         </div>
                         <div>
@@ -355,9 +358,9 @@ export default function BankerPage() {
               Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40" />)
             ) : (
               <div className="space-y-3">
-                {filterWithdrawals(allWithdrawals || []).length === 0 ? (
+                {filterWithdrawals(usdtWithdrawals).length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">{t.noWithdrawals}</div>
-                ) : filterWithdrawals(allWithdrawals || []).map(w => (
+                ) : filterWithdrawals(usdtWithdrawals).map(w => (
                   <Card key={w.id} className={w.status === "pending" ? "border-yellow-500/30" : ""}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
@@ -373,19 +376,19 @@ export default function BankerPage() {
                         <div>
                           <p className="text-muted-foreground text-xs">{t.grossAmount}</p>
                            <p className="font-bold text-lg">
-                             {Number(w.currency?.toUpperCase() === "USDT" ? w.amountUsdt : w.amount).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                             {Number(w.amountUsdt ?? w.amount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                            </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.netAmount}</p>
                            <p className="font-bold text-lg text-primary">
-                             {Number(w.currency?.toUpperCase() === "USDT" ? w.netAmountUsdt : w.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                             {Number(w.netAmountUsdt ?? w.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                            </p>
                         </div>
                         <div>
                           <p className="text-muted-foreground text-xs">{t.fees}</p>
                            <p className="font-medium">
-                             {Number(w.currency?.toUpperCase() === "USDT" ? w.feesUsdt : w.fees).toLocaleString("fr-FR", { maximumFractionDigits: w.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {w.currency || "XOF"}
+                             {Number(w.feesUsdt ?? w.fees).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                            </p>
                         </div>
                         <div>
@@ -486,7 +489,7 @@ export default function BankerPage() {
                         </div>
                         <div className="text-right">
                           <p className={`font-bold ${type === "deposit" ? "text-gray-600" : "text-emerald-600"}`}>
-                             {type === "deposit" ? "+" : "-"}{Number(type === "deposit" ? item.amount : item.netAmount).toLocaleString()} XOF
+                             {type === "deposit" ? "+" : "-"}{Number(type === "deposit" ? item.amountUsdt ?? item.amount : item.netAmountUsdt ?? item.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                           </p>
                           <StatusBadge status={item.status} />
                         </div>

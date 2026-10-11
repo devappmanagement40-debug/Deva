@@ -9,6 +9,7 @@ import { formatDepositGuidanceContent } from "@/lib/deposit-guidance";
 import { apiRequest } from "@/lib/queryClient";
 import { getContent } from "@/lib/content";
 import { localeForLang, useI18n } from "@/lib/i18n";
+import { DEFAULT_MIN_DEPOSIT_USDT } from "@shared/financial-settings";
 import { getTogoDevelopmentPreviewOperators } from "@/lib/togo-preview-operators";
 import CiMobileMoneyCheckout from "@/components/ci-deposit-flow/CiMobileMoneyCheckout";
 import TogoMobileMoneyCheckout from "@/components/tg-deposit-flow/TogoMobileMoneyCheckout";
@@ -18,11 +19,11 @@ import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import tetherIcon from "@/assets/crypto/tether.png";
 import bnbIcon from "@/assets/crypto/bnb.png";
 
-const CURRENCY = "XOF";
+const CURRENCY = "USDT";
 const ACCENT_GREEN = "#32c95b";
 const DEPOSIT_BACK_BUTTON_CLASS =
   "flex items-center justify-center rounded-full bg-[#8000ff] text-white shadow-sm transition hover:brightness-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8000ff] focus-visible:ring-offset-2";
-const DEFAULT_DEPOSIT_AMOUNTS = [3500, 5000, 7000, 10000, 15000, 20000, 50000, 70000];
+const DEFAULT_DEPOSIT_AMOUNTS = [13, 20, 50, 100, 250];
 
 function parseDepositPresetAmounts(value: string | undefined): number[] {
   const amounts = (value || "")
@@ -143,12 +144,16 @@ function LabelledInput({
   onChange,
   placeholder,
   type = "text",
+  min,
+  step,
 }: {
   label: string;
   value: string | number;
   onChange: (value: string) => void;
   placeholder: string;
   type?: "text" | "number";
+  min?: number;
+  step?: string;
 }) {
   return (
     <label className="mb-6 block">
@@ -160,6 +165,8 @@ function LabelledInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        min={min}
+        step={step}
         className="w-full border-0 border-b bg-transparent px-0 pb-2 outline-none placeholder:text-[#777]"
         style={{ borderColor: "#e8e8e8", color: "#222", fontSize: 17 }}
       />
@@ -197,7 +204,10 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
-  const minDeposit = Number.parseInt(settings.minDeposit || "2500", 10) || 2500;
+  const configuredMinimum = Number(settings.minDepositUsdt ?? DEFAULT_MIN_DEPOSIT_USDT);
+  const minDeposit = Number.isFinite(configuredMinimum) && configuredMinimum > 0
+    ? configuredMinimum
+    : Number(DEFAULT_MIN_DEPOSIT_USDT);
   const depositPresetAmounts = parseDepositPresetAmounts(settings.depositPresetAmounts);
 
   const { data: mobileDepositCountries = [], isLoading: countriesLoading, isError: countriesError } = useQuery<DepositCountryOption[]>({
@@ -270,7 +280,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
   }, [user?.fullName, user?.phone]);
 
   const createDepositIssue = useMutation({
-    mutationFn: async (payload: { amount: number; transactionId: string; depositNumber: string; screenshot: string }) => {
+    mutationFn: async (payload: { amount: string; transactionId: string; depositNumber: string; screenshot: string }) => {
       const response = await apiRequest("POST", "/api/deposit-issues", {
         amount: payload.amount,
         transactionId: payload.transactionId,
@@ -654,7 +664,14 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
     const parsedAmount = Number(issueAmount);
     const cleanTransactionId = transactionId.trim();
     const cleanDepositNumber = depositNumber.trim();
-    if (!cleanTransactionId || !cleanDepositNumber || !Number.isSafeInteger(parsedAmount) || parsedAmount <= 0 || !proof) {
+    if (
+      !cleanTransactionId
+      || !cleanDepositNumber
+      || !/^\d+(?:\.\d{1,8})?$/.test(issueAmount.trim())
+      || !Number.isFinite(parsedAmount)
+      || parsedAmount <= 0
+      || !proof
+    ) {
       toast({
         title: "Informations manquantes",
         description: "Renseignez l’identifiant de transaction, le montant et le numéro de dépôt, puis ajoutez la capture.",
@@ -671,7 +688,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
       return;
     }
     createDepositIssue.mutate({
-      amount: parsedAmount,
+      amount: issueAmount.trim(),
       transactionId: cleanTransactionId,
       depositNumber: cleanDepositNumber,
       screenshot: proof,
@@ -890,7 +907,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#698173]">{t.depositAmount}</p>
-                <p className="mt-0.5 truncate text-[19px] font-bold text-[#087a38]">{Number(amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} XOF</p>
+                <p className="mt-0.5 truncate text-[19px] font-bold text-[#087a38]">{Number(amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT</p>
               </div>
               <span className="shrink-0 rounded-full bg-[#e4f6e9] px-2 py-1 text-[10px] font-semibold text-[#087a38]">Étape 2 sur 2</span>
             </div>
@@ -1272,23 +1289,25 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
 
         <section className="mx-5 mt-6 rounded-[10px] bg-white px-5 pb-10 pt-6 shadow-[0_1px_4px_rgba(0,0,0,.03)]">
           <LabelledInput
-            label="ID de transaction"
+            label="Hash de transaction"
             value={transactionId}
             onChange={setTransactionId}
             placeholder="Saisissez l’identifiant de transaction"
           />
           <LabelledInput
-            label="Montant du dépôt"
+            label="Montant du dépôt (USDT)"
             value={issueAmount}
             onChange={setIssueAmount}
             placeholder="Saisissez le montant envoyé"
             type="number"
+            step="0.00000001"
+            min={minDeposit}
           />
           <LabelledInput
-            label="Numéro de dépôt destinataire"
+            label="Adresse de dépôt destinataire"
             value={depositNumber}
             onChange={setDepositNumber}
-            placeholder="Numéro sur lequel vous avez envoyé le paiement"
+            placeholder="Adresse crypto utilisée pour le dépôt"
           />
           <div>
             <p className="ielp-deposit-form-label mb-4 font-semibold" style={{ color: "#2b2b2b", fontSize: 18 }}>
@@ -1332,7 +1351,7 @@ export default function DepositPage({ startInIssue = false }: { startInIssue?: b
           </h2>
           <div className="h-[3px] w-full bg-[#d5d5d5]" />
           <div className="bg-[#f8f9fa] px-4 pb-5 pt-4 text-[14px] leading-6 text-[#686868]">
-            Indiquez le numéro destinataire, le montant exact et l’identifiant de transaction. La capture doit être lisible.
+            Indiquez l’adresse crypto destinataire, le montant exact en USDT et le hash de transaction. La capture doit être lisible.
           </div>
           <div className="mt-8 rounded-[10px] bg-white px-5 py-5 text-[14px] leading-6 text-[#686868]">
             <p>Votre déclaration sera vérifiée par l’équipe avant tout crédit sur votre solde de dépôt.</p>

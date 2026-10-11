@@ -42,6 +42,7 @@ export type AdminTelegramBalanceSummary = {
 export type AdminTelegramPendingDeposit = {
   id: number;
   amount: number;
+  amountUsdt?: string | number | null;
   country: string;
   paymentMethod: string;
   status: string;
@@ -51,8 +52,11 @@ export type AdminTelegramPendingDeposit = {
 export type AdminTelegramPendingWithdrawal = {
   id: number;
   amount: number;
+  amountUsdt?: string | number | null;
   netAmount: number;
+  netAmountUsdt?: string | number | null;
   fees: number;
+  feesUsdt?: string | number | null;
   country: string;
   paymentMethod: string;
   status: string;
@@ -62,6 +66,7 @@ export type AdminTelegramPendingWithdrawal = {
 export type AdminTelegramLocalPayment = {
   id: number;
   amount: number;
+  amountUsdt?: string | number | null;
   status: string;
   nowPaymentsStatus: string | null;
   nowPaymentsExpectedAmount: string | null;
@@ -96,12 +101,22 @@ export type AdminTelegramNotification =
       attachmentType?: "image" | "video" | "file" | null;
       attachmentName?: string | null;
     }
-  | { kind: "purchase"; userId: number; country?: string; productName: string; amount: number }
+  | {
+      kind: "purchase";
+      userId: number;
+      country?: string;
+      productName: string;
+      amount: number;
+      amountUsdt?: string | number | null;
+      currency?: string | null;
+    }
   | {
       kind: "deposit_created";
       id: number;
       userId: number;
       amount: number;
+      amountUsdt?: string | number | null;
+      currency?: string | null;
       country: string;
       paymentMethod: string;
       reference: string | null;
@@ -111,6 +126,8 @@ export type AdminTelegramNotification =
       kind: "deposit_status";
       id: number;
       amount: number;
+      amountUsdt?: string | number | null;
+      currency?: string | null;
       country: string;
       paymentMethod: string;
       status: string;
@@ -182,27 +199,27 @@ const databaseDataSource: AdminTelegramDataSource = {
     const [[depositBalance], [earningsBalance], [pendingDeposits], [pendingWithdrawals]] =
       await Promise.all([
         db
-          .select({ total: sql<string>`COALESCE(SUM(CAST(${users.balance} AS DECIMAL)), 0)` })
+          .select({ total: sql<string>`COALESCE(SUM(CAST(${users.balanceUsdt} AS DECIMAL)), 0)` })
           .from(users),
         db
-          .select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarnings} AS DECIMAL)), 0)` })
+          .select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarningsUsdt} AS DECIMAL)), 0)` })
           .from(users),
         db
           .select({
             count: sql<number>`count(*)`,
-            total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)`,
+            total: sql<string>`COALESCE(SUM(CAST(${deposits.amountUsdt} AS DECIMAL)), 0)`,
           })
           .from(deposits)
-          .where(inArray(deposits.status, [...OPEN_DEPOSIT_STATUSES])),
+          .where(and(eq(deposits.currency, "USDT"), inArray(deposits.status, [...OPEN_DEPOSIT_STATUSES]))),
         db
           .select({
             count: sql<number>`count(*)`,
-            gross: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)`,
-            net: sql<string>`COALESCE(SUM(${withdrawals.netAmount}), 0)`,
-            fees: sql<string>`COALESCE(SUM(${withdrawals.fees}), 0)`,
+            gross: sql<string>`COALESCE(SUM(CAST(${withdrawals.amountUsdt} AS DECIMAL)), 0)`,
+            net: sql<string>`COALESCE(SUM(CAST(${withdrawals.netAmountUsdt} AS DECIMAL)), 0)`,
+            fees: sql<string>`COALESCE(SUM(CAST(${withdrawals.feesUsdt} AS DECIMAL)), 0)`,
           })
           .from(withdrawals)
-          .where(inArray(withdrawals.status, [...OPEN_WITHDRAWAL_STATUSES])),
+          .where(and(eq(withdrawals.currency, "USDT"), inArray(withdrawals.status, [...OPEN_WITHDRAWAL_STATUSES]))),
       ]);
 
     return {
@@ -223,28 +240,32 @@ const databaseDataSource: AdminTelegramDataSource = {
         .select({
           id: deposits.id,
           amount: deposits.amount,
+          amountUsdt: deposits.amountUsdt,
           country: deposits.country,
           paymentMethod: deposits.paymentMethod,
           status: deposits.status,
           createdAt: deposits.createdAt,
         })
         .from(deposits)
-        .where(inArray(deposits.status, [...OPEN_DEPOSIT_STATUSES]))
+        .where(and(eq(deposits.currency, "USDT"), inArray(deposits.status, [...OPEN_DEPOSIT_STATUSES])))
         .orderBy(desc(deposits.createdAt), desc(deposits.id))
         .limit(10),
       db
         .select({
           id: withdrawals.id,
           amount: withdrawals.amount,
+          amountUsdt: withdrawals.amountUsdt,
           netAmount: withdrawals.netAmount,
+          netAmountUsdt: withdrawals.netAmountUsdt,
           fees: withdrawals.fees,
+          feesUsdt: withdrawals.feesUsdt,
           country: withdrawals.country,
           paymentMethod: withdrawals.paymentMethod,
           status: withdrawals.status,
           createdAt: withdrawals.createdAt,
         })
         .from(withdrawals)
-        .where(inArray(withdrawals.status, [...OPEN_WITHDRAWAL_STATUSES]))
+        .where(and(eq(withdrawals.currency, "USDT"), inArray(withdrawals.status, [...OPEN_WITHDRAWAL_STATUSES])))
         .orderBy(desc(withdrawals.createdAt), desc(withdrawals.id))
         .limit(10),
     ]);
@@ -257,6 +278,7 @@ const databaseDataSource: AdminTelegramDataSource = {
       .select({
         id: deposits.id,
         amount: deposits.amount,
+        amountUsdt: deposits.amountUsdt,
         status: deposits.status,
         nowPaymentsStatus: deposits.nowPaymentsStatus,
         nowPaymentsExpectedAmount: deposits.nowPaymentsExpectedAmount,
@@ -266,6 +288,7 @@ const databaseDataSource: AdminTelegramDataSource = {
       .where(
         and(
           eq(deposits.paymentMethod, "NOWPayments"),
+          eq(deposits.currency, "USDT"),
           eq(deposits.reference, paymentId),
         ),
       )
@@ -315,9 +338,9 @@ function numericValue(value: unknown): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function formatXof(value: unknown): string {
+function formatUsdt(value: unknown): string {
   const amount = numericValue(value);
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(amount ?? 0)} XOF`;
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 8 }).format(amount ?? 0)} USDT`;
 }
 
 function escapeTelegramField(value: unknown): string {
@@ -417,24 +440,24 @@ function formatStatsMessage(
     "<b>Statistiques du site</b>",
     `Utilisateurs : <b>${formatCount(stats.totalUsers)}</b>`,
     `Nouvelles inscriptions aujourd’hui : <b>${formatCount(stats.todayUsers)}</b>`,
-    `Dépôts approuvés : <b>${formatXof(stats.totalDeposits)}</b> · aujourd’hui : <b>${formatXof(stats.todayDeposits)}</b>`,
-    `Retraits approuvés : <b>${formatXof(stats.totalWithdrawals)}</b> · aujourd’hui : <b>${formatXof(stats.todayWithdrawals)}</b>`,
+    `Dépôts approuvés : <b>${formatUsdt(stats.totalDeposits)}</b> · aujourd’hui : <b>${formatUsdt(stats.todayDeposits)}</b>`,
+    `Retraits approuvés : <b>${formatUsdt(stats.totalWithdrawals)}</b> · aujourd’hui : <b>${formatUsdt(stats.todayWithdrawals)}</b>`,
     `Utilisateurs avec produits : <b>${formatCount(stats.usersWithProducts)}</b>`,
     `Produits actifs : <b>${formatCount(stats.totalActiveProducts)}</b>`,
-    `Commissions : <b>${formatXof(stats.totalCommissions)}</b>`,
-    `Dépôts ouverts : <b>${formatCount(pending.pendingDepositCount)}</b> · <b>${formatXof(pending.pendingDepositAmount)}</b>`,
-    `Retraits ouverts : <b>${formatCount(pending.pendingWithdrawalCount)}</b> · net à payer : <b>${formatXof(pending.pendingWithdrawalNet)}</b>`,
+    `Commissions : <b>${formatUsdt(stats.totalCommissions)}</b>`,
+    `Dépôts ouverts : <b>${formatCount(pending.pendingDepositCount)}</b> · <b>${formatUsdt(pending.pendingDepositAmount)}</b>`,
+    `Retraits ouverts : <b>${formatCount(pending.pendingWithdrawalCount)}</b> · net à payer : <b>${formatUsdt(pending.pendingWithdrawalNet)}</b>`,
   ].join("\n");
 }
 
 function formatBalanceSummary(summary: AdminTelegramBalanceSummary): string {
   return [
     "<b>Soldes agrégés du site</b>",
-    `Solde de dépôt des comptes : <b>${formatXof(summary.depositBalance)}</b>`,
-    `Solde des revenus : <b>${formatXof(summary.earningsBalance)}</b>`,
-    `Dépôts ouverts : <b>${formatCount(summary.pendingDepositCount)}</b> · <b>${formatXof(summary.pendingDepositAmount)}</b>`,
+    `Solde de dépôt des comptes : <b>${formatUsdt(summary.depositBalance)}</b>`,
+    `Solde des revenus : <b>${formatUsdt(summary.earningsBalance)}</b>`,
+    `Dépôts ouverts : <b>${formatCount(summary.pendingDepositCount)}</b> · <b>${formatUsdt(summary.pendingDepositAmount)}</b>`,
     `Retraits ouverts : <b>${formatCount(summary.pendingWithdrawalCount)}</b>`,
-    `Brut réservé : <b>${formatXof(summary.pendingWithdrawalGross)}</b> · frais : <b>${formatXof(summary.pendingWithdrawalFees)}</b> · net à payer : <b>${formatXof(summary.pendingWithdrawalNet)}</b>`,
+    `Brut réservé : <b>${formatUsdt(summary.pendingWithdrawalGross)}</b> · frais : <b>${formatUsdt(summary.pendingWithdrawalFees)}</b> · net à payer : <b>${formatUsdt(summary.pendingWithdrawalNet)}</b>`,
   ].join("\n");
 }
 
@@ -448,7 +471,7 @@ function formatPendingOperations(
   } else {
     for (const item of depositsList.slice(0, 10)) {
       lines.push(
-        `#${item.id} · ${formatXof(item.amount)} · ${escapeTelegramHtml(item.country)} · ${escapeTelegramHtml(item.paymentMethod)} · ${escapeTelegramHtml(item.status)} · ${formatDate(item.createdAt)}`,
+        `#${item.id} · ${formatUsdt(item.amountUsdt ?? item.amount)} · ${escapeTelegramHtml(item.country)} · ${escapeTelegramHtml(item.paymentMethod)} · ${escapeTelegramHtml(item.status)} · ${formatDate(item.createdAt)}`,
       );
     }
   }
@@ -459,7 +482,7 @@ function formatPendingOperations(
   } else {
     for (const item of withdrawalsList.slice(0, 10)) {
       lines.push(
-        `#${item.id} · brut ${formatXof(item.amount)} · net ${formatXof(item.netAmount)} · ${escapeTelegramHtml(item.country)} · ${escapeTelegramHtml(item.paymentMethod)} · ${escapeTelegramHtml(item.status)} · ${formatDate(item.createdAt)}`,
+        `#${item.id} · brut ${formatUsdt(item.amountUsdt ?? item.amount)} · net ${formatUsdt(item.netAmountUsdt ?? item.netAmount)} · ${escapeTelegramHtml(item.country)} · ${escapeTelegramHtml(item.paymentMethod)} · ${escapeTelegramHtml(item.status)} · ${formatDate(item.createdAt)}`,
       );
     }
   }
@@ -544,7 +567,7 @@ async function handleNowPaymentsStatus(
       : "écart à vérifier";
 
   lines.push(
-    `Site : dépôt #${local.id} · ${formatXof(local.amount)} · statut ${escapeTelegramHtml(local.status)}`,
+    `Site : dépôt #${local.id} · ${formatUsdt(local.amountUsdt ?? local.amount)} · statut ${escapeTelegramHtml(local.status)}`,
       `Attendu local : ${
       expectedAmount !== undefined && expectedCurrency
         ? `${formatDecimal(expectedAmount)} ${escapeTelegramHtml(expectedCurrency)}`
@@ -670,14 +693,20 @@ function formatNotification(event: AdminTelegramNotification): string {
   }
   if (event.kind === "purchase") {
     const country = event.country ? ` · ${escapeTelegramHtml(event.country)}` : "";
-    return `🛒 <b>Achat confirmé</b>\nCompte #${event.userId}${country}\n${escapeTelegramHtml(event.productName)} · ${formatXof(event.amount)}`;
+    const amount = event.currency?.toUpperCase() === "USDT"
+      ? formatUsdt(event.amountUsdt ?? event.amount)
+      : "montant masqué";
+    return `🛒 <b>Achat confirmé</b>\nCompte #${event.userId}${country}\n${escapeTelegramHtml(event.productName)} · ${amount}`;
   }
   if (event.kind === "deposit_created") {
+    const amount = event.currency?.toUpperCase() === "USDT"
+      ? formatUsdt(event.amountUsdt ?? event.amount)
+      : "montant masqué";
     const lines = [
       "<b>💳 Nouvelle demande de dépôt</b>",
       `<b>ID :</b> <b>${event.id}</b>`,
       `<b>Utilisateur ID :</b> <b>${event.userId}</b>`,
-      `<b>Montant :</b> <b>${formatXof(event.amount)}</b>`,
+      `<b>Montant :</b> <b>${amount}</b>`,
       `<b>Méthode :</b> ${escapeTelegramField(event.paymentMethod)}`,
       `<b>Pays :</b> ${escapeTelegramField(event.country)}`,
       `<b>Référence :</b> <b>${escapeTelegramField(event.reference)}</b>`,
@@ -686,6 +715,9 @@ function formatNotification(event: AdminTelegramNotification): string {
     return lines.join("\n");
   }
   if (event.kind === "deposit_status") {
+    const amount = event.currency?.toUpperCase() === "USDT"
+      ? formatUsdt(event.amountUsdt ?? event.amount)
+      : "montant masqué";
     const normalizedProviderStatus =
       typeof event.providerStatus === "string"
         ? event.providerStatus.replace(/[^a-z0-9_-]/gi, "").slice(0, 40)
@@ -693,7 +725,7 @@ function formatNotification(event: AdminTelegramNotification): string {
     const providerStatus = normalizedProviderStatus
       ? `\nStatut prestataire : ${escapeTelegramHtml(normalizedProviderStatus)}`
       : "";
-    return `💰 <b>Statut du dépôt modifié</b>\nDépôt #${event.id} · ${formatXof(event.amount)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
+    return `💰 <b>Statut du dépôt modifié</b>\nDépôt #${event.id} · ${amount}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
   }
   if (event.kind === "withdrawal_created" || event.kind === "withdrawal_status") {
     const title = event.kind === "withdrawal_created" ? "Nouvelle demande de retrait" : "Statut du retrait modifié";
@@ -705,14 +737,9 @@ function formatNotification(event: AdminTelegramNotification): string {
       ? `\nStatut prestataire : ${escapeTelegramHtml(normalizedProviderStatus)}`
       : "";
     const isUsdt = event.currency?.toUpperCase() === "USDT";
-    const formatWithdrawalAmount = (value: unknown) => {
-      if (!isUsdt) return `${formatXof(value)} XOF`;
-      const amount = Number(value);
-      return `${Number.isFinite(amount) ? amount.toLocaleString("en-US", { maximumFractionDigits: 6 }) : "0"} USDT`;
-    };
-    const gross = isUsdt ? event.amountUsdt ?? event.amount : event.amount;
-    const net = isUsdt ? event.netAmountUsdt ?? event.netAmount : event.netAmount;
-    return `💸 <b>${title}</b>\nRetrait #${event.id} · brut ${formatWithdrawalAmount(gross)} · net ${formatWithdrawalAmount(net)}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
+    const gross = isUsdt ? formatUsdt(event.amountUsdt ?? event.amount) : "montant masqué";
+    const net = isUsdt ? formatUsdt(event.netAmountUsdt ?? event.netAmount) : "montant masqué";
+    return `💸 <b>${title}</b>\nRetrait #${event.id} · brut ${gross} · net ${net}\n${escapeTelegramHtml(event.country)} · ${escapeTelegramHtml(event.paymentMethod)} · ${escapeTelegramHtml(event.status)}${providerStatus}`;
   }
   if (event.kind === "payment_error") {
     const stageLabel: Record<typeof event.stage, string> = {

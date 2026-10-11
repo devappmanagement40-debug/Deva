@@ -51,17 +51,22 @@ export default function RewardsPage() {
 
   const currency = getMarketCurrency(getCustomerMarket(user.country));
 
-  const totalReward = tasks?.reduce(
+  const visibleTasks = (tasks || []).filter((task: any) =>
+    (task.isCompleted
+      ? task.claimedRewardCurrency || task.rewardCurrency || "USDT"
+      : task.rewardCurrency || "USDT") === "USDT"
+  );
+  const totalReward = visibleTasks.reduce(
     (sum: number, task: any) => sum + (task.rewardCurrency === currency ? Number(task.reward) || 0 : 0),
     0,
   ) || 0;
-  const claimedReward = tasks?.filter((task: any) => task.isCompleted).reduce(
-    (sum: number, task: any) => sum + ((task.claimedRewardCurrency || task.rewardCurrency || "XOF") === currency
+  const claimedReward = visibleTasks.filter((task: any) => task.isCompleted).reduce(
+    (sum: number, task: any) => sum + ((task.claimedRewardCurrency || task.rewardCurrency || "USDT") === currency
       ? Number(task.claimedReward ?? task.reward) || 0
       : 0),
     0,
   ) || 0;
-  const currentInvites = tasks?.[0]?.currentInvites || 0;
+  const currentInvites = visibleTasks[0]?.currentInvites || 0;
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#000000" }}>
@@ -102,7 +107,7 @@ export default function RewardsPage() {
             </div>
           ) : (
             <div className="space-y-1.5">
-              {tasks?.map((task) => {
+              {visibleTasks.map((task) => {
                 const requiredInvites = task.isCompleted && task.claimedRequiredInvites != null
                   ? task.claimedRequiredInvites
                   : task.requiredInvites;
@@ -110,7 +115,7 @@ export default function RewardsPage() {
                   ? task.claimedReward
                   : task.reward;
                 const displayedCurrency = task.isCompleted
-                  ? task.claimedRewardCurrency || task.rewardCurrency || currency
+                  ? task.claimedRewardCurrency || task.rewardCurrency || "USDT"
                   : task.rewardCurrency || currency;
                 const displayedDescription = task.isCompleted && task.claimedDescription
                   ? task.claimedDescription

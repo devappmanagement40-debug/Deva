@@ -19,6 +19,7 @@ import {
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   interpolateSpinWheelRewards,
+  normalizeSpinWheelRulesText,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
@@ -124,7 +125,7 @@ function drawCoinStack(
   ctx.font = `bold ${Math.max(8, r * 0.88)}px serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("₣", x, y + r * 0.03);
+  ctx.fillText("₮", x, y + r * 0.03);
   ctx.restore();
 }
 
@@ -370,11 +371,11 @@ export default function SpinWheelPage() {
     selfPurchaseSpins,
     referralPurchaseSpins,
   ));
-  const rulesText = displayCurrencyText(interpolateSpinWheelRewards(
+  const rulesText = normalizeSpinWheelRulesText(displayCurrencyText(interpolateSpinWheelRewards(
     platformSettings?.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT,
     selfPurchaseSpins,
     referralPurchaseSpins,
-  ));
+  )));
   const rulesHighlight = displayCurrencyText(interpolateSpinWheelRewards(
     platformSettings?.spinWheelRulesHighlight ?? "",
     selfPurchaseSpins,

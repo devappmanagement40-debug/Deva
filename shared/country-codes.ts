@@ -5,7 +5,7 @@ export type CountryCode = string;
 export const SUPPORTED_MARKET_COUNTRY_CODES = ["CI", "TG"] as const;
 export type SupportedMarketCountryCode = (typeof SUPPORTED_MARKET_COUNTRY_CODES)[number];
 export type CustomerMarket = "legacy" | "international";
-export type MarketCurrency = "XOF" | "USDT";
+export type MarketCurrency = "USDT";
 
 const phoneCountryCodes = new Set<string>(getCountries());
 
@@ -21,12 +21,12 @@ export function isSupportedMarketCountryCode(
 }
 
 export function getCustomerMarket(countryCode: unknown): CustomerMarket {
-  // New account activity now uses one global USDT market. Country is still
-  // retained for identity and historical records, but no longer selects XOF.
+  // Country remains on the account for identity, but never selects a currency.
   void countryCode;
   return "international";
 }
 
 export function getMarketCurrency(market: CustomerMarket): MarketCurrency {
-  return market === "international" ? "USDT" : "XOF";
+  void market;
+  return "USDT";
 }

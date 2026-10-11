@@ -68,5 +68,5 @@ export function getPaymentMethodsForCountry(code: string, apiCountries: ApiCount
 }
 
 export function formatCurrency(amount: number, countryCode: string, apiCountries?: ApiCountry[]): string {
-  return `${amount.toLocaleString()} XOF`;
+  return `${amount.toLocaleString()} USDT`;
 }

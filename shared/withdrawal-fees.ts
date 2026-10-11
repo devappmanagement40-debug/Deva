@@ -75,12 +75,12 @@ export function convertXofWithdrawalLimitToUsdt(
     || !Number.isSafeInteger(xofPerUsdt)
     || xofPerUsdt <= 0
   ) {
-    throw new RangeError("Les limites XOF et le taux XOF/USDT doivent être des entiers positifs.");
+    throw new RangeError("Les limites et le paramètre de conversion doivent être des entiers positifs.");
   }
 
   const amountMicros = amountXof * USDT_WITHDRAWAL_SCALE;
   if (!Number.isSafeInteger(amountMicros)) {
-    throw new RangeError("La limite XOF dépasse la précision autorisée.");
+    throw new RangeError("La limite dépasse la précision autorisée.");
   }
   const convertedMicros = roundUp
     ? Math.ceil(amountMicros / xofPerUsdt)

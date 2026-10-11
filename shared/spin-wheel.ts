@@ -18,7 +18,11 @@ export const DEFAULT_SPIN_WHEEL_INVITE_TEXT =
 export const DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT = SPIN_WHEEL_REFERRAL_REWARD_TOKEN;
 
 export const DEFAULT_SPIN_WHEEL_RULES_TEXT =
-  `Chaque produit payant que vous achetez vous accorde automatiquement ${SPIN_WHEEL_SELF_REWARD_TOKEN}. Pour chaque produit payant acheté par un filleul direct inscrit grâce à votre lien, ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue.`;
+  `Chaque produit payant que vous achetez vous accorde automatiquement ${SPIN_WHEEL_SELF_REWARD_TOKEN}. Pour chaque produit payant acheté par un filleul direct inscrit grâce à votre lien, ${SPIN_WHEEL_REFERRAL_REWARD_TOKEN} sont crédités sur votre compte. Chaque tour permet un lancer unique de la roue. Les lots pouvant être remportés et leurs probabilités sont définis par la configuration actuelle de la roue. Les gains remportés sont crédités en USDT sur votre solde.`;
+
+export function normalizeSpinWheelRulesText(text: string): string {
+  return text.replace(/\b(?:XOF|FCFA)\b/gi, "USDT");
+}
 
 function spinRewardPhrase(value: number | string, fallback: number): string {
   const count = Number(value);

@@ -12,8 +12,6 @@ const BALANCE_CARD_STYLE = {
   background: "linear-gradient(135deg, #07113a 0%, #08285f 55%, #075486 100%)",
 } as const;
 type IncomeSummary = {
-  productEarnings: number;
-  teamEarnings: number;
   productEarningsUsdt: number;
   teamEarningsUsdt: number;
 };

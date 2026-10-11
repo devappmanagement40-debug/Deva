@@ -193,7 +193,9 @@ export default function AdminWithdrawalProofs() {
         </div>
       ) : (
         <div className="admin-proof-review__list">
-          {proofs.data.map((proof) => (
+          {proofs.data
+            .filter((proof) => Number(proof.shareBonusXof || 0) === 0 && Number(proof.displayAmountXof || 0) === 0)
+            .map((proof) => (
             <article className="admin-proof-card" key={proof.id} data-testid={`admin-withdrawal-proof-${proof.id}`}>
               <div className="admin-proof-card__header">
                 <div>
@@ -304,14 +306,8 @@ export default function AdminWithdrawalProofs() {
                   {proof.status === "approved" && Number(proof.shareBonusUsdt || 0) > 0 && (
                     <span>· Prime réellement créditée : <span data-no-static-translation>{Number(proof.shareBonusUsdt).toLocaleString(locale)} USDT</span></span>
                   )}
-                  {proof.status === "approved" && Number(proof.shareBonusUsdt || 0) === 0 && Number(proof.shareBonusXof || 0) > 0 && (
-                    <span>· Prime historique conservée : <span data-no-static-translation>{Number(proof.shareBonusXof).toLocaleString(locale)} XOF</span></span>
-                  )}
                   {proof.status === "approved" && Number(proof.displayAmountUsdt || 0) > 0 && (
                     <span>· Montant indicatif public : <span data-no-static-translation>{Number(proof.displayAmountUsdt).toLocaleString(locale)} USDT</span></span>
-                  )}
-                  {proof.status === "approved" && Number(proof.displayAmountUsdt || 0) === 0 && Number(proof.displayAmountXof || 0) > 0 && (
-                    <span>· Montant indicatif historique : <span data-no-static-translation>{Number(proof.displayAmountXof).toLocaleString(locale)} XOF</span></span>
                   )}
                   {proof.processedAt && (
                     <small>

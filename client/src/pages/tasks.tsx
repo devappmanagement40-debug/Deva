@@ -16,7 +16,7 @@ interface TaskWithStatus extends Task {
   claimedRequiredInvites: number | null;
   claimedReward: number | null;
   rewardCurrency?: "USDT";
-  claimedRewardCurrency?: "XOF" | "USDT";
+  claimedRewardCurrency?: string;
 }
 
 const REWARD_GREEN = "#08b83a";
@@ -59,7 +59,11 @@ export default function TasksPage() {
 
   if (!user) return null;
 
-  const taskList = tasks || [];
+  const taskList = (tasks || []).filter((task) =>
+    (task.isCompleted
+      ? task.claimedRewardCurrency || task.rewardCurrency || "USDT"
+      : task.rewardCurrency || "USDT") === "USDT"
+  );
 
   return (
     <main

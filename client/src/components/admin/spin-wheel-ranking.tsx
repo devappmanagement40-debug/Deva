@@ -125,7 +125,7 @@ export default function AdminSpinWheelRanking() {
             {!isVisible && <Badge variant="secondary">Masqué</Badge>}
           </div>
           <p className="text-sm text-muted-foreground">
-            {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} XOF
+            {Number.parseFloat(entry.amount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
             {" · "}
             {new Date(entry.createdAt).toLocaleString("fr-FR")}
           </p>

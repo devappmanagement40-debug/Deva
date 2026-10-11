@@ -14,3 +14,9 @@ Registration and login use the full authentication phone-country catalog, indepe
 **Why:** Country selection remains necessary for authentication and historical records, while products and the account currency are global.
 
 **How to apply:** Keep country metadata for account identity, but apply USDT units consistently to new balances, rewards, deposits, withdrawals, and the shared product catalog. Never silently convert or delete legacy balances, purchases, or transaction history.
+
+Archived historical XOF balances, transactions, reward claims, and related totals must stay stored but be hidden from member and admin web views. Current financial summaries must aggregate USDT-denominated fields and records only; do not relabel legacy amounts as USDT.
+
+**Why:** The user chose to hide historical XOF entries while keeping their underlying records archived, rather than converting or deleting them.
+
+**How to apply:** Filter archived rows from current screens and receipts, use USDT-specific balances and amounts for live totals, and preserve database records for audit or separately authorized manual handling.

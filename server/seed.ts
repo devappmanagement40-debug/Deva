@@ -7,6 +7,7 @@ import {
   DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT,
   DEFAULT_SPIN_WHEEL_INVITE_TEXT,
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
+  normalizeSpinWheelRulesText,
 } from "@shared/spin-wheel";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
 import { DEFAULT_WITHDRAWAL_FEE_PERCENT } from "@shared/withdrawal-fees";
@@ -940,6 +941,21 @@ export async function seed() {
         .set({ value: update.newValue })
         .where(eq(platformSettings.key, update.key));
       console.log(`Default setting updated: ${update.key}`);
+    }
+  }
+
+  const currentWheelRules = await db.select()
+    .from(platformSettings)
+    .where(eq(platformSettings.key, "spinWheelRulesText"))
+    .limit(1);
+  const currentWheelRulesText = currentWheelRules[0]?.value;
+  if (currentWheelRulesText) {
+    const normalizedWheelRulesText = normalizeSpinWheelRulesText(currentWheelRulesText);
+    if (normalizedWheelRulesText !== currentWheelRulesText) {
+      await db.update(platformSettings)
+        .set({ value: normalizedWheelRulesText })
+        .where(eq(platformSettings.key, "spinWheelRulesText"));
+      console.log("Legacy wheel-rule currency label normalized to USDT");
     }
   }
 

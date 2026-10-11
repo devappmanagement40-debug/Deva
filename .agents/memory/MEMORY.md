@@ -1,7 +1,7 @@
 - [DIAMANT brand identity](diamant-branding.md) — use DIAMANT across all interfaces; preserve existing data, colors, and stable API/payment identifiers.
 - [TGOOD partner section](tgood-partners.md) — preserve the existing partner presentation during brand cleanup.
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
-- [Global USDT currency migration](rdc-only-market.md) — one global USDT catalog, crypto-only deposits, BEP20 withdrawals, and manual per-account handling of legacy XOF balances.
+- [Global USDT currency migration](rdc-only-market.md) — one USDT catalog; keep legacy XOF archived but hidden in the site, with manual credits only.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
 - [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — withdrawals are USDT BEP20 only; the configured minimum is 0.50 USDT and the fee is 3%.
 - [Global USDT deposit policy](diamant-usdt-deposit-conversion.md) — remove Mobile Money deposits and automatic XOF/USDT conversion; accept crypto USDT deposits only.

@@ -49,6 +49,7 @@ export default function AdminCountries() {
     mutationFn: async (data: CountryForm) => {
       const payload = {
         ...data,
+        currency: "USDT",
         operators: JSON.stringify(
           data.operators.split(",").map(o => o.trim()).filter(Boolean)
         ),
@@ -152,8 +153,6 @@ export default function AdminCountries() {
 
       <div className="grid gap-3">
         {countriesList?.map((c) => {
-          let ops: string[] = [];
-          try { ops = JSON.parse(c.operators); } catch {}
           return (
             <Card key={c.id} data-testid={`card-country-${c.id}`}>
               <CardContent className="p-4">
@@ -162,21 +161,11 @@ export default function AdminCountries() {
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-base">{c.name}</span>
                       <Badge variant="outline" className="text-xs">{c.code}</Badge>
-                      <Badge variant="secondary" className="text-xs">{c.currency}</Badge>
-                       <Badge variant={c.autoPaymentEnabled ? "default" : "outline"} className="text-xs">
-                         {c.autoPaymentEnabled ? "Automatique" : t.adminManualPayment}
-                       </Badge>
+                      <Badge variant="secondary" className="text-xs">USDT</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-1">
                       {t.adminCountryPhoneDisplay}{c.phonePrefix}
                     </p>
-                    {ops.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {ops.map((op) => (
-                          <Badge key={op} variant="outline" className="text-xs font-normal">{op}</Badge>
-                        ))}
-                      </div>
-                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
@@ -222,17 +211,6 @@ export default function AdminCountries() {
                   data-testid="input-country-code"
                 />
               </div>
-              <div>
-                <Label>{t.adminCountryCurrencyLabel}</Label>
-                <Input
-                  value={form.currency}
-                  onChange={e => setForm({ ...form, currency: e.target.value.toUpperCase() })}
-                  placeholder="USDT"
-                  maxLength={5}
-                  required
-                  data-testid="input-country-currency"
-                />
-              </div>
             </div>
             <div>
               <Label>{t.adminCountryNameLabel}</Label>
@@ -254,16 +232,6 @@ export default function AdminCountries() {
                 data-testid="input-country-prefix"
               />
             </div>
-            <div>
-              <Label>{t.adminCountryOperatorsLabel}</Label>
-              <Input
-                value={form.operators}
-                onChange={e => setForm({ ...form, operators: e.target.value })}
-                placeholder="Airtel Money, Moov Money"
-                data-testid="input-country-operators"
-              />
-              <p className="text-xs text-muted-foreground mt-1">{t.adminCountryOperatorsHint}</p>
-            </div>
             <div className="flex items-center gap-2">
               <Switch
                 checked={form.isActive}
@@ -271,27 +239,6 @@ export default function AdminCountries() {
                 id="country-active"
               />
               <Label htmlFor="country-active">{t.adminCountryActiveLabel}</Label>
-            </div>
-            <div className="rounded-lg border p-3 space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <Label htmlFor="country-auto-payment">Mode de dépôt</Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Automatique = paiement Westpay. Manuel = canaux de recharge configurés.
-                  </p>
-                </div>
-                <Switch
-                  checked={form.autoPaymentEnabled}
-                  onCheckedChange={v => setForm({ ...form, autoPaymentEnabled: v })}
-                  id="country-auto-payment"
-                  data-testid="switch-country-auto-payment"
-                />
-              </div>
-              <p className="text-xs font-medium" style={{ color: form.autoPaymentEnabled ? "#15803d" : "#6b7280" }}>
-                {form.autoPaymentEnabled
-                  ? "Dépôt automatique activé — les canaux manuels seront masqués."
-                  : "Dépôt manuel activé — les canaux de recharge seront affichés."}
-              </p>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => { setDialogOpen(false); setEditingId(null); setForm(emptyForm); }}>

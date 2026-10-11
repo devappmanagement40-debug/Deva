@@ -337,8 +337,6 @@ export interface IStorage {
   getDailyBonusTransactions(userId: number): Promise<Pick<Transaction, "amount" | "createdAt">[]>;
   executeSpinWheel(userId: number, requestKey: string): Promise<SpinWheelExecutionResult>;
   getUserIncomeSummary(userId: number): Promise<{
-    productEarnings: number;
-    teamEarnings: number;
     productEarningsUsdt: number;
     teamEarningsUsdt: number;
   }>;
@@ -1508,6 +1506,7 @@ export class DatabaseStorage implements IStorage {
             .where(eq(products.id, current.productId));
           if (!currentProduct) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
           const originalProduct = current.productSnapshot ?? currentProduct;
+          if (current.productSnapshot?.currency?.toUpperCase() !== "USDT") return;
 
           const purchaseDate = new Date(current.purchaseDate);
           const lastEarning = current.lastEarningDate
@@ -1628,6 +1627,7 @@ export class DatabaseStorage implements IStorage {
             .where(eq(products.id, current.productId));
           if (!product) throw new Error(`Produit introuvable pour l'achat ${current.id}`);
           const originalProduct = current.productSnapshot ?? product;
+          if (current.productSnapshot?.currency?.toUpperCase() !== "USDT") return;
 
           const unpaidEarnings = Number(
             originalProduct.collectAtEnd ? current.totalEarned || "0" : current.pendingEarnings || "0",
@@ -2809,24 +2809,18 @@ export class DatabaseStorage implements IStorage {
   async getUserCommissions(userId: number): Promise<number> {
     const result = await db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
       .from(referralCommissions)
-      .where(eq(referralCommissions.userId, userId));
+      .where(and(
+        eq(referralCommissions.userId, userId),
+        eq(referralCommissions.currency, "USDT"),
+      ));
     return parseFloat(result[0]?.total || "0");
   }
 
   async getUserIncomeSummary(userId: number): Promise<{
-    productEarnings: number;
-    teamEarnings: number;
     productEarningsUsdt: number;
     teamEarningsUsdt: number;
   }> {
-    const [xofProductIncome, usdtProductIncome, xofTeamIncome, usdtTeamIncome] = await Promise.all([
-      db.select({ total: sql<string>`COALESCE(SUM(${transactions.amount}), 0)` })
-        .from(transactions)
-        .where(and(
-          eq(transactions.userId, userId),
-          eq(transactions.type, "earning"),
-          eq(transactions.currency, "XOF"),
-        )),
+    const [usdtProductIncome, usdtTeamIncome] = await Promise.all([
       db.select({ total: sql<string>`COALESCE(SUM(${transactions.amount}), 0)` })
         .from(transactions)
         .where(and(
@@ -2838,19 +2832,11 @@ export class DatabaseStorage implements IStorage {
         .from(referralCommissions)
         .where(and(
           eq(referralCommissions.userId, userId),
-          eq(referralCommissions.currency, "XOF"),
-        )),
-      db.select({ total: sql<string>`COALESCE(SUM(${referralCommissions.amount}), 0)` })
-        .from(referralCommissions)
-        .where(and(
-          eq(referralCommissions.userId, userId),
           eq(referralCommissions.currency, "USDT"),
         )),
     ]);
 
     return {
-      productEarnings: finiteAmount(xofProductIncome[0]?.total),
-      teamEarnings: finiteAmount(xofTeamIncome[0]?.total),
       productEarningsUsdt: finiteAmount(usdtProductIncome[0]?.total),
       teamEarningsUsdt: finiteAmount(usdtTeamIncome[0]?.total),
     };
@@ -2966,7 +2952,7 @@ export class DatabaseStorage implements IStorage {
             eq(userProducts.isActive, true),
           ))
           .limit(50);
-        if (activePositions.some((position) => (position.snapshotCurrency ?? position.currency) === "USDT")) count++;
+        if (activePositions.some((position) => position.snapshotCurrency?.toUpperCase() === "USDT")) count++;
       }
       return count;
     };
@@ -3066,7 +3052,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userProducts.userId, user.id));
       
       const usdtUserProducts = userProductsList
-        .filter((position) => (position.snapshotCurrency ?? position.currency) === "USDT")
+        .filter((position) => position.snapshotCurrency?.toUpperCase() === "USDT")
         .map((position) => ({
           productName: position.productName,
           productPrice: finiteAmount(position.snapshotPrice ?? position.productPrice),
@@ -3101,8 +3087,8 @@ export class DatabaseStorage implements IStorage {
         phone: user.phone,
         referralCode: user.referralCode,
         country: user.country,
-        balance: user.balance,
-        hasActiveProduct: user.hasActiveProduct,
+        balance: user.balanceUsdt,
+        hasActiveProduct: usdtUserProducts.some((position) => position.isActive),
         hasDeposited: usdtDeposit.length > 0,
         createdAt: user.createdAt,
         totalInvested,
@@ -3227,12 +3213,10 @@ export class DatabaseStorage implements IStorage {
         claimedName: claim?.taskNameSnapshot ?? null,
         claimedDescription: claim?.taskDescriptionSnapshot ?? null,
         claimedRequiredInvites: claim?.requiredInvitesSnapshot ?? null,
-        claimedReward: claim
-          ? claim.rewardCurrency === "USDT" && claim.rewardSnapshotUsdt
-            ? Number(claim.rewardSnapshotUsdt)
-            : claim.rewardSnapshot
+        claimedReward: claim?.rewardCurrency === "USDT" && claim.rewardSnapshotUsdt
+          ? Number(claim.rewardSnapshotUsdt)
           : null,
-        claimedRewardCurrency: claim?.rewardCurrency || "XOF",
+        claimedRewardCurrency: claim?.rewardCurrency === "USDT" ? "USDT" : undefined,
       };
     });
   }
@@ -3582,43 +3566,45 @@ export class DatabaseStorage implements IStorage {
     const [periodUsersResult] = await db.select({ count: sql<number>`count(*)` }).from(users)
       .where(and(gte(users.createdAt, filterStart), lte(users.createdAt, filterEnd)));
     
-    const [totalDepositsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
-      .from(deposits).where(and(eq(deposits.status, "approved"), gte(deposits.createdAt, statsResetDate)));
-    const [todayDepositsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
-      .from(deposits).where(and(eq(deposits.status, "approved"), gte(deposits.createdAt, today)));
-    const [periodDepositsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)` })
-      .from(deposits).where(and(eq(deposits.status, "approved"), gte(deposits.createdAt, filterStart), lte(deposits.createdAt, filterEnd)));
-    const [pendingDepositsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${deposits.amount}), 0)`, count: sql<number>`count(*)` })
-      .from(deposits).where(eq(deposits.status, "pending"));
+    const depositUsdtTotal = sql`COALESCE(SUM(COALESCE(${deposits.amountUsdt}, ${deposits.amount})), 0)`;
+    const [totalDepositsResult] = await db.select({ total: sql<string>`${depositUsdtTotal}` })
+      .from(deposits).where(and(eq(deposits.currency, "USDT"), eq(deposits.status, "approved"), gte(deposits.createdAt, statsResetDate)));
+    const [todayDepositsResult] = await db.select({ total: sql<string>`${depositUsdtTotal}` })
+      .from(deposits).where(and(eq(deposits.currency, "USDT"), eq(deposits.status, "approved"), gte(deposits.createdAt, today)));
+    const [periodDepositsResult] = await db.select({ total: sql<string>`${depositUsdtTotal}` })
+      .from(deposits).where(and(eq(deposits.currency, "USDT"), eq(deposits.status, "approved"), gte(deposits.createdAt, filterStart), lte(deposits.createdAt, filterEnd)));
+    const [pendingDepositsResult] = await db.select({ total: sql<string>`${depositUsdtTotal}`, count: sql<number>`count(*)` })
+      .from(deposits).where(and(eq(deposits.currency, "USDT"), eq(deposits.status, "pending")));
     
-    const [totalWithdrawalsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
-      .from(withdrawals).where(and(eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, statsResetDate)));
-    const [todayWithdrawalsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
-      .from(withdrawals).where(and(eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, today)));
-    const [periodWithdrawalsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)` })
-      .from(withdrawals).where(and(eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, filterStart), lte(withdrawals.createdAt, filterEnd)));
-    const [pendingWithdrawalsResult] = await db.select({ total: sql<string>`COALESCE(SUM(${withdrawals.amount}), 0)`, count: sql<number>`count(*)` })
-      .from(withdrawals).where(eq(withdrawals.status, "pending"));
+    const withdrawalUsdtTotal = sql`COALESCE(SUM(COALESCE(${withdrawals.amountUsdt}, ${withdrawals.amount})), 0)`;
+    const [totalWithdrawalsResult] = await db.select({ total: sql<string>`${withdrawalUsdtTotal}` })
+      .from(withdrawals).where(and(eq(withdrawals.currency, "USDT"), eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, statsResetDate)));
+    const [todayWithdrawalsResult] = await db.select({ total: sql<string>`${withdrawalUsdtTotal}` })
+      .from(withdrawals).where(and(eq(withdrawals.currency, "USDT"), eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, today)));
+    const [periodWithdrawalsResult] = await db.select({ total: sql<string>`${withdrawalUsdtTotal}` })
+      .from(withdrawals).where(and(eq(withdrawals.currency, "USDT"), eq(withdrawals.status, "approved"), gte(withdrawals.createdAt, filterStart), lte(withdrawals.createdAt, filterEnd)));
+    const [pendingWithdrawalsResult] = await db.select({ total: sql<string>`${withdrawalUsdtTotal}`, count: sql<number>`count(*)` })
+      .from(withdrawals).where(and(eq(withdrawals.currency, "USDT"), eq(withdrawals.status, "pending")));
     
     const [usersWithProductsResult] = await db.select({ count: sql<number>`count(DISTINCT ${userProducts.userId})` })
       .from(userProducts).where(and(eq(userProducts.isActive, true), gte(userProducts.purchaseDate, statsResetDate)));
     
     // Récupérer les valeurs baseline pour les compteurs cumulatifs
-    const baselineBalance = parseFloat(await this.getSetting("baselineTotalBalance") || "0");
-    const baselineEarnings = parseFloat(await this.getSetting("baselineTotalEarnings") || "0");
-    const baselineCommissions = parseFloat(await this.getSetting("baselineTotalCommissions") || "0");
+    const baselineBalance = parseFloat(await this.getSetting("baselineTotalBalanceUsdt") || "0");
+    const baselineEarnings = parseFloat(await this.getSetting("baselineTotalEarningsUsdt") || "0");
+    const baselineCommissions = parseFloat(await this.getSetting("baselineTotalCommissionsUsdt") || "0");
     
-    const [totalBalanceResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.balance} AS DECIMAL)), 0)` })
+    const [totalBalanceResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.balanceUsdt} AS DECIMAL)), 0)` })
       .from(users);
     
-    const [totalEarningsResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarnings} AS DECIMAL)), 0)` })
+    const [totalEarningsResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarningsUsdt} AS DECIMAL)), 0)` })
       .from(users);
     
     const [totalProductsResult] = await db.select({ count: sql<number>`count(*)` })
       .from(userProducts).where(and(eq(userProducts.isActive, true), gte(userProducts.purchaseDate, statsResetDate)));
     
-    const [totalCommissionsResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(amount AS DECIMAL)), 0)` })
-      .from(transactions).where(eq(transactions.type, "commission"));
+    const [totalCommissionsResult] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(COALESCE(${transactions.amountUsdt}, ${transactions.amount}) AS DECIMAL)), 0)` })
+      .from(transactions).where(and(eq(transactions.type, "commission"), eq(transactions.currency, "USDT")));
 
     // Soustraire les valeurs baseline pour obtenir les stats depuis la réinitialisation
     const adjustedBalance = Math.max(0, parseFloat(totalBalanceResult?.total || "0") - baselineBalance);
@@ -3656,13 +3642,13 @@ export class DatabaseStorage implements IStorage {
     await this.setSetting("statsResetDate", new Date().toISOString());
     
     // Stocker les valeurs baseline pour les compteurs cumulatifs (solde et gains)
-    const [currentBalance] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.balance} AS DECIMAL)), 0)` }).from(users);
-    const [currentEarnings] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarnings} AS DECIMAL)), 0)` }).from(users);
-    const [currentCommissions] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(amount AS DECIMAL)), 0)` }).from(transactions).where(eq(transactions.type, "commission"));
+    const [currentBalance] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.balanceUsdt} AS DECIMAL)), 0)` }).from(users);
+    const [currentEarnings] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(${users.totalEarningsUsdt} AS DECIMAL)), 0)` }).from(users);
+    const [currentCommissions] = await db.select({ total: sql<string>`COALESCE(SUM(CAST(COALESCE(${transactions.amountUsdt}, ${transactions.amount}) AS DECIMAL)), 0)` }).from(transactions).where(and(eq(transactions.type, "commission"), eq(transactions.currency, "USDT")));
     
-    await this.setSetting("baselineTotalBalance", currentBalance?.total || "0");
-    await this.setSetting("baselineTotalEarnings", currentEarnings?.total || "0");
-    await this.setSetting("baselineTotalCommissions", currentCommissions?.total || "0");
+    await this.setSetting("baselineTotalBalanceUsdt", currentBalance?.total || "0");
+    await this.setSetting("baselineTotalEarningsUsdt", currentEarnings?.total || "0");
+    await this.setSetting("baselineTotalCommissionsUsdt", currentCommissions?.total || "0");
   }
 
   // Gift Codes
@@ -3917,7 +3903,7 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUser(userId);
     if (!user) throw new Error("Utilisateur introuvable");
     if (parseFloat(user.balance) < sp.price) {
-      throw new Error(`Solde insuffisant. Il vous manque ${(sp.price - parseFloat(user.balance)).toLocaleString()} XOF`);
+      throw new Error("Solde insuffisant pour effectuer cet achat.");
     }
 
     // Check user has at least one active regular product

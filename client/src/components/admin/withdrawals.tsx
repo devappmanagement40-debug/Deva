@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 import { Check, X, Search, Loader2, ShieldCheck, HandCoins, Zap } from "lucide-react";
 import type { Withdrawal } from "@shared/schema";
 
@@ -62,7 +63,7 @@ export default function AdminWithdrawals() {
     },
   });
 
-  const withdrawals = allWithdrawals?.filter(w =>
+  const withdrawals = allWithdrawals?.filter(isUsdtRecord).filter(w =>
     statusFilter === "all" ? true : w.status === statusFilter
   );
 
@@ -241,19 +242,19 @@ export default function AdminWithdrawals() {
                   <div>
                     <p className="text-muted-foreground">{t.grossAmount}</p>
                     <p className="font-medium text-foreground">
-                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.amountUsdt : withdrawal.amount).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                      {Number(withdrawal.amountUsdt ?? withdrawal.amount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.netAmount}</p>
                     <p className="font-medium text-primary">
-                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.netAmountUsdt : withdrawal.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                      {Number(withdrawal.netAmountUsdt ?? withdrawal.netAmount).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                     </p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">{t.fees}</p>
                     <p className="font-medium text-foreground">
-                      {Number(withdrawal.currency?.toUpperCase() === "USDT" ? withdrawal.feesUsdt : withdrawal.fees).toLocaleString("fr-FR", { maximumFractionDigits: withdrawal.currency?.toUpperCase() === "USDT" ? 6 : 0 })} {withdrawal.currency || "XOF"}
+                      {Number(withdrawal.feesUsdt ?? withdrawal.fees).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT
                     </p>
                   </div>
                   <div>

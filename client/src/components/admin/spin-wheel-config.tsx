@@ -15,6 +15,7 @@ import {
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
   DEFAULT_SPIN_WHEEL_SEGMENTS,
   interpolateSpinWheelRewards,
+  normalizeSpinWheelRulesText,
   type SpinWheelSegment,
 } from "@shared/spin-wheel";
 import AdminSpinWheelRanking from "@/components/admin/spin-wheel-ranking";
@@ -74,7 +75,7 @@ function SegmentCard({
           {/* Amount */}
           <div>
             <label className="text-xs font-medium text-muted-foreground">
-              Montant crédité si gagné (XOF)
+              Montant crédité si gagné (USDT)
             </label>
             <Input
               type="number"
@@ -194,8 +195,8 @@ function PopupTextsEditor() {
     if (!settings || textDirty) return;
     setInviteText(settings.spinWheelInviteText ?? DEFAULT_SPIN_WHEEL_INVITE_TEXT);
     setInviteHighlight(settings.spinWheelInviteHighlight ?? DEFAULT_SPIN_WHEEL_INVITE_HIGHLIGHT);
-    setRulesText(settings.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT);
-    setRulesHighlight(settings.spinWheelRulesHighlight ?? "");
+    setRulesText(normalizeSpinWheelRulesText(settings.spinWheelRulesText ?? DEFAULT_SPIN_WHEEL_RULES_TEXT));
+    setRulesHighlight(normalizeSpinWheelRulesText(settings.spinWheelRulesHighlight ?? ""));
     setSelfPurchaseSpins(settings.spinWheelSelfPurchaseSpins ?? "1");
     setReferralPurchaseSpins(settings.spinWheelReferralPurchaseSpins ?? "1");
   // "textDirty" est intentionnellement absent : on veut relire le serveur
@@ -222,8 +223,8 @@ function PopupTextsEditor() {
       await apiRequest("POST", "/api/admin/settings", {
         spinWheelInviteText: inviteText,
         spinWheelInviteHighlight: inviteHighlight,
-        spinWheelRulesText: rulesText,
-        spinWheelRulesHighlight: rulesHighlight,
+        spinWheelRulesText: normalizeSpinWheelRulesText(rulesText),
+        spinWheelRulesHighlight: normalizeSpinWheelRulesText(rulesHighlight),
         spinWheelSelfPurchaseSpins: String(buyerSpins),
         spinWheelReferralPurchaseSpins: String(referredSpins),
       });
@@ -243,8 +244,8 @@ function PopupTextsEditor() {
 
   const previewInviteText = interpolateSpinWheelRewards(inviteText, selfPurchaseSpins, referralPurchaseSpins);
   const previewInviteHighlight = interpolateSpinWheelRewards(inviteHighlight, selfPurchaseSpins, referralPurchaseSpins);
-  const previewRulesText = interpolateSpinWheelRewards(rulesText, selfPurchaseSpins, referralPurchaseSpins);
-  const previewRulesHighlight = interpolateSpinWheelRewards(rulesHighlight, selfPurchaseSpins, referralPurchaseSpins);
+  const previewRulesText = normalizeSpinWheelRulesText(interpolateSpinWheelRewards(rulesText, selfPurchaseSpins, referralPurchaseSpins));
+  const previewRulesHighlight = normalizeSpinWheelRulesText(interpolateSpinWheelRewards(rulesHighlight, selfPurchaseSpins, referralPurchaseSpins));
 
   return (
     <Card className="border-2 border-primary/20">

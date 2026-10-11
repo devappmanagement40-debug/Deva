@@ -51,7 +51,7 @@ function isToday(dateStr: string): boolean {
   );
 }
 
-function formatXof(value: number): string {
+function formatUsdt(value: number): string {
   const amount = Number(value);
   return `USDT ${(Number.isFinite(amount) ? amount : 0).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -180,7 +180,7 @@ export default function MembersPage() {
             {isLoading ? "—" : `${activeCount}/${totalCount}`}
           </span>
           <span style={{ fontSize: 13, color: "#111", fontWeight: 600, textAlign: "right" }}>
-            {isLoading ? "—" : formatXof(totalCommission)}
+            {isLoading ? "—" : formatUsdt(totalCommission)}
           </span>
         </div>
 
@@ -194,7 +194,7 @@ export default function MembersPage() {
             {isLoading ? "—" : `${todayActiveCount}/${todayCount}`}
           </span>
           <span style={{ fontSize: 13, color: "#111", fontWeight: 600, textAlign: "right" }}>
-            {isLoading ? "—" : formatXof(todayCommission)}
+            {isLoading ? "—" : formatUsdt(todayCommission)}
           </span>
         </div>
       </div>
@@ -268,14 +268,14 @@ export default function MembersPage() {
                 style={{ borderRight: "1px solid #f0f0f0" }}
               >
                 <span style={{ fontSize: 11, color: "#333", fontWeight: 600, textAlign: "center" }}>
-                  {formatXof(member.totalInvested)}
+                  {formatUsdt(member.totalInvested)}
                 </span>
               </div>
 
               {/* Ma commission */}
               <div className="flex-1 flex items-center justify-center py-3 px-1">
                 <span style={{ fontSize: 11, fontWeight: 700, color: RED, textAlign: "center" }}>
-                  {formatXof(member.bonusFromMember || 0)}
+                  {formatUsdt(member.bonusFromMember || 0)}
                 </span>
               </div>
             </div>

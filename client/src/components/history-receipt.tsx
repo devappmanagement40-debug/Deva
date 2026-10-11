@@ -217,7 +217,7 @@ function DepositReceipt({ transaction, lang }: { transaction: ReceiptTransaction
               ? transaction.amountUsdt ?? transaction.amount
               : transaction.amount,
             locale,
-          )} ${transaction.currency || "XOF"}`}
+          )} ${transaction.currency || "USDT"}`}
         />
         <DepositReceiptField label={copy.method} value={method} />
         <DepositReceiptField label={copy.id} value={depositId} />
@@ -269,7 +269,7 @@ function WithdrawalReceipt({ transaction, lang }: { transaction: ReceiptTransact
   const copy = WITHDRAWAL_COPY[lang as keyof typeof WITHDRAWAL_COPY] ?? WITHDRAWAL_COPY.fr;
   const statusTitle = copy.status[normalizedStatus as keyof typeof copy.status] || `Retrait ${normalizedStatus || "en cours"}`;
   const statusBadgeClass = STATUS_BADGE_CLASSES[status.tone];
-  const currency = transaction.currency || "XOF";
+  const currency = transaction.currency || "USDT";
   const isUsdt = currency.toUpperCase() === "USDT";
   const amountValue = isUsdt ? transaction.amountUsdt ?? transaction.amount : transaction.amount;
   const netAmountValue = isUsdt ? transaction.netAmountUsdt ?? transaction.netAmount : transaction.netAmount;

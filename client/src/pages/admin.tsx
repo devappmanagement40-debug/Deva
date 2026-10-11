@@ -12,13 +12,11 @@ import AdminUsers from "@/components/admin/users";
 import AdminProducts from "@/components/admin/products";
 import AdminTasks from "@/components/admin/tasks";
 import AdminSettings from "@/components/admin/settings";
-import AdminPaymentNumbers from "@/components/admin/payment-numbers";
 import AdminGiftCodes from "@/components/admin/gift-codes";
 import AdminCountries from "@/components/admin/countries";
 import AdminContent from "@/components/admin/content";
 import AdminWheel from "@/components/admin/wheel";
 import AdminVipSettings from "@/components/admin/vip-settings";
-import AdminDepositChannels from "@/components/admin/deposit-channels";
 import AdminSpinWheelConfig from "@/components/admin/spin-wheel-config";
 import AdminBannerConfig from "@/components/admin/banner-config";
 import AdminShareReports from "@/components/admin/share-reports";
@@ -57,8 +55,6 @@ export default function AdminPage() {
               <TabsTrigger value="products" data-testid="tab-products">{t.adminTabProducts}</TabsTrigger>
               <TabsTrigger value="tasks" data-testid="tab-tasks">{t.adminTabTasks}</TabsTrigger>
               <TabsTrigger value="spin-wheel" data-testid="tab-spin-wheel">🎡 Roue</TabsTrigger>
-              <TabsTrigger value="deposit-channels" data-testid="tab-deposit-channels">Canaux dépôt</TabsTrigger>
-              <TabsTrigger value="payment-numbers" data-testid="tab-payment-numbers">{t.adminTabNumbers}</TabsTrigger>
               <TabsTrigger value="countries" data-testid="tab-countries">{t.adminTabCountries}</TabsTrigger>
               <TabsTrigger value="giftcodes" data-testid="tab-giftcodes">{t.adminTabGiftCodes}</TabsTrigger>
               <TabsTrigger value="settings" data-testid="tab-settings">{t.adminTabSettings}</TabsTrigger>
@@ -103,14 +99,6 @@ export default function AdminPage() {
 
           <TabsContent value="spin-wheel" className="mt-4">
             <AdminSpinWheelConfig />
-          </TabsContent>
-
-          <TabsContent value="deposit-channels" className="mt-4">
-            <AdminDepositChannels />
-          </TabsContent>
-
-          <TabsContent value="payment-numbers" className="mt-4">
-            <AdminPaymentNumbers />
           </TabsContent>
 
           <TabsContent value="countries" className="mt-4">

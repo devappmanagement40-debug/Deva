@@ -7,6 +7,7 @@ import {
   DEFAULT_SPIN_WHEEL_RULES_TEXT,
   formatSpinWheelRewardAmount,
   interpolateSpinWheelRewards,
+  normalizeSpinWheelRulesText,
   parseSpinWheelSegments,
 } from "./spin-wheel";
 
@@ -31,6 +32,14 @@ test("default invitation and rules copy both resolve to one spin per product", (
     assert.match(resolved, /1 tour/);
     assert.doesNotMatch(resolved, /\{\{(?:selfPurchaseReward|referralPurchaseReward)\}\}/);
   }
+  assert.match(DEFAULT_SPIN_WHEEL_RULES_TEXT, /crédités en USDT/);
+});
+
+test("wheel rules normalize legacy reward-currency wording to USDT", () => {
+  const legacyText = "Les gains remportés sont crédités en XOF sur votre solde.";
+  const normalized = normalizeSpinWheelRulesText(legacyText);
+  assert.equal(normalized, "Les gains remportés sont crédités en USDT sur votre solde.");
+  assert.doesNotMatch(normalized, /\b(?:XOF|FCFA)\b/i);
 });
 
 test("wheel prizes are displayed and stored as USDT without changing their amount", () => {

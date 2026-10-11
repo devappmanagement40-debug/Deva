@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
+import { isUsdtRecord } from "@/lib/usdt-records";
 import { Check, X, Ban, Search, Loader2, ImageIcon, MessageSquare } from "lucide-react";
 import type { Deposit } from "@shared/schema";
 
@@ -42,7 +43,7 @@ export default function AdminDeposits() {
     refetchInterval: 30000,
   });
 
-  const deposits = allDeposits?.filter(d =>
+  const deposits = allDeposits?.filter(isUsdtRecord).filter(d =>
     statusFilter === "all" ? true : d.status === statusFilter
   );
 
@@ -101,9 +102,9 @@ export default function AdminDeposits() {
     String(d.id).includes(filter)
   ) || [];
 
-  const pendingCount = allDeposits?.filter(d => d.status === "pending").length || 0;
-  const processingCount = allDeposits?.filter(d => d.status === "processing").length || 0;
-  const reviewCount = allDeposits?.filter(d => d.status === "review").length || 0;
+  const pendingCount = allDeposits?.filter(isUsdtRecord).filter(d => d.status === "pending").length || 0;
+  const processingCount = allDeposits?.filter(isUsdtRecord).filter(d => d.status === "processing").length || 0;
+  const reviewCount = allDeposits?.filter(isUsdtRecord).filter(d => d.status === "review").length || 0;
 
   return (
     <div className="space-y-4">
@@ -191,7 +192,7 @@ export default function AdminDeposits() {
                     <div>
                       <p className="text-muted-foreground text-xs">{t.amount}</p>
                       <p className="font-bold text-lg text-primary">
-                        {Number(deposit.currency?.toUpperCase() === "USDT" ? deposit.amountUsdt : deposit.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} {deposit.currency || "XOF"}
+                        {Number(deposit.amountUsdt ?? deposit.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT
                       </p>
                     </div>
                     <div>

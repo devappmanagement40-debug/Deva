@@ -12,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { rebrandText } from "@/lib/content";
-import { formatCurrency } from "@/lib/countries";
 import { Search, Edit, Ban, Shield, Lock, Unlock, Star, Users, Loader2, UserPlus, ChevronDown, ChevronUp, Trash2, ChevronLeft, ChevronRight, Landmark, Headphones } from "lucide-react";
 import type { User, Product } from "@shared/schema";
 
@@ -83,14 +82,14 @@ function TeamMemberCard({ member }: { member: TeamMember; level: number }) {
         </div>
         <div className="mt-2 pt-2 border-t">
           <p className="text-sm font-medium text-primary">
-            Total investi: {member.totalInvested.toLocaleString()} XOF
+            Total investi: {member.totalInvested.toLocaleString()} USDT
           </p>
           {member.products.length > 0 && (
             <div className="mt-1">
               <p className="text-xs text-muted-foreground">Produits:</p>
               {member.products.map((p, i) => (
                 <p key={i} className="text-xs">
-                  - {p.productName} ({p.productPrice.toLocaleString()} XOF)
+                  - {p.productName} ({p.productPrice.toLocaleString()} USDT)
                   {p.isActive ? " (actif)" : " (termine)"}
                 </p>
               ))}
@@ -115,10 +114,6 @@ interface UsersResponse {
 }
 
 interface LegacyCurrencySummary {
-  depositXof: string;
-  earningsXof: string;
-  todayEarningsXof: string;
-  unpaidProductEarningsXof: string;
   migratedAt: string | null;
   depositCreditUsdt: string | null;
   earningsCreditUsdt: string | null;
@@ -194,6 +189,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
     },
     enabled: !!selectedUser?.id,
   });
+  const visibleUserProducts = (userProducts || []).filter((product) => product.currency === "USDT");
 
   const { data: legacyCurrencySummary, isLoading: legacyCurrencyLoading } = useQuery<LegacyCurrencySummary>({
     queryKey: ["/api/admin/users", selectedUser?.id, "legacy-currency"],
@@ -256,7 +252,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users", selectedUser?.id, "legacy-currency"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users", selectedUser?.id, "products"] });
-      toast({ title: "Crédit manuel appliqué", description: "Les anciens champs XOF ont été archivés et les montants saisis ont été crédités en USDT." });
+      toast({ title: "Crédit manuel appliqué", description: "Les anciennes données ont été archivées et les montants saisis ont été crédités en USDT." });
       setManualDepositUsdt("");
       setManualEarningsUsdt("");
     },
@@ -409,7 +405,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <div className="grid grid-cols-3 gap-2 text-sm">
                   <div>
                     <p className="text-muted-foreground">Solde</p>
-                    <p className="font-medium text-foreground">{formatCurrency(parseFloat(user.balance), user.country)}</p>
+                    <p className="font-medium text-foreground">{Number(user.balanceUsdt || 0).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Equipe</p>
@@ -417,7 +413,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Commissions</p>
-                    <p className="font-medium text-primary">{formatCurrency(user.totalCommission, user.country)}</p>
+                    <p className="font-medium text-primary">{Number(user.totalCommission || 0).toLocaleString("fr-FR", { maximumFractionDigits: 8 })} USDT</p>
                   </div>
                 </div>
               </CardContent>
@@ -486,7 +482,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel1Invested.toLocaleString()} XOF
+                      {teamData.totalLevel1Invested.toLocaleString()} USDT
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 1</p>
                   </CardContent>
@@ -504,7 +500,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel2Invested.toLocaleString()} XOF
+                      {teamData.totalLevel2Invested.toLocaleString()} USDT
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 2</p>
                   </CardContent>
@@ -522,7 +518,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                 <Card className="mb-3">
                   <CardContent className="p-3 text-center">
                     <p className="text-lg font-bold text-primary">
-                      {teamData.totalLevel3Invested.toLocaleString()} XOF
+                      {teamData.totalLevel3Invested.toLocaleString()} USDT
                     </p>
                     <p className="text-xs text-muted-foreground">Total investi niveau 3</p>
                   </CardContent>
@@ -668,7 +664,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                   <div>
                     <p className="text-sm font-semibold">Anciens soldes — crédit manuel USDT</p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Aucun taux n’est appliqué. Après validation, les anciens soldes XOF et gains non payés des anciens placements seront remis à zéro, les achats resteront dans l’historique et ne généreront plus de gains.
+                      Aucun taux n’est appliqué. Les anciennes données sont conservées en archive ; les crédits USDT saisis ici sont appliqués séparément.
                     </p>
                   </div>
                   {legacyCurrencyLoading ? (
@@ -680,12 +676,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                     </div>
                   ) : legacyCurrencySummary ? (
                     <>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <p>Ancien solde dépôt : <strong>{Number(legacyCurrencySummary.depositXof).toLocaleString()} XOF</strong></p>
-                        <p>Ancien solde gains : <strong>{Number(legacyCurrencySummary.earningsXof).toLocaleString()} XOF</strong></p>
-                        <p>Gains du jour archivés : <strong>{Number(legacyCurrencySummary.todayEarningsXof).toLocaleString()} XOF</strong></p>
-                        <p>Gains non payés des achats : <strong>{Number(legacyCurrencySummary.unpaidProductEarningsXof).toLocaleString()} XOF</strong></p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">Les montants historiques restent masqués dans l’application et conservés en archive. Saisissez uniquement les crédits USDT décidés par compte.</p>
                       <label className="block text-xs font-medium" htmlFor="manual-deposit-credit">Crédit manuel sur le solde de dépôts</label>
                       <Input
                         id="manual-deposit-credit"
@@ -709,7 +700,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                         placeholder="Montant USDT décidé pour les anciens gains"
                       />
                       <p className="text-[11px] text-muted-foreground">
-                        Le crédit des gains doit inclure, selon votre décision, les gains non payés affichés ci-dessus. Saisissez 0 si aucun crédit n’est à faire.
+                        Aucun ancien gain n’est transféré automatiquement. Saisissez 0 si aucun crédit manuel n’est à faire.
                       </p>
                       <Button
                         type="button"
@@ -718,7 +709,7 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                         disabled={legacyCreditMutation.isPending || manualDepositUsdt === "" || manualEarningsUsdt === ""}
                         onClick={() => {
                           const confirmed = window.confirm(
-                            "Appliquer une seule fois ces montants manuels en USDT ? Les anciens soldes XOF et gains non payés seront remis à zéro sans taux de conversion. L’historique des achats sera conservé. Cette opération ne pourra pas être répétée.",
+                            "Appliquer une seule fois ces montants manuels en USDT ? Les données historiques seront conservées en archive, sans conversion automatique. L’historique des achats reste conservé. Cette opération ne pourra pas être répétée.",
                           );
                           if (confirmed) {
                             legacyCreditMutation.mutate({
@@ -788,13 +779,13 @@ export default function AdminUsers({ isSuperAdmin }: AdminUsersProps) {
                   <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
                     {userProductsLoading ? (
                       <p className="text-sm text-muted-foreground">Chargement...</p>
-                    ) : userProducts && userProducts.length > 0 ? (
-                      userProducts.map((up) => (
+                    ) : visibleUserProducts.length > 0 ? (
+                      visibleUserProducts.map((up) => (
                         <div key={up.id} className={`flex items-center justify-between p-2 rounded-lg ${up.isActive ? "bg-black/10 border border-gray-500/20" : "bg-secondary"}`}>
                           <div className="min-w-0">
                             <p className="text-sm font-medium break-words">{up.productName}</p>
                             <p className="text-xs text-muted-foreground">
-                              {up.productPrice.toLocaleString()} {up.currency || "XOF"} - Jour {up.daysClaimed}/{up.totalCycle}
+                              {up.productPrice.toLocaleString()} USDT - Jour {up.daysClaimed}/{up.totalCycle}
                               {up.isActive ? " (Actif)" : " (Termine)"}
                             </p>
                           </div>

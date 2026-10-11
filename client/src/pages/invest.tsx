@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { Image as ImageIcon, Loader2, AlertTriangle, Settings } from "lucide-react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/lib/i18n";
@@ -55,9 +54,8 @@ export default function InvestPage() {
 
   if (!user) return null;
 
-  const currency = getMarketCurrency(getCustomerMarket(user.country));
-  const rawBalance = currency === "USDT" ? user.balanceUsdt : user.balance;
-  const balance = parseFloat(rawBalance || "0");
+  const currency = "USDT";
+  const balance = parseFloat(user.balanceUsdt || "0");
   const paidProducts = products?.filter(p => !p.isFree) || [];
 
   return (

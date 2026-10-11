@@ -15,7 +15,6 @@ import { useAuth } from "@/lib/auth";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { LanguagePicker } from "@/components/language-picker";
 import { DiamantBrand } from "@/components/diamant-brand";
-import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { FloatingSupport } from "@/components/floating-support";
 import { FloatingCheckin } from "@/components/floating-checkin";
 import { FloatingWheel } from "@/components/floating-wheel";
@@ -30,8 +29,6 @@ import { HOME_BANNER_DEFAULT_IMAGES } from "@/lib/banner-defaults";
 import { parseBannerImages } from "@/lib/banner-images";
 
 type IncomeSummary = {
-  productEarnings?: number | string;
-  teamEarnings?: number | string;
   productEarningsUsdt?: number | string;
   teamEarningsUsdt?: number | string;
 };
@@ -304,13 +301,10 @@ function HomePage() {
     });
   }
 
-  const accountCurrency = getMarketCurrency(getCustomerMarket(user.country));
-  const isInternational = accountCurrency === "USDT";
-  const depositBalance = isInternational ? user.balanceUsdt : user.balance;
-  const earningsBalance = isInternational ? user.totalEarningsUsdt : user.totalEarnings;
-  const displayedProductIncome = isInternational
-    ? incomeSummary?.productEarningsUsdt
-    : incomeSummary?.productEarnings;
+  const accountCurrency = "USDT";
+  const depositBalance = user.balanceUsdt;
+  const earningsBalance = user.totalEarningsUsdt;
+  const displayedProductIncome = incomeSummary?.productEarningsUsdt;
   const balances = [
     { id: "deposit", label: copy.depositBalance, value: depositBalance },
     { id: "withdrawal", label: copy.withdrawalBalance, value: earningsBalance },

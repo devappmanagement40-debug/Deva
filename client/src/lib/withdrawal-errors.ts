@@ -54,13 +54,13 @@ export function getSafeWithdrawalErrorMessage(
   const attemptLimit = message.match(/^Trop de tentatives(?: de PIN)?\. Réessayez dans (\d+) minute\(s\)\.$/);
   if (attemptLimit) return `Trop de tentatives. Réessayez dans ${attemptLimit[1]} min.`;
 
-  const amountLimit = message.match(/^Montant (minimum|maximum)\s*:?\s*([\d\s\u00a0\u202f,.']+)\s*XOF$/);
+  const amountLimit = message.match(/^Montant (minimum|maximum)\s*:?\s*([\d\s\u00a0\u202f,.']+)\s*USDT$/);
   if (amountLimit) {
     const amount = Number(amountLimit[2].replace(/[^\d]/g, ""));
     if (Number.isSafeInteger(amount)) {
       return amountLimit[1] === "minimum"
-        ? `Le montant minimum de retrait est ${amount.toLocaleString("fr-FR")} XOF.`
-        : `Le montant dépasse le maximum autorisé de ${amount.toLocaleString("fr-FR")} XOF.`;
+        ? `Le montant minimum de retrait est ${amount.toLocaleString("fr-FR")} USDT.`
+        : `Le montant dépasse le maximum autorisé de ${amount.toLocaleString("fr-FR")} USDT.`;
     }
   }
 

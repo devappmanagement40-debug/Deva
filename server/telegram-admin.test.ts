@@ -262,10 +262,11 @@ test("formate les nouveaux dépôts avec tous les identifiants en gras", () => {
     country: "TG",
     reference: "040916977093",
     status: "pending",
+    currency: "USDT",
   });
 
   assert.match(message, /^<b>💳 Nouvelle demande de dépôt<\/b>\n<b>ID :<\/b> <b>194<\/b>\n<b>Utilisateur ID :<\/b> <b>534<\/b>\n/);
-  assert.match(message, /<b>Montant :<\/b> <b>.*XOF<\/b>\n<b>Méthode :<\/b> Moov Africa Togo\n<b>Pays :<\/b> TG\n<b>Référence :<\/b> <b>040916977093<\/b>\n<b>Statut :<\/b> <b>En attente<\/b>$/);
+  assert.match(message, /<b>Montant :<\/b> <b>.*USDT<\/b>\n<b>Méthode :<\/b> Moov Africa Togo\n<b>Pays :<\/b> TG\n<b>Référence :<\/b> <b>040916977093<\/b>\n<b>Statut :<\/b> <b>En attente<\/b>$/);
 });
 
 test("échappe et limite les champs saisis avant de les envoyer à Telegram", () => {

@@ -11,7 +11,6 @@ import { LanguagePicker } from "@/components/language-picker";
 import { FloatingSupport } from "@/components/floating-support";
 import { DiamantBrand } from "@/components/diamant-brand";
 import type { Product } from "@shared/schema";
-import { getCustomerMarket, getMarketCurrency } from "@shared/country-codes";
 import { normalizeProductType } from "@shared/product-categories";
 import { getProductImageUrl } from "@/lib/product-visuals";
 import { rebrandText } from "@/lib/content";
@@ -198,7 +197,7 @@ function formatMoney(value: number) {
     : "0.00";
 }
 
-function safeXofCents(value: number): number | null {
+function safeUsdtCents(value: number): number | null {
   try {
     return amountToXofCents(value);
   } catch {
@@ -268,18 +267,18 @@ export default function ProductsPage() {
 
   if (!user) return null;
 
-  const accountCurrency = getMarketCurrency(getCustomerMarket(user.country));
-  const rawDepositBalance = accountCurrency === "USDT" ? user.balanceUsdt : user.balance;
-  const rawEarningsBalance = accountCurrency === "USDT" ? user.totalEarningsUsdt : user.totalEarnings;
+  const accountCurrency = "USDT";
+  const rawDepositBalance = user.balanceUsdt;
+  const rawEarningsBalance = user.totalEarningsUsdt;
   const depositBalance = Number.isFinite(parseFloat(rawDepositBalance || "0")) ? parseFloat(rawDepositBalance || "0") : 0;
   const earningsBalance = Number.isFinite(parseFloat(rawEarningsBalance || "0")) ? parseFloat(rawEarningsBalance || "0") : 0;
-  const depositBalanceCents = safeXofCents(Math.max(0, depositBalance)) ?? 0;
-  const earningsBalanceCents = safeXofCents(Math.max(0, earningsBalance)) ?? 0;
+  const depositBalanceCents = safeUsdtCents(Math.max(0, depositBalance)) ?? 0;
+  const earningsBalanceCents = safeUsdtCents(Math.max(0, earningsBalance)) ?? 0;
   const availableBalanceCents = depositBalanceCents + earningsBalanceCents;
   const rawConfirmUnitPrice = Number(confirmProduct?.price);
   const confirmUnitPriceCentsValue = confirmProduct !== null &&
     Number.isFinite(rawConfirmUnitPrice) && rawConfirmUnitPrice >= 0
-    ? safeXofCents(rawConfirmUnitPrice)
+    ? safeUsdtCents(rawConfirmUnitPrice)
     : null;
   const confirmPriceIsValid = confirmUnitPriceCentsValue !== null;
   const confirmUnitPriceCents = confirmUnitPriceCentsValue ?? 0;

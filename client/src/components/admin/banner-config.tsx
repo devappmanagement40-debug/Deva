@@ -286,7 +286,9 @@ function SpecialProductsConfig() {
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{p.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Prix : {Number(p.price).toLocaleString()} XOF · Revenu/j : {Number(p.dailyEarnings).toLocaleString()} XOF
+                      {p.currency === "USDT"
+                        ? `Prix : ${Number(p.price).toLocaleString()} USDT · Revenu/j : ${Number(p.dailyEarnings).toLocaleString()} USDT`
+                        : "Valeurs historiques masquées"}
                     </p>
                   </div>
                   {isSelected && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}

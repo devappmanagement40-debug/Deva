@@ -796,7 +796,15 @@ export async function registerRoutes(
         });
       }
       res.json({
-        user: { ...user, password: undefined, transactionPassword: undefined, adminPin: undefined },
+        user: {
+          ...user,
+          balance: undefined,
+          totalEarnings: undefined,
+          todayEarnings: undefined,
+          password: undefined,
+          transactionPassword: undefined,
+          adminPin: undefined,
+        },
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -817,7 +825,15 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Non authentifié" });
       }
       res.json({
-        user: { ...user, password: undefined, transactionPassword: undefined, adminPin: undefined },
+        user: {
+          ...user,
+          balance: undefined,
+          totalEarnings: undefined,
+          todayEarnings: undefined,
+          password: undefined,
+          transactionPassword: undefined,
+          adminPin: undefined,
+        },
       });
     } catch (error: any) {
       console.error("Auth/me error:", error);
@@ -976,11 +992,14 @@ export async function registerRoutes(
       const market = getCustomerMarket(user.country);
       const marketCurrency = getMarketCurrency(market);
       const [products, allUserProducts] = await Promise.all([
-        storage.getProducts(),
+        storage.getProducts(market),
         storage.getAllUserProducts(userId),
       ]);
+      const currentMarketProducts = products.filter(
+        (product) => product.currency?.toUpperCase() === marketCurrency,
+      );
       const userProductsList = allUserProducts.filter(
-        ({ product }) => product.currency === marketCurrency,
+        ({ userProduct }) => userProduct.productSnapshot?.currency?.toUpperCase() === marketCurrency,
       );
       const userHasActiveStabilityProduct = ownsActiveStabilityProduct(userProductsList.map(({ userProduct, product }) => ({
         isActive: userProduct.isActive,
@@ -997,8 +1016,8 @@ export async function registerRoutes(
         }
       });
       
-      const productsWithOwnership = products.map((p) => {
-        const parcoursRank = getParcoursProductRank(p, products);
+      const productsWithOwnership = currentMarketProducts.map((p) => {
+        const parcoursRank = getParcoursProductRank(p, currentMarketProducts);
         const effectiveRequiredVipLevel = getEffectiveRequiredVipLevel(
           p.productType,
           p.requiredVipLevel,
@@ -1071,6 +1090,7 @@ export async function registerRoutes(
         userId,
         productName: quantity > 1 ? `${result.product.name} ×${quantity}` : result.product.name,
         amount: Number(result.totalAmount) || 0,
+        currency: "USDT",
       });
       res.json({
         ...result.purchases[0],
@@ -1089,7 +1109,8 @@ export async function registerRoutes(
       const userId = req.session.userId!;
       // Accrue complete 24-hour periods; Explore pays daily and other categories at cycle end.
       await storage.processEarningsForUser(userId);
-      const userProductsList = await storage.getAllUserProducts(userId);
+      const userProductsList = (await storage.getAllUserProducts(userId))
+        .filter((up) => up.userProduct.productSnapshot?.currency?.toUpperCase() === "USDT");
       
       const formattedProducts = userProductsList.map(up => {
         const isActive = up.userProduct.isActive && up.userProduct.daysRemaining > 0;
@@ -1595,6 +1616,8 @@ export async function registerRoutes(
         id: deposit.id,
         userId: deposit.userId,
         amount: amountUsdt,
+        amountUsdt: amountUsdt.toFixed(8),
+        currency: "USDT",
         country: deposit.country,
         paymentMethod: `NOWPayments · ${method.label} · crédit USDT`,
         reference: deposit.reference,
@@ -2009,6 +2032,8 @@ export async function registerRoutes(
           kind: "deposit_status",
           id: result.deposit.id,
           amount: result.deposit.amount,
+          amountUsdt: result.deposit.amountUsdt,
+          currency: result.deposit.currency,
           country: result.deposit.country,
           paymentMethod: result.deposit.paymentMethod,
           status: result.deposit.status,
@@ -2206,7 +2231,11 @@ export async function registerRoutes(
     try {
       const data = z.object({
         transactionId: z.string().trim().min(1, "L’identifiant de transaction est requis").max(180),
-        amount: z.number().int().positive().max(2_000_000_000),
+        amount: z.string()
+          .trim()
+          .regex(/^\d+(?:\.\d{1,8})?$/, "Saisissez un montant USDT valide avec 8 décimales au maximum.")
+          .transform(Number)
+          .refine((amount) => Number.isFinite(amount) && amount > 0 && amount <= 1_000_000, "Montant USDT invalide."),
         depositNumber: z.string().trim().min(1, "Le numéro de dépôt est requis").max(100),
         screenshot: z.string()
           .max(4_200_000)
@@ -2217,10 +2246,13 @@ export async function registerRoutes(
       if (!user) return res.status(401).json({ message: "Utilisateur introuvable" });
 
       const settings = await storage.getSettings();
-      const minDeposit = Number.parseInt(settings.minDeposit || String(DEFAULT_MIN_DEPOSIT_XOF), 10);
-      if (data.amount < minDeposit) {
+      const minDepositUsdt = Number(settings.minDepositUsdt ?? DEFAULT_MIN_DEPOSIT_USDT);
+      if (!Number.isFinite(minDepositUsdt) || minDepositUsdt <= 0) {
+        return res.status(500).json({ message: "Le minimum de dépôt USDT est mal configuré." });
+      }
+      if (data.amount < minDepositUsdt) {
         return res.status(400).json({
-          message: `Montant minimum : ${minDeposit.toLocaleString()} XOF`,
+          message: `Montant minimum : ${minDepositUsdt.toLocaleString("fr-FR")} USDT`,
         });
       }
 
@@ -2231,11 +2263,13 @@ export async function registerRoutes(
 
       const deposit = await storage.createDeposit({
         userId: user.id,
-        amount: data.amount,
+        amount: 0,
+        amountUsdt: data.amount.toFixed(8),
+        currency: "USDT",
         accountName: user.fullName || user.phone,
         accountNumber: user.phone,
         country: user.country,
-        paymentMethod: "Deposit issue",
+        paymentMethod: "USDT BEP20 · Signalement",
         channelName: data.depositNumber,
         screenshot: data.screenshot,
         reference: data.transactionId,
@@ -2245,7 +2279,9 @@ export async function registerRoutes(
         kind: "deposit_created",
         id: deposit.id,
         userId: deposit.userId,
-        amount: deposit.amount,
+        amount: data.amount,
+        amountUsdt: data.amount.toFixed(8),
+        currency: "USDT",
         country: deposit.country,
         paymentMethod: "Signalement de dépôt",
         reference: deposit.reference,
@@ -2554,6 +2590,7 @@ export async function registerRoutes(
       const deposit = await storage.getDeposit(depositId);
       if (!deposit) return res.status(404).json({ message: "Depot non trouve" });
       if (deposit.userId !== req.session.userId) return res.status(403).json({ message: "Acces refuse" });
+      if (deposit.currency?.toUpperCase() !== "USDT") return res.status(404).json({ message: "Dépôt introuvable." });
       return res.json({ status: deposit.status });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -2562,7 +2599,8 @@ export async function registerRoutes(
 
   app.get("/api/deposits/history", requireAuth, async (req, res) => {
     try {
-      const deposits = await storage.getUserDeposits(req.session.userId!);
+      const deposits = (await storage.getUserDeposits(req.session.userId!))
+        .filter((deposit) => deposit.currency?.toUpperCase() === "USDT");
       const publicDeposits = deposits.map((deposit) => {
         const {
           nowPaymentsStatus,
@@ -2589,11 +2627,14 @@ export async function registerRoutes(
   app.get("/api/history/all", requireAuth, async (req, res) => {
     try {
       const uid = req.session.userId!;
-      const [deposits, withdrawals, txs] = await Promise.all([
+      const [allDeposits, allWithdrawals, allTransactions] = await Promise.all([
         storage.getUserDeposits(uid),
         storage.getUserWithdrawals(uid),
         storage.getUserTransactions(uid),
       ]);
+      const deposits = allDeposits.filter((deposit) => deposit.currency?.toUpperCase() === "USDT");
+      const withdrawals = allWithdrawals.filter((withdrawal) => withdrawal.currency?.toUpperCase() === "USDT");
+      const txs = allTransactions.filter((transaction) => transaction.currency?.toUpperCase() === "USDT");
 
       const items: any[] = [
         ...deposits.map((d: any) => ({
@@ -2601,7 +2642,7 @@ export async function registerRoutes(
           category: "deposit",
           amount: d.currency?.toUpperCase() === "USDT" ? d.amountUsdt ?? d.amount : d.amount,
           amountUsdt: d.amountUsdt,
-          currency: d.currency || "XOF",
+          currency: "USDT",
           status: d.status,
           description: getDepositHistoryPaymentMethod(d),
           createdAt: d.createdAt,
@@ -2617,7 +2658,7 @@ export async function registerRoutes(
           category: "withdrawal",
           amount: w.currency?.toUpperCase() === "USDT" ? w.amountUsdt ?? "0" : w.amount,
           amountUsdt: w.amountUsdt,
-          currency: w.currency || "XOF",
+          currency: "USDT",
           status: w.status,
           description: w.paymentMethod || "Retrait",
           createdAt: w.createdAt,
@@ -2632,7 +2673,7 @@ export async function registerRoutes(
           category: t.type,
           amount: t.currency?.toUpperCase() === "USDT" ? t.amountUsdt ?? t.amount : t.amount,
           amountUsdt: t.amountUsdt,
-          currency: t.currency || "XOF",
+          currency: "USDT",
           status: "completed",
           description: t.description,
           createdAt: t.createdAt,
@@ -2892,7 +2933,8 @@ export async function registerRoutes(
 
   app.get("/api/withdrawals/history", requireAuth, async (req, res) => {
     try {
-      const withdrawals = await storage.getUserWithdrawals(req.session.userId!);
+      const withdrawals = (await storage.getUserWithdrawals(req.session.userId!))
+        .filter((withdrawal) => withdrawal.currency?.toUpperCase() === "USDT");
       const publicWithdrawals = withdrawals.map((withdrawal) => {
         const {
           nowPaymentsPayoutId,
@@ -3246,7 +3288,8 @@ export async function registerRoutes(
   // Transactions
   app.get("/api/transactions", requireAuth, async (req, res) => {
     try {
-      const transactions = await storage.getUserTransactions(req.session.userId!);
+      const transactions = (await storage.getUserTransactions(req.session.userId!))
+        .filter((transaction) => transaction.currency?.toUpperCase() === "USDT");
       res.json(transactions);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -3419,7 +3462,7 @@ export async function registerRoutes(
   app.get("/api/spin-wheel/history", requireAuth, async (req, res) => {
     try {
       const history = await storage.getUserTransactionsByType(req.session.userId!, "spin_reward");
-      res.json(history);
+      res.json(history.filter((transaction) => transaction.currency?.toUpperCase() === "USDT"));
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -3440,6 +3483,7 @@ export async function registerRoutes(
              FROM transactions t
              JOIN users u ON u.id = t.user_id
             WHERE t.type = 'spin_reward'
+              AND t.currency = 'USDT'
               AND t.amount > 0
               AND t.id <> ALL($1::int[])
             GROUP BY t.user_id, u.phone
@@ -3449,6 +3493,7 @@ export async function registerRoutes(
                   MIN(array_position($2::int[], t.id)) AS pin_order
              FROM transactions t
             WHERE t.type = 'spin_reward'
+              AND t.currency = 'USDT'
               AND t.amount > 0
               AND t.id = ANY($2::int[])
               AND t.id <> ALL($1::int[])
@@ -3490,7 +3535,8 @@ export async function registerRoutes(
   app.get("/api/admin/deposits", requireAdmin, async (req, res) => {
     try {
       const status = req.query.status as string || "pending";
-      const deposits = await storage.getDeposits(status === "pending" ? "pending" : undefined);
+      const deposits = (await storage.getDeposits(status === "pending" ? "pending" : undefined))
+        .filter((deposit) => deposit.currency?.toUpperCase() === "USDT");
       const filtered = status === "all" ? deposits : deposits.filter(d => d.status === status);
       res.json(filtered);
     } catch (error: any) {
@@ -3766,7 +3812,10 @@ export async function registerRoutes(
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable." });
 
-      const isCryptoProviderDeposit = existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments");
+      const normalizedMethod = existing.paymentMethod.trim().toLowerCase();
+      const isCryptoProviderDeposit =
+        normalizedMethod.startsWith("nowpayments")
+        || normalizedMethod.startsWith("usdt bep20 · signalement");
       const amountUsdt = String(existing.amountUsdt ?? "").trim();
       if (
         !isCryptoProviderDeposit ||
@@ -3802,6 +3851,8 @@ export async function registerRoutes(
         kind: "deposit_status",
         id: approval.deposit.id,
         amount: Number(approval.deposit.amountUsdt),
+        amountUsdt: approval.deposit.amountUsdt,
+        currency: "USDT",
         country: approval.deposit.country,
         paymentMethod: "Dépôt crypto USDT",
         status: approval.deposit.status,
@@ -3823,29 +3874,10 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
-        return res.status(400).json({
-          message: "Utilisez l’action de validation manuelle dédiée pour ce dépôt crypto.",
-        });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé et ne peut pas être validé ici." });
       }
-      if (!["pending", "processing"].includes(existing.status)) {
-        return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
-      }
-      const approval = await storage.approveManualDepositExactlyOnce(depositId, req.session.userId!);
-      if (!approval.deposit) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
-      const deposit = approval.deposit;
-
-      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé: ${deposit.amount} XOF`);
-      notifyAdminTelegram({
-        kind: "deposit_status",
-        id: deposit.id,
-        amount: deposit.amount,
-        country: deposit.country,
-        paymentMethod: deposit.paymentMethod,
-        status: deposit.status,
-      });
-      res.json(deposit);
+      return res.status(400).json({ message: "Utilisez l’action de validation crypto USDT avec vérification du hash." });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -3857,6 +3889,9 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
           message: "Les dépôts crypto sont traités dans leur parcours dédié.",
@@ -3982,7 +4017,8 @@ export async function registerRoutes(
   app.get("/api/admin/withdrawals", requireAdmin, async (req, res) => {
     try {
       const status = req.query.status as string || "pending";
-      const withdrawals = await storage.getWithdrawals(status === "pending" ? "pending" : undefined);
+      const withdrawals = (await storage.getWithdrawals(status === "pending" ? "pending" : undefined))
+        .filter((withdrawal) => withdrawal.currency?.toUpperCase() === "USDT");
       const filtered = status === "all" ? withdrawals : withdrawals.filter(w => w.status === status);
       res.json(filtered);
     } catch (error: any) {
@@ -4165,6 +4201,9 @@ export async function registerRoutes(
       if (!withdrawalData) {
         return res.status(404).json({ message: "Retrait non trouve" });
       }
+      if (withdrawalData.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (withdrawalData.status !== "pending") {
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
       }
@@ -4188,7 +4227,12 @@ export async function registerRoutes(
         processedBy: req.session.userId,
       });
 
-      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé: ${withdrawalData.netAmount} XOF`);
+      await storage.logAdminAction(
+        req.session.userId!,
+        "approve_withdrawal",
+        withdrawalData.userId,
+        `Retrait ${withdrawal.id} approuvé: ${withdrawalData.netAmountUsdt ?? withdrawalData.netAmount} USDT`,
+      );
       notifyAdminTelegram({
         kind: "withdrawal_status",
         id: withdrawal.id,
@@ -4215,6 +4259,9 @@ export async function registerRoutes(
       const withdrawals = await storage.getWithdrawals();
       const existing = withdrawals.find((item) => item.id === withdrawalId);
       if (!existing) return res.status(404).json({ message: "Retrait non trouvé" });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (existing.status !== "pending") {
         return res.status(409).json({ message: "Seul un retrait en attente peut être rejeté" });
       }
@@ -4260,6 +4307,9 @@ export async function registerRoutes(
         const teamStats = await storage.getTeamStatsSimple(user.id);
         return {
           ...user,
+          balance: undefined,
+          totalEarnings: undefined,
+          todayEarnings: undefined,
           password: undefined,
           transactionPassword: undefined,
           adminPin: undefined,
@@ -4348,7 +4398,7 @@ export async function registerRoutes(
       switch (action) {
         case "balance":
         case "total-earnings":
-          return res.status(410).json({ message: "Les ajustements en XOF sont désactivés. Utilisez les champs USDT." });
+          return res.status(410).json({ message: "Les anciens soldes sont archivés. Utilisez uniquement les champs USDT." });
         case "balance-usdt": {
           const amount = String(value ?? "").trim();
           if (!/^\d+(?:\.\d{1,8})?$/.test(amount) || !Number.isFinite(Number(amount)) || Number(amount) > 1_000_000_000) {
@@ -4503,7 +4553,11 @@ export async function registerRoutes(
 
   app.get("/api/admin/products/all", requireAdmin, async (req, res) => {
     try {
-      const allProducts = await storage.getAllProductsAdmin();
+      const allProducts = (await storage.getAllProductsAdmin()).filter(
+        (product) =>
+          product.market === "international" &&
+          product.currency?.toUpperCase() === "USDT",
+      );
       res.json(allProducts);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -4513,7 +4567,8 @@ export async function registerRoutes(
   app.get("/api/admin/users/:id/products", requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id as string);
-      const userProductsList = await storage.getAllUserProducts(userId);
+      const userProductsList = (await storage.getAllUserProducts(userId))
+        .filter(({ product }) => product.currency?.toUpperCase() === "USDT");
       res.json(userProductsList.map(up => ({
         id: up.userProduct.id,
         productId: up.userProduct.productId,
@@ -4539,7 +4594,12 @@ export async function registerRoutes(
       if (!Number.isSafeInteger(userId) || userId <= 0) {
         return res.status(400).json({ message: "Identifiant utilisateur invalide." });
       }
-      res.json(await storage.getLegacyCurrencySummary(userId));
+      const summary = await storage.getLegacyCurrencySummary(userId);
+      res.json({
+        migratedAt: summary.migratedAt,
+        depositCreditUsdt: summary.depositCreditUsdt,
+        earningsCreditUsdt: summary.earningsCreditUsdt,
+      });
     } catch (error: any) {
       res.status(404).json({ message: error.message || "Utilisateur introuvable." });
     }
@@ -4567,9 +4627,9 @@ export async function registerRoutes(
           req.session.userId!,
           "manual_legacy_usdt_credit",
           userId,
-          `Ancien dépôt ${summary.depositXof} XOF et gains ${summary.earningsXof} XOF; gains de placements non payés ${summary.unpaidProductEarningsXof} XOF; crédits saisis ${depositCreditUsdt} USDT dépôt et ${earningsCreditUsdt} USDT gains`,
+          `Crédit manuel USDT appliqué : ${depositCreditUsdt} USDT sur le solde de dépôts et ${earningsCreditUsdt} USDT sur le solde des gains`,
         );
-        res.json({ success: true, summary });
+        res.json({ success: true });
       } catch (error: any) {
         res.status(400).json({ message: error.message || "Le crédit manuel n’a pas pu être appliqué." });
       }
@@ -4578,7 +4638,8 @@ export async function registerRoutes(
 
   app.get("/api/admin/currency-migration/summary", requireAdmin, async (_req, res) => {
     try {
-      res.json(await storage.getLegacyProductClosureSummary());
+      const { activeCount } = await storage.getLegacyProductClosureSummary();
+      res.json({ activeCount });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -4600,65 +4661,19 @@ export async function registerRoutes(
           req.session.userId!,
           "close_legacy_purchased_products",
           null,
-          `${result.closedCount} ancien(s) achat(s) clôturé(s); historique conservé; gains XOF non payés conservés pour crédit manuel (${result.pendingXof} XOF)`,
+          `${result.closedCount} ancien(s) achat(s) clôturé(s); historique conservé; aucun ancien gain non confirmé n’a été payé automatiquement`,
         );
-        res.json({ success: true, ...result });
+        res.json({ success: true, closedCount: result.closedCount });
       } catch (error: any) {
         res.status(400).json({ message: error.message || "La clôture des achats a échoué." });
       }
     },
   );
 
-  app.post("/api/admin/products/:id/duplicate-international", requireAdmin, async (req, res) => {
-    try {
-      const sourceId = Number(req.params.id);
-      if (!Number.isSafeInteger(sourceId) || sourceId <= 0) {
-        return res.status(400).json({ message: "Identifiant de produit invalide." });
-      }
-      const source = await storage.getProduct(sourceId);
-      if (!source) return res.status(404).json({ message: "Produit introuvable." });
-      if (source.market !== "legacy") {
-        return res.status(400).json({ message: "Seuls les plans XOF peuvent être copiés vers le catalogue international." });
-      }
-
-      const existingPlans = await storage.getAllProductsAdmin();
-      const existingCopy = existingPlans.find(
-        (product) => product.market === "international" && product.sourceProductId === source.id,
-      );
-      if (existingCopy) return res.json({ product: existingCopy, alreadyExists: true });
-
-      const product = await storage.createProduct({
-        sourceProductId: source.id,
-        name: source.name,
-        productType: source.productType,
-        market: "international",
-        currency: "USDT",
-        price: "0",
-        dailyEarnings: "0",
-        cycleDays: source.cycleDays,
-        totalReturn: "0",
-        imageUrl: source.imageUrl,
-        cardColor: source.cardColor,
-        isFree: false,
-        isActive: false,
-        isUnavailable: true,
-        seriesId: source.seriesId,
-        minInviteCount: 0,
-        requiredVipLevel: source.requiredVipLevel,
-        maxOwned: source.maxOwned,
-        collectAtEnd: false,
-        stockPercentage: 0,
-      });
-      await storage.logAdminAction(
-        req.session.userId!,
-        "duplicate_product_international",
-        null,
-        `Plan international créé à partir du produit ${source.id}; prix et gains USDT à configurer`,
-      );
-      res.json({ product, alreadyExists: false });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
+  app.post("/api/admin/products/:id/duplicate-international", requireAdmin, async (_req, res) => {
+    return res.status(410).json({
+      message: "Le catalogue des produits est commun à tous les pays; cette duplication n’est plus disponible.",
+    });
   });
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
@@ -4963,7 +4978,8 @@ export async function registerRoutes(
             `SELECT id
                FROM transactions
               WHERE type = 'spin_reward'
-                AND amount > 0
+                AND currency = 'USDT'
+                AND COALESCE(amount_usdt, amount) > 0
                 AND id = ANY($1::int[])`,
             [configuredIds],
           )
@@ -4975,11 +4991,12 @@ export async function registerRoutes(
       let pinnedRows: SpinWheelRewardRow[] = [];
       if (pinnedTransactionIds.length > 0) {
         pinnedRows = (await pool.query<SpinWheelRewardRow>(
-          `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+          `SELECT t.id, u.phone, COALESCE(t.amount_usdt, t.amount) AS amount, t.description, t.created_at
              FROM transactions t
              JOIN users u ON u.id = t.user_id
             WHERE t.type = 'spin_reward'
-              AND t.amount > 0
+              AND t.currency = 'USDT'
+              AND COALESCE(t.amount_usdt, t.amount) > 0
               AND t.id = ANY($1::int[])`,
           [pinnedTransactionIds],
         )).rows;
@@ -4987,22 +5004,24 @@ export async function registerRoutes(
 
       const candidates = phoneDigits
         ? await pool.query<SpinWheelRewardRow>(
-            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+            `SELECT t.id, u.phone, COALESCE(t.amount_usdt, t.amount) AS amount, t.description, t.created_at
                FROM transactions t
                JOIN users u ON u.id = t.user_id
               WHERE t.type = 'spin_reward'
-                AND t.amount > 0
+                AND t.currency = 'USDT'
+                AND COALESCE(t.amount_usdt, t.amount) > 0
                 AND regexp_replace(COALESCE(u.phone, ''), '[^0-9]', '', 'g') LIKE $1
               ORDER BY t.created_at DESC
               LIMIT 30`,
             [`%${phoneDigits}%`],
           )
         : await pool.query<SpinWheelRewardRow>(
-            `SELECT t.id, u.phone, t.amount, t.description, t.created_at
+            `SELECT t.id, u.phone, COALESCE(t.amount_usdt, t.amount) AS amount, t.description, t.created_at
                FROM transactions t
                JOIN users u ON u.id = t.user_id
               WHERE t.type = 'spin_reward'
-                AND t.amount > 0
+                AND t.currency = 'USDT'
+                AND COALESCE(t.amount_usdt, t.amount) > 0
               ORDER BY t.created_at DESC
               LIMIT 30`,
           );
@@ -5177,7 +5196,7 @@ export async function registerRoutes(
         });
       }
       if (entries.some(([key]) => key === "xofPerUsdt")) {
-        return res.status(400).json({ message: "Le taux XOF/USDT est désactivé; saisissez les montants directement en USDT." });
+        return res.status(400).json({ message: "Saisissez les montants directement en USDT; cette option n’est pas disponible." });
       }
 
       // Validate all configurable spin rewards before saving any part of a
@@ -5757,7 +5776,8 @@ export async function registerRoutes(
 
   app.get("/api/banker/deposits", requireBanker, async (req, res) => {
     try {
-      const deposits = await storage.getDeposits();
+      const deposits = (await storage.getDeposits())
+        .filter((deposit) => deposit.currency?.toUpperCase() === "USDT");
       res.json(deposits);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -5766,7 +5786,8 @@ export async function registerRoutes(
 
   app.get("/api/banker/withdrawals", requireBanker, async (req, res) => {
     try {
-      const withdrawals = await storage.getWithdrawals();
+      const withdrawals = (await storage.getWithdrawals())
+        .filter((withdrawal) => withdrawal.currency?.toUpperCase() === "USDT");
       res.json(withdrawals);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -5778,28 +5799,10 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
-        return res.status(400).json({
-          message: "Les dépôts NOWPayments sont crédités uniquement après rapprochement IPN validé",
-        });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
       }
-      if (!["pending", "processing"].includes(existing.status)) {
-        return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
-      }
-      const approval = await storage.approveManualDepositExactlyOnce(depositId, req.session.userId!);
-      if (!approval.deposit) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité" });
-      const deposit = approval.deposit;
-      await storage.logAdminAction(req.session.userId!, "approve_deposit", deposit.userId, `Dépôt ${deposit.id} approuvé par bankier: ${deposit.amount} XOF`);
-      notifyAdminTelegram({
-        kind: "deposit_status",
-        id: deposit.id,
-        amount: deposit.amount,
-        country: deposit.country,
-        paymentMethod: deposit.paymentMethod,
-        status: deposit.status,
-      });
-      res.json(deposit);
+      return res.status(400).json({ message: "La vérification des dépôts crypto est réservée à l’administrateur." });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
@@ -5810,6 +5813,9 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
           message: "Les dépôts NOWPayments sont suivis automatiquement et ne peuvent pas être rejetés manuellement.",
@@ -5848,6 +5854,9 @@ export async function registerRoutes(
       const allWithdrawals = await storage.getWithdrawals();
       const withdrawalData = allWithdrawals.find(w => w.id === parseInt(req.params.id as string));
       if (!withdrawalData) return res.status(404).json({ message: "Retrait non trouvé" });
+      if (withdrawalData.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (withdrawalData.currency?.toUpperCase() === "USDT") {
         return res.status(400).json({ message: "Les retraits internationaux USDT doivent être envoyés par NOWPayments." });
       }
@@ -5859,7 +5868,12 @@ export async function registerRoutes(
         processedAt: new Date(),
         processedBy: req.session.userId,
       });
-      await storage.logAdminAction(req.session.userId!, "approve_withdrawal", withdrawalData.userId, `Retrait ${withdrawal.id} approuvé par bankier: ${withdrawalData.netAmount} XOF`);
+       await storage.logAdminAction(
+         req.session.userId!,
+         "approve_withdrawal",
+         withdrawalData.userId,
+         `Retrait ${withdrawal.id} approuvé par bankier: ${withdrawalData.netAmountUsdt ?? withdrawalData.netAmount} USDT`,
+       );
       notifyAdminTelegram({
         kind: "withdrawal_status",
         id: withdrawal.id,
@@ -5886,6 +5900,9 @@ export async function registerRoutes(
       const allWithdrawals = await storage.getWithdrawals();
       const existing = allWithdrawals.find((item) => item.id === withdrawalId);
       if (!existing) return res.status(404).json({ message: "Retrait non trouvé" });
+      if (existing.currency?.toUpperCase() !== "USDT") {
+        return res.status(410).json({ message: "Cet ancien dossier est archivé." });
+      }
       if (existing.status !== "pending") {
         return res.status(409).json({ message: "Seul un retrait en attente peut être rejeté" });
       }
