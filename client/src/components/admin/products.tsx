@@ -36,18 +36,26 @@ const productSchema = z.object({
     "Choisis une couleur valide",
   ),
   requiredVipLevel: z.string(),
+  requiredInvestmentUsdt: z.string(),
   maxOwned: z.string().optional(),
   stockPercentage: z.number().min(0).max(100).optional(),
 }).superRefine((data, context) => {
   const requiredVipLevel = Number.parseInt(data.requiredVipLevel, 10);
   if (
     data.productType === "wellness" &&
-    (!Number.isInteger(requiredVipLevel) || requiredVipLevel < 1 || requiredVipLevel > MAX_VIP_LEVEL)
+    (!Number.isInteger(requiredVipLevel) || requiredVipLevel < 0 || requiredVipLevel > MAX_VIP_LEVEL)
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["requiredVipLevel"],
-      message: "Un produit Parcours doit exiger au minimum le niveau VIP 1.",
+      message: "Choisis un niveau VIP valide entre 0 et 7.",
+    });
+  }
+  if (!/^\d+(?:\.\d{1,2})?$/.test(data.requiredInvestmentUsdt.trim())) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["requiredInvestmentUsdt"],
+      message: "Saisis un montant USDT valide avec deux décimales maximum.",
     });
   }
 });
@@ -131,10 +139,11 @@ interface ProductFormFieldsProps {
   isPending: boolean;
   submitLabel: string;
   currency: "XOF" | "USDT";
+  isFirstParcoursProduct: boolean;
   onSubmit: (data: ProductForm) => void;
 }
 
-function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }: ProductFormFieldsProps) {
+function ProductFormFields({ form, isPending, submitLabel, currency, isFirstParcoursProduct, onSubmit }: ProductFormFieldsProps) {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       {/* Name */}
@@ -155,9 +164,9 @@ function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }:
               const currentRequiredLevel = Number.parseInt(form.getValues("requiredVipLevel"), 10);
               if (
                 value === "wellness" &&
-                (!Number.isInteger(currentRequiredLevel) || currentRequiredLevel < 1)
+                (!Number.isInteger(currentRequiredLevel) || currentRequiredLevel < (isFirstParcoursProduct ? 0 : 1))
               ) {
-                form.setValue("requiredVipLevel", "1", { shouldDirty: true, shouldValidate: true });
+                form.setValue("requiredVipLevel", isFirstParcoursProduct ? "0" : "1", { shouldDirty: true, shouldValidate: true });
               }
             }}
             value={field.value}
@@ -230,25 +239,48 @@ function ProductFormFields({ form, isPending, submitLabel, currency, onSubmit }:
           )} />
         </div>
         {form.watch("productType") === "wellness" && (
-          <FormField control={form.control} name="requiredVipLevel" render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-xs">Niveau VIP minimum requis</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger><SelectValue placeholder="Choisir le niveau requis" /></SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Array.from({ length: MAX_VIP_LEVEL }, (_, index) => index + 1).map((level) => (
-                    <SelectItem key={level} value={String(level)}>VIP {level}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <>
+            <FormField control={form.control} name="requiredInvestmentUsdt" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Investissement personnel cumulé minimum</FormLabel>
+                <div className="flex items-center gap-2">
+                  <FormControl><Input {...field} type="number" min="0" step="0.01" placeholder="0.00" /></FormControl>
+                  <span className="text-xs text-muted-foreground">USDT</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground">
+                  Total des achats personnels payants confirmés dans Explore, Parcours et Offres. Les produits gratuits, attribués par l’administration et les achats de filleuls ne comptent pas.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )} />
+            {isFirstParcoursProduct ? (
               <p className="text-[10px] text-muted-foreground">
-                Tous les produits Parcours, y compris le premier, exigent au minimum VIP 1. Configurez le seuil USDT dans les paramètres VIP puis choisissez le niveau minimum du produit. La barre du compte suit les achats personnels payants en USDT. Les cartes publiques n’affichent pas le niveau requis.
+                Le premier produit Parcours ne demande pas de rang VIP préalable et attribue VIP 1 après l’achat. Son montant d’investissement reste configurable ci-dessus.
               </p>
-              <FormMessage />
-            </FormItem>
-          )} />
+            ) : (
+              <FormField control={form.control} name="requiredVipLevel" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs">Niveau VIP minimum requis</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Choisir le niveau requis" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Array.from({ length: MAX_VIP_LEVEL + 1 }, (_, level) => (
+                        <SelectItem key={level} value={String(level)}>
+                          {level === 0 ? "Aucun niveau supplémentaire" : `VIP ${level}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground">
+                    Le rang attribué suit l’ordre des produits Parcours actifs. Chaque produit suivant exige automatiquement le rang précédent; ce réglage peut imposer un niveau supérieur. Les cartes publiques n’affichent pas ces montants.
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            )}
+          </>
         )}
       </div>
 
@@ -324,13 +356,22 @@ export default function AdminProducts() {
     queryKey: ["/api/admin/products/all"],
   });
   const visibleProducts = products || [];
+  const activeParcoursProducts = visibleProducts
+    .filter((product) =>
+      product.isActive &&
+      !product.isFree &&
+      product.currency.toUpperCase() === "USDT" &&
+      normalizeProductType(product.productType) === "wellness",
+    )
+    .sort((left, right) => left.sortOrder - right.sortOrder || left.id - right.id);
+  const isFirstParcoursForCreate = activeParcoursProducts.length === 0;
   const { data: legacyPositionSummary } = useQuery<{ activeCount: number; pendingXof: number }>({
     queryKey: ["/api/admin/currency-migration/summary"],
   });
 
   const defaultValues: ProductForm = {
     name: "", productType: "stability", price: "", dailyEarnings: "", cycleDays: String(DEFAULT_EXPLORE_CYCLE_DAYS),
-    imageUrl: "", cardColor: "", requiredVipLevel: "0", maxOwned: "0", stockPercentage: 0,
+    imageUrl: "", cardColor: "", requiredVipLevel: "0", requiredInvestmentUsdt: "0.00", maxOwned: "0", stockPercentage: 0,
   };
 
   const editForm = useForm<ProductForm>({ resolver: zodResolver(productSchema), defaultValues });
@@ -370,6 +411,7 @@ export default function AdminProducts() {
         imageUrl: data.imageUrl || null,
         cardColor: data.cardColor || null,
         requiredVipLevel: Number.parseInt(data.requiredVipLevel, 10),
+        requiredInvestmentUsdt: data.requiredInvestmentUsdt,
         maxOwned: parseInt(data.maxOwned || "0") || 0,
         stockPercentage: Math.min(100, Math.max(0, data.stockPercentage ?? 0)),
       };
@@ -460,7 +502,8 @@ export default function AdminProducts() {
       cycleDays: product.cycleDays.toString(),
       imageUrl: product.imageUrl || "",
       cardColor: product.cardColor || "",
-      requiredVipLevel: String(product.requiredVipLevel ?? 0),
+      requiredVipLevel: activeParcoursProducts[0]?.id === product.id ? "0" : String(product.requiredVipLevel ?? 0),
+      requiredInvestmentUsdt: String(product.requiredInvestmentUsdt ?? "0.00"),
       maxOwned: String(product.maxOwned ?? 0),
       stockPercentage: product.stockPercentage ?? 0,
     });
@@ -635,6 +678,7 @@ export default function AdminProducts() {
               isPending={createMutation.isPending}
               submitLabel="Créer"
               currency="USDT"
+              isFirstParcoursProduct={isFirstParcoursForCreate}
               onSubmit={(d) => createMutation.mutate(d)}
             />
           </Form>
@@ -651,6 +695,7 @@ export default function AdminProducts() {
               isPending={updateMutation.isPending}
               submitLabel="Enregistrer"
               currency="USDT"
+              isFirstParcoursProduct={activeParcoursProducts[0]?.id === selectedProduct?.id}
               onSubmit={(d) => { if (selectedProduct) updateMutation.mutate({ id: selectedProduct.id, data: d }); }}
             />
           </Form>

@@ -11,74 +11,92 @@ export interface VipLevelConfig {
   minInvestment: number | null;
 }
 
-/** Seuils d’investissement configurables depuis le panel administrateur. */
+/** Les rangs sont attribués par les produits Parcours, dans l’ordre du catalogue. */
 export const DEFAULT_VIP_CONFIGS: VipLevelConfig[] = [
   {
     level: 0, label: "VIP 0",
-    description: "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1.",
+    description: "Aucun achat Parcours n’a encore attribué de rang VIP.",
     advantages: "Les produits Explore restent disponibles selon leurs conditions.",
     minInvestment: null,
   },
   {
     level: 1, label: "VIP 1",
-    description: "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint.",
-    advantages: "Rang d'entrée pour l'accès aux produits Parcours.",
+    description: "Rang attribué après l’achat du premier produit Parcours.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 2, label: "VIP 2",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang attribué par le deuxième produit Parcours dans l’ordre du catalogue.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 3, label: "VIP 3",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang attribué par le troisième produit Parcours dans l’ordre du catalogue.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 4, label: "VIP 4",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang attribué par le quatrième produit Parcours dans l’ordre du catalogue.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 5, label: "VIP 5",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang attribué par le cinquième produit Parcours dans l’ordre du catalogue.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 6, label: "VIP 6",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang attribué par le sixième produit Parcours dans l’ordre du catalogue.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
   {
     level: 7, label: "VIP 7",
-    description: "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
-    advantages: "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+    description: "Rang maximal attribué par la progression des produits Parcours.",
+    advantages: "Accès aux produits Parcours selon les conditions de chaque fiche.",
     minInvestment: null,
   },
 ];
 
-/** Fusionne les libellés et les seuils d’investissement administrables. */
+const LEGACY_DESCRIPTION_TEXTS = new Set([
+  "Membre dont l’investissement personnel cumulé n’a pas encore atteint le seuil configuré pour VIP 1.",
+  "Seuil d’investissement personnel cumulé configuré pour VIP 1 atteint.",
+  "Seuil d'investissement personnel cumulé sur l’ensemble des produits payants atteint.",
+  "Seuil d'investissement personnel cumulé dans Parcours atteint.",
+]);
+
+const LEGACY_ADVANTAGE_TEXTS = new Set([
+  "Rang d'entrée pour l'accès aux produits Parcours.",
+  "Accès aux produits Parcours dont le niveau VIP requis est atteint.",
+]);
+
+/** Fusionne les libellés et les textes administrables sans relire les anciens seuils VIP. */
 export function mergeAdminVipConfig(
   defaults: VipLevelConfig[],
   settings: Record<string, string>,
 ): VipLevelConfig[] {
   return defaults.map((cfg) => {
-    const rawThreshold = settings[`vip${cfg.level}MinInvestmentUsdt`];
-    const parsedThreshold = rawThreshold?.trim() ? Number(rawThreshold) : null;
+    const savedDescription = settings[`vip${cfg.level}Description`];
+    const savedAdvantages = settings[`vip${cfg.level}Advantages`];
     return {
       ...cfg,
       label:         settings[`vip${cfg.level}Label`]       || cfg.label,
-      description:   displayCurrencyText(settings[`vip${cfg.level}Description`] || cfg.description),
-      advantages:    displayCurrencyText(settings[`vip${cfg.level}Advantages`]  || cfg.advantages),
-      minInvestment: Number.isSafeInteger(parsedThreshold) && Number(parsedThreshold) > 0
-        ? Number(parsedThreshold)
-        : null,
+      description:   displayCurrencyText(
+        savedDescription && !LEGACY_DESCRIPTION_TEXTS.has(savedDescription)
+          ? savedDescription
+          : cfg.description,
+      ),
+      advantages:    displayCurrencyText(
+        savedAdvantages && !LEGACY_ADVANTAGE_TEXTS.has(savedAdvantages)
+          ? savedAdvantages
+          : cfg.advantages,
+      ),
+      minInvestment: null,
     };
   });
 }

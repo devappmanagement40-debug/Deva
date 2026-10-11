@@ -1,60 +1,60 @@
-import assert from "node:assert/strict";
 import test from "node:test";
-import { getParcoursVipFaqRows, getVipThresholdFaqRows } from "./rules-faq";
+import assert from "node:assert/strict";
+import { getParcoursVipFaqRows } from "./rules-faq";
 
-test("FAQ VIP thresholds reflect the current admin settings", () => {
-  const before = getVipThresholdFaqRows({
-    vip1MinInvestmentUsdt: "20",
-    vip2MinInvestmentUsdt: "50",
-  });
-  assert.equal(before.length, 7);
-  assert.deepEqual(before.slice(0, 3), [
-    { level: 1, thresholdUsdt: 20 },
-    { level: 2, thresholdUsdt: 50 },
-    { level: 3, thresholdUsdt: null },
-  ]);
-
-  const after = getVipThresholdFaqRows({
-    vip1MinInvestmentUsdt: "25",
-    vip2MinInvestmentUsdt: "75",
-  });
-  assert.equal(after[0].thresholdUsdt, 25);
-  assert.equal(after[1].thresholdUsdt, 75);
+const parcours = (overrides: Record<string, unknown> = {}) => ({
+  id: 1,
+  name: "Parcours 1",
+  productType: "wellness",
+  currency: "USDT",
+  isFree: false,
+  isActive: true,
+  isUnavailable: false,
+  requiredVipLevel: 0,
+  requiredInvestmentUsdt: "20.00",
+  sortOrder: 10,
+  ...overrides,
 });
 
-test("FAQ Parcours conditions follow each active USDT product and its current VIP requirement", () => {
-  const products = [
-    {
-      id: 2, name: "Parcours B", productType: "wellness", currency: "USDT",
-      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 2, sortOrder: 2,
-    },
-    {
-      id: 1, name: "Parcours A", productType: "wellness", currency: "USDT",
-      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 0, sortOrder: 1,
-    },
-    {
-      id: 3, name: "Old XOF", productType: "wellness", currency: "XOF",
-      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 1, sortOrder: 0,
-    },
-    {
-      id: 4, name: "Explore", productType: "stability", currency: "USDT",
-      isFree: false, isActive: true, isUnavailable: false, requiredVipLevel: 0, sortOrder: 0,
-    },
-  ];
-  const rows = getParcoursVipFaqRows(products, {
-    vip1MinInvestmentUsdt: "20",
-    vip2MinInvestmentUsdt: "50",
-  });
-
-  assert.deepEqual(rows, [
-    { id: 1, name: "Parcours A", requiredVipLevel: 1, thresholdUsdt: 20, unavailable: false },
-    { id: 2, name: "Parcours B", requiredVipLevel: 2, thresholdUsdt: 50, unavailable: false },
+test("FAQ lists per-product investment amounts, access levels, and awarded ranks in catalog order", () => {
+  const rows = getParcoursVipFaqRows([
+    parcours({
+      id: 2,
+      name: "Parcours 2",
+      sortOrder: 20,
+      requiredInvestmentUsdt: "50.00",
+      requiredVipLevel: 0,
+    }),
+    parcours(),
   ]);
 
-  const changed = getParcoursVipFaqRows(
-    [{ ...products[1], requiredVipLevel: 2 }],
-    { vip2MinInvestmentUsdt: "75" },
-  );
-  assert.equal(changed[0].requiredVipLevel, 2);
-  assert.equal(changed[0].thresholdUsdt, 75);
+  assert.deepEqual(rows, [
+    {
+      id: 1,
+      name: "Parcours 1",
+      requiredVipLevel: 0,
+      requiredInvestmentUsdt: 20,
+      awardedVipLevel: 1,
+      unavailable: false,
+    },
+    {
+      id: 2,
+      name: "Parcours 2",
+      requiredVipLevel: 1,
+      requiredInvestmentUsdt: 50,
+      awardedVipLevel: 2,
+      unavailable: false,
+    },
+  ]);
+});
+
+test("FAQ excludes inactive, free, non-USDT, and non-Parcours products", () => {
+  const rows = getParcoursVipFaqRows([
+    parcours({ id: 2, isActive: false }),
+    parcours({ id: 3, isFree: true }),
+    parcours({ id: 4, currency: "XOF" }),
+    parcours({ id: 5, productType: "stability" }),
+  ]);
+
+  assert.deepEqual(rows, []);
 });

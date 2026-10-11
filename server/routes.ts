@@ -13,7 +13,14 @@ import { PRODUCT_MARKETS, PRODUCT_TYPES, registerSchema, loginSchema, type Payme
 import { getInternationalCryptoMethod } from "@shared/international-crypto";
 import { normalizeProductType, ownsActiveStabilityProduct } from "@shared/product-categories";
 import { normalizeProductCardColor } from "@shared/product-card-color";
-import { calculateVipProgress, getEffectiveRequiredVipLevel, isVipLevelUnlocked, parseVipLevel, validateVipInvestmentThresholds } from "@shared/vip-progress";
+import {
+  calculateVipProgress,
+  getEffectiveRequiredVipLevel,
+  getParcoursProductRank,
+  isVipLevelUnlocked,
+  parseUsdtAmountCents,
+  parseVipLevel,
+} from "@shared/vip-progress";
 import { isValidTogoUssdTemplate } from "@shared/togo-ussd";
 import { validateTogoTransactionId } from "@shared/togo-transaction-id";
 import {
@@ -932,10 +939,9 @@ export async function registerRoutes(
       if (!user) return res.status(401).json({ message: "Non authentifié" });
       const market = getCustomerMarket(user.country);
       const marketCurrency = getMarketCurrency(market);
-      const [products, allUserProducts, settings] = await Promise.all([
+      const [products, allUserProducts] = await Promise.all([
         storage.getProducts(),
         storage.getAllUserProducts(userId),
-        storage.getSettings(),
       ]);
       const userProductsList = allUserProducts.filter(
         ({ product }) => product.currency === marketCurrency,
@@ -945,7 +951,8 @@ export async function registerRoutes(
         daysRemaining: userProduct.daysRemaining,
         productType: product.productType,
       })));
-      const vipLevel = calculateVipProgress(userProductsList, settings).level;
+      const vipProgress = calculateVipProgress(userProductsList, products);
+      const vipLevel = vipProgress.level;
       
       const productCounts = new Map<number, number>();
       userProductsList.forEach(({ userProduct }) => {
@@ -954,16 +961,32 @@ export async function registerRoutes(
         }
       });
       
-      const productsWithOwnership = products.map(p => ({
-        ...p,
-        isOwned: productCounts.has(p.id),
-        ownedCount: productCounts.get(p.id) || 0,
-        userHasActiveStabilityProduct,
-        userVipLevel: vipLevel,
-        vipLocked:
-          normalizeProductType(p.productType) === "wellness" &&
-          !isVipLevelUnlocked(vipLevel, getEffectiveRequiredVipLevel(p.productType, p.requiredVipLevel)),
-      }));
+      const productsWithOwnership = products.map((p) => {
+        const parcoursRank = getParcoursProductRank(p, products);
+        const effectiveRequiredVipLevel = getEffectiveRequiredVipLevel(
+          p.productType,
+          p.requiredVipLevel,
+          parcoursRank,
+        );
+        const currentInvestmentCents = parseUsdtAmountCents(vipProgress.totalInvestmentUsdt) ?? 0;
+        const requiredInvestmentCents = parseUsdtAmountCents(p.requiredInvestmentUsdt ?? "0");
+        return {
+          ...p,
+          isOwned: productCounts.has(p.id),
+          ownedCount: productCounts.get(p.id) || 0,
+          userHasActiveStabilityProduct,
+          userVipLevel: vipLevel,
+          currentInvestmentUsdt: vipProgress.totalInvestmentUsdt,
+          investmentLocked:
+            normalizeProductType(p.productType) === "wellness" &&
+            (requiredInvestmentCents === null || currentInvestmentCents < requiredInvestmentCents),
+          vipAwardedLevel: parcoursRank,
+          effectiveRequiredVipLevel,
+          vipLocked:
+            normalizeProductType(p.productType) === "wellness" &&
+            !isVipLevelUnlocked(vipLevel, effectiveRequiredVipLevel),
+        };
+      });
 
       res.json(productsWithOwnership);
     } catch (error: any) {
@@ -4545,7 +4568,18 @@ export async function registerRoutes(
 
   app.post("/api/admin/products", requireAdmin, async (req, res) => {
     try {
-      const { name, price, dailyEarnings, cycleDays, imageUrl, cardColor, requiredVipLevel, maxOwned, stockPercentage } = req.body;
+      const {
+        name,
+        price,
+        dailyEarnings,
+        cycleDays,
+        imageUrl,
+        cardColor,
+        requiredVipLevel,
+        requiredInvestmentUsdt,
+        maxOwned,
+        stockPercentage,
+      } = req.body;
       const productType = req.body.productType;
       if (!name || !price || !dailyEarnings || !cycleDays) {
         return res.status(400).json({ message: "Champs requis manquants" });
@@ -4557,8 +4591,9 @@ export async function registerRoutes(
       if (parsedRequiredVipLevel === null) {
         return res.status(400).json({ message: "Le niveau VIP requis doit être un entier entre 0 et 7." });
       }
-      if (productType === "wellness" && parsedRequiredVipLevel < 1) {
-        return res.status(400).json({ message: "Un produit Parcours doit exiger au minimum le niveau VIP 1." });
+      const requiredInvestmentCents = parseUsdtAmountCents(requiredInvestmentUsdt ?? "0");
+      if (requiredInvestmentCents === null) {
+        return res.status(400).json({ message: "Le montant requis doit être un montant USDT valide à deux décimales maximum." });
       }
       const priceNum = parseFloat(price);
       const dailyNum = parseFloat(dailyEarnings);
@@ -4586,6 +4621,7 @@ export async function registerRoutes(
         seriesId: null,
         minInviteCount: 0,
         requiredVipLevel: parsedRequiredVipLevel,
+        requiredInvestmentUsdt: (requiredInvestmentCents / 100).toFixed(2),
         maxOwned: parseInt(maxOwned) || 0,
         collectAtEnd: false,
         stockPercentage: Math.min(100, Math.max(0, parseInt(stockPercentage) || 0)),
@@ -4624,17 +4660,19 @@ export async function registerRoutes(
         }
         body.requiredVipLevel = requiredVipLevel;
       }
+      if (body.requiredInvestmentUsdt !== undefined) {
+        const requiredInvestmentCents = parseUsdtAmountCents(body.requiredInvestmentUsdt);
+        if (requiredInvestmentCents === null) {
+          return res.status(400).json({ message: "Le montant requis doit être un montant USDT valide à deux décimales maximum." });
+        }
+        body.requiredInvestmentUsdt = (requiredInvestmentCents / 100).toFixed(2);
+      }
       // Normalize numeric fields when present
       if (body.maxOwned !== undefined) body.maxOwned = parseInt(body.maxOwned) || 0;
       if (body.stockPercentage !== undefined) body.stockPercentage = Math.min(100, Math.max(0, parseInt(body.stockPercentage) || 0));
       const id = parseInt(req.params.id as string);
       const existingProduct = await storage.getProduct(id);
       if (!existingProduct) return res.status(404).json({ message: "Produit introuvable." });
-      const nextProductType = body.productType ?? existingProduct.productType;
-      const nextRequiredVipLevel = body.requiredVipLevel ?? existingProduct.requiredVipLevel;
-      if (normalizeProductType(nextProductType) === "wellness" && Number(nextRequiredVipLevel) < 1) {
-        return res.status(400).json({ message: "Un produit Parcours doit exiger au minimum le niveau VIP 1." });
-      }
       if (body.price !== undefined || body.dailyEarnings !== undefined || body.totalReturn !== undefined) {
         const price = Number(body.price);
         const dailyEarnings = Number(body.dailyEarnings);
@@ -5024,21 +5062,9 @@ export async function registerRoutes(
         typeof body.key === "string" &&
         Object.prototype.hasOwnProperty.call(body, "value") &&
         Object.keys(body).length === 2;
-      const entries: [string, unknown][] = isSingleSettingPayload
-        ? [[body.key, body.value]]
-        : Object.entries(body);
-      const vipInvestmentSettingKeyPattern = /^vip[1-7]MinInvestmentUsdt$/;
-      if (entries.some(([key]) => vipInvestmentSettingKeyPattern.test(key))) {
-        const currentSettings = await storage.getSettings();
-        const candidateSettings: Record<string, unknown> = { ...currentSettings };
-      for (const [key, value] of entries) {
-          if (vipInvestmentSettingKeyPattern.test(key)) {
-            candidateSettings[key] = value;
-          }
-        }
-        const vipThresholdError = validateVipInvestmentThresholds(candidateSettings);
-        if (vipThresholdError) return res.status(400).json({ message: vipThresholdError });
-      }
+      const entries: Array<[string, unknown]> = isSingleSettingPayload
+        ? [[body.key as string, body.value]]
+        : Object.entries(body as Record<string, unknown>);
       const spinRewardSettingKeys = new Set([
         "spinWheelSelfPurchaseSpins",
         "spinWheelReferralPurchaseSpins",
@@ -5049,6 +5075,12 @@ export async function registerRoutes(
         "level3Commission",
       ]);
       const withdrawalFeeSettingKey = "withdrawalFees";
+      const vipInvestmentSettingKeyPattern = /^vip[0-7]MinInvestmentUsdt$/;
+      if (entries.some(([key]) => vipInvestmentSettingKeyPattern.test(key))) {
+        return res.status(400).json({
+          message: "Les seuils VIP globaux sont désactivés; configurez le montant requis sur chaque produit Parcours.",
+        });
+      }
       if (entries.some(([key]) => key === "xofPerUsdt")) {
         return res.status(400).json({ message: "Le taux XOF/USDT est désactivé; saisissez les montants directement en USDT." });
       }
@@ -5174,8 +5206,6 @@ export async function registerRoutes(
         } else if (key === withdrawalFeeSettingKey) {
           const rate = parseWithdrawalFeePercent(value)!;
           await storage.setSetting(key, String(rate), req.session.userId);
-        } else if (vipInvestmentSettingKeyPattern.test(key)) {
-          await storage.setSetting(key, String(value ?? "").trim(), req.session.userId);
         } else {
           const normalizedValue = typeof value === "string" && [
             "supportLink",

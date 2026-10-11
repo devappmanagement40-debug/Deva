@@ -39,6 +39,11 @@ const INVEST_COPY: Record<Lang, {
   unavailable: string;
   stabilityRequiredButton: string;
   accessConditionsRequired: string;
+  investmentRequirement: string;
+  investmentProgress: string;
+  vipRequirement: string;
+  vipRankAward: string;
+  exploreRequired: string;
   support: string;
   purchaseHint: string;
   multipleHint: string;
@@ -66,6 +71,11 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Bientôt disponible",
     stabilityRequiredButton: "Explore requis",
     accessConditionsRequired: "Conditions requises",
+    investmentRequirement: "Montant cumulé requis pour ce produit : {0} USDT",
+    investmentProgress: "Investissements personnels confirmés : {0} USDT. Montant restant : {1} USDT.",
+    vipRequirement: "Niveau VIP minimum pour acheter : VIP {0}.",
+    vipRankAward: "Après l’achat, ce produit attribue VIP {0} selon l’ordre Parcours.",
+    exploreRequired: "Vous devez posséder au moins un produit Explore actif.",
     support: "Assistance",
     purchaseHint: "Explore : gains crédités après chaque période complète de 24 h. Parcours et Offres : gains crédités à la fin du cycle.",
     multipleHint: "Vous pouvez acheter plusieurs produits pour augmenter vos revenus.",
@@ -93,6 +103,11 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "Unavailable",
     stabilityRequiredButton: "Stability required",
     accessConditionsRequired: "Requirements not met",
+    investmentRequirement: "Cumulative investment required for this product: {0} USDT",
+    investmentProgress: "Confirmed personal investments: {0} USDT. Amount remaining: {1} USDT.",
+    vipRequirement: "Minimum VIP level to purchase: VIP {0}.",
+    vipRankAward: "After purchase, this product awards VIP {0} in the Parcours sequence.",
+    exploreRequired: "You must own at least one active Explore product.",
     support: "Support",
     purchaseHint: "Explore earnings are credited after each full 24-hour period. Parcours and Offres earnings are credited at the end of the cycle.",
     multipleHint: "You can purchase multiple products to increase your earnings.",
@@ -120,6 +135,11 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "غير متاح",
     stabilityRequiredButton: "الاستقرار مطلوب",
     accessConditionsRequired: "لم تُستوفَ الشروط",
+    investmentRequirement: "الاستثمار التراكمي المطلوب لهذا المنتج: {0} USDT",
+    investmentProgress: "الاستثمارات الشخصية المؤكدة: {0} USDT. المبلغ المتبقي: {1} USDT.",
+    vipRequirement: "الحد الأدنى لمستوى الشراء: VIP {0}.",
+    vipRankAward: "بعد الشراء، يمنح هذا المنتج VIP {0} حسب ترتيب Parcours.",
+    exploreRequired: "يجب امتلاك منتج Explore نشط واحد على الأقل.",
     support: "الدعم",
     purchaseHint: "تُضاف أرباح Explore بعد كل فترة كاملة مدتها 24 ساعة. أما أرباح Parcours وOffres فتُضاف عند نهاية الدورة.",
     multipleHint: "يمكنك شراء عدة منتجات لزيادة أرباحك.",
@@ -147,6 +167,11 @@ const INVEST_COPY: Record<Lang, {
     unavailable: "暂不可用",
     stabilityRequiredButton: "需要稳健产品",
     accessConditionsRequired: "尚未满足条件",
+    investmentRequirement: "购买此产品所需的累计投资：{0} USDT",
+    investmentProgress: "已确认的个人投资：{0} USDT。还需：{1} USDT。",
+    vipRequirement: "购买所需最低 VIP 等级：VIP {0}。",
+    vipRankAward: "购买后，此产品按 Parcours 顺序授予 VIP {0}。",
+    exploreRequired: "您必须至少拥有一个有效的 Explore 产品。",
     support: "客服",
     purchaseHint: "Explore 收益在每个完整的 24 小时后入账；Parcours 和 Offres 收益在周期结束时入账。",
     multipleHint: "您可以购买多个产品以增加收益。",
@@ -187,6 +212,10 @@ type ProductWithOwnership = Product & {
   userHasActiveStabilityProduct?: boolean;
   userVipLevel?: number;
   vipLocked?: boolean;
+  investmentLocked?: boolean;
+  currentInvestmentUsdt?: number;
+  vipAwardedLevel?: number | null;
+  effectiveRequiredVipLevel?: number | null;
 };
 
 export default function ProductsPage() {
@@ -297,6 +326,17 @@ export default function ProductsPage() {
     setPurchaseQuantity(1);
     setConfirmProduct(product);
   };
+  const confirmIsParcours = confirmProduct !== null &&
+    normalizeProductType(confirmProduct.productType) === "wellness";
+  const confirmRequiredInvestment = Math.max(0, Number(confirmProduct?.requiredInvestmentUsdt) || 0);
+  const confirmCurrentInvestment = Math.max(0, Number(confirmProduct?.currentInvestmentUsdt) || 0);
+  const confirmRemainingInvestment = Math.max(0, confirmRequiredInvestment - confirmCurrentInvestment);
+  const confirmRequiredVipLevel = Math.max(0, Number(confirmProduct?.effectiveRequiredVipLevel) || 0);
+  const confirmAccessLocked = confirmIsParcours && (
+    Boolean(confirmProduct?.investmentLocked) ||
+    Boolean(confirmProduct?.vipLocked) ||
+    confirmProduct?.userHasActiveStabilityProduct === false
+  );
 
   return (
     <main className="ielp-home-page diamant-invest-page" lang={lang} dir={lang === "ar" ? "rtl" : "ltr"}>
@@ -360,8 +400,11 @@ export default function ProductsPage() {
                 const isUnavailable = !!product.isUnavailable;
                 const requiredVipLevel = Number(product.requiredVipLevel) || 0;
                 const vipLocked = normalizeProductType(product.productType) === "wellness" &&
-                  (product.vipLocked ?? Number(product.userVipLevel ?? 0) < requiredVipLevel);
-                const isBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies || vipLocked;
+                  (product.vipLocked ?? Number(product.userVipLevel ?? 0) < Number(product.effectiveRequiredVipLevel ?? requiredVipLevel));
+                const investmentLocked = normalizeProductType(product.productType) === "wellness" &&
+                  Boolean(product.investmentLocked);
+                const isHardBlocked = isSoldOut || isUnavailable || stabilityPrerequisiteApplies;
+                const isBlocked = isHardBlocked || vipLocked || investmentLocked;
                 const displayName = getDisplayName(product) || `${copy.tabs[2]} ${index + 1}`;
                 const actionStatusLabel = isUnavailable
                   ? copy.unavailable
@@ -369,7 +412,7 @@ export default function ProductsPage() {
                     ? copy.soldOut
                     : stabilityPrerequisiteApplies
                       ? copy.stabilityRequiredButton
-                      : vipLocked
+                      : vipLocked || investmentLocked
                         ? copy.accessConditionsRequired
                         : undefined;
 
@@ -382,8 +425,8 @@ export default function ProductsPage() {
                     actionLabel={copy.investNow}
                     actionStatusLabel={actionStatusLabel}
                     actionAriaLabel={`${actionStatusLabel ?? copy.investNow}: ${displayName}`}
-                    onAction={() => !isBlocked && handleBuy(product)}
-                    disabled={purchaseMutation.isPending || isBlocked}
+                    onAction={() => !isHardBlocked && handleBuy(product)}
+                    disabled={purchaseMutation.isPending || isHardBlocked}
                     blocked={isBlocked}
                     pending={isPending}
                     rootTestId={`product-card-${product.id}`}
@@ -428,6 +471,29 @@ export default function ProductsPage() {
                   {copy.unitPrice.replace("{0}", formatMoney(Number(confirmProduct.price))).replace("{1}", accountCurrency)}
                 </p>
                 <p className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle">{copy.multipleHint}</p>
+                {confirmIsParcours && (
+                  <div className="diamant-purchase-dialog__hint" role="note">
+                    <p>{copy.investmentRequirement.replace("{0}", confirmRequiredInvestment.toLocaleString(lang, { maximumFractionDigits: 2 }))}</p>
+                    <p className="mt-1">
+                      {copy.investmentProgress
+                        .replace("{0}", confirmCurrentInvestment.toLocaleString(lang, { maximumFractionDigits: 2 }))
+                        .replace("{1}", confirmRemainingInvestment.toLocaleString(lang, { maximumFractionDigits: 2 }))}
+                    </p>
+                    {confirmRequiredVipLevel > 0 && (
+                      <p className="mt-1">
+                        {copy.vipRequirement.replace("{0}", String(confirmRequiredVipLevel))}
+                      </p>
+                    )}
+                    {confirmProduct.vipAwardedLevel && (
+                      <p className="mt-1">
+                        {copy.vipRankAward.replace("{0}", String(confirmProduct.vipAwardedLevel))}
+                      </p>
+                    )}
+                    {confirmProduct.userHasActiveStabilityProduct === false && (
+                      <p className="mt-1">{copy.exploreRequired}</p>
+                    )}
+                  </div>
+                )}
                 <p
                   className="diamant-purchase-dialog__hint diamant-purchase-dialog__hint--subtle"
                   data-testid="purchase-limit"
@@ -510,7 +576,8 @@ export default function ProductsPage() {
                     !purchaseAllocation ||
                     maxSelectableQuantity === 0 ||
                     purchaseQuantity > maxSelectableQuantity ||
-                    purchaseAllocation.shortfallCents > 0
+                    purchaseAllocation.shortfallCents > 0 ||
+                    confirmAccessLocked
                   }
                   data-testid="button-confirm-purchase"
                 >

@@ -33,7 +33,13 @@ import {
   ownsActiveStabilityProduct,
 } from "@shared/product-categories";
 import { calculateProductEarningsSettlement } from "@shared/product-earnings";
-import { calculateVipProgress, getEffectiveRequiredVipLevel, isVipLevelUnlocked } from "@shared/vip-progress";
+import {
+  calculateVipProgress,
+  getEffectiveRequiredVipLevel,
+  getParcoursProductRank,
+  isVipLevelUnlocked,
+  parseUsdtAmountCents,
+} from "@shared/vip-progress";
 import { getCustomerMarket, getMarketCurrency, isSupportedMarketCountryCode } from "@shared/country-codes";
 import { formatUsdtWithdrawalAmount, parseUsdtWithdrawalAmount } from "@shared/withdrawal-fees";
 import {
@@ -783,6 +789,9 @@ export class DatabaseStorage implements IStorage {
       const sameCurrencyPurchaseHistory = purchaseHistory.filter(
         ({ product: heldProduct }) => (heldProduct.currency || "XOF") === productCurrency,
       );
+      const parcoursCatalog = await tx.select().from(products)
+        .where(eq(products.isActive, true))
+        .orderBy(products.sortOrder, products.id);
 
       if (!canPurchaseProductType(product.productType, false)) {
         const hasActiveExploreProduct = ownsActiveStabilityProduct(
@@ -800,10 +809,29 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (normalizeProductType(product.productType) === "wellness") {
-        const currentVipLevel = calculateVipProgress(sameCurrencyPurchaseHistory, settings).level;
-        const requiredVipLevel = getEffectiveRequiredVipLevel(product.productType, product.requiredVipLevel);
+        const vipProgress = calculateVipProgress(purchaseHistory, parcoursCatalog);
+        const requiredInvestmentCents = parseUsdtAmountCents(product.requiredInvestmentUsdt);
+        if (requiredInvestmentCents === null) {
+          throw new Error("Le montant d’investissement requis pour ce produit Parcours n’est pas correctement configuré.");
+        }
+        const investedCents = Math.round(vipProgress.totalInvestmentUsdt * 100);
+        if (investedCents < requiredInvestmentCents) {
+          const remaining = ((requiredInvestmentCents - investedCents) / 100).toFixed(2);
+          throw new Error(
+            `Vous devez avoir investi au total ${((requiredInvestmentCents) / 100).toFixed(2)} USDT dans vos achats personnels payants avant d’acheter ce produit Parcours. Il vous manque ${remaining} USDT.`,
+          );
+        }
+        const productRank = getParcoursProductRank(product, parcoursCatalog);
+        const requiredVipLevel = getEffectiveRequiredVipLevel(
+          product.productType,
+          product.requiredVipLevel,
+          productRank,
+        );
+        const currentVipLevel = vipProgress.level;
         if (!isVipLevelUnlocked(currentVipLevel, requiredVipLevel)) {
-          throw new Error("Les conditions d’accès à ce produit Parcours ne sont pas remplies.");
+          throw new Error(
+            `Vous devez atteindre le niveau VIP ${requiredVipLevel} pour acheter ce produit Parcours.`,
+          );
         }
       }
 
@@ -950,6 +978,9 @@ export class DatabaseStorage implements IStorage {
       }
 
       const purchaseDate = new Date();
+      const awardedVipLevel = normalizeProductType(product.productType) === "wellness"
+        ? getParcoursProductRank(product, parcoursCatalog)
+        : null;
       const purchases = await tx.insert(userProducts)
         .values(Array.from({ length: quantity }, () => ({
           userId,
@@ -962,6 +993,7 @@ export class DatabaseStorage implements IStorage {
           pendingEarnings: "0",
           earningsPaidAt: null,
           isActive: product.cycleDays > 0,
+          vipLevelAwarded: awardedVipLevel,
         })))
         .returning();
 
@@ -996,9 +1028,25 @@ export class DatabaseStorage implements IStorage {
 
     if (isPaidUserPurchase && normalizeProductType(product.productType) === "wellness") {
       purchaseHistory ??= await this.getAllUserProducts(userId);
-      const settings = await this.getSettings();
-      const currentVipLevel = calculateVipProgress(purchaseHistory, settings).level;
-      const requiredVipLevel = getEffectiveRequiredVipLevel(product.productType, product.requiredVipLevel);
+      const catalog = await this.getProducts();
+      const vipProgress = calculateVipProgress(purchaseHistory, catalog);
+      const requiredInvestmentCents = parseUsdtAmountCents(product.requiredInvestmentUsdt);
+      if (requiredInvestmentCents === null) {
+        throw new Error("Le montant d’investissement requis pour ce produit Parcours n’est pas correctement configuré.");
+      }
+      const investedCents = Math.round(vipProgress.totalInvestmentUsdt * 100);
+      if (investedCents < requiredInvestmentCents) {
+        throw new Error(
+          `Vous devez avoir investi au total ${(requiredInvestmentCents / 100).toFixed(2)} USDT avant d’acheter ce produit Parcours.`,
+        );
+      }
+      const productRank = getParcoursProductRank(product, catalog);
+      const currentVipLevel = vipProgress.level;
+      const requiredVipLevel = getEffectiveRequiredVipLevel(
+        product.productType,
+        product.requiredVipLevel,
+        productRank,
+      );
       if (!isVipLevelUnlocked(currentVipLevel, requiredVipLevel)) {
         throw new Error(`Vous devez atteindre le niveau VIP ${requiredVipLevel} pour acheter ce produit Parcours.`);
       }
@@ -1070,6 +1118,9 @@ export class DatabaseStorage implements IStorage {
     }
 
     // The full cycle runs before any product gains are credited.
+    const productCatalog = isPaidUserPurchase && normalizeProductType(product.productType) === "wellness"
+      ? await this.getProducts()
+      : [];
     const [userProduct] = await db.insert(userProducts).values({
       userId,
       productId,
@@ -1081,6 +1132,9 @@ export class DatabaseStorage implements IStorage {
       pendingEarnings: "0",
       earningsPaidAt: null,
       isActive: product.cycleDays > 0,
+      vipLevelAwarded: isPaidUserPurchase && normalizeProductType(product.productType) === "wellness"
+        ? getParcoursProductRank(product, productCatalog)
+        : null,
     }).returning();
 
     return userProduct;

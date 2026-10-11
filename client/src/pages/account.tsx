@@ -41,6 +41,7 @@ import {
   mergeAdminVipConfig,
 } from "@/lib/vip";
 import { calculateVipProgress } from "@shared/vip-progress";
+import type { Product } from "@shared/schema";
 import {
   ACCOUNT_BANNER_DEFAULT_IMAGES,
   buildAccountBannerPosters,
@@ -63,6 +64,7 @@ type AccountCopy = {
   rewards: string;
   vipTitle: string;
   vipAmountRemaining: string;
+  vipReadyToBuy: string;
   vipThresholdPending: string;
   vipMax: string;
   idCopied: string;
@@ -100,8 +102,9 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Solde",
     rewards: "Récompenses",
     vipTitle: "Niveau VIP",
-    vipAmountRemaining: "Passer au VIP {level} : il vous manque encore {amount} USDT",
-    vipThresholdPending: "Le seuil du VIP {level} doit être configuré dans l’administration.",
+    vipAmountRemaining: "Pour le prochain produit Parcours, il vous manque {amount} USDT d’investissements personnels payants.",
+    vipReadyToBuy: "Le montant cumulatif requis est atteint. Achetez le produit Parcours suivant pour obtenir VIP {level}.",
+    vipThresholdPending: "Aucun produit Parcours actif n’est disponible pour le prochain rang.",
     vipMax: "Vous avez atteint le niveau VIP maximum.",
     idCopied: "ID copié",
     idCopyFailed: "Impossible de copier l’ID.",
@@ -136,8 +139,9 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "Balance",
     rewards: "Rewards",
     vipTitle: "VIP level",
-    vipAmountRemaining: "Reach VIP {level}: {amount} USDT remaining",
-    vipThresholdPending: "The VIP {level} threshold must be configured by an administrator.",
+    vipAmountRemaining: "{amount} USDT more in personal paid investments are needed for the next Parcours product.",
+    vipReadyToBuy: "The cumulative investment requirement is met. Buy the next Parcours product to receive VIP {level}.",
+    vipThresholdPending: "No active Parcours product is available for the next rank.",
     vipMax: "You have reached the maximum VIP level.",
     idCopied: "ID copied",
     idCopyFailed: "Could not copy the ID.",
@@ -172,8 +176,9 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "الرصيد",
     rewards: "المكافآت",
     vipTitle: "مستوى VIP",
-    vipAmountRemaining: "للوصول إلى VIP {level}، يتبقى {amount} USDT",
-    vipThresholdPending: "يجب على المسؤول إعداد حد VIP {level}.",
+    vipAmountRemaining: "يلزم استثمار {amount} USDT إضافية من المشتريات الشخصية المدفوعة للمنتج التالي من Parcours.",
+    vipReadyToBuy: "تم بلوغ مبلغ الاستثمار المطلوب. اشترِ منتج Parcours التالي للحصول على VIP {level}.",
+    vipThresholdPending: "لا يوجد منتج Parcours نشط متاح للرتبة التالية.",
     vipMax: "لقد وصلت إلى أعلى مستوى VIP.",
     idCopied: "تم نسخ المعرّف",
     idCopyFailed: "تعذر نسخ المعرّف.",
@@ -208,8 +213,9 @@ const COPY: Record<Lang, AccountCopy> = {
     earnings: "余额",
     rewards: "奖励",
     vipTitle: "VIP等级",
-    vipAmountRemaining: "距离 VIP {level} 还差 {amount} USDT",
-    vipThresholdPending: "VIP {level} 的门槛需要由管理员设置。",
+    vipAmountRemaining: "还需 {amount} USDT 的个人付费投资才能满足下一个 Parcours 产品的要求。",
+    vipReadyToBuy: "已达到累计投资要求。购买下一个 Parcours 产品即可获得 VIP {level}。",
+    vipThresholdPending: "当前没有可购买的下一个 Parcours 产品。",
     vipMax: "您已达到最高VIP等级。",
     idCopied: "编号已复制",
     idCopyFailed: "无法复制编号。",
@@ -287,6 +293,9 @@ export default function AccountPage() {
   const { data: userProducts = [] } = useQuery<any[]>({
     queryKey: ["/api/user/products"],
   });
+  const { data: vipCatalog = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+  });
   const { data: settings = {} } = useQuery<Record<string, string>>({
     queryKey: ["/api/settings"],
   });
@@ -294,7 +303,7 @@ export default function AccountPage() {
     parseBannerImages(settings.accountBannerImages, ACCOUNT_BANNER_DEFAULT_IMAGES),
   );
   const vipConfigs = mergeAdminVipConfig(DEFAULT_VIP_CONFIGS, settings);
-  const vipProgress = calculateVipProgress(userProducts, settings);
+  const vipProgress = calculateVipProgress(userProducts, vipCatalog);
   const vipLevel = vipProgress.level;
   const currentVip = vipConfigs[vipLevel] ?? DEFAULT_VIP_CONFIGS[0];
   const vipBadge = VIP_BADGE_STYLE[vipLevel] ?? VIP_BADGE_STYLE[0];
@@ -302,9 +311,9 @@ export default function AccountPage() {
     ? copy.vipMax
     : vipProgress.amountRemainingUsdt === null
       ? copy.vipThresholdPending.replace("{level}", String(vipProgress.nextLevel))
-      : copy.vipAmountRemaining
-          .replace("{level}", String(vipProgress.nextLevel))
-          .replace(
+      : vipProgress.amountRemainingUsdt <= 0
+        ? copy.vipReadyToBuy.replace("{level}", String(vipProgress.nextLevel))
+        : copy.vipAmountRemaining.replace(
             "{amount}",
             vipProgress.amountRemainingUsdt.toLocaleString(lang, { maximumFractionDigits: 2 }),
           );

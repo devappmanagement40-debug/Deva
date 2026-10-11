@@ -22,21 +22,44 @@ const FINANCIAL_INSTRUCTION_KEYS = new Set([
   "content_rulespage_depositAnswer",
   "content_rulespage_withdrawalAnswer",
 ]);
-const ADMIN_CONFIGURED_VIP_COPY = "Chaque niveau VIP, de VIP 1 à VIP 7, est débloqué lorsque le total cumulé de vos achats personnels payants atteint le seuil configuré par l’administration. Sont comptés les achats Explore, Parcours et Offres dès leur confirmation, sans attendre la fin du cycle. Les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas. Certains produits Parcours exigent un niveau VIP minimum.";
+const PARCOURS_FAQ_COPY = "Un produit Explore actif reste obligatoire, mais ne suffit pas. Chaque fiche Parcours peut exiger un montant cumulatif d’investissement personnel avant l’achat. Tous vos achats personnels payants confirmés en USDT dans Explore, Parcours et Offres comptent pour ce montant; les produits gratuits, attribués par l’administration et les achats de filleuls ne comptent pas. Le premier produit Parcours n’exige pas de VIP préalable et attribue VIP 1 après l’achat.";
+const VIP_PROGRESS_FAQ_COPY = "Les rangs VIP sont attribués uniquement lors de l’achat d’un produit Parcours, selon l’ordre du catalogue : le premier attribue VIP 1, puis chaque produit suivant attribue le rang correspondant à sa position. Explore et Offres augmentent le total d’investissement personnel requis, mais ne donnent pas de rang VIP. Les achats personnels payants sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de filleuls sont exclus.";
 const LEGACY_VIP_FAQ_COPY: Record<string, Record<string, string>> = {
   content_rulespage_parcoursAnswer: {
     "Après avoir acheté au moins un produit Explore actif, vous pouvez accéder à la gamme Parcours. Tous les produits Parcours ne sont pas automatiquement accessibles : chaque fiche peut comporter ses propres conditions, notamment un niveau VIP minimum. La progression VIP tient compte du total investi dans vos produits et des investissements de vos filleuls, selon les critères définis par l’administration.":
-      "Après avoir acheté au moins un produit Explore actif, vous pouvez accéder à la gamme Parcours. Chaque produit Parcours peut avoir ses propres conditions, notamment un niveau VIP minimum. Le niveau VIP dépend du total cumulé de vos achats personnels payants dans Explore, Parcours et Offres; le seuil de chaque niveau, dès VIP 1, est configuré par l’administration. Les achats sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas.",
+      PARCOURS_FAQ_COPY,
     "Après avoir acheté au moins un produit Explore actif, vous pouvez accéder à la gamme Parcours. Tous les produits Parcours ne sont pas automatiquement accessibles : chaque fiche peut comporter ses propres conditions, notamment un niveau VIP minimum. VIP 1 s’obtient après le premier achat personnel payant dans Parcours; les niveaux suivants dépendent du total de vos achats personnels payants, toutes catégories confondues. Les seuils sont définis par l’administration.":
-      "Après avoir acheté au moins un produit Explore actif, vous pouvez accéder à la gamme Parcours. Chaque produit Parcours peut avoir ses propres conditions, notamment un niveau VIP minimum. Le niveau VIP dépend du total cumulé de vos achats personnels payants dans Explore, Parcours et Offres; le seuil de chaque niveau, dès VIP 1, est configuré par l’administration. Les achats sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas.",
+      PARCOURS_FAQ_COPY,
+    "L’achat d’un produit Explore actif reste nécessaire, mais ne suffit pas à débloquer Parcours. Le premier produit Parcours exige aussi le niveau VIP 1; les produits suivants peuvent exiger un niveau supérieur selon leur fiche. Le niveau VIP dépend du total cumulé de vos achats personnels payants dans Explore, Parcours et Offres, selon les seuils USDT configurés par l’administration. Les achats sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas.":
+      PARCOURS_FAQ_COPY,
+  },
+  content_rulespage_productAccessAnswer: {
+    "Oui. Il faut posséder au moins un produit Explore actif pour acheter Parcours ou Offres. Pour Parcours, il faut aussi atteindre le niveau VIP minimum du produit; le premier exige au moins VIP 1. Un produit terminé, révoqué ou inactif ne satisfait pas la condition Explore.":
+      "Oui. Il faut posséder au moins un produit Explore actif pour acheter Parcours ou Offres. Chaque produit Parcours applique aussi son montant minimum configuré; le premier produit Parcours ne demande pas de VIP préalable. Un produit terminé, révoqué ou inactif ne satisfait pas la condition Explore.",
   },
   content_rulespage_vipProgressAnswer: {
     "La progression VIP prend en compte le total investi dans vos produits ainsi que les investissements de vos filleuls. Les seuils et conditions de chaque niveau sont définis par l’administration; certains produits Parcours nécessitent d’atteindre un niveau VIP précis.":
-      ADMIN_CONFIGURED_VIP_COPY,
+      VIP_PROGRESS_FAQ_COPY,
     "Le premier achat personnel payant dans Parcours donne au moins le rang VIP 1. Pour atteindre les niveaux suivants, le système additionne vos achats personnels payants dans toutes les catégories : Explore, Parcours et Offres. Les achats gratuits, les produits attribués par l’administration et les achats de vos filleuls ne comptent pas. Les seuils sont configurés par l’administration; certains produits Parcours exigent un niveau VIP minimum.":
-      ADMIN_CONFIGURED_VIP_COPY,
+      VIP_PROGRESS_FAQ_COPY,
     "Le premier achat personnel payant dans Parcours donne au moins le rang VIP 1. Pour atteindre les niveaux suivants, le système additionne vos achats personnels payants dans toutes les catégories : Explore, Parcours et Offres. Chaque achat est compté dès qu’il est confirmé, sans attendre la fin de son cycle. Les achats gratuits, les produits attribués par l’administration et les achats de vos filleuls ne comptent pas. Les seuils sont configurés par l’administration; certains produits Parcours exigent un niveau VIP minimum.":
-      ADMIN_CONFIGURED_VIP_COPY,
+      VIP_PROGRESS_FAQ_COPY,
+    "Chaque niveau VIP, de VIP 1 à VIP 7, est débloqué lorsque le total cumulé de vos achats personnels payants atteint le seuil configuré par l’administration. Sont comptés les achats Explore, Parcours et Offres dès leur confirmation, sans attendre la fin du cycle. Les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas. Certains produits Parcours exigent un niveau VIP minimum.":
+      VIP_PROGRESS_FAQ_COPY,
+  },
+  content_rulespage_vipThresholdsTitle: {
+    "Seuils actuels des niveaux VIP": "Montants requis par produit Parcours",
+  },
+  content_rulespage_vipThresholdsAnswer: {
+    "Les montants ci-dessous sont les seuils cumulatifs configurés dans l’administration. Les achats personnels payants en USDT sont additionnés dès leur confirmation.":
+      "L’administration configure le montant cumulatif minimum sur chaque fiche Parcours. Le total comprend les achats personnels payants confirmés en Explore, Parcours et Offres; l’achat du produit Parcours attribue ensuite le rang indiqué par l’ordre du catalogue.",
+  },
+  content_rulespage_parcoursRequirementsQuestion: {
+    "Quel niveau VIP est requis pour chaque produit Parcours ?": "Quel montant et quel rang chaque produit Parcours applique-t-il ?",
+  },
+  content_rulespage_parcoursRequirementsAnswer: {
+    "Le premier produit Parcours exige au minimum VIP 1; les niveaux minimums des autres fiches restent configurables. Le seuil USDT associé à chaque niveau est actualisé automatiquement. Il faut aussi posséder un produit Explore actif.":
+      "Chaque produit affiche son montant minimum d’investissement personnel cumulé, le niveau VIP minimum d’accès et le rang qu’il attribue après achat. Le premier produit attribue VIP 1 sans exiger de VIP préalable; les suivants exigent automatiquement le rang précédent. Il faut aussi posséder un produit Explore actif.",
   },
 };
 

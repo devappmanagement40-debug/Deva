@@ -125,6 +125,7 @@ export const products = pgTable("products", {
   // Legacy database column retained for compatibility; product invite gates are disabled.
   minInviteCount: integer("min_invite_count").notNull().default(0),
   requiredVipLevel: integer("required_vip_level").notNull().default(0),
+  requiredInvestmentUsdt: decimal("required_investment_usdt", { precision: 15, scale: 2 }).notNull().default("0"),
   maxOwned: integer("max_owned").notNull().default(0),                // 0 = illimité
   // Legacy payout mode retained to interpret uncredited earnings on old purchases.
   collectAtEnd: boolean("collect_at_end").notNull().default(false),
@@ -150,6 +151,7 @@ export const userProducts = pgTable("user_products", {
   earningsPaidAt: timestamp("earnings_paid_at"),
   isActive: boolean("is_active").notNull().default(true),
   assignedByAdmin: boolean("assigned_by_admin").notNull().default(false),
+  vipLevelAwarded: integer("vip_level_awarded"),
 });
 
 // Deposits

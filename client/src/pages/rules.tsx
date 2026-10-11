@@ -9,7 +9,7 @@ import {
   DEFAULT_MIN_DEPOSIT_USDT,
   DEFAULT_MIN_WITHDRAWAL_USDT,
 } from "@shared/financial-settings";
-import { getParcoursVipFaqRows, getVipThresholdFaqRows } from "@shared/rules-faq";
+import { getParcoursVipFaqRows } from "@shared/rules-faq";
 import type { Product } from "@shared/schema";
 import { getContent, rebrandText } from "@/lib/content";
 import { DEFAULT_REFERRAL_COMMISSION_RATES } from "@shared/referral-commission-settings";
@@ -62,8 +62,7 @@ export default function RulesPage() {
   const lv1 = settings?.level1Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level1Commission;
   const lv2 = settings?.level2Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level2Commission;
   const lv3 = settings?.level3Commission ?? DEFAULT_REFERRAL_COMMISSION_RATES.level3Commission;
-  const vipThresholdRows = getVipThresholdFaqRows(settings ?? {});
-  const parcoursRequirementRows = getParcoursVipFaqRows(products, settings ?? {});
+  const parcoursRequirementRows = getParcoursVipFaqRows(products);
 
   const rPageTitle = getContent(settings, "content_rulespage_pageTitle", "Règles de la plateforme DIAMANT");
   const rS1Title = getContent(settings, "content_rulespage_s1Title", "1. Utilisation des produits DIAMANT");
@@ -74,17 +73,17 @@ export default function RulesPage() {
   const exploreQuestion = getContent(settings, "content_rulespage_exploreQuestion", "Pourquoi la gamme Explore est-elle obligatoire ?");
   const exploreAnswer = getContent(settings, "content_rulespage_exploreAnswer", "Explore est la gamme d’entrée obligatoire. Chaque produit Explore a une durée de 150 jours. Vous devez posséder au moins un produit Explore actif avant de pouvoir acheter un produit Parcours ou Offres. Consultez chaque fiche pour connaître son prix et les revenus annoncés.");
   const parcoursQuestion = getContent(settings, "content_rulespage_parcoursQuestion", "Quelles sont les conditions d’achat des produits Parcours ?");
-  const parcoursAnswer = getContent(settings, "content_rulespage_parcoursAnswer", "L’achat d’un produit Explore actif reste nécessaire, mais ne suffit pas à débloquer Parcours. Le premier produit Parcours exige aussi le niveau VIP 1; les produits suivants peuvent exiger un niveau supérieur selon leur fiche. Le niveau VIP dépend du total cumulé de vos achats personnels payants dans Explore, Parcours et Offres, selon les seuils USDT configurés par l’administration. Les achats sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas.");
+  const parcoursAnswer = getContent(settings, "content_rulespage_parcoursAnswer", "Un produit Explore actif reste obligatoire, mais ne suffit pas. Chaque fiche Parcours peut exiger un montant cumulatif d’investissement personnel avant l’achat. Tous vos achats personnels payants confirmés en USDT dans Explore, Parcours et Offres comptent pour ce montant; les produits gratuits, attribués par l’administration et les achats de filleuls ne comptent pas. Le premier produit Parcours n’exige pas de VIP préalable et attribue VIP 1 après l’achat.");
   const offresQuestion = getContent(settings, "content_rulespage_offresQuestion", "Comment fonctionnent les produits Offres ?");
   const offresAnswer = getContent(settings, "content_rulespage_offresAnswer", "De nouveaux produits Offres sont lancés chaque semaine et le nombre d’achats est limité. Ces produits annoncent des revenus potentiellement plus élevés, selon les conditions de leur fiche. Une fois la limite d’achats atteinte, l’offre peut ne plus être disponible. Vérifiez toujours le prix, la durée et les revenus affichés avant l’achat; aucun revenu n’est garanti.");
   const productAccessQuestion = getContent(settings, "content_rulespage_productAccessQuestion", "Un produit Explore doit-il rester actif pour acheter Parcours ou Offres ?");
-  const productAccessAnswer = getContent(settings, "content_rulespage_productAccessAnswer", "Oui. Il faut posséder au moins un produit Explore actif pour acheter Parcours ou Offres. Pour Parcours, il faut aussi atteindre le niveau VIP minimum du produit; le premier exige au moins VIP 1. Un produit terminé, révoqué ou inactif ne satisfait pas la condition Explore.");
+  const productAccessAnswer = getContent(settings, "content_rulespage_productAccessAnswer", "Oui. Il faut posséder au moins un produit Explore actif pour acheter Parcours ou Offres. Chaque produit Parcours applique aussi son montant minimum configuré; le premier produit Parcours ne demande pas de VIP préalable. Un produit terminé, révoqué ou inactif ne satisfait pas la condition Explore.");
   const vipProgressQuestion = getContent(settings, "content_rulespage_vipProgressQuestion", "Comment progresse-t-on dans les niveaux VIP ?");
-  const vipProgressAnswer = getContent(settings, "content_rulespage_vipProgressAnswer", "Chaque niveau VIP, de VIP 1 à VIP 7, est débloqué lorsque le total cumulé de vos achats personnels payants atteint le seuil configuré par l’administration. Sont comptés les achats Explore, Parcours et Offres dès leur confirmation, sans attendre la fin du cycle. Les produits gratuits, attribués par l’administration et les achats de vos filleuls ne comptent pas. Certains produits Parcours exigent un niveau VIP minimum.");
-  const vipThresholdsTitle = getContent(settings, "content_rulespage_vipThresholdsTitle", "Seuils actuels des niveaux VIP");
-  const vipThresholdsAnswer = getContent(settings, "content_rulespage_vipThresholdsAnswer", "Les montants ci-dessous sont les seuils cumulatifs configurés dans l’administration. Les achats personnels payants en USDT sont additionnés dès leur confirmation.");
-  const parcoursRequirementsQuestion = getContent(settings, "content_rulespage_parcoursRequirementsQuestion", "Quel niveau VIP est requis pour chaque produit Parcours ?");
-  const parcoursRequirementsAnswer = getContent(settings, "content_rulespage_parcoursRequirementsAnswer", "Le premier produit Parcours exige au minimum VIP 1; les niveaux minimums des autres fiches restent configurables. Le seuil USDT associé à chaque niveau est actualisé automatiquement. Il faut aussi posséder un produit Explore actif.");
+  const vipProgressAnswer = getContent(settings, "content_rulespage_vipProgressAnswer", "Les rangs VIP sont attribués uniquement lors de l’achat d’un produit Parcours, selon l’ordre du catalogue : le premier attribue VIP 1, puis chaque produit suivant attribue le rang correspondant à sa position. Explore et Offres augmentent le total d’investissement personnel requis, mais ne donnent pas de rang VIP. Les achats personnels payants sont comptés dès leur confirmation; les produits gratuits, attribués par l’administration et les achats de filleuls sont exclus.");
+  const vipThresholdsTitle = getContent(settings, "content_rulespage_vipThresholdsTitle", "Montants requis par produit Parcours");
+  const vipThresholdsAnswer = getContent(settings, "content_rulespage_vipThresholdsAnswer", "L’administration configure le montant cumulatif minimum sur chaque fiche Parcours. Le total comprend les achats personnels payants confirmés en Explore, Parcours et Offres; l’achat du produit Parcours attribue ensuite le rang indiqué par l’ordre du catalogue.");
+  const parcoursRequirementsQuestion = getContent(settings, "content_rulespage_parcoursRequirementsQuestion", "Quel montant et quel rang chaque produit Parcours applique-t-il ?");
+  const parcoursRequirementsAnswer = getContent(settings, "content_rulespage_parcoursRequirementsAnswer", "Chaque produit affiche son montant minimum d’investissement personnel cumulé, le niveau VIP minimum d’accès et le rang qu’il attribue après achat. Le premier produit attribue VIP 1 sans exiger de VIP préalable; les suivants exigent automatiquement le rang précédent. Il faut aussi posséder un produit Explore actif.");
   const earningsQuestion = getContent(settings, "content_rulespage_earningsQuestion", "Quand les gains des produits sont-ils crédités ?");
   const earningsAnswer = getContent(settings, "content_rulespage_earningsAnswer", "Explore crédite les gains après chaque période complète de 24 heures. Parcours et Offres créditent leurs gains à la fin du cycle. Les crédits sont automatiques : aucune collecte manuelle n’est nécessaire.");
   const balancesQuestion = getContent(settings, "content_rulespage_balancesQuestion", "Comment les soldes sont-ils utilisés ?");
@@ -142,13 +141,6 @@ export default function RulesPage() {
               <p>{vipProgressAnswer}</p>
               <h4 className="mt-3 font-semibold text-[#26352d]">{vipThresholdsTitle}</h4>
               <p>{vipThresholdsAnswer}</p>
-              <ul className="mt-2 list-disc space-y-1 pl-5">
-                {vipThresholdRows.map(({ level, thresholdUsdt }) => (
-                  <li key={level}>
-                    VIP {level} : {thresholdUsdt === null ? "seuil non configuré" : `${formatUsdtAmount(thresholdUsdt)} cumulés`}
-                  </li>
-                ))}
-              </ul>
             </FaqItem>
             <FaqItem question={parcoursRequirementsQuestion}>
               <p>{parcoursRequirementsAnswer}</p>
@@ -163,13 +155,17 @@ export default function RulesPage() {
                   {parcoursRequirementRows.map((product) => (
                     <li key={product.id}>
                       {rebrandText(product.name)} :{" "}
+                      {product.requiredInvestmentUsdt === null
+                        ? "montant d’investissement non configuré"
+                        : product.requiredInvestmentUsdt === 0
+                          ? "aucun montant minimum configuré"
+                          : `investissement personnel cumulé minimum : ${formatUsdtAmount(product.requiredInvestmentUsdt)}`}
+                      {`; attribue VIP ${product.awardedVipLevel}`}
                       {product.requiredVipLevel === null
-                        ? "condition VIP non configurée"
+                        ? " ; condition VIP d’accès non configurée"
                         : product.requiredVipLevel === 0
-                          ? "aucun niveau VIP minimum"
-                          : product.thresholdUsdt === null
-                            ? `VIP ${product.requiredVipLevel} — seuil non configuré`
-                            : `VIP ${product.requiredVipLevel} — ${formatUsdtAmount(product.thresholdUsdt)} cumulés`}
+                          ? " ; aucun VIP préalable requis"
+                          : ` ; VIP ${product.requiredVipLevel} minimum pour l’achat`}
                       {product.unavailable ? " (indisponible actuellement)" : ""}
                     </li>
                   ))}
