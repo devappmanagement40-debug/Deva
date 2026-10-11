@@ -37,7 +37,6 @@ const INVEST_COPY: Record<Lang, {
   investNow: string;
   soldOut: string;
   unavailable: string;
-  stabilityRequired: string;
   stabilityRequiredButton: string;
   accessConditionsRequired: string;
   support: string;
@@ -65,7 +64,6 @@ const INVEST_COPY: Record<Lang, {
     investNow: "Acheter",
     soldOut: "Épuisé",
     unavailable: "Bientôt disponible",
-    stabilityRequired: "Pour acheter un produit Parcours ou Offres, vous devez d’abord posséder un produit Explore actif.",
     stabilityRequiredButton: "Explore requis",
     accessConditionsRequired: "Conditions requises",
     support: "Assistance",
@@ -93,7 +91,6 @@ const INVEST_COPY: Record<Lang, {
     investNow: "Buy",
     soldOut: "Sold out",
     unavailable: "Unavailable",
-    stabilityRequired: "You must own an active Stability product before buying a Wellness or Activity product.",
     stabilityRequiredButton: "Stability required",
     accessConditionsRequired: "Requirements not met",
     support: "Support",
@@ -121,7 +118,6 @@ const INVEST_COPY: Record<Lang, {
     investNow: "شراء",
     soldOut: "نفد المخزون",
     unavailable: "غير متاح",
-    stabilityRequired: "يجب أن تمتلك منتج استقرار نشطًا قبل شراء منتج العافية أو النشاط.",
     stabilityRequiredButton: "الاستقرار مطلوب",
     accessConditionsRequired: "لم تُستوفَ الشروط",
     support: "الدعم",
@@ -149,7 +145,6 @@ const INVEST_COPY: Record<Lang, {
     investNow: "购买",
     soldOut: "已售罄",
     unavailable: "暂不可用",
-    stabilityRequired: "购买健康或活力产品前，您必须先拥有一个有效的稳健产品。",
     stabilityRequiredButton: "需要稳健产品",
     accessConditionsRequired: "尚未满足条件",
     support: "客服",
@@ -334,12 +329,6 @@ export default function ProductsPage() {
           </div>
 
           <section className="diamant-invest-list" aria-label={copy.overview}>
-            {stabilityPrerequisiteApplies && !productsLoading && !isError && (
-              <div className="diamant-invest-prerequisite" role="alert">
-                <AlertTriangle size={19} aria-hidden="true" />
-                <p>{copy.stabilityRequired}</p>
-              </div>
-            )}
             {productsLoading ? (
               <div className="diamant-invest-skeletons" aria-label={copy.loading} aria-busy="true">
                 {[0, 1, 2].map((item) => (
