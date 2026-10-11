@@ -1,10 +1,10 @@
 .icx {
-  --icx-ink: #173f26;
-  --icx-green: #087a38;
-  --icx-green-bright: #20a554;
-  --icx-green-soft: #eaf7ee;
-  --icx-line: #dcebe0;
-  --icx-muted: #698173;
+  --icx-ink: #edf3ff;
+  --icx-accent: #7653f5;
+  --icx-accent-bright: #59a5ff;
+  --icx-accent-soft: #172b5b;
+  --icx-line: rgba(178, 202, 255, .2);
+  --icx-muted: rgba(230, 237, 255, .72);
   color: var(--icx-ink);
   font-family: inherit;
 }
@@ -82,7 +82,7 @@
   border: 1px solid #e1ece4;
   border-radius: 14px;
   background: #f7fbf8;
-  color: var(--icx-green);
+  color: var(--icx-accent);
 }
 .icx-option__icon img {
   width: 32px;
@@ -150,7 +150,7 @@
 }
 .icx-detail__amount {
   margin: 5px 0 0;
-  color: var(--icx-green);
+  color: var(--icx-accent);
   font-size: clamp(24px, 6vw, 32px);
   font-weight: 800;
   letter-spacing: -.04em;
@@ -168,7 +168,7 @@
   gap: 6px;
   padding: 7px 10px;
   border-radius: 999px;
-  color: var(--icx-green);
+  color: var(--icx-accent);
   background: #e4f6e9;
   font-size: 11px;
   font-weight: 700;
@@ -227,7 +227,7 @@
   flex: 0 0 auto;
   padding: 5px 9px;
   border-radius: 999px;
-  color: var(--icx-green);
+  color: var(--icx-accent);
   background: #e2f4e7;
   font-size: 10px;
   font-weight: 800;
@@ -254,7 +254,7 @@
   border: 0;
   border-radius: 12px;
   color: #fff;
-  background: var(--icx-green);
+  background: var(--icx-accent);
   font: inherit;
   font-size: 14px;
   font-weight: 700;
@@ -267,7 +267,7 @@
 .icx-button--quiet {
   min-height: 34px;
   padding: 0 8px;
-  color: var(--icx-green);
+  color: var(--icx-accent);
   background: transparent;
   font-size: 12px;
 }
@@ -290,7 +290,7 @@
   height: 9px;
   flex: 0 0 9px;
   border-radius: 50%;
-  background: var(--icx-green-bright);
+  background: var(--icx-accent-bright);
 }
 .icx-detail__status[data-status="confirmed"] .icx-detail__status-dot { background: #16834a; }
 .icx-detail__status[data-status="expired"],
@@ -311,7 +311,7 @@
   line-height: 1.6;
   white-space: pre-line;
 }
-.icx-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--icx-green); }
+.icx-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--icx-accent); }
 
 @media (max-width: 480px) {
   .icx-list { border-radius: 18px; }
@@ -329,13 +329,22 @@
   .icx *, .icx *::before, .icx *::after { transition-duration: .01ms !important; }
 }
 
-/* International deposit screens follow the supplied compact mobile layout,
-   recolored with DIAMANT's green palette. */
+/* International deposit screens follow the supplied compact mobile layout
+   with DIAMANT's navy, blue, and violet palette. */
+.icx-page-header {
+  background: linear-gradient(110deg, #050923 0%, #09235d 100%);
+}
+.icx-continue-button {
+  background: linear-gradient(110deg, #6947f5 0%, #7b36ed 100%);
+}
+.icx-continue-button:hover {
+  background: linear-gradient(110deg, #785cff 0%, #8747f4 100%);
+}
 .icx-list {
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(178, 202, 255, .2);
   border-radius: 20px;
-  background: rgba(255, 255, 255, .11);
-  box-shadow: none;
+  background: linear-gradient(180deg, rgba(36, 45, 85, .96) 0%, rgba(30, 91, 145, .95) 100%);
+  box-shadow: 0 10px 28px rgba(1, 5, 25, .24);
   backdrop-filter: blur(8px);
 }
 .icx-options { padding: 0 12px; }
@@ -343,10 +352,10 @@
   min-height: 64px;
   gap: 12px;
   padding: 8px 4px;
-  border-bottom-color: rgba(255, 255, 255, .12);
+  border-bottom-color: rgba(178, 202, 255, .16);
   color: #fff;
 }
-.icx-option:hover:not(:disabled) { background: rgba(255, 255, 255, .07); }
+.icx-option:hover:not(:disabled) { background: rgba(112, 137, 204, .12); }
 .icx-option__icon {
   width: 32px;
   height: 32px;
@@ -363,7 +372,7 @@
   bottom: -3px;
   width: 15px;
   height: 15px;
-  border: 1.5px solid #087a38;
+  border: 1.5px solid #172b5b;
 }
 .icx-option__monogram { color: #fff; font-size: 10px; }
 .icx-option__name {
@@ -374,10 +383,10 @@
 .icx-option__arrow { color: rgba(255, 255, 255, .72); }
 .icx-detail {
   max-width: none;
-  border: 1px solid rgba(255, 255, 255, .14);
+  border: 1px solid rgba(178, 202, 255, .2);
   border-radius: 20px;
-  background: rgba(255, 255, 255, .11);
-  box-shadow: none;
+  background: linear-gradient(180deg, rgba(36, 45, 85, .96) 0%, rgba(30, 91, 145, .95) 100%);
+  box-shadow: 0 10px 28px rgba(1, 5, 25, .24);
   backdrop-filter: blur(8px);
 }
 .icx-detail__body { padding: 16px; }
@@ -420,7 +429,7 @@
   margin: 0 0 13px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: rgba(0, 35, 18, .22);
+  background: rgba(7, 17, 58, .58);
   color: #fff;
 }
 .icx-detail__amount-band > div { display: grid; gap: 3px; min-width: 0; }
@@ -433,7 +442,7 @@
   justify-content: center;
   gap: 5px;
   border: 0;
-  color: #32c95b;
+  color: #59a5ff;
   background: transparent;
   font: inherit;
   font-weight: 700;
@@ -460,7 +469,7 @@
   gap: 8px;
   padding: 0 11px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, .12);
+  background: rgba(34, 56, 110, .66);
 }
 .icx-address {
   min-width: 0;
@@ -479,23 +488,23 @@
 .icx-button {
   min-height: 54px;
   border-radius: 14px;
-  background: linear-gradient(110deg, #25b84d, #087a38);
-  box-shadow: 0 5px 13px rgba(0, 35, 18, .28);
+  background: linear-gradient(110deg, #6947f5, #7b36ed);
+  box-shadow: 0 5px 15px rgba(40, 20, 120, .4);
   font-size: 16px;
 }
-.icx-button:hover { background: linear-gradient(110deg, #2ac957, #087a38); }
+.icx-button:hover { background: linear-gradient(110deg, #785cff, #8747f4); }
 .icx-detail__status {
   margin-top: 10px;
   padding: 9px 11px;
-  border-color: rgba(255, 255, 255, .14);
+  border-color: rgba(178, 202, 255, .2);
   color: #fff;
-  background: rgba(0, 35, 18, .18);
+  background: rgba(7, 17, 58, .42);
 }
 .icx-detail__status[data-status="expired"],
 .icx-detail__status[data-status="failed"] {
   border-color: rgba(255, 220, 200, .3);
   color: #fff0e8;
-  background: rgba(120, 40, 20, .2);
+  background: rgba(120, 40, 60, .24);
 }
 .icx-note {
   margin-top: 13px;
@@ -507,7 +516,7 @@
   line-height: 1.55;
 }
 .icx-note svg { color: #ffdf6e; }
-.icx-detail__network { color: rgba(255, 255, 255, .82); }
+.icx-detail__network { color: rgba(237, 243, 255, .82); }
 .icx-detail__network strong { color: #fff; }
 .icx-option:active:not(:disabled),
 .icx-button:active,

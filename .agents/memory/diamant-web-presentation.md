@@ -17,6 +17,14 @@ Keep the deposit page visually stationary when buttons are tapped; do not scale 
 
 **How to apply:** Scope no-transform press behavior to deposit-page buttons so other app interactions remain unchanged. Account for the app shell's PWA navigation reserve before adding page-level bottom padding.
 
+## International deposit palette
+
+Keep the international deposit screens aligned with the supplied compact mobile reference and DIAMANT's navy, blue, and violet palette. Do not recolor these screens green.
+
+**Why:** The user explicitly corrected the green treatment; the reference and existing DIAMANT interface use dark navy/blue surfaces and violet accents.
+
+**How to apply:** Preserve the deposit steps and payment behavior while styling the method list and payment details with the navy-to-blue surfaces, white text, blue copy accent, and violet primary action.
+
 ## Home product carousel and information cards
 
 The homepage uses horizontal product cards followed by vertically stacked Information article cards with an image, title, and excerpt. Admin-selected paid products appear in selection order, up to four; when no selection exists, show up to four active paid products by sort order. Popular-product cards open the Products page directly; do not show a “View all” link. Display all popular-product numeric text, including the return-percentage badge, in violet. Do not show the “Invite Friends” promotional card at the bottom; Wheel and Check-in remain floating shortcuts on the homepage only.

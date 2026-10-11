@@ -9,6 +9,7 @@ import { Link } from "wouter";
 import { useI18n } from "@/lib/i18n";
 import { getContent, rebrandText } from "@/lib/content";
 import customerServiceIcon from "@assets/customer-service-icon-512.png";
+import cryptoDepositIcon from "@assets/Cryptocurrency_logos_1791696289715.jpg";
 import supportAvatar3D from "@assets/generated_images/diamant-support-avatar-3d.png";
 import "./service.css";
 
@@ -155,7 +156,7 @@ export default function ServicePage() {
           data-testid="button-deposit-support"
         >
           <div className="diamant-service-icon diamant-service-icon-deposit" aria-hidden="true">
-            <img src="/deposit-cfa-icon.jpg" alt="" />
+            <img src={cryptoDepositIcon} alt="" />
           </div>
           <div className="diamant-service-card-copy">
             <h2>Votre dépôt n'a pas encore été reçu&nbsp;?</h2>

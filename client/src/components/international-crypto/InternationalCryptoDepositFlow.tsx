@@ -198,9 +198,9 @@ export default function InternationalCryptoDepositFlow() {
   return (
     <main
       className="ielp-deposit-page min-h-screen pb-10 text-white"
-      style={{ background: "linear-gradient(180deg, #06351d 0%, #087a38 52%, #20a554 100%)" }}
+      style={{ background: "linear-gradient(180deg, #050923 0%, #07113a 52%, #07518a 100%)" }}
     >
-      <header className="sticky top-0 z-20 flex h-[52px] items-center gap-3 bg-[#087a38] px-3 text-white shadow-[0_2px_8px_rgba(0,35,18,.22)]">
+      <header className="icx-page-header sticky top-0 z-20 flex h-[52px] items-center gap-3 px-3 text-white shadow-[0_2px_8px_rgba(0,5,30,.28)]">
         <button
           type="button"
           onClick={() => {
@@ -260,7 +260,7 @@ export default function InternationalCryptoDepositFlow() {
             <button
               type="button"
               onClick={startMethodSelection}
-              className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-[#32c95b] px-4 font-bold text-white shadow-[0_4px_10px_rgba(0,35,18,.18)] transition hover:bg-[#28b94f]"
+              className="icx-continue-button mt-5 flex h-12 w-full items-center justify-center rounded-xl px-4 font-bold text-white shadow-[0_4px_12px_rgba(0,5,30,.35)] transition"
             >
               Continuer
             </button>
