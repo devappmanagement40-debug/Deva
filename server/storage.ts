@@ -199,6 +199,11 @@ export interface IStorage {
   updateDeposit(id: number, data: Partial<Deposit>): Promise<Deposit>;
   getDepositByReference(reference: string): Promise<Deposit | undefined>;
   approveManualDepositExactlyOnce(id: number, processedBy: number): Promise<{ deposit?: Deposit; credited: boolean }>;
+  approveCryptoDepositManuallyExactlyOnce(
+    id: number,
+    processedBy: number,
+    transactionReference: string,
+  ): Promise<{ deposit?: Deposit; credited: boolean }>;
   approveNowPaymentsDeposit(reference: string): Promise<{ deposit?: Deposit; credited: boolean }>;
   processNowPaymentsDeposit(input: {
     reference: string;
@@ -2058,7 +2063,7 @@ export class DatabaseStorage implements IStorage {
           and(
             eq(deposits.id, id),
             inArray(deposits.status, ["pending", "processing"]),
-            ne(deposits.paymentMethod, "NOWPayments"),
+            sql`LOWER(${deposits.paymentMethod}) NOT LIKE 'nowpayments%'`,
           ),
         )
         .returning();
@@ -2088,6 +2093,72 @@ export class DatabaseStorage implements IStorage {
         description: deposit.paymentMethod === "Deposit issue"
           ? "Réclamation de dépôt approuvée"
           : "Dépôt validé",
+      });
+
+      return { deposit, credited: true };
+    });
+  }
+
+  async approveCryptoDepositManuallyExactlyOnce(
+    id: number,
+    processedBy: number,
+    transactionReference: string,
+  ): Promise<{ deposit?: Deposit; credited: boolean }> {
+    return db.transaction(async (tx) => {
+      const [deposit] = await tx
+        .update(deposits)
+        .set({
+          status: "approved",
+          processedAt: new Date(),
+          processedBy,
+          manualApprovalReference: transactionReference,
+        })
+        .where(
+          and(
+            eq(deposits.id, id),
+            eq(deposits.currency, "USDT"),
+            sql`LOWER(${deposits.paymentMethod}) LIKE 'nowpayments%'`,
+            inArray(deposits.status, ["pending", "processing", "review"]),
+            isNull(deposits.manualApprovalReference),
+          ),
+        )
+        .returning();
+
+      if (!deposit) {
+        const [existing] = await tx.select().from(deposits).where(eq(deposits.id, id));
+        return { deposit: existing, credited: false };
+      }
+
+      const amountUsdt = String(deposit.amountUsdt ?? "").trim();
+      const numericAmount = Number(amountUsdt);
+      if (
+        !/^\d+(?:\.\d{1,8})?$/.test(amountUsdt) ||
+        !Number.isFinite(numericAmount) ||
+        numericAmount <= 0
+      ) {
+        throw new Error("Montant USDT invalide pour la validation manuelle du dépôt.");
+      }
+
+      const [creditedUser] = await tx
+        .update(users)
+        .set({
+          balanceUsdt: sql`(COALESCE(${users.balanceUsdt}, 0)::numeric + ${amountUsdt}::numeric)::numeric(15, 8)`,
+          hasDeposited: true,
+        })
+        .where(eq(users.id, deposit.userId))
+        .returning({ id: users.id });
+
+      if (!creditedUser) {
+        throw new Error("Utilisateur du dépôt introuvable");
+      }
+
+      await tx.insert(transactions).values({
+        userId: deposit.userId,
+        type: "deposit",
+        amount: amountUsdt,
+        amountUsdt,
+        currency: "USDT",
+        description: "Dépôt crypto validé manuellement par l’administration",
       });
 
       return { deposit, credited: true };

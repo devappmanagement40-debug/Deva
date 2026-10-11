@@ -3723,14 +3723,85 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/admin/deposits/:id/approve-crypto-manual", requireAdmin, requireSameOrigin, async (req, res) => {
+    try {
+      const parsed = z.object({
+        transactionReference: z.string().trim().min(8).max(200).regex(/^\S+$/),
+        verified: z.literal(true),
+      }).safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Saisissez le hash de transaction et confirmez sa vérification avant de valider.",
+        });
+      }
+
+      const depositId = Number.parseInt(String(req.params.id), 10);
+      if (!Number.isSafeInteger(depositId) || depositId <= 0) {
+        return res.status(400).json({ message: "Dépôt invalide." });
+      }
+      const existing = await storage.getDeposit(depositId);
+      if (!existing) return res.status(404).json({ message: "Dépôt introuvable." });
+
+      const isCryptoProviderDeposit = existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments");
+      const amountUsdt = String(existing.amountUsdt ?? "").trim();
+      if (
+        !isCryptoProviderDeposit ||
+        existing.currency.toUpperCase() !== "USDT" ||
+        !/^\d+(?:\.\d{1,8})?$/.test(amountUsdt) ||
+        Number(amountUsdt) <= 0
+      ) {
+        return res.status(400).json({ message: "Ce dossier n’est pas un dépôt crypto USDT admissible." });
+      }
+      if (!["pending", "processing", "review"].includes(existing.status)) {
+        return res.status(409).json({ message: "Ce dépôt a déjà été traité." });
+      }
+
+      const submittedReference = parsed.data.transactionReference;
+      const transactionReference = /^0x[0-9a-f]+$/i.test(submittedReference)
+        ? submittedReference.toLowerCase()
+        : submittedReference;
+      const approval = await storage.approveCryptoDepositManuallyExactlyOnce(
+        depositId,
+        req.session.userId!,
+        transactionReference,
+      );
+      if (!approval.deposit) return res.status(404).json({ message: "Dépôt introuvable." });
+      if (!approval.credited) return res.status(409).json({ message: "Ce dépôt a déjà été traité." });
+
+      await storage.logAdminAction(
+        req.session.userId!,
+        "approve_crypto_deposit_manually",
+        approval.deposit.userId,
+        `Dépôt crypto ${approval.deposit.amountUsdt} USDT validé manuellement; transaction ${transactionReference}`,
+      );
+      notifyAdminTelegram({
+        kind: "deposit_status",
+        id: approval.deposit.id,
+        amount: Number(approval.deposit.amountUsdt),
+        country: approval.deposit.country,
+        paymentMethod: "Dépôt crypto USDT",
+        status: approval.deposit.status,
+      });
+      return res.json(approval.deposit);
+    } catch (error: any) {
+      if (
+        error?.code === "23505" &&
+        error?.constraint === "deposits_manual_approval_reference_unique"
+      ) {
+        return res.status(409).json({ message: "Ce hash de transaction est déjà associé à un autre dépôt." });
+      }
+      return res.status(400).json({ message: error?.message || "Impossible de valider ce dépôt crypto." });
+    }
+  });
+
   app.post("/api/admin/deposits/:id/approve", requireAdmin, requireSameOrigin, async (req, res) => {
     try {
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod === "NOWPayments") {
+      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
-          message: "Les dépôts NOWPayments sont crédités uniquement après rapprochement IPN validé",
+          message: "Utilisez l’action de validation manuelle dédiée pour ce dépôt crypto.",
         });
       }
       if (!["pending", "processing"].includes(existing.status)) {
@@ -3762,9 +3833,9 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod === "NOWPayments") {
+      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
-          message: "Les dépôts NOWPayments sont suivis automatiquement et ne peuvent pas être rejetés manuellement.",
+          message: "Les dépôts crypto sont traités dans leur parcours dédié.",
         });
       }
       if (!["pending", "processing", "review"].includes(existing.status)) {
@@ -5683,7 +5754,7 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod === "NOWPayments") {
+      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
           message: "Les dépôts NOWPayments sont crédités uniquement après rapprochement IPN validé",
         });
@@ -5715,7 +5786,7 @@ export async function registerRoutes(
       const depositId = parseInt(req.params.id as string, 10);
       const existing = await storage.getDeposit(depositId);
       if (!existing) return res.status(404).json({ message: "Dépôt introuvable" });
-      if (existing.paymentMethod === "NOWPayments") {
+      if (existing.paymentMethod.trim().toLowerCase().startsWith("nowpayments")) {
         return res.status(400).json({
           message: "Les dépôts NOWPayments sont suivis automatiquement et ne peuvent pas être rejetés manuellement.",
         });

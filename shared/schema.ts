@@ -185,6 +185,7 @@ export const deposits = pgTable("deposits", {
   nowPaymentsOutcomeAmount: text("nowpayments_outcome_amount"),
   nowPaymentsOutcomeCurrency: text("nowpayments_outcome_currency"),
   nowPaymentsError: text("nowpayments_error"),
+  manualApprovalReference: text("manual_approval_reference"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   processedAt: timestamp("processed_at"),
   processedBy: integer("processed_by"),
@@ -192,6 +193,9 @@ export const deposits = pgTable("deposits", {
   depositIssueReferenceUnique: uniqueIndex("deposits_issue_reference_unique")
     .on(table.reference)
     .where(sql`${table.paymentMethod} = 'Deposit issue' AND ${table.reference} IS NOT NULL`),
+  manualApprovalReferenceUnique: uniqueIndex("deposits_manual_approval_reference_unique")
+    .on(table.manualApprovalReference)
+    .where(sql`${table.manualApprovalReference} IS NOT NULL`),
 }));
 
 // Share information reports

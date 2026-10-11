@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useI18n } from "@/lib/i18n";
@@ -28,6 +28,9 @@ export default function AdminDeposits() {
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "processing" | "review" | "approved" | "rejected">("pending");
   const [screenshotModal, setScreenshotModal] = useState<string | null>(null);
+  const [manualCryptoApproval, setManualCryptoApproval] = useState<DepositWithUser | null>(null);
+  const [manualCryptoReference, setManualCryptoReference] = useState("");
+  const [manualCryptoVerified, setManualCryptoVerified] = useState(false);
 
   const { data: allDeposits, isLoading } = useQuery<DepositWithUser[]>({
     queryKey: ["/api/admin/deposits"],
@@ -44,18 +47,45 @@ export default function AdminDeposits() {
   );
 
   const processMutation = useMutation({
-    mutationFn: async ({ id, action, ban }: { id: number; action: "approve" | "reject"; ban?: boolean }) => {
-      const response = await apiRequest("POST", `/api/admin/deposits/${id}/${action}`, { ban });
+    mutationFn: async ({
+      id,
+      action,
+      ban,
+      transactionReference,
+      verified,
+    }: {
+      id: number;
+      action: "approve" | "approve-crypto-manual" | "reject";
+      ban?: boolean;
+      transactionReference?: string;
+      verified?: boolean;
+    }) => {
+      const endpoint = action === "approve-crypto-manual"
+        ? `/api/admin/deposits/${id}/approve-crypto-manual`
+        : `/api/admin/deposits/${id}/${action}`;
+      const response = await apiRequest("POST", endpoint, { ban, transactionReference, verified });
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Erreur");
       }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (_result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/deposits"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      toast({ title: t.depositProcessed });
+      if (variables.action === "approve-crypto-manual") {
+        setManualCryptoApproval(null);
+        setManualCryptoReference("");
+        setManualCryptoVerified(false);
+        toast({
+          title: lang === "fr" ? "Dépôt crypto validé" : "Crypto deposit approved",
+          description: lang === "fr"
+            ? "Le solde USDT a été crédité une seule fois."
+            : "The USDT balance was credited exactly once.",
+        });
+      } else {
+        toast({ title: t.depositProcessed });
+      }
     },
     onError: (error: any) => {
       toast({ title: error.message || t.errorOccurred, variant: "destructive" });
@@ -120,7 +150,10 @@ export default function AdminDeposits() {
           Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-52" />)
         ) : filteredDeposits.length > 0 ? (
           filteredDeposits.map((deposit) => {
-            const isNowPayments = deposit.paymentMethod === "NOWPayments";
+            const isNowPayments = deposit.paymentMethod.trim().toLowerCase().startsWith("nowpayments");
+            const isCryptoUsdtDeposit = isNowPayments &&
+              deposit.currency?.toUpperCase() === "USDT" &&
+              Number(deposit.amountUsdt) > 0;
             const isDepositIssue = deposit.paymentMethod === "Deposit issue";
             const isManual = !isNowPayments && (!!(deposit as any).paymentNumberId || !!(deposit as any).channelName);
             return (
@@ -232,6 +265,14 @@ export default function AdminDeposits() {
                         )}
                       </div>
                     )}
+                    {(deposit as any).manualApprovalReference && (
+                      <div className="col-span-2">
+                        <p className="text-muted-foreground text-xs">
+                          {lang === "fr" ? "Hash vérifié pour la validation manuelle" : "Hash verified for manual approval"}
+                        </p>
+                        <p className="font-mono text-xs break-all">{(deposit as any).manualApprovalReference}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Payment message */}
@@ -269,7 +310,22 @@ export default function AdminDeposits() {
                   {/* Actions */}
                   {(deposit.status === "pending" || deposit.status === "processing" || deposit.status === "review") && (
                     <div className="flex gap-2">
-                      {!isNowPayments && (
+                      {isCryptoUsdtDeposit ? (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                          onClick={() => {
+                            setManualCryptoApproval(deposit);
+                            setManualCryptoReference("");
+                            setManualCryptoVerified(false);
+                          }}
+                          disabled={processMutation.isPending}
+                          data-testid={`button-manual-approve-crypto-${deposit.id}`}
+                        >
+                          <Check className="w-4 h-4 mr-1" />
+                          {lang === "fr" ? "Valider manuellement" : "Approve manually"}
+                        </Button>
+                      ) : !isNowPayments && (
                         <Button
                           size="sm"
                           className="flex-1 bg-green-600 hover:bg-green-700 text-white"
@@ -280,7 +336,7 @@ export default function AdminDeposits() {
                           {processMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" />{t.approve}</>}
                         </Button>
                       )}
-                      <Button
+                      {!isNowPayments && <Button
                         size="sm"
                         variant="outline"
                         onClick={() => processMutation.mutate({ id: deposit.id, action: "reject" })}
@@ -288,8 +344,8 @@ export default function AdminDeposits() {
                         data-testid={`button-reject-${deposit.id}`}
                       >
                         <X className="w-4 h-4 mr-1" />{t.reject}
-                      </Button>
-                      <Button
+                      </Button>}
+                      {!isNowPayments && <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => processMutation.mutate({ id: deposit.id, action: "reject", ban: true })}
@@ -298,7 +354,7 @@ export default function AdminDeposits() {
                         data-testid={`button-ban-${deposit.id}`}
                       >
                         <Ban className="w-4 h-4" />
-                      </Button>
+                      </Button>}
                     </div>
                   )}
                 </CardContent>
@@ -321,6 +377,101 @@ export default function AdminDeposits() {
           {screenshotModal && (
             <img src={screenshotModal} alt="Capture" className="w-full rounded-xl object-contain max-h-[70vh]" />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!manualCryptoApproval}
+        onOpenChange={(open) => {
+          if (!open && !processMutation.isPending) {
+            setManualCryptoApproval(null);
+            setManualCryptoReference("");
+            setManualCryptoVerified(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{lang === "fr" ? "Valider manuellement le dépôt crypto ?" : "Manually approve this crypto deposit?"}</DialogTitle>
+            <DialogDescription>
+              {lang === "fr"
+                ? "Cette action crédite le portefeuille USDT sans attendre la confirmation automatique. Vérifie d’abord sur l’explorateur que la transaction est confirmée, sur le bon réseau, à la bonne adresse et pour le bon montant."
+                : "This credits the USDT wallet without waiting for automatic confirmation. First verify in the network explorer that the transaction is confirmed, on the right network, to the right address, and for the exact amount."}
+            </DialogDescription>
+          </DialogHeader>
+          {manualCryptoApproval && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-secondary/40 p-3 text-sm">
+                <p className="font-semibold">
+                  {Number(manualCryptoApproval.amountUsdt).toLocaleString(undefined, { maximumFractionDigits: 8 })} USDT
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {lang === "fr" ? "Réseau :" : "Network:"} {manualCryptoApproval.channelName || "—"}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {lang === "fr" ? "Montant exact à envoyer :" : "Exact amount to send:"}{" "}
+                  {manualCryptoApproval.nowPaymentsExpectedAmount || "—"}{" "}
+                  {manualCryptoApproval.nowPaymentsExpectedCurrency?.toUpperCase() || ""}
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  {manualCryptoApproval.user.fullName} · {manualCryptoApproval.user.phone}
+                </p>
+                <p className="mt-1 font-mono text-xs break-all">{manualCryptoApproval.accountNumber}</p>
+              </div>
+              <label className="block space-y-1.5 text-sm font-medium">
+                <span>{lang === "fr" ? "Hash de la transaction" : "Transaction hash"}</span>
+                <Input
+                  value={manualCryptoReference}
+                  onChange={(event) => setManualCryptoReference(event.target.value)}
+                  placeholder={lang === "fr" ? "Saisir le hash confirmé sur la blockchain" : "Enter the confirmed blockchain hash"}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                />
+              </label>
+              <label className="flex cursor-pointer items-start gap-2 text-sm leading-5">
+                <input
+                  type="checkbox"
+                  checked={manualCryptoVerified}
+                  onChange={(event) => setManualCryptoVerified(event.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0 accent-green-600"
+                />
+                <span>
+                  {lang === "fr"
+                    ? "J’ai vérifié le hash, le réseau, l’adresse destinataire et le montant reçu."
+                    : "I verified the hash, network, destination address, and received amount."}
+                </span>
+              </label>
+            </div>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setManualCryptoApproval(null)}
+              disabled={processMutation.isPending}
+            >
+              {lang === "fr" ? "Annuler" : "Cancel"}
+            </Button>
+            <Button
+              className="bg-green-600 text-white hover:bg-green-700"
+              onClick={() => {
+                if (!manualCryptoApproval || !manualCryptoVerified) return;
+                processMutation.mutate({
+                  id: manualCryptoApproval.id,
+                  action: "approve-crypto-manual",
+                  transactionReference: manualCryptoReference.trim(),
+                  verified: true,
+                });
+              }}
+              disabled={
+                processMutation.isPending ||
+                !manualCryptoVerified ||
+                manualCryptoReference.trim().length < 8
+              }
+            >
+              {processMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {lang === "fr" ? "Créditer le solde USDT" : "Credit the USDT balance"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
