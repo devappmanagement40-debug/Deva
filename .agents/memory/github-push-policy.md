@@ -1,13 +1,13 @@
 ---
 name: GitHub push policy
-description: Keep verified project changes synchronized to the connected GitHub repository.
+description: The user handles GitHub pushes for this project.
 ---
 
-Push all project code changes, including future modifications, to the connected GitHub repository after verifying them.
+Leave verified project changes in the workspace for the user to push.
 
-**Why:** The user explicitly asked for all project code and future changes to be pushed.
+**Why:** The user said they will perform the push themselves.
 
-**How to apply:** After completing and verifying each project change, push it to the connected repository.
+**How to apply:** Do not push project changes unless the user explicitly asks again.
 
 If GitHub's integration connection remains `not_added` or a Git push is rejected despite the connection claiming it is active, keep the verified commit locally and ask the user to reconnect GitHub in Replit before retrying. Do not request or expose a personal token.
 

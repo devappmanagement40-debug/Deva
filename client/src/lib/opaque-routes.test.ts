@@ -35,11 +35,11 @@ test("index URLs preserve readable dynamic routes, identifiers, and query string
   assert.equal(toInternalRoute(`/index${route}`), route);
   assert.equal(toIndexPath(route), `/index${route}`);
   assert.equal(
-    buildIndexRouteUrl("https://golddiamant.site", route),
-    "https://golddiamant.site/index/admin/team/17?tab=members",
+    buildIndexRouteUrl("https://example.test", route),
+    "https://example.test/index/admin/team/17?tab=members",
   );
   assert.equal(toIndexPath("/"), "/index");
-  assert.equal(buildIndexRouteUrl("https://golddiamant.site", "/"), "https://golddiamant.site/index");
+  assert.equal(buildIndexRouteUrl("https://example.test", "/"), "https://example.test/index");
 });
 
 test("index invitation links open registration and prefill invite", () => {
@@ -47,8 +47,8 @@ test("index invitation links open registration and prefill invite", () => {
   assert.equal(internalPathFromLocation(location), "/register");
   assert.equal(getCanonicalInitialUrl(location), "/index?invite=ABCD");
   assert.equal(
-    buildInvitationUrl("https://golddiamant.site", "ABCD"),
-    "https://golddiamant.site/index?invite=ABCD",
+    buildInvitationUrl("https://example.test", "ABCD"),
+    "https://example.test/index?invite=ABCD",
   );
   assert.equal(
     internalPathFromLocation({ pathname: "/index", search: "?invite=ABCD", hash: "" }),

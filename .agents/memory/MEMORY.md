@@ -24,9 +24,9 @@
 - [DIAMANT product sections](diamant-product-sections.md) — active Explore gates Parcours/Offres; VIP and product eligibility never depend on invitation counts.
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
 - [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
-- [Plesk runtime configuration](plesk-runtime-config.md) — use enpaseenergy.cc only after HTTPS/API checks; run from project root with the wrapper and publish the compiled bundle.
+- [Plesk runtime configuration](plesk-runtime-config.md) — set the public URL through Plesk, never a hard-coded fallback; Search Console is needed to identify the Safe Browsing issue.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
-- [GitHub push policy](github-push-policy.md) — push verified project changes, including future modifications, to the connected repository.
+- [GitHub push policy](github-push-policy.md) — the user makes project pushes; keep verified changes in the workspace unless asked otherwise.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
 - [DIAMANT spin-wheel rewards](diamant-spin-wheel-rewards.md) — prizes credit USDT earnings; paid purchases grant spins and ranking aggregates each masked member's total.
 - [DIAMANT feedback popups](diamant-feedback-popups.md) — use the new popup style across pages; preserve current notifications on wheel and check-in.

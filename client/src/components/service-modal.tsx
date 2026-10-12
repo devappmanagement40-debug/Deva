@@ -14,7 +14,7 @@ interface ServiceModalProps {
 export default function ServiceModal({ open, onClose, supportLink, channelLink, groupLink }: ServiceModalProps) {
   const { t } = useI18n();
   const openLink = (url: string) => {
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (

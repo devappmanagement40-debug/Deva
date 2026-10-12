@@ -145,17 +145,14 @@ test("uses PUBLIC_URL when APP_URL is not valid", () => {
   }
 });
 
-test("uses the verified public URL when Plesk provides no URL variables", () => {
+test("does not invent a public domain when URL variables are missing", () => {
   const previousAppUrl = process.env.APP_URL;
   const previousPublicUrl = process.env.PUBLIC_URL;
   try {
     delete process.env.APP_URL;
     delete process.env.PUBLIC_URL;
-    assert.equal(getConfiguredAppUrlInfo()?.source, "DEFAULT");
-    assert.equal(
-      getNowPaymentsCallbackUrl(),
-      "https://zoksilll.online/api/nowpayments/ipn",
-    );
+    assert.equal(getConfiguredAppUrlInfo(), undefined);
+    assert.equal(getNowPaymentsCallbackUrl(), undefined);
   } finally {
     if (previousAppUrl === undefined) delete process.env.APP_URL;
     else process.env.APP_URL = previousAppUrl;

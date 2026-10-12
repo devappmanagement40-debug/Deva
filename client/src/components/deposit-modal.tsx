@@ -84,7 +84,7 @@ export default function DepositModal({ open, onClose }: DepositModalProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
       refreshUser();
       if (data.redirectUrl) {
-        window.open(data.redirectUrl, "_blank");
+        window.open(data.redirectUrl, "_blank", "noopener,noreferrer");
       }
       toast({ title: t.depositSubmitted, description: t.depositSubmittedDesc });
       handleClose();
