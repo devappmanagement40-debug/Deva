@@ -27,14 +27,18 @@ test("uses the PIN-specific message when the API identifies an invalid PIN", () 
   );
 });
 
-test("preserves safe amount-limit details without exposing arbitrary server text", () => {
+test("formats safe USDT limits and hides legacy XOF server messages", () => {
   const message = getSafeWithdrawalErrorMessage(
-    new Error("Montant minimum : 2 500 XOF"),
+    new Error("Montant minimum : 2 500 USDT"),
     "request",
     "PIN incorrect",
   );
 
-  assert.match(message, /^Le montant minimum de retrait est 2\s?500 XOF\.$/);
+  assert.match(message, /^Le montant minimum de retrait est 2\s?500 USDT\.$/);
+  assert.equal(
+    getSafeWithdrawalErrorMessage(new Error("Montant minimum : 2 500 XOF"), "request", "PIN incorrect"),
+    "Le retrait n’a pas pu être confirmé. Consultez l’historique avant de réessayer.",
+  );
 });
 
 test("warns users to check history after a lost withdrawal connection", () => {
