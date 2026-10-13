@@ -168,7 +168,7 @@ importers:
         specifier: ^1.6.8
         version: 1.6.8
       multer:
-        specifier: ^2.2.0
+        specifier: ^2.4.0
         version: 2.4.0
       next-themes:
         specifier: ^0.4.6

@@ -76,7 +76,14 @@ export function serveStatic(app: Express) {
   // Product images uploaded from the admin panel must survive a rebuild,
   // which recreates dist/public on every production build.
   const uploadsPath = path.resolve(process.cwd(), "client", "public", "uploads");
-  app.use("/uploads", express.static(uploadsPath));
+  app.use(
+    "/uploads",
+    express.static(uploadsPath, {
+      setHeaders: (response) => {
+        response.setHeader("X-Content-Type-Options", "nosniff");
+      },
+    }),
+  );
   app.use(express.static(distPath));
 
   // Keep unknown API requests as JSON. If a reverse proxy forwards an API

@@ -37,6 +37,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { getSafeRasterImageExtension } from "./public-image-validation";
 import { isSecureShareLink } from "./share-report-validation";
 import { supportChatEditMessageSchema, supportChatMessageSchema } from "./support-chat-validation";
 import { hasAdminPanelAccess, hasSupportInboxAccess } from "./authorization";
@@ -539,29 +540,10 @@ export async function registerRoutes(
   // Health check — verifies DB connectivity without exposing sensitive data
   app.get("/api/health", async (_req, res) => {
     try {
-      const result = await pool.query("SELECT current_database() AS db, version() AS pg_version");
-      const appUrlInfo = getConfiguredAppUrlInfo();
-      const callbackUrl = getNowPaymentsCallbackUrl();
-      res.json({
-        status: "ok",
-        db: result.rows[0].db,
-        pg_version: result.rows[0].pg_version,
-        runtime: {
-          nodeEnv: process.env.NODE_ENV || "development",
-          appUrlConfigured: Boolean(appUrlInfo),
-          appUrlSource: appUrlInfo?.source || "none",
-          appUrlIsHttps: Boolean(callbackUrl),
-          nowPaymentsApiKeyConfigured: Boolean(process.env.NOWPAYMENTS_API_KEY),
-          nowPaymentsIpnSecretConfigured: Boolean(process.env.NOWPAYMENTS_IPN_SECRET),
-          nowPaymentsConfigured: Boolean(
-            process.env.NOWPAYMENTS_API_KEY &&
-              process.env.NOWPAYMENTS_IPN_SECRET &&
-              callbackUrl,
-          ),
-        },
-      });
+      await pool.query("SELECT 1");
+      res.json({ status: "ok" });
     } catch (err: any) {
-      res.status(503).json({ status: "error", message: err.message });
+      res.status(503).json({ status: "error", message: "Service temporairement indisponible" });
     }
   });
 
@@ -5666,33 +5648,66 @@ export async function registerRoutes(
   // ==================== FILE UPLOAD ====================
   const uploadsDir = path.join(process.cwd(), "client", "public", "uploads");
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+  const adminUploadStagingDir = path.join(process.cwd(), "uploads", "admin-staging");
+  if (!fs.existsSync(adminUploadStagingDir)) {
+    fs.mkdirSync(adminUploadStagingDir, { recursive: true });
+  }
   const supportChatUploadsDir = path.join(process.cwd(), "uploads", "support-chat");
   if (!fs.existsSync(supportChatUploadsDir)) fs.mkdirSync(supportChatUploadsDir, { recursive: true });
 
+  const adminUploadLimits = {
+    fileSize: 10 * 1024 * 1024,
+    files: 1,
+    fields: 5,
+    parts: 6,
+    fieldNameSize: 100,
+    fieldNestingDepth: 2,
+    fieldArrayIndexLimit: 100,
+  };
   const upload = multer({
     storage: multer.diskStorage({
-      destination: (_req, _file, cb) => cb(null, uploadsDir),
-      filename: (_req, file, cb) => {
-        const ext  = path.extname(file.originalname).toLowerCase() || ".jpg";
-        const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
-        cb(null, name);
-      },
+      destination: (_req, _file, cb) => cb(null, adminUploadStagingDir),
+      filename: (_req, _file, cb) =>
+        cb(null, `image-${crypto.randomBytes(20).toString("hex")}.upload`),
     }),
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10 Mo
+    limits: adminUploadLimits,
     fileFilter: (_req, file, cb) => {
-      if (file.mimetype.startsWith("image/")) cb(null, true);
+      if (["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.mimetype)) {
+        cb(null, true);
+      }
       else cb(new Error("Seules les images sont acceptées"));
     },
   });
 
-  app.post("/api/admin/upload", requireAdmin, upload.single("file"), (req: Request, res: Response) => {
-    try {
+  app.post("/api/admin/upload", requireAdmin, requireSameOrigin, (req: Request, res: Response) => {
+    upload.single("file")(req, res, async (error: any) => {
+      if (error) {
+        if (req.file?.path) await fs.promises.unlink(req.file.path).catch(() => undefined);
+        const status = error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+        return res.status(status).json({ message: error.message || "Impossible de recevoir l’image" });
+      }
       if (!req.file) return res.status(400).json({ message: "Aucun fichier reçu" });
-      const url = `/uploads/${req.file.filename}`;
-      res.json({ url });
-    } catch (err: any) {
-      res.status(500).json({ message: err.message });
-    }
+
+      try {
+        const bytes = await fs.promises.readFile(req.file.path);
+        const extension = getSafeRasterImageExtension(req.file.mimetype, bytes);
+        if (!extension) {
+          await fs.promises.unlink(req.file.path).catch(() => undefined);
+          return res.status(400).json({ message: "Image invalide ou format non accepté" });
+        }
+
+        const filename = `image-${crypto.randomBytes(20).toString("hex")}${extension}`;
+        await fs.promises.rename(req.file.path, path.join(uploadsDir, filename));
+        return res.status(201).json({ url: `/uploads/${filename}` });
+      } catch (err) {
+        await fs.promises.unlink(req.file.path).catch(() => undefined);
+        console.error(
+          "[upload] Admin image processing failed:",
+          err instanceof Error ? err.message : "Unknown error",
+        );
+        return res.status(500).json({ message: "Impossible de traiter l’image" });
+      }
+    });
   });
 
   const supportChatFileRules: Record<string, { extension: string; type: "image" | "video" | "file" }> = {
@@ -5713,7 +5728,15 @@ export async function registerRoutes(
         cb(null, `support-${crypto.randomBytes(16).toString("hex")}${rule?.extension || ".bin"}`);
       },
     }),
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: {
+      fileSize: 10 * 1024 * 1024,
+      files: 1,
+      fields: 5,
+      parts: 6,
+      fieldNameSize: 100,
+      fieldNestingDepth: 2,
+      fieldArrayIndexLimit: 100,
+    } as typeof adminUploadLimits,
     fileFilter: (_req, file, cb) => {
       if (supportChatFileRules[file.mimetype]) cb(null, true);
       else cb(new Error("Formats acceptés : image, vidéo MP4/WebM ou PDF"));
