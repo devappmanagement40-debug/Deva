@@ -25,6 +25,7 @@
 - [DIAMANT admin-managed product images](diamant-admin-product-images.md) — catalog images belong to product records and must stay editable in admin, never mapped by ID in source code.
 - [DIAMANT admin configurability](diamant-admin-configurability.md) — business values and their live customer-facing explanations must come from admin settings, not fixed UI copies.
 - [Plesk runtime configuration](plesk-runtime-config.md) — set the public URL through Plesk, never a hard-coded fallback; Search Console is needed to identify the Safe Browsing issue.
+- [DIAMANT public metadata](diamant-public-metadata.md) — omit all public page and install-manifest descriptions.
 - [Generated-image transparency](generated-image-transparency.md) — check PNG alpha; a checkerboard may be baked into RGB and remain visible in the UI.
 - [GitHub push policy](github-push-policy.md) — the user makes project pushes; keep verified changes in the workspace unless asked otherwise.
 - [Wheel popup visual reference](wheel-popup-reference-style.md) — invitation and rules use the wheel-ranking frame, not the sign-up page theme.
