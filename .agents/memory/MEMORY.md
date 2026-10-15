@@ -3,7 +3,7 @@
 - [TGOOD purchase balance priority](tgood-purchase-balance-priority.md) — product purchases consume deposit balance first, then earnings balance; withdrawals use earnings only.
 - [Global USDT currency migration](rdc-only-market.md) — one USDT catalog; keep legacy XOF archived but hidden in the site, with manual credits only.
 - [NOWPayments payout integrity](nowpayments-payout-integrity.md) — ambiguous provider responses require reconciliation, never automatic refund; payout states must be monotonic.
-- [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — withdrawals are USDT BEP20 only; the configured minimum is 0.50 USDT and the fee is 3%.
+- [DIAMANT withdrawal policy](tgood-withdrawal-policy.md) — withdrawals are manual USDT BEP20 by default; the minimum is 0.50 USDT and the fee is 3%.
 - [Global USDT deposit policy](diamant-usdt-deposit-conversion.md) — remove Mobile Money deposits and automatic XOF/USDT conversion; accept crypto USDT deposits only.
 - [DIAMANT withdrawal security PIN](diamant-withdrawal-security-pin.md) — use a personal hashed PIN; admins can require a targeted reset but cannot view or set the replacement.
 - [TGOOD admin password seeding](tgood-admin-password-seeding.md) — seed defaults may create the first admin but must never overwrite an existing admin password at startup.

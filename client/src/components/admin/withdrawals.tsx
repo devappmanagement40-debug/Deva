@@ -329,8 +329,20 @@ export default function AdminWithdrawals() {
                 )}
 
                 {withdrawal.status === "pending" && (
-                  <div className="flex gap-2">
-                    {withdrawal.currency?.toUpperCase() !== "USDT" && (isManual || withdrawal.paymentMethod?.startsWith("Mobile Money - ")) ? (
+                  <>
+                    {isManual && withdrawal.paymentMethod === "USDT BEP20" && (
+                      <div className="mb-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                        Envoyez d’abord le montant net en USDT via BEP20 à l’adresse affichée, puis confirmez le retrait.
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                    {(
+                      (isManual && withdrawal.paymentMethod === "USDT BEP20")
+                      || (
+                        withdrawal.currency?.toUpperCase() !== "USDT"
+                        && (isManual || withdrawal.paymentMethod?.startsWith("Mobile Money - "))
+                      )
+                    ) ? (
                       <Button
                         size="sm"
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
@@ -338,7 +350,16 @@ export default function AdminWithdrawals() {
                         disabled={processMutation.isPending}
                         data-testid={`button-approve-${withdrawal.id}`}
                       >
-                        {processMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Check className="w-4 h-4 mr-1" /> {t.approve}</>}
+                        {processMutation.isPending
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : (
+                            <>
+                              <Check className="w-4 h-4 mr-1" />
+                              {isManual && withdrawal.paymentMethod === "USDT BEP20"
+                                ? "Confirmer après envoi"
+                                : t.approve}
+                            </>
+                          )}
                       </Button>
                     ) : withdrawal.paymentMethod === "USDT BEP20" ? (
                       <Button
@@ -367,6 +388,7 @@ export default function AdminWithdrawals() {
                       <X className="w-4 h-4 mr-1" /> {t.reject}
                     </Button>
                   </div>
+                  </>
                 )}
               </CardContent>
             </Card>

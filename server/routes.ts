@@ -228,6 +228,7 @@ import {
   isSupportedNowPaymentsDepositCurrency,
   isSupportedNowPaymentsInternationalCurrency,
   isNowPaymentsPayoutConfigured,
+  isWithdrawalProcessingAvailable,
   isNowPaymentsVerificationCode,
   nextWithdrawalStatusFromPayoutIpn,
   NowPaymentsPayoutError,
@@ -2725,10 +2726,13 @@ export async function registerRoutes(
       if (settingsForWithdrawal.withdrawalEnabled === "false") {
         return res.status(400).json({ message: "Les retraits sont temporairement désactivés par l'administration" });
       }
-      if (!isNowPaymentsPayoutConfigured()) {
+      if (!isWithdrawalProcessingAvailable(
+        settingsForWithdrawal.withdrawalMode,
+        isNowPaymentsPayoutConfigured(),
+      )) {
         return res.status(503).json({
           code: "NOWPAYMENTS_PAYOUT_NOT_CONFIGURED",
-          message: "Les retraits USDT ne sont pas encore configurés. Contactez l'administration.",
+          message: "Le service de retrait NOWPayments n'est pas configuré. Contactez l'administration.",
         });
       }
 
@@ -3388,7 +3392,10 @@ export async function registerRoutes(
       res.json({
         withdrawalEnabled: settings.withdrawalEnabled !== "false",
         currency: "USDT",
-        payoutConfigured: isNowPaymentsPayoutConfigured(),
+        payoutConfigured: isWithdrawalProcessingAvailable(
+          settings.withdrawalMode,
+          isNowPaymentsPayoutConfigured(),
+        ),
         withdrawalStartHour: parseInt(settings.withdrawalStartHour || "9"),
         withdrawalEndHour: parseInt(settings.withdrawalEndHour || "17"),
         withdrawalDays: settings.withdrawalDays || "1,2,3,4,5",
@@ -4190,14 +4197,10 @@ export async function registerRoutes(
         return res.status(409).json({ message: "Ce retrait a déjà été traité" });
       }
       const isUsdtBep20 = withdrawalData.paymentMethod === "USDT BEP20";
-      const isUsdtAccountWithdrawal = withdrawalData.currency?.toUpperCase() === "USDT";
       const isMobileMoney = typeof withdrawalData.paymentMethod === "string"
         && withdrawalData.paymentMethod.startsWith("Mobile Money - ");
       if (!isUsdtBep20 && !isMobileMoney) {
         return res.status(400).json({ message: "Ce moyen de retrait n'est pas pris en charge." });
-      }
-      if (isUsdtAccountWithdrawal) {
-        return res.status(400).json({ message: "Les retraits internationaux USDT doivent être envoyés par NOWPayments." });
       }
       if (isUsdtBep20 && normalizeWithdrawalMode(settings.withdrawalMode) !== "manual") {
         return res.status(400).json({ message: "Utilisez l'action NOWPayments en mode semi-automatique" });

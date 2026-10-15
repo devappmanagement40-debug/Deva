@@ -1983,6 +1983,8 @@ const STATIC_UI_TRANSLATIONS: StaticTranslationRow[] = [
   ["Adresse du réseau", "Network address", "عنوان الشبكة", "网络地址"],
   ["Moyen de retrait ajouté avec succès", "Withdrawal method added", "تمت إضافة وسيلة السحب بنجاح", "提现方式添加成功"],
   ["Moyen de retrait", "Withdrawal method", "وسيلة السحب", "提现方式"],
+  ["Confirmer après envoi", "Confirm after sending", "التأكيد بعد الإرسال", "发送后确认"],
+  ["Envoyez d’abord le montant net en USDT via BEP20 à l’adresse affichée, puis confirmez le retrait.", "First send the net USDT amount over BEP20 to the displayed address, then confirm the withdrawal.", "أرسل أولاً صافي مبلغ USDT عبر BEP20 إلى العنوان الظاهر، ثم أكّد السحب.", "先通过 BEP20 将 USDT 净额发送到显示的地址，然后确认该笔提现。"],
   ["Ajouter un moyen de retrait", "Add withdrawal method", "إضافة وسيلة سحب", "添加提现方式"],
   ["Adresse USDT BEP20", "USDT BEP20 address", "عنوان USDT BEP20", "USDT BEP20地址"],
   ["Mot de passe de transaction", "Transaction password", "كلمة مرور المعاملة", "交易密码"],

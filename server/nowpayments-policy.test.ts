@@ -9,6 +9,7 @@ import {
   getNowPaymentsCallbackUrl,
   isSupportedNowPaymentsDepositCurrency,
   isNowPaymentsVerificationCode,
+  isWithdrawalProcessingAvailable,
   NowPaymentsPayoutError,
   normalizeWithdrawalMode,
   nextWithdrawalStatusFromPayoutIpn,
@@ -17,6 +18,13 @@ import {
 import { parseXofPerUsdt } from "@shared/financial-settings";
 import { INTERNATIONAL_CRYPTO_METHODS } from "@shared/international-crypto";
 import { isSupportedNowPaymentsInternationalCurrency } from "./nowpayments";
+
+test("manual USDT withdrawals do not require NOWPayments; semi-automatic withdrawals do", () => {
+  assert.equal(isWithdrawalProcessingAvailable("manual", false), true);
+  assert.equal(isWithdrawalProcessingAvailable(undefined, false), true);
+  assert.equal(isWithdrawalProcessingAvailable("semi_auto", false), false);
+  assert.equal(isWithdrawalProcessingAvailable("semi_auto", true), true);
+});
 
 test("converts the requested XOF deposit into the exact USDT payment amount", () => {
   assert.equal(convertXofToUsdt(500), 1);

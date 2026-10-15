@@ -203,6 +203,13 @@ export function normalizeWithdrawalMode(
   return value === "semi_auto" || value === "auto" ? "semi_auto" : "manual";
 }
 
+export function isWithdrawalProcessingAvailable(
+  mode: string | null | undefined,
+  nowPaymentsPayoutConfigured: boolean,
+): boolean {
+  return normalizeWithdrawalMode(mode) === "manual" || nowPaymentsPayoutConfigured;
+}
+
 export function isNowPaymentsVerificationCode(value: string): boolean {
   return /^\d{6}$/.test(value);
 }
